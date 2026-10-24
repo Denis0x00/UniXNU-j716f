@@ -38,6 +38,23 @@
 的 `/memory/reg` 为全零占位，均不能证明本次新窗口可用。下一阶段需取得当前
 引导链填充的实际 RAM 分区数据，结合原厂及现有 UEFI 保留范围，再发布更多空闲 RAM。
 
+### TWRP 运行时 RAM 证据已取得
+
+随后在 TWRP 3.7.1_12-0 / Linux 4.19.157-perf+ 的 root ADB 中只读取得 FDT、
+live device tree、`/proc/iomem` 和 dmesg。实际 RAM bank 为
+`[0x80000000, 0xBCC00000)` 与 `[0xC0000000, 0x200000000)`；live tree 与 FDT
+的内存及保留区属性一致。这是新的运行时采集，不是沿用旧 HyperOS 记录。
+
+交叉核对原厂固定 DTB、TWRP 固定保留区、iomem/CMA 和当前 V13 固件范围后，
+`[0xD0000000, 0xE8000000)`（384 MiB）可作为下一版 UEFI 的实验候选。
+当前内核对齐下的 256 MiB 试分配范围可为 `[0xD007C000, 0xE007C000)`。
+纯元数据见 `research/recovery-memory-20261024.json`。
+
+TWRP 使用 DTBO 10，原厂 ZUI 为 DTBO 8；这些证据还需独立 UEFI 分配和读写验证。
+本次未修改固件或刷写分区，也没有直接读取 SMEM RAM 分区表。下一步准备独立
+V14 内存窗口验证：保留现有固件区域，只新增有依据的有界范围，执行分配/读写/
+释放和停屏结果，先完成 UEFI 内存验证。
+
 V13 返回界面的 V12 标题来自沿用的 loader trace 库；该库查询 V12 报告 GUID，
 因此独立 V13 内存应用返回后显示 report not found。GetMemoryMap 已由照片验证，
 返回状态为 Success；后续版本将同步返回界面与内存探针报告格式。
