@@ -36,6 +36,11 @@ SHA256、检查结果写入 `source-build-report.json`，可与上游原始内�
 
 ## 结果
 
+2026-10-24 第二轮构建已全部通过：[Actions 40099467304](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40099467304)，
+测试配置提交为 `47a037efc95c655bfb249d275a80b140113ff53e`。最终链接、ARM64
+Mach-O executable 检查及三份静态库的非空检查均已通过。这证明该配置的源码
+编译成功；真实 J716F 内核预链接及启动尚未验证。
+
 Actions artifact 仅含文本日志和源码依赖报告，保留 7 天。编译成功会检查原生
 Mach-O 的 ARM64 架构，以及 libpthread、普通 corecrypto、命名空间隔离版
 corecrypto 的输出文件，并记录大小和 SHA256。
