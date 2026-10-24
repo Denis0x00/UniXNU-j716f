@@ -1,5 +1,7 @@
 # 下一轮：J716F ADT 与真实内核入口诊断
 
+V15 ADT与真实入口诊断已准备，见 [V15_ENTRY_DIAGNOSTIC.md](V15_ENTRY_DIAGNOSTIC.md)。
+
 V14 的内存窗口与返回报告已真机验证。最新结果见 [V14_MEMORY_WINDOW.md](V14_MEMORY_WINDOW.md)。
 以下 V13/TWRP 部分保留为前序记录；V14 已完成其后续条件中的单窗口分配、读写和释放验证。
 

@@ -1,0 +1,29 @@
+{
+  "phase": "J716F ADT and true XNU entry diagnostic V15",
+  "status": "prepared, built and host audited; device test pending",
+  "image_sha256": "bde9263f2655c432aebc072aa7ff5bf80a3a35f8c5015d55bfe6afd27c1f47ad",
+  "image_bytes": 8409088,
+  "adt_sha256": "b68fc49b2d9bb6b0a387e59a7816fd4848dffc3bde706a439cbbff3cbebb1aa7",
+  "adt_bytes": 10396,
+  "kernel_sha256": "236a9f8d5a184d74f7489fba2be1c9e8d4a1f06413eadac88819691cbd7c446b",
+  "host_parser_test": "PASS, real inputs accepted and five malformed inputs refused",
+  "source_pe_count": 32,
+  "vendor_pe_count": 0,
+  "fd_base": "0xce000000",
+  "fd_bytes": 7340032,
+  "uses_unchanged_V14_memory_map": true,
+  "payload_bytes": 67108864,
+  "kernel_entry_verified": false,
+  "exit_boot_services_verified": false,
+  "board_platform_drivers_compiled": false,
+  "kernel_args": "-v serial=0 debug=0x14e cpus=1 -no_slto_panic",
+  "scope": "source build qualification reused for entry/MMU/first-panic evidence; not a board-ready kernel",
+  "gates": [
+    "new 64 MiB read-only payload volume mounts and config is visible",
+    "DarwinBoot reads real kernel and ADT, and allocates its 256 MiB window despite larger heap use",
+    "ExitBootServices and DarwinEnter run (green band)",
+    "real XNU entry probe runs (blue band)",
+    "pre-MMU probe runs (magenta band)",
+    "first panic text or subsequent stage evidence captured"
+  ]
+}
