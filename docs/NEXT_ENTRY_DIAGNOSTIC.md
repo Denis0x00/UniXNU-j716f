@@ -21,11 +21,26 @@
   实际指令、空洞及修改范围检查通过。完整内核负载和真机启动仍未验证。
   纯元数据报告见 `research/offline-prelink-40100682659.json`；二进制只保存在本地。
 
-## 先完成 V13 内存勘测
+## V13 内存勘测结果
+
+2026-10-24，V13 已刷 boot_b 并取得摘要、三页内存图及 EFI_SUCCESS 返回照片。
+49 个描述符中仅 2 个 Conventional，最大空闲区从 `0xC0000000` 开始、大小为
+`0x0C180000`（193.5 MiB）；另一个仅 `0x6000` 字节。两者被 LoaderCode 隔开。
+因此当前内存图不能满足固定 DarwinBoot 的最低窗口。
+数字转录及静态容量分析见 `research/v13-memory-survey.json`。
 
 当前板级静态表仅声明 `0xC0000000 + 0x0E000000` 的 DXE 区域（224 MiB）；
 固定 DarwinBoot 默认窗口为 256 MiB，ADT 自定义窗口的最小值也是 256 MiB。
 实际可分配范围必须以真机 `GetMemoryMap` 为准。尚未指定内核物理窗口。
+
+当前预链接候选的内核基址余量为 `0x7c000`，也必须计入分配要求。
+旧 RAM bank / Linux unlabelled span 记录来自 HyperOS；同版本 ZUI 原厂静态 DTB
+的 `/memory/reg` 为全零占位，均不能证明本次新窗口可用。下一阶段需取得当前
+引导链填充的实际 RAM 分区数据，结合原厂及现有 UEFI 保留范围，再发布更多空闲 RAM。
+
+V13 返回界面的 V12 标题来自沿用的 loader trace 库；该库查询 V12 报告 GUID，
+因此独立 V13 内存应用返回后显示 report not found。GetMemoryMap 已由照片验证，
+返回状态为 Success；后续版本将同步返回界面与内存探针报告格式。
 
 V13 保持 V12 的固件内存描述、显示和按键基线。第一项启动外部 EFI，显示：
 
