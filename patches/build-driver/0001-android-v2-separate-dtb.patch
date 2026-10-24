@@ -1,0 +1,46 @@
+diff --git a/scripts/unixnu/bootimg.py b/scripts/unixnu/bootimg.py
+index d2aa766..c9fe27e 100644
+--- a/scripts/unixnu/bootimg.py
++++ b/scripts/unixnu/bootimg.py
+@@ -17,7 +17,7 @@ from .config import load_toml
+ from .util import Error, log, run, sha256_file, tool
+
+ DEFAULTS = {'header_version': 0, 'base': 0, 'kernel_offset': 0x8000, 'tags_offset': 0x1e00000, 'pagesize': 4096}
+-MKBOOTIMG_FLAGS = ('base', 'kernel_offset', 'tags_offset', 'pagesize', 'header_version', 'ramdisk_offset', 'second_offset', 'cmdline')
++MKBOOTIMG_FLAGS = ('base', 'kernel_offset', 'tags_offset', 'pagesize', 'header_version', 'ramdisk_offset', 'second_offset', 'dtb_offset', 'cmdline')
+
+
+ def compile_shim(uefi, base, size, requires_header, scratch):
+@@ -102,6 +102,12 @@ def build(ctx, uefi, fd, dtb, ramdisk=None, output=None):
+             ramdisk_path = scratch / 'ramdisk'
+             ramdisk_path.write_bytes(b'')
+         command = ['python3', mkbootimg, '--kernel', kernel_path, '--ramdisk', ramdisk_path, '-o', out]
++        if image['header_version'] == 2:
++            # Header v2 requires a separate DTB even when the kernel carries
++            # the same tree. Keep both copies identical for ABL selection.
++            dtb_path = scratch / 'header-v2.dtb'
++            dtb_path.write_bytes(tree)
++            command += ['--dtb', dtb_path]
+         for key in MKBOOTIMG_FLAGS:
+             if key in image:
+                 command += [f'--{key}', str(image[key])]
+@@ -129,5 +135,17 @@ def verify(path, combined, tree, ramdisk_path, image):
+     start = page * (1 + -(-kernel_size // page))
+     if data[start:start + ramdisk_size] != Path(ramdisk_path).read_bytes():
+         raise Error('ramdisk bytes differ')
+-    return {'kernel_sha256': hashlib.sha256(kernel).hexdigest(), 'ramdisk_bytes': ramdisk_size,
+-            'header_version': version, 'kernel_address': hex(kernel_address), 'tags_address': hex(tags)}
++    report = {'kernel_sha256': hashlib.sha256(kernel).hexdigest(), 'ramdisk_bytes': ramdisk_size,
++              'header_version': version, 'kernel_address': hex(kernel_address), 'tags_address': hex(tags)}
++    if version == 2:
++        if len(data) < 1660:
++            raise Error('truncated header v2')
++        recovery_size, recovery_offset, header_size, dtb_size, dtb_address = struct.unpack_from('<IQIIQ', data, 1632)
++        if recovery_size or recovery_offset or header_size != 1660:
++            raise Error('unexpected recovery DTBO or header v2 size')
++        dtb_start = start + page * -(-ramdisk_size // page)
++        expected_address = image['base'] + image.get('dtb_offset', 0x1f00000)
++        if dtb_size != len(tree) or dtb_address != expected_address or data[dtb_start:dtb_start + dtb_size] != tree:
++            raise Error('header v2 device tree or load address does not round-trip')
++        report.update(separate_dtb_bytes=dtb_size, separate_dtb_address=hex(dtb_address))
++    return report

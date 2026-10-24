@@ -1,0 +1,38 @@
+# Initial diagnostic firmware port; hardware validation is still pending.
+[board]
+example = false
+name = "j716f"
+soc = "SM8250"
+description = "Lenovo Xiaoxin Pad Pro 2021 TB-J716F UniXNU bring-up"
+kit = "j716f"
+
+# Candidate Apple payload identity copied from the UniXNU sheng reference.
+# This identifies the IPSW source only; it does not claim that J716F is an
+# Apple device or that this payload is already compatible with the board.
+[ipsw]
+product = "iPad7,1"
+version = "17.7.11"
+build = "21H461"
+device_class = "j120ap"
+chip_id = 0x8011
+board_id = 12
+fetch = ["KernelCache", "DeviceTree", "StaticTrustCache", "Cryptex1,SystemTrustCache"]
+
+[kernel]
+defconfig = "j716f_research_defconfig"
+
+[firmware]
+config = "j716f"
+dsc = "Platforms/Lenovo/j716fPkg/j716f.dsc"
+fd = "Build/j716fPkg/{target}_CLANGPDB/FV/SILICIUM_UEFI.fd"
+preflight = ["scripts/check-j716f.py"]
+patches = ["Resources/MuPatches/J716f-FaultFooter.patch"]
+packages = ["{uefi}", "{uefi}/Platforms/Lenovo", "{uefi}/Common/Mu", "{uefi}/Common/Mu_OEM_Sample", "{edk2}", "{uefi}/Silicon/Qualcomm", "{uefi}/Silicon/Silicium", "{tree}/package", "{tree}/drivers/DarwinBoot"]
+
+[firmware.defines]
+ENABLE_SECUREBOOT = 0
+
+# The IPSW section is a source candidate only. Firmware load addresses, the
+# XNU owned-memory window, payload size, userdata windows, kernelcache hash and
+# trust-cache hashes remain intentionally unset until J716F-specific data is
+# available.

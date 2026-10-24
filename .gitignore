@@ -1,0 +1,12 @@
+.cache/
+out/
+local.toml
+*.img
+*.bin
+*.dtb
+*.tar
+*.ipsw
+*.dmg
+*.pyc
+__pycache__/
+.DS_Store

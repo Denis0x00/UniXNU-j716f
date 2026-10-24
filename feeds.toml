@@ -1,0 +1,7 @@
+# Mu-Silicium 42fe5637 requires its recorded Basecore, explicitly overriding
+# the newer generic UniXNU default. Pass --edk2 for the offline local checkout.
+[[source]]
+name = "edk2"
+kind = "refer"
+git = "https://github.com/microsoft/mu_basecore.git"
+commit = "3c9c7b2e211e62d2a954ad760a36fe05adc43aa3"
