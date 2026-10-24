@@ -10,6 +10,7 @@ UniXNU 设备仓库草稿，用于联想小新 Pad Pro 2021（TB-J716F，`j716f`
 - J716F 的 Mu-Silicium UEFI 固件已经在本地 Ubuntu 环境编译并完成离线校验。
 - 真机已验证 UniXNU 菜单、音量键、电源键、RAM FAT / BlockIO / 文件系统路径。
 - 真机已验证官方 DarwinBoot v2 协议调用和无效负载拒绝路径。
+- V14 真机完成256 MiB窗口分配、两轮完整缓存维护后读回与释放，7/7 PASS；EFI_SUCCESS与匹配报告返回也已确认。见 [V14结果](docs/V14_MEMORY_WINDOW.md)。
 - 当前没有验证物理 UFS、真实 Apple DeviceTree、真实 XNU 内核入口、ExitBootServices、trust cache 或用户态。
 
 ## IPSW 候选

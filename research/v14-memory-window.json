@@ -1,0 +1,53 @@
+{
+  "phase": "V14 UEFI memory window qualification",
+  "date": "2026-10-24",
+  "image_sha256": "2fcd3f4ba1c8915378c5812906dee89d99e6f69229ac4c3b3c40876110ca9538",
+  "image_bytes": 1769472,
+  "device_memory_test_verified": true,
+  "menu_return_verified": true,
+  "observed": {
+    "el": 1,
+    "candidate_region_base": "0xd0000000",
+    "candidate_region_end_exclusive": "0xe8000000",
+    "window_base": "0xd007c000",
+    "window_end_exclusive": "0xe007c000",
+    "window_bytes": 268435456,
+    "checks": 7,
+    "passed": 7,
+    "failed": 0,
+    "verified_bytes_two_rounds": 536870912,
+    "allocation_passed": true,
+    "alignment_passed": true,
+    "round_1_readback_passed": true,
+    "round_2_inverted_readback_passed": true,
+    "free_pages_passed": true
+  },
+  "observed_return": {
+    "last_stage": "START IMAGE",
+    "status": "Success",
+    "code": "0x0000000000000000",
+    "efi_file_read_bytes": 25600,
+    "checks": 7,
+    "passed": 7,
+    "failed": 0,
+    "complete": 1,
+    "verified_bytes_two_rounds": 536870912
+  },
+  "host_audit": {
+    "source_pe_count": 32,
+    "vendor_pe_count": 0,
+    "apriori_verified": true,
+    "compressed_fd_fv_identity_verified": true,
+    "boot_header_version": 2,
+    "fat_efi_identity_verified": true
+  },
+  "original_v13_memory_map_sha256": "13e388ecf73e2caf4ae3e38890cf1ccac28194e26b415199e2bc5ed171ab14bb",
+  "v14_memory_map_sha256": "8f2c5c8b8dbece234eb385ae16067e0038215abc3933213a0355c63656a36f88",
+  "kernel_handoff_attempted": false,
+  "exit_boot_services_called": false,
+  "limits": [
+    "One 256 MiB window tested twice, not 512 MiB of distinct RAM.",
+    "The entire 384 MiB candidate and long-term RAM stability are not qualified.",
+    "No real XNU entry, physical UFS or iPadOS userspace evidence."
+  ]
+}
