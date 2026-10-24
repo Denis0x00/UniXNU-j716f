@@ -8,6 +8,8 @@ on:
       - '.github/workflows/xnu-source-macos.yml'
       - 'configs/j716f_source_defconfig'
       - 'scripts/build-j716f-source.py'
+      - 'scripts/source-artifact-transfer.py'
+      - 'ci/source-artifacts-public.pem'
       - 'patches/build-driver/0002-guard-optional-legacy-display-probe.patch'
       - 'board.toml'
 
@@ -136,5 +138,23 @@ jobs:
             echo 'Target: ARM64 / BCM2837 4 KiB / DEVELOPMENT / iOS 17 ABI.'
             echo 'Source dependencies: libpthread, corecrypto, libplatform, libdispatch and AvailabilityVersions.'
             echo 'This run performs source compilation only. It does not perform prelink or prove a J716F boot.'
-            echo 'Only text diagnostics are uploaded; native kernel and archive binaries stay on the ephemeral runner.'
+            echo 'Text diagnostics and an encrypted source-output bundle are uploaded. Only the local private key can decrypt the bundle.'
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Encrypt source outputs for local bring-up
+        run: |
+          set -euo pipefail
+          python3 -m pip install cryptography==46.0.6
+          python3 device/scripts/source-artifact-transfer.py seal \
+            --root unixnu/out/j716f/tree \
+            --report unixnu/out/j716f/logs/source-build-report.json \
+            --public-key device/ci/source-artifacts-public.pem \
+            --output private-transfer/j716f-source-only.enc
+
+      - name: Upload encrypted source outputs
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: j716f-source-encrypted-${{ github.run_id }}-${{ github.run_attempt }}
+          path: private-transfer/j716f-source-only.enc
+          if-no-files-found: error
+          retention-days: 3

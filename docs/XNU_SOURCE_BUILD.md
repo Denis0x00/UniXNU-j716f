@@ -41,13 +41,32 @@ SHA256、检查结果写入 `source-build-report.json`，可与上游原始内�
 Mach-O executable 检查及三份静态库的非空检查均已通过。这证明该配置的源码
 编译成功；真实 J716F 内核预链接及启动尚未验证。
 
-Actions artifact 仅含文本日志和源码依赖报告，保留 7 天。编译成功会检查原生
+前两轮 Actions artifact 仅含文本日志和源码依赖报告，保留 7 天。编译成功会检查原生
 Mach-O 的 ARM64 架构，以及 libpthread、普通 corecrypto、命名空间隔离版
 corecrypto 的输出文件，并记录大小和 SHA256。
 
-与官方 macOS workflow 一致，本轮不上传内核和静态库二进制；这些输出随临时
-runner 回收，不会自动下载到本地。后续准备真实负载时，需要另行安排私有产物
-交接，并补齐原始 kernelcache、预链接、J716F ADT 和 owned-memory window。
+前两轮未上传内核和静态库二进制，输出随临时 runner 回收。
+
+## 取回下一轮源码产物
+
+为继续本地入口调试，后续成功构建另外提供 `j716f-source-encrypted-<run>-<attempt>`
+artifact（保留 3 天），其中只有加密的 `j716f-source-only.enc`。包含经过构建报告
+校验的原生内核、三份静态库及报告，不含 IPSW、原始 Apple kernelcache 或厂商文件。
+
+`scripts/source-artifact-transfer.py` 使用 RSA-OAEP-SHA256 包装随机 AES-256-GCM
+密钥，密文及格式头均经认证。CI 只持有 `ci/source-artifacts-public.pem`；私钥在
+本地已忽略的 `.cache/artifact-keys/source-artifacts-private.pem`，必须保留，不能提交。
+下载并解开 GitHub artifact 外层 ZIP 后，在设备仓库运行：
+
+```sh
+python3 scripts/source-artifact-transfer.py open \
+  --private-key .cache/artifact-keys/source-artifacts-private.pem \
+  --input /path/to/j716f-source-only.enc --output /path/to/j716f-source-only.zip
+```
+
+解密时会校验四份产物的大小和 SHA256；已有输出拒绝覆盖。
+这些仍是源码构建产物，后续须准备原始 kernelcache、预链接、J716F ADT 和
+owned-memory window，才能构造真实内核负载。
 
 ## 官方依据
 
