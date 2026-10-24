@@ -68,6 +68,12 @@ python3 scripts/source-artifact-transfer.py open \
 这些仍是源码构建产物，后续须准备原始 kernelcache、预链接、J716F ADT 和
 owned-memory window，才能构造真实内核负载。
 
+2026-10-24，运行 `40100682659` 的加密产物已下载、本地解密并通过四份输出的
+大小与 SHA256 校验。与固定 Apple kernelcache 的离线预链接、入口/panic 探针生成
+及静态修改范围审计也已通过；具体纯元数据见
+`research/offline-prelink-40100682659.json`。这些产物没有 J716F ADT 或已验证的
+物理内存窗口，尚未组成可启动 boot 镜像。
+
 ## 官方依据
 
 - [构建内核](https://unixnu.com/zh/guide/build-kernel)

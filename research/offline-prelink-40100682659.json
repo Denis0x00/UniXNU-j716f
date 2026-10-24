@@ -1,0 +1,204 @@
+{
+  "phase": "offline-prelink-and-entry-probe",
+  "board": "j716f",
+  "actions_run": 40100682659,
+  "unixnu_commit": "245aca1a9ec5b730b1cad80fade295800d2981f1",
+  "sheng_reference_commit": "251b291adf941b9953fe3ae66a808b9b626e164d",
+  "source_build_report": {
+    "phase": "source-only",
+    "board": "j716f",
+    "defconfig": "j716f_source_defconfig",
+    "unixnu_commit": "245aca1a9ec5b730b1cad80fade295800d2981f1",
+    "device_commit": "4ea3c697e8fe1048a5e03eb633027a6e1dded7bb",
+    "source_fixes": [
+      {
+        "patch": "patches/build-driver/0002-guard-optional-legacy-display-probe.patch",
+        "sha256": "2c106010486f068e93f5892d5637c0ff75a4f08f9f4c4bacb51b0fc827480a5b",
+        "patched_source_sha256": "288ee8544fef056ebaf5da0d4740d0170788d3c14b6b3b78de140e7d966b8ecb",
+        "preprocessor_cases": {
+          "unset": {
+            "provider_referenced": false
+          },
+          "0": {
+            "provider_referenced": false
+          },
+          "1": {
+            "provider_referenced": true
+          }
+        }
+      }
+    ],
+    "status": "compiled",
+    "prelink_performed": false,
+    "hardware_boot_validated": false,
+    "ipsw_required": false,
+    "artifacts": [
+      {
+        "path": "build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/mach.development.bcm2837.unstripped.noctf",
+        "bytes": 19269576,
+        "sha256": "0d8c8cdd22607182578cc4cdfa4aaacb9684ae56f1aaf2385fae5eb532f1162c"
+      },
+      {
+        "path": "build/libpthread-kernel/libpthread_kernel.a",
+        "bytes": 57904,
+        "sha256": "505dcc3dfb444fc51ef3c9f7f031f4ad0bb3b62888ae5c7f0308b70f7a7b57c1"
+      },
+      {
+        "path": "build/corecrypto-2023/libcorecrypto_kernel_noasm.a",
+        "bytes": 934472,
+        "sha256": "86741ea2e889dbb284ee142feae1348c97dbfe045761fc9be0633a5e8eb033c3"
+      },
+      {
+        "path": "build/corecrypto-2023/libcorecrypto_kernel_noasm-namespaced.a",
+        "bytes": 937352,
+        "sha256": "fe6197077b3d87b7591b589f955f31944beb58903a9be17190985c9a126839fb"
+      }
+    ],
+    "references": {
+      "xnu": "d8b80295118ef25ac3a784134bcf95cd8e88109f",
+      "libplatform": "a00a4cc36da2110578bcf3b8eeeeb93dcc7f4e11",
+      "libdispatch": "30fe6a7d945340ce69cef121132f049e810089a5",
+      "AvailabilityVersions": "933f9360f1b70dfbda5548386a3d65e0358b4f7d",
+      "libpthread": "c0e60fb5ecfc54cf379c261d3f9572cc22ded891",
+      "corecrypto-2023": "11fba65b12d8830630e248dfa8344caf8b065f26",
+      "IOStorageFamily": "e45fbe30a7879e0b16e26dddb78538f1b00e0bff"
+    }
+  },
+  "component_selection_reference": "UniXNU-sheng/board.toml [kernel.prelink]; not a qualified J716F driver set",
+  "roots": [
+    "com.apple.AppleFSCompression.AppleFSCompressionTypeZlib",
+    "com.apple.driver.AppleARMPlatform",
+    "com.apple.driver.AppleARMWatchdogTimer",
+    "com.apple.driver.AppleAudioClockLibs",
+    "com.apple.driver.AppleEffaceableStorage",
+    "com.apple.driver.AppleIISController",
+    "com.apple.driver.AppleM2ScalerCSCDriver",
+    "com.apple.driver.AppleMobileFileIntegrity",
+    "com.apple.driver.ApplePMGR",
+    "com.apple.driver.IODARTFamily",
+    "com.apple.filesystems.apfs",
+    "com.apple.iokit.CoreAnalyticsFamily",
+    "com.apple.iokit.IOAVFamily",
+    "com.apple.iokit.IOAudio2Family",
+    "com.apple.iokit.IOCECFamily",
+    "com.apple.iokit.IOCryptoAcceleratorFamily",
+    "com.apple.iokit.IOGPUFamily",
+    "com.apple.iokit.IOHDCPFamily",
+    "com.apple.iokit.IOMobileGraphicsFamily",
+    "com.apple.iokit.IOReportFamily",
+    "com.apple.iokit.IOSlowAdaptiveClockingFamily",
+    "com.apple.iokit.IOStorageFamily",
+    "com.apple.iokit.IOSurface",
+    "com.apple.kec.Libm",
+    "com.apple.kec.corecrypto",
+    "com.apple.kext.AppleMatch",
+    "com.apple.kext.CoreTrust",
+    "com.apple.security.AppleImage4",
+    "com.apple.security.sandbox",
+    "com.apple.iokit.IOHIDFamily",
+    "com.apple.iokit.IOHIDEventDriver"
+  ],
+  "slide": "-0x1000000",
+  "original_kernelcache_sha256": "f18b4df865405f2a287b84977d7aca745e056d656d9fc9df1662970ce2969de7",
+  "components": [
+    "com.apple.AppleFSCompression.AppleFSCompressionTypeZlib",
+    "com.apple.driver.AppleARMPlatform",
+    "com.apple.driver.AppleARMWatchdogTimer",
+    "com.apple.driver.AppleAudioClockLibs",
+    "com.apple.driver.AppleEffaceableStorage",
+    "com.apple.driver.AppleIISController",
+    "com.apple.driver.AppleM2ScalerCSCDriver",
+    "com.apple.driver.AppleMobileFileIntegrity",
+    "com.apple.driver.ApplePMGR",
+    "com.apple.driver.IODARTFamily",
+    "com.apple.filesystems.apfs",
+    "com.apple.iokit.CoreAnalyticsFamily",
+    "com.apple.iokit.IOAVFamily",
+    "com.apple.iokit.IOAudio2Family",
+    "com.apple.iokit.IOCECFamily",
+    "com.apple.iokit.IOCryptoAcceleratorFamily",
+    "com.apple.iokit.IOGPUFamily",
+    "com.apple.iokit.IOHDCPFamily",
+    "com.apple.iokit.IOHIDFamily",
+    "com.apple.iokit.IOMobileGraphicsFamily",
+    "com.apple.iokit.IOReportFamily",
+    "com.apple.iokit.IOSlowAdaptiveClockingFamily",
+    "com.apple.iokit.IOStorageFamily",
+    "com.apple.iokit.IOSurface",
+    "com.apple.kec.Libm",
+    "com.apple.kec.corecrypto",
+    "com.apple.kext.AppleMatch",
+    "com.apple.kext.CoreTrust",
+    "com.apple.security.AppleImage4",
+    "com.apple.security.sandbox"
+  ],
+  "codeless_components": [
+    "com.apple.iokit.IOHIDEventDriver"
+  ],
+  "kernel_interfaces": [
+    "com.apple.kpi.bsd",
+    "com.apple.kpi.dsep",
+    "com.apple.kpi.iokit",
+    "com.apple.kpi.libkern",
+    "com.apple.kpi.mach",
+    "com.apple.kpi.private",
+    "com.apple.kpi.unsupported"
+  ],
+  "pointer_counts": {
+    "kernel": 42532,
+    "component": 26762
+  },
+  "pc_relative_encodings_preserved": 260779,
+  "early_security_initializers": {
+    "com.apple.driver.AppleMobileFileIntegrity": "0xfffffff004ab4ae0"
+  },
+  "audit": {
+    "status": "offline-structure-and-patch-audit-passed",
+    "prelinked_sha256": "cab8f385a44d21fc6f455cb501227452212ba44d34a9fa03d04fcf7e85324214",
+    "probe_sha256": "236a9f8d5a184d74f7489fba2be1c9e8d4a1f06413eadac88819691cbd7c446b",
+    "bytes": 52113408,
+    "mapped_base": "0xfffffff00427c000",
+    "mapped_end": "0xfffffff0083b2000",
+    "mapped_span_bytes": 68378624,
+    "entry_va": "0xfffffff0073fc488",
+    "mmu_enable_va": "0xfffffff0073fe374",
+    "probe_cave": [
+      "0xfffffff0073fc500",
+      "0xfffffff0073fcff0"
+    ],
+    "symbols": {
+      "_start_first_cpu": "0xfffffff0073fe05c",
+      "_panic": "0xfffffff0079ac5f8",
+      "_panic_trap_to_debugger": "0xfffffff007281520",
+      "_vinfo": "0xfffffff007aea970",
+      "_max_mem": "0xfffffff007aec270",
+      "_vm_page_pages": "0xfffffff007aea71c",
+      "_vm_page_free_count": "0xfffffff007aea6f8"
+    },
+    "darwinboot_parse_constraints_checked": true,
+    "probe_changes_confined_to_verified_sites": true,
+    "reset_probe_present": false,
+    "hardware_boot_validated": false,
+    "j716f_adt_ready": false,
+    "physical_window_qualified": false
+  },
+  "probe_arguments": [
+    "--panic-screen",
+    "--no-reset"
+  ],
+  "tool_sha256": {
+    "UniXNU\\kits\\NativePrelink\\native_prelink.py": "a2da7ea8a4431f6c26418ecab9be718c0fbd2f0aa2334ba8d32c2270d2ac81dc",
+    "UniXNU\\kits\\NativePrelink\\emit_prelink.py": "fdbfecbb1dbd25d2cc9c693111e07b6081f17bd3a6b0a0934d4191bc08162311",
+    "UniXNU-sheng\\scripts\\patch-xnu-entry-probe.py": "648447292ae7e85be751ff608a934dea2d3efebcdb88176f8045e829ebd6eca2",
+    "UniXNU-sheng\\scripts\\xnu-panic-screen.c": "1cae38a51c7b0df2a96da7e0a4d3ebcf9e849386e711010b4847597cd0d52af8"
+  },
+  "runtime_qualified": false,
+  "loadable": false,
+  "limitations": [
+    "Source qualification configuration disables board platform/CPU/storage/display drivers",
+    "J716F ADT not ready",
+    "Physical memory window not qualified",
+    "No boot image generated from this kernel",
+    "No real kernel entry or ExitBootServices validated"
+  ]
+}
