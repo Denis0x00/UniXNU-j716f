@@ -1,0 +1,139 @@
+name: J716F XNU source build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/xnu-source-macos.yml'
+      - 'configs/j716f_source_defconfig'
+      - 'scripts/build-j716f-source.py'
+      - 'board.toml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: j716f-xnu-source-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  HOMEBREW_NO_AUTO_UPDATE: 1
+  HOMEBREW_NO_INSTALL_CLEANUP: 1
+  HOMEBREW_NO_ENV_HINTS: 1
+  DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+
+jobs:
+  source:
+    runs-on: macos-26
+    timeout-minutes: 360
+    steps:
+      - name: Check out the J716F configuration
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          path: device
+
+      - name: Check out the pinned official UniXNU build driver
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: UniXNU/UniXNU
+          ref: 245aca1a9ec5b730b1cad80fade295800d2981f1
+          persist-credentials: false
+          path: unixnu
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+
+      - name: Install host tools
+        run: |
+          set -euo pipefail
+          test -d "$DEVELOPER_DIR"
+          brew install llvm lld
+          if ! command -v unifdef >/dev/null; then
+            brew install unifdef
+            echo "$(brew --prefix unifdef)/bin" >> "$GITHUB_PATH"
+          fi
+
+      - name: Report toolchain
+        run: |
+          set -euo pipefail
+          mkdir -p unixnu/out/j716f/logs
+          {
+            sw_vers
+            uname -m
+            xcodebuild -version
+            xcrun --sdk iphoneos --show-sdk-version
+            xcrun --sdk iphoneos --find mig
+            clang --version
+            python3 --version
+            git -C unixnu rev-parse HEAD
+            git -C device rev-parse HEAD
+            df -h "$GITHUB_WORKSPACE"
+          } | tee unixnu/out/j716f/logs/toolchain.log
+          for tool in git make clang cmake ninja unifdef xcodebuild; do
+            command -v "$tool"
+          done
+
+      - name: Build source XNU, pthread and corecrypto
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 device/scripts/build-j716f-source.py \
+            --unixnu "$GITHUB_WORKSPACE/unixnu" \
+            --device "$GITHUB_WORKSPACE/device" --jobs 3 \
+            2>&1 | tee unixnu/out/j716f/logs/source-driver.log
+
+      - name: Stage text logs and reports
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import shutil
+          from pathlib import Path
+          root = Path('unixnu/out/j716f')
+          target = Path('public-logs')
+          target.mkdir(exist_ok=True)
+          candidates = list((root / 'logs').glob('*'))
+          # Only the following source archive diagnostics are added. No binary,
+          # IPSW, kernelcache, payload or full build directory is uploaded.
+          for folder in ('corecrypto-2023', 'libpthread-kernel'):
+              build = root / 'tree/build' / folder
+              candidates.extend(build.glob('*.json'))
+              candidates.extend(build.rglob('*.log'))
+          for path in candidates:
+              if not path.is_file() or path.suffix not in ('.log', '.json'):
+                  continue
+              data = path.read_bytes()
+              if b'\0' in data:
+                  continue
+              name = '__'.join(path.relative_to(root).parts)
+              (target / name).write_text(data.decode('utf-8', 'replace'))
+          PY
+
+      - name: Upload text diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: j716f-xnu-source-logs-${{ github.run_id }}-${{ github.run_attempt }}
+          path: public-logs/
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo '## J716F XNU source build'
+            echo
+            echo 'Target: ARM64 / BCM2837 4 KiB / DEVELOPMENT / iOS 17 ABI.'
+            echo 'Source dependencies: libpthread, corecrypto, libplatform, libdispatch and AvailabilityVersions.'
+            echo 'This run performs source compilation only. It does not perform prelink or prove a J716F boot.'
+            echo 'Only text diagnostics are uploaded; native kernel and archive binaries stay on the ephemeral runner.'
+          } >> "$GITHUB_STEP_SUMMARY"

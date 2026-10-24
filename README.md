@@ -33,6 +33,10 @@ scripts/darwinboot-source-lock.json DarwinBoot 源码固定提交
 
 ## 本地构建前提
 
+首轮 XNU 编译使用独立的 [macOS Actions 流程](docs/XNU_SOURCE_BUILD.md)
+和 `j716f_source_defconfig`。它只验证源码及依赖编译，尚不生成可启动的 J716F
+预链接内核。原 `j716f_research_defconfig` 仍是历史研究草案。
+
 固件预检需要一个本地私有链接：
 
 ```text

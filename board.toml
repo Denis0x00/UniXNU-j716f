@@ -20,6 +20,13 @@ fetch = ["KernelCache", "DeviceTree", "StaticTrustCache", "Cryptex1,SystemTrustC
 
 [kernel]
 defconfig = "j716f_research_defconfig"
+# Build-driver paths are relative to the assembled scripts/ directory.
+# These archives are used by j716f_source_defconfig's compile-only CI.
+archives = [
+  "build-libpthread-kernel.py",
+  "build-corecrypto-14.py",
+  "build-corecrypto-14.py --namespace",
+]
 
 [firmware]
 config = "j716f"
