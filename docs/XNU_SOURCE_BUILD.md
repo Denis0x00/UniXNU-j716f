@@ -19,6 +19,21 @@ J716F 配置尚无合格的 `[kernel.prelink]`，因此不能把整个命令成�
 corecrypto 使用官方 feeds 指定的第三方源码快照；其来源和编译审计由上游
 builder 的文本报告记录。编译不代表其运行时自检已通过。
 
+## 固定版本的兼容修复
+
+首轮最终链接缺少 `_native_legacy_display_probe`：上游
+`offline-component-load-probes.patch` 的一处调用未受显示驱动开关控制。
+本仓库的 `patches/build-driver/0002-guard-optional-legacy-display-probe.patch`
+为这处调用补上 `XNU_NATIVE_LEGACY_DISPLAY` 条件，并修正原补丁的 hunk 行数。
+构建入口在固定的官方 checkout 上应用此修复，不改变固定提交号。
+
+完整编译前，使用 Clang 对实际补丁中的 C 代码进行预处理检查：宏未定义或为
+0 时不得引用显示 provider，为 1 时必须保留引用。修复补丁及修改后的源码补丁
+SHA256、检查结果写入 `source-build-report.json`，可与上游原始内容区分。
+
+首轮 bootstrap pass 缺少 corecrypto 入口是预期的中间状态：该阶段先生成依赖
+编译记录，随后构建 libpthread/corecrypto 并重新链接；最终链接不应再缺少它。
+
 ## 结果
 
 Actions artifact 仅含文本日志和源码依赖报告，保留 7 天。编译成功会检查原生

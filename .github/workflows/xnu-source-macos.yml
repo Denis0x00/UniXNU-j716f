@@ -8,6 +8,7 @@ on:
       - '.github/workflows/xnu-source-macos.yml'
       - 'configs/j716f_source_defconfig'
       - 'scripts/build-j716f-source.py'
+      - 'patches/build-driver/0002-guard-optional-legacy-display-probe.patch'
       - 'board.toml'
 
 permissions:
