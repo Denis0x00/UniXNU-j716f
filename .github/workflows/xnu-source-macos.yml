@@ -152,13 +152,21 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check --no-input cryptography==46.0.6
-          python3 - <<'PY'
+          reports="$(find unixnu/out/j716f -type f -path '*/logs/source-build-report.json' -print)"
+          test -n "$reports"
+          test "$(printf '%s\n' "$reports" | wc -l | tr -d ' ')" -eq 1
+          report="$reports"
+          root="${report%/logs/source-build-report.json}/tree"
+          echo "transfer: report = $report"
+          echo "transfer: root = $root"
+          SOURCE_TREE="$root" SOURCE_REPORT="$report" python3 - <<'PY'
           import json
+          import os
           from pathlib import Path
           from cryptography.hazmat.primitives import serialization
 
-          root = Path('unixnu/out/j716f/tree')
-          report_path = Path('unixnu/out/j716f/logs/source-build-report.json')
+          root = Path(os.environ['SOURCE_TREE'])
+          report_path = Path(os.environ['SOURCE_REPORT'])
           key_path = Path('device/ci/source-artifacts-public.pem')
           report = json.loads(report_path.read_text())
           print('transfer: cryptography import ok')
@@ -173,9 +181,9 @@ jobs:
           print('transfer: public key type =', type(key).__name__,
                 'bits =', key.key_size)
           PY
-          python3 device/scripts/source-artifact-transfer.py seal \
-            --root unixnu/out/j716f/tree \
-            --report unixnu/out/j716f/logs/source-build-report.json \
+          SOURCE_TREE="$root" SOURCE_REPORT="$report" python3 device/scripts/source-artifact-transfer.py seal \
+            --root "$root" \
+            --report "$report" \
             --public-key device/ci/source-artifacts-public.pem \
             --output private-transfer/j716f-source-only.enc
 
