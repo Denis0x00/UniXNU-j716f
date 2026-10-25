@@ -23,7 +23,20 @@ V17 的配置位于 `board.toml` 的 `[payload]`：`panic_screen = true`、
 - kernel SHA-256：`28f56efd3b7266ef6b51e3998f2fb9fb03692a8c37a0cad44b727f05470068cc`
 
 校验确认 V16 的绿色、蓝色和品红色入口探针仍在，新增的 stage 3 代码位于
-MMU 开启后的保留空洞，并等待 6 秒后调用 PSCI 复位。硬件结果仍为空。
+MMU 开启后的保留空洞，并等待 6 秒后调用 PSCI 复位。
+
+## V17 真机结果
+
+2026-10-25，设备 `HA1Q9SKY` 只刷写 `boot_b`。等待一段时间后设备自动复位，
+随后重新进入 UniXNU 菜单并再次显示绿色、蓝色和品红色阶段条。这个结果证明：
+
+1. V16 已确认的 `ExitBootServices`、MMU-off 入口和 pre-MMU 探针仍然执行；
+2. V17 的 stage 3 等待循环结束并执行 PSCI `SYSTEM_RESET`；
+3. 复位后的 ABL/UEFI 链路仍能重新启动 UniXNU。
+
+这次测试没有证明 MMU 开启后能继续进入 `ArmCpu`、`ArmDTPlatform`、UFS、root
+或用户态，因为诊断探针在 MMU 开启后主动复位。操作明细保存在本机
+`D:\TB-J716F\Firmware\v17-flash-operation.json`，不上传仓库。
 
 ## 真机约束
 
