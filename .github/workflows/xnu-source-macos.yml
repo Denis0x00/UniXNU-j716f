@@ -151,7 +151,28 @@ jobs:
       - name: Encrypt source outputs for local bring-up
         run: |
           set -euo pipefail
-          python3 -m pip install cryptography==46.0.6
+          python3 -m pip install --disable-pip-version-check --no-input cryptography==46.0.6
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from cryptography.hazmat.primitives import serialization
+
+          root = Path('unixnu/out/j716f/tree')
+          report_path = Path('unixnu/out/j716f/logs/source-build-report.json')
+          key_path = Path('device/ci/source-artifacts-public.pem')
+          report = json.loads(report_path.read_text())
+          print('transfer: cryptography import ok')
+          print('transfer: report status =', report.get('status'))
+          print('transfer: prelink performed =', report.get('prelink_performed'))
+          print('transfer: manifest entries =', len(report.get('artifacts', [])))
+          for entry in report.get('artifacts', []):
+              path = root / entry['path']
+              print('transfer: output', entry['path'], 'bytes=', path.stat().st_size,
+                    'reported=', entry['bytes'])
+          key = serialization.load_pem_public_key(key_path.read_bytes())
+          print('transfer: public key type =', type(key).__name__,
+                'bits =', key.key_size)
+          PY
           python3 device/scripts/source-artifact-transfer.py seal \
             --root unixnu/out/j716f/tree \
             --report unixnu/out/j716f/logs/source-build-report.json \
