@@ -26,11 +26,13 @@ and [bring-up order](https://unixnu.com/zh/porting/bring-up) before changing thi
 
 ## Current checkpoint
 
-See `docs/V21_RESET_DIAGNOSTICS.md` and `research/v21-reset-diagnostics.json`.
-V21 menu rendering and PMIC baseline `0x02000001` are device-observed; a V21
-XNU attempt is still pending. Keep the earlier V16/V17 entry observations
-distinct from current V21 evidence. `board.toml` retains the V17 timed-reset
-payload settings and does not reproduce the local V21 image by itself.
+See `docs/V22_POST_MMU_CHECKPOINT.md` and `research/v22-checkpoint-preparation.json`.
+V21 video confirms its own green/blue/magenta entry bands and a restart through
+the Lenovo logo; startup PMIC changes from `0x02000001` to `0x02000041`. The reset
+cause and sustained MMU-on execution remain unverified. V22A (1s) and V22B (3s)
+passed host builds and artifact audits but have not been flashed. Keep version
+evidence distinct. `board.toml` retains the historical V17 recipe; V22 uses
+`scripts/build-v22-payload.py` and the independent firmware V22 DSC/FDF.
 
 ## Commands
 

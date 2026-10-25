@@ -27,10 +27,13 @@ SM8250/Kona) 的 UniXNU 设备仓库。当前仍是 research / bring-up port，�
 - V18 改为 WFE 停点后仍复位，具体来源尚未确定。
 - V19/V20 增加复位诊断；V21 已构建、校验、刷入 `boot_b` 并进入放大菜单，
   照片确认 `PMIC RESET: 0x02000001`。这是当前启动的历史基线，尚不能据此归因复位。
-- V21 的 XNU 启动尝试仍待观察；持续 MMU-on 执行、原生平台驱动、物理 UFS/root、
+- V21 录像确认入口三色条及 Lenovo Logo 再现；PMIC 变为 `0x02000041`，复位来源未知。
+- V22A（1 秒）／V22B（3 秒）镜像已构建并通过主机审计，尚未刷写。持续 MMU-on、原生平台驱动、物理 UFS/root、
   trust cache、userdata 和用户态均未验证，未启动 iPadOS。
 
-最新汇总：[V21 复位诊断与真机基线](docs/V21_RESET_DIAGNOSTICS.md)，
+最新汇总：[V22 MMU 后检查点](docs/V22_POST_MMU_CHECKPOINT.md)，
+[V22 元数据](research/v22-checkpoint-preparation.json)，
+[V21 复位诊断](docs/V21_RESET_DIAGNOSTICS.md)，
 [公开验证元数据](research/v21-reset-diagnostics.json)，
 [配套固件仓库](https://github.com/Denis0x00/uefi-j716f)。
 

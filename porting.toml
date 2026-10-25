@@ -30,14 +30,14 @@ revision = "f82228a9e166603d6a8b522bf0214db3379fad0d"
 id = "firmware"
 status = "device-verified"
 components = []
-paths = ["proprietary-files.txt", "scripts/check-j716f.py", "docs/V14_MEMORY_WINDOW.md", "docs/V15_ENTRY_DIAGNOSTIC.md", "docs/V16_SOURCE_ENTRY_RESULT.md", "docs/V17_POST_MMU_PLAN.md", "docs/V18_POST_MMU_CHECKPOINT.md", "docs/V21_RESET_DIAGNOSTICS.md"]
+paths = ["proprietary-files.txt", "scripts/check-j716f.py", "docs/V14_MEMORY_WINDOW.md", "docs/V15_ENTRY_DIAGNOSTIC.md", "docs/V16_SOURCE_ENTRY_RESULT.md", "docs/V17_POST_MMU_PLAN.md", "docs/V18_POST_MMU_CHECKPOINT.md", "docs/V21_RESET_DIAGNOSTICS.md", "docs/V22_POST_MMU_CHECKPOINT.md"]
 inputs = ["Mu-Silicium J716F platform, inherited GOP, fixed ZUI memory map, and the board UEFI DSC/FDF."]
 configuration = ["The device board points to the j716f DSC/FD and keeps vendor inputs outside the public repository."]
 procedure = ["Build the diagnostic FD with the local UEFI checkout, audit its inputs, then boot only through boot_b for hardware checks."]
-findings = ["V14 reached the UniXNU menu and exercised the documented button and DarwinBoot protocol paths.", "V16 on boot_b displayed the green ExitBootServices bar, the blue MMU-off XNU entry probe and the magenta pre-MMU-enable probe; the screen also showed the normal CapsuleRuntimeDxe LockCapsuleInterface callback.", "V17 on boot_b waited through the post-MMU probe, executed PSCI reset, and returned to the UniXNU menu with the same three entry bars.", "V18 displayed the same three bars but later reset back to UniXNU despite replacing stage 3 with a WFE loop; the external reset/watchdog source is unresolved.", "V19/V20 added read-only reset diagnostics. V20 photographs showed the DarwinBoot pre-ExitBootServices message and a later menu, but no readable PMIC value.", "V21 was built and host-audited, flashed only to boot_b and rebooted. A photograph confirms its large-text V21 menu and PMIC RESET: 0x02000001; the V21 XNU attempt remains unobserved."]
+findings = ["V14 reached the UniXNU menu and exercised the documented button and DarwinBoot protocol paths.", "V16 on boot_b displayed the green ExitBootServices bar, the blue MMU-off XNU entry probe and the magenta pre-MMU-enable probe; the screen also showed the normal CapsuleRuntimeDxe LockCapsuleInterface callback.", "V17 on boot_b waited through the post-MMU probe, executed PSCI reset, and returned to the UniXNU menu with the same three entry bars.", "V18 displayed the same three bars but later reset back to UniXNU despite replacing stage 3 with a WFE loop; the external reset/watchdog source is unresolved.", "V19/V20 added read-only reset diagnostics. V20 photographs showed the DarwinBoot pre-ExitBootServices message and a later menu, but no readable PMIC value.", "V21 continuous video confirms its own green/blue/magenta bands and restart through a Lenovo logo; V22A/1s and V22B/3s have passed host builds and final-image audits but have not been flashed."]
 completion = ["The FD enters UniXNU, preserves the documented memory reservations, and exposes the framebuffer for the menu."]
 limits = ["MMU-on persistence, ArmCpu/ArmDTPlatform initialization, UFS/root, userspace and iPadOS remain unverified; TzDxe is out of scope."]
-next_action = ["Record a V21 XNU attempt, final text/color bars and any Lenovo logo reappearance; use the PMIC sample as historical baseline without assigning a reset cause."]
+next_action = ["Test V22A and V22B separately on boot_b; record matching menu title, band-to-black time, Lenovo logo and startup PMIC."]
 
 [[area.evidence]]
 kind = "device"
@@ -53,6 +53,14 @@ reference = "research/v21-reset-diagnostics.json"
 result = "V21 boot_b menu photograph confirms readable enlarged text and PMIC 0x02000001; XNU attempt and reset attribution remain pending."
 command = "fastboot flash boot_b <V21_BOOT_IMAGE>; fastboot reboot; observe the V21 menu."
 revision = "2c13d875f8b3d38414f61443dc44b9b9559dfcb7"
+
+
+[[area.evidence]]
+kind = "host"
+reference = "research/v22-checkpoint-preparation.json"
+result = "V22A and V22B firmware builds and final image audits passed; their kernels differ only in the 1s/3s timer literal. Hardware testing is pending."
+command = "python3 scripts/build-v22-payload.py --help; build the selected V22 firmware profile; run the recorded local image audit."
+revision = "a325b2a928707cc618730ee2a0c0a1bac7ed8db2"
 
 [[area]]
 id = "cpu"
@@ -76,7 +84,7 @@ paths = ["dts/**", "socs/sm8250/dts/**", "research/**", "docs/V14_MEMORY_WINDOW.
 inputs = ["Two firmware RAM banks, a 5 GiB primary contiguous bank, reserved ranges, and the qualified 256 MiB DarwinBoot window."]
 configuration = ["The board DTS records the primary 0xc0000000/0x140000000 bank; the diagnostic payload separately requests 0x10000000 owned bytes."]
 procedure = ["Audit the memory map on the host, then allocate, cache-maintain, read back and release the V14 window on boot_b."]
-findings = ["The V14 256 MiB physical window passed seven checks, including two complete write/read rounds with cache maintenance and release; this does not validate full DRAM ownership.", "V21 host audit confirms the same embedded FAT payload and module GUID set as V20; this does not add a new RAM qualification result."]
+findings = ["The V14 256 MiB physical window passed seven checks, including two complete write/read rounds with cache maintenance and release; this does not validate full DRAM ownership.", "V21 host audit confirms the same embedded FAT payload and module GUID set as V20; this does not add a new RAM qualification result.", "V22 retains the actual V21 ADT, memory map and 256 MiB request. Its host image audits add no new device RAM qualification."]
 completion = ["Handoff regions do not overlap and the requested DarwinBoot window is allocated, coherently accessed and released."]
 limits = ["The V15 larger FAT payload and runtime initrd allocation still need a device observation."]
 next_action = ["Repeat the memory check with V15 while recording the initrd range and final owned-memory result."]
@@ -106,11 +114,11 @@ evidence = []
 id = "display"
 status = "device-verified"
 components = []
-paths = ["dts/**", "README.md", "docs/V15_ENTRY_DIAGNOSTIC.md", "docs/V21_RESET_DIAGNOSTICS.md"]
+paths = ["dts/**", "README.md", "docs/V15_ENTRY_DIAGNOSTIC.md", "docs/V21_RESET_DIAGNOSTICS.md", "docs/V22_POST_MMU_CHECKPOINT.md"]
 inputs = ["Inherited GOP at 2560x1600 with 10240 bytes per row and 32-bit pixels."]
 configuration = ["The UEFI platform keeps the inherited framebuffer and the board DTS does not invent a panel controller."]
 procedure = ["Enter the menu through boot_b, observe the framebuffer geometry, and preserve the last screen on a returned diagnostic path."]
-findings = ["The menu and diagnostic screens rendered on the device; panel, backlight and native display driver adaptation are not complete.", "V21 device photography confirms the scale-4 menu with hidden logo and readable PMIC summary. The active framebuffer log font was changed from scale 3 to 5, but its device effect has not yet been observed."]
+findings = ["The menu and diagnostic screens rendered on the device; panel, backlight and native display driver adaptation are not complete.", "V21 video shows the entry bands over retained menu pixels. V22 preserves enlarged menus and uses distinct V22A/1s and V22B/3s payload titles; both are still awaiting device observation."]
 completion = ["A known frame has the measured geometry and format, followed by a native display provider and backlight result."]
 limits = ["Only GOP/menu output is verified; native display and backlight remain pending."]
 next_action = ["Capture the V21 DarwinBoot/entry screen and then identify panel/backlight resources from the vendor DT."]
@@ -196,14 +204,14 @@ evidence = []
 id = "power"
 status = "planned"
 components = []
-paths = ["dts/**", "proprietary-files.txt", "README.md", "docs/V21_RESET_DIAGNOSTICS.md"]
+paths = ["dts/**", "proprietary-files.txt", "README.md", "docs/V21_RESET_DIAGNOSTICS.md", "docs/V22_POST_MMU_CHECKPOINT.md"]
 inputs = ["Regulators, clocks, battery units and firmware ownership are not yet modeled."]
 configuration = ["The port keeps vendor power initialization in UEFI and declares no XNU power component."]
 procedure = ["Document regulators and power domains, then validate battery readings and a controlled sleep/resume cycle."]
-findings = ["No sleep/resume or battery result has been obtained from the diagnostic image.", "The V20/V21 UEFI diagnostic provider reads PMIC history without clearing it. V21 displays 0x02000001; bit semantics and reset cause remain unclassified, and this does not validate an XNU power driver."]
+findings = ["No sleep/resume or battery result has been obtained from the diagnostic image.", "The V20/V21 UEFI diagnostic provider reads PMIC history without clearing it. V21 displays 0x02000001; bit semantics and reset cause remain unclassified, and this does not validate an XNU power driver.", "V21 video establishes PMIC 0x02000001 before an attempt and 0x02000041 after the Lenovo-logo restart. Only PON bit 0x40 changed; its meaning and the reset source remain unclassified. V22 requests bounded PSCI reset through the shared entry probe, with device behavior still pending."]
 completion = ["Power readings and supported sleep/resume transitions restore dependent peripherals."]
 limits = ["Power resources and low-power ownership remain unknown."]
-next_action = ["Inventory PMIC and battery resources before adding a power component."]
+next_action = ["Record both V22 timings and PMIC snapshots; verify the PMIC subtype/register semantics before assigning a cause to bit 0x40."]
 
 
 [[area.evidence]]
@@ -217,14 +225,14 @@ revision = "2c13d875f8b3d38414f61443dc44b9b9559dfcb7"
 id = "packaging"
 status = "host-verified"
 components = ["XnuPrelink", "DarwinBoot"]
-paths = ["board.toml", "dts/**", "patches/**", "scripts/**", "package/**", "docs/V15_ENTRY_DIAGNOSTIC.md", "docs/V16_SOURCE_ENTRY_RESULT.md", "docs/V17_POST_MMU_PLAN.md", "docs/V18_POST_MMU_CHECKPOINT.md", "docs/V21_RESET_DIAGNOSTICS.md"]
+paths = ["board.toml", "dts/**", "patches/**", "scripts/**", "package/**", "docs/V15_ENTRY_DIAGNOSTIC.md", "docs/V16_SOURCE_ENTRY_RESULT.md", "docs/V17_POST_MMU_PLAN.md", "docs/V18_POST_MMU_CHECKPOINT.md", "docs/V21_RESET_DIAGNOSTICS.md", "docs/V22_POST_MMU_CHECKPOINT.md"]
 inputs = ["V15 FAT payload layout, Android boot image v2 parameters, UEFI FD and the real kernel/ADT private inputs."]
 configuration = ["The board declares a 64 MiB diagnostic volume, firmware DarwinBoot loader, measured DRAM and boot image v2 offsets.", "The UEFI repository now declares the shared RAM-disk DXE alongside DiskIoDxe and FAT while retaining the existing V15 embedded-FAT diagnostic path."]
 procedure = ["Run host image audits, verify kernel/ADT hashes and inspect the boot image before any boot_b test."]
-findings = ["V15 host packaging and static audits passed.", "V16 host packaging produced the source-prelinked kernel, J716F ADT and boot image used for the boot_b test.", "The source build applies a device-local patch-series compatibility fix before the pinned UniXNU resolver, so optional Sheng PMGR context is not required for J716F.", "V21 host checks passed FD/FV/FFS checksums, AARCH64 PE and linked-module identity, V21 markers, unchanged V20 embedded FAT, BootShim/gzip, both DTB copies and Android v2 header/SHA1/padding.", "The byte-identical local V21 DSC is preserved in the firmware repository; it retains the V15 FDF/output path and omits the public V15 DSC additional standard-initrd declarations. Device board.toml retains historical V17 payload settings and is not the complete V21 artifact recipe."]
+findings = ["V15 host packaging and static audits passed.", "V16 host packaging produced the source-prelinked kernel, J716F ADT and boot image used for the boot_b test.", "The source build applies a device-local patch-series compatibility fix before the pinned UniXNU resolver, so optional Sheng PMGR context is not required for J716F.", "V21 host checks passed FD/FV/FFS checksums, AARCH64 PE and linked-module identity, V21 markers, unchanged V20 embedded FAT, BootShim/gzip, both DTB copies and Android v2 header/SHA1/padding.", "The byte-identical local V21 DSC is preserved in the firmware repository; it retains the V15 FDF/output path and omits the public V15 DSC additional standard-initrd declarations. Device board.toml retains historical V17 payload settings and is not the complete V21 artifact recipe.", "V22 has an explicit paired payload builder and independent V22 firmware DSC/FDF/module lists. Both kernels use the same unpatched V21 prelink baseline and differ only in their timer literal. Final FD/FAT/file, PE, probe and Android image audits passed; no device write was performed."]
 completion = ["Kernel and ADT inputs are reproducible, the payload contains declared files, and the boot image matches the platform header and size constraints."]
 limits = ["Private payload binaries and vendor inputs are intentionally excluded; MMU-on continuation and later platform stages remain unverified."]
-next_action = ["Keep the recorded V21 image/profile identity while collecting the pending XNU attempt and reset evidence."]
+next_action = ["Use scripts/build-v22-payload.py and the independent V22 DSC/FDF, verify the selected final image hash, then test only boot_b."]
 
 [[area.evidence]]
 kind = "host"
@@ -241,6 +249,14 @@ result = "V21 host image audits passed; hashes and source/profile identities are
 command = "python tools/package_j716f_v21.py (local workspace; generated artifacts remain private)"
 revision = "2c13d875f8b3d38414f61443dc44b9b9559dfcb7"
 
+
+[[area.evidence]]
+kind = "host"
+reference = "research/v22-checkpoint-preparation.json"
+result = "V22A and V22B firmware builds and final image audits passed; their kernels differ only in the 1s/3s timer literal. Hardware testing is pending."
+command = "python3 scripts/build-v22-payload.py --help; build the selected V22 firmware profile; run the recorded local image audit."
+revision = "a325b2a928707cc618730ee2a0c0a1bac7ed8db2"
+
 [[area]]
 id = "diagnostics"
 status = "device-verified"
@@ -249,10 +265,10 @@ paths = ["scripts/**", "research/**", "docs/**", "unixnu.lock"]
 inputs = ["Host audit scripts, V14 memory evidence, V15 entry preparation, V16 boot_b observation, and source-build reports."]
 configuration = ["Diagnostic outputs are separated from private binaries and the record distinguishes host, device and planned evidence."]
 procedure = ["Run the preflight and record checks, preserve only text metadata in CI, and use the boot_b-only recovery procedure on hardware."]
-findings = ["V16 device evidence confirms ExitBootServices and XNU early-entry probes on boot_b; the result is preserved in docs/V16_SOURCE_ENTRY_RESULT.md.", "Source-build diagnostics record both device-local compatibility patches and keep patch preparation idempotent across repeated macOS runner attempts.", "V21 was built, audited and flashed to boot_b; the observed menu has V21 labels, enlarged text and PMIC RESET: 0x02000001.", "The current PMIC value is a boot-history baseline. Neither this sample nor the earlier exiting boot services message identifies the cause of a reset; no V21 XNU attempt has yet been observed."]
+findings = ["V16 device evidence confirms ExitBootServices and XNU early-entry probes on boot_b; the result is preserved in docs/V16_SOURCE_ENTRY_RESULT.md.", "Source-build diagnostics record both device-local compatibility patches and keep patch preparation idempotent across repeated macOS runner attempts.", "V21 video and extracted kernel establish the pre-MMU checkpoint and a later restart; its default post-MMU timer hook is absent. V22A/1s and V22B/3s install independently audited post-MMU reset probes. They omit the panic renderer because the verified padding cannot fit both. Hardware timing remains unverified."]
 completion = ["Each claimed milestone has a reproducible command, matching source/image revision and an accessible result."]
 limits = ["No UART capture is available; MMU-on persistence, platform drivers, UFS/root and userspace remain unverified."]
-next_action = ["Record the selected XNU diagnostic attempt, final text/color bars, possible Lenovo logo and final held screen or menu before changing the next checkpoint."]
+next_action = ["Compare repeatable 1-second and 3-second band-to-black timing before claiming the V22 post-MMU checkpoint; if timing does not track the probe, continue reset/exception isolation."]
 
 [[area.evidence]]
 kind = "device"
@@ -267,3 +283,10 @@ reference = "research/v21-reset-diagnostics.json"
 result = "V21 boot_b menu photograph confirms readable enlarged text and PMIC 0x02000001; XNU attempt and reset attribution remain pending."
 command = "fastboot flash boot_b <V21_BOOT_IMAGE>; fastboot reboot; observe the V21 menu."
 revision = "2c13d875f8b3d38414f61443dc44b9b9559dfcb7"
+
+[[area.evidence]]
+kind = "host"
+reference = "research/v22-checkpoint-preparation.json"
+result = "V22A and V22B firmware builds and final image audits passed; their kernels differ only in the 1s/3s timer literal. Hardware testing is pending."
+command = "python3 scripts/build-v22-payload.py --help; build the selected V22 firmware profile; run the recorded local image audit."
+revision = "a325b2a928707cc618730ee2a0c0a1bac7ed8db2"

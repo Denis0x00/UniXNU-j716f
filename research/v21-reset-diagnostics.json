@@ -94,7 +94,7 @@
     "V20": "Read-only PMIC provider added; DarwinBoot exiting boot services text and later menu observed. PMIC value was unreadable in those photographs; stale V19 stage label remained."
   },
   "interpretation": "V21 confirms the enlarged menu and a readable PMIC baseline after flashing/rebooting. It does not attribute a later or earlier XNU failure to a specific reset cause.",
-  "next_action": "Record the first XNU entry attempt, final text/color bands, any Lenovo logo reappearance and final menu or held screen.",
+  "next_action": "Compare V22A/1s and V22B/3s post-MMU checkpoints on boot_b and record timing.",
   "limits": [
     "Host image audit and device menu observation are separate checks.",
     "V21 has the same embedded FAT payload as V20; this does not establish identity with V16/V17/V18 kernel variants.",
@@ -102,5 +102,20 @@
     "Generated images, DTBs, photos, raw logs and build-machine details remain local."
   ],
   "firmware_revision": "2c13d875f8b3d38414f61443dc44b9b9559dfcb7",
-  "firmware_source_url": "https://github.com/Denis0x00/uefi-j716f/tree/2c13d875f8b3d38414f61443dc44b9b9559dfcb7"
+  "firmware_source_url": "https://github.com/Denis0x00/uefi-j716f/tree/2c13d875f8b3d38414f61443dc44b9b9559dfcb7",
+  "subsequent_attempt_observation": {
+    "source": "continuous video; approximate recording times",
+    "bands_at_seconds": 24.5,
+    "black_screen_at_seconds": 44,
+    "lenovo_logo_again_at_seconds": 46,
+    "new_menu_at_seconds": 48,
+    "pmic_before": "0x02000001",
+    "pmic_after": "0x02000041",
+    "entry_bands_observed": true,
+    "restart_observed": true,
+    "sustained_mmu_on_verified": false,
+    "reset_cause_classified": false,
+    "actual_kernel_sha256": "236a9f8d5a184d74f7489fba2be1c9e8d4a1f06413eadac88819691cbd7c446b",
+    "default_post_mmu_reset_hook_installed": false
+  }
 }
