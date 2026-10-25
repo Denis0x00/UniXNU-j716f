@@ -30,14 +30,14 @@ revision = "f82228a9e166603d6a8b522bf0214db3379fad0d"
 id = "firmware"
 status = "device-verified"
 components = []
-paths = ["proprietary-files.txt", "scripts/check-j716f.py", "docs/V14_MEMORY_WINDOW.md", "docs/V15_ENTRY_DIAGNOSTIC.md", "docs/V16_SOURCE_ENTRY_RESULT.md"]
+paths = ["proprietary-files.txt", "scripts/check-j716f.py", "docs/V14_MEMORY_WINDOW.md", "docs/V15_ENTRY_DIAGNOSTIC.md", "docs/V16_SOURCE_ENTRY_RESULT.md", "docs/V17_POST_MMU_PLAN.md"]
 inputs = ["Mu-Silicium J716F platform, inherited GOP, fixed ZUI memory map, and the board UEFI DSC/FDF."]
 configuration = ["The device board points to the j716f DSC/FD and keeps vendor inputs outside the public repository."]
 procedure = ["Build the diagnostic FD with the local UEFI checkout, audit its inputs, then boot only through boot_b for hardware checks."]
 findings = ["V14 reached the UniXNU menu and exercised the documented button and DarwinBoot protocol paths.", "V16 on boot_b displayed the green ExitBootServices bar, the blue MMU-off XNU entry probe and the magenta pre-MMU-enable probe; the screen also showed the normal CapsuleRuntimeDxe LockCapsuleInterface callback."]
 completion = ["The FD enters UniXNU, preserves the documented memory reservations, and exposes the framebuffer for the menu."]
 limits = ["MMU-on persistence, ArmCpu/ArmDTPlatform initialization, UFS/root, userspace and iPadOS remain unverified; TzDxe is out of scope."]
-next_action = ["Build V17 with a persistent post-MMU diagnostic stop and verify it on boot_b."]
+next_action = ["Package the V17 timed post-MMU probe and verify it on boot_b."]
 
 [[area.evidence]]
 kind = "device"
@@ -194,14 +194,14 @@ evidence = []
 id = "packaging"
 status = "host-verified"
 components = ["XnuPrelink", "DarwinBoot"]
-paths = ["board.toml", "dts/**", "patches/**", "scripts/**", "package/**", "docs/V15_ENTRY_DIAGNOSTIC.md", "docs/V16_SOURCE_ENTRY_RESULT.md"]
+paths = ["board.toml", "dts/**", "patches/**", "scripts/**", "package/**", "docs/V15_ENTRY_DIAGNOSTIC.md", "docs/V16_SOURCE_ENTRY_RESULT.md", "docs/V17_POST_MMU_PLAN.md"]
 inputs = ["V15 FAT payload layout, Android boot image v2 parameters, UEFI FD and the real kernel/ADT private inputs."]
 configuration = ["The board declares a 64 MiB diagnostic volume, firmware DarwinBoot loader, measured DRAM and boot image v2 offsets.", "The UEFI repository now declares the shared RAM-disk DXE alongside DiskIoDxe and FAT while retaining the existing V15 embedded-FAT diagnostic path."]
 procedure = ["Run host image audits, verify kernel/ADT hashes and inspect the boot image before any boot_b test."]
 findings = ["V15 host packaging and static audits passed.", "V16 host packaging produced the source-prelinked kernel, J716F ADT and boot image used for the boot_b test.", "The source build applies a device-local patch-series compatibility fix before the pinned UniXNU resolver, so optional Sheng PMGR context is not required for J716F."]
 completion = ["Kernel and ADT inputs are reproducible, the payload contains declared files, and the boot image matches the platform header and size constraints."]
 limits = ["Private payload binaries and vendor inputs are intentionally excluded; MMU-on continuation and later platform stages remain unverified."]
-next_action = ["Build V17 with a persistent post-MMU diagnostic stop, then boot only boot_b."]
+next_action = ["Package V17 with the timed post-MMU probe, then boot only boot_b."]
 
 [[area.evidence]]
 kind = "host"
@@ -221,7 +221,7 @@ procedure = ["Run the preflight and record checks, preserve only text metadata i
 findings = ["V16 device evidence confirms ExitBootServices and XNU early-entry probes on boot_b; the result is preserved in docs/V16_SOURCE_ENTRY_RESULT.md.", "Source-build diagnostics record both device-local compatibility patches and keep patch preparation idempotent across repeated macOS runner attempts."]
 completion = ["Each claimed milestone has a reproducible command, matching source/image revision and an accessible result."]
 limits = ["No UART capture is available; MMU-on persistence, platform drivers, UFS/root and userspace remain unverified."]
-next_action = ["Build V17 with a persistent post-MMU diagnostic stop and update the device evidence after a boot_b test."]
+next_action = ["Package V17 with the timed post-MMU probe and update the device evidence after a boot_b test."]
 
 [[area.evidence]]
 kind = "device"

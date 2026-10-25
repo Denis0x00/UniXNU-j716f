@@ -73,13 +73,18 @@ ENABLE_SECUREBOOT = 0
 [payload]
 # This describes the current V15 diagnostic payload layout. It is not an
 # assertion that the payload is a bootable iPadOS system.
-volume = "J716F15"
+volume = "J716F17"
 size_mib = 64
 loader = "firmware"
-title = "J716F V15 entry diagnostic"
+title = "J716F V17 post-MMU entry diagnostic"
 dram_size = "0x140000000"
 timeout = 0
 kernel_args = ["-v", "serial=0", "debug=0x14e", "cpus=1", "-no_slto_panic"]
+# V17 keeps the green/blue/magenta entry bars and adds the official timed
+# post-MMU reset probe. A reset after the delay is the hardware signal that
+# execution continued past MMU enable; no userspace or root claim is made.
+panic_screen = true
+entry_probe_reset_delay = 6
 
 [payload.adt]
 owned_memory_size = "0x10000000"
