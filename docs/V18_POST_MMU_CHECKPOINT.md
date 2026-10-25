@@ -16,9 +16,16 @@ V17 已证明 MMU 开启后的代码能够运行到 PSCI 复位调用。V18 将�
 到 GitHub。主机校验确认 V18 FAT 与 boot image 中的 kernel 字节完全一致，
 stage 3 cave 为 `WFE; B .`。
 
+## V18 真机结果
+
+V18 在 `boot_b` 显示相同三色条，等待一段时间后仍自动复位并回到 UniXNU
+菜单。V18 没有调用 stage 3 的 PSCI reset，因此这次复位来自尚未确定的外部
+reset/watchdog 路径，不能把它误记为持久化停点成功。V16/V17 的入口阶段证据
+仍然成立；下一步要先区分 ABL/secure watchdog、平台复位和用户操作。
+
 ## 真机判读
 
-- 保持三色条：已到达持久化 post-MMU checkpoint。
+- 若保持三色条：已到达持久化 post-MMU checkpoint。
 - 又回到 UniXNU 菜单：仍在使用旧镜像，或发生了外部复位；先核对 SHA-256。
 - 出现 panic screen：记录完整画面；这不等于 iPadOS 启动。
 

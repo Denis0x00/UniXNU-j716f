@@ -34,10 +34,10 @@ paths = ["proprietary-files.txt", "scripts/check-j716f.py", "docs/V14_MEMORY_WIN
 inputs = ["Mu-Silicium J716F platform, inherited GOP, fixed ZUI memory map, and the board UEFI DSC/FDF."]
 configuration = ["The device board points to the j716f DSC/FD and keeps vendor inputs outside the public repository."]
 procedure = ["Build the diagnostic FD with the local UEFI checkout, audit its inputs, then boot only through boot_b for hardware checks."]
-findings = ["V14 reached the UniXNU menu and exercised the documented button and DarwinBoot protocol paths.", "V16 on boot_b displayed the green ExitBootServices bar, the blue MMU-off XNU entry probe and the magenta pre-MMU-enable probe; the screen also showed the normal CapsuleRuntimeDxe LockCapsuleInterface callback.", "V17 on boot_b waited through the post-MMU probe, executed PSCI reset, and returned to the UniXNU menu with the same three entry bars.", "V18 host packaging replaces the timed reset with a persistent WFE checkpoint after MMU enable; hardware status is pending."]
+findings = ["V14 reached the UniXNU menu and exercised the documented button and DarwinBoot protocol paths.", "V16 on boot_b displayed the green ExitBootServices bar, the blue MMU-off XNU entry probe and the magenta pre-MMU-enable probe; the screen also showed the normal CapsuleRuntimeDxe LockCapsuleInterface callback.", "V17 on boot_b waited through the post-MMU probe, executed PSCI reset, and returned to the UniXNU menu with the same three entry bars.", "V18 displayed the same three bars but later reset back to UniXNU despite replacing stage 3 with a WFE loop; the external reset/watchdog source is unresolved."]
 completion = ["The FD enters UniXNU, preserves the documented memory reservations, and exposes the framebuffer for the menu."]
 limits = ["MMU-on persistence, ArmCpu/ArmDTPlatform initialization, UFS/root, userspace and iPadOS remain unverified; TzDxe is out of scope."]
-next_action = ["Replace the timed reset with a persistent post-MMU screen or serial checkpoint, then verify that checkpoint on boot_b."]
+next_action = ["Identify the external reset/watchdog source with a bounded checkpoint before changing the post-MMU loop again."]
 
 [[area.evidence]]
 kind = "device"
@@ -201,7 +201,7 @@ procedure = ["Run host image audits, verify kernel/ADT hashes and inspect the bo
 findings = ["V15 host packaging and static audits passed.", "V16 host packaging produced the source-prelinked kernel, J716F ADT and boot image used for the boot_b test.", "The source build applies a device-local patch-series compatibility fix before the pinned UniXNU resolver, so optional Sheng PMGR context is not required for J716F."]
 completion = ["Kernel and ADT inputs are reproducible, the payload contains declared files, and the boot image matches the platform header and size constraints."]
 limits = ["Private payload binaries and vendor inputs are intentionally excluded; MMU-on continuation and later platform stages remain unverified."]
-next_action = ["Prepare a persistent post-MMU checkpoint without automatic reset, then boot only boot_b."]
+next_action = ["Capture reset timing and reset reason, then prepare the next post-MMU checkpoint only after the reset source is identified."]
 
 [[area.evidence]]
 kind = "host"
