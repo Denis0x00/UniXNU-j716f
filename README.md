@@ -19,11 +19,23 @@ SM8250/Kona) 的 UniXNU 设备仓库。当前仍是 research / bring-up port，�
 
 ## 当前验证范围
 
-- `boot_b` 临时启动实验 Android boot image 已进入 UniXNU 菜单。
-- V14 真机完成 256 MiB DarwinBoot 窗口分配、缓存维护、读回和释放，7/7 PASS。
-- V15 已完成主机侧真实 kernel/ADT/payload 打包与静态审计，尚未上机验证。
-- GOP 菜单、音量键和电源键已有设备观察；物理 UFS、真实 XNU 入口、
-  `ExitBootServices`、trust cache、userdata 和用户态均未验证。
+截至 2026-10-25：
+
+- 诊断镜像通过 `boot_b` 进入 UniXNU 菜单；GOP、音量键和电源键已有真机观察。
+- V14 验证一个 256 MiB DarwinBoot 窗口，7/7 检查通过；两轮读写累计验证 512 MiB。
+- V16 观察到 ExitBootServices 与 XNU 早期入口探针；V17 记录 post-MMU 复位检查点。
+- V18 改为 WFE 停点后仍复位，具体来源尚未确定。
+- V19/V20 增加复位诊断；V21 已构建、校验、刷入 `boot_b` 并进入放大菜单，
+  照片确认 `PMIC RESET: 0x02000001`。这是当前启动的历史基线，尚不能据此归因复位。
+- V21 的 XNU 启动尝试仍待观察；持续 MMU-on 执行、原生平台驱动、物理 UFS/root、
+  trust cache、userdata 和用户态均未验证，未启动 iPadOS。
+
+最新汇总：[V21 复位诊断与真机基线](docs/V21_RESET_DIAGNOSTICS.md)，
+[公开验证元数据](research/v21-reset-diagnostics.json)，
+[配套固件仓库](https://github.com/Denis0x00/uefi-j716f)。
+
+`board.toml` 的 payload 选项仍保留 V17 定时复位方案；它不是已刷入 V21 的完整
+配方。V21 使用独立 UEFI 诊断配置，内嵌负载与 V20 相同，具体来源与边界见最新汇总。
 
 ## 构建与检查
 
@@ -49,4 +61,5 @@ dtc -I dts -O dtb -i ../UniXNU-j716f/socs/sm8250/dts \
 
 ## 真机边界
 
-V15 测试只允许 `boot_b`；不要写 `boot_a`、vbmeta 或 userdata。TzDxe 仍不在本轮范围内。
+当前诊断测试只允许 `boot_b`；不要写 `boot_a`、vbmeta、userdata 或其他分区。
+TzDxe 仍不在本轮范围内。

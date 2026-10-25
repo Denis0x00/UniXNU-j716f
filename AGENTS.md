@@ -21,8 +21,16 @@ and [bring-up order](https://unixnu.com/zh/porting/bring-up) before changing thi
   package policy belong here.
 - Do not add or publish Apple/Lenovo binary inputs, raw DTBs, payload images,
   photos, logs, seeds or VM credentials.
-- V15 hardware testing remains `boot_b` only; do not write `boot_a`, vbmeta or
+- Current diagnostic hardware testing remains `boot_b` only; do not write `boot_a`, vbmeta or
   userdata. TzDxe is outside the current scope.
+
+## Current checkpoint
+
+See `docs/V21_RESET_DIAGNOSTICS.md` and `research/v21-reset-diagnostics.json`.
+V21 menu rendering and PMIC baseline `0x02000001` are device-observed; a V21
+XNU attempt is still pending. Keep the earlier V16/V17 entry observations
+distinct from current V21 evidence. `board.toml` retains the V17 timed-reset
+payload settings and does not reproduce the local V21 image by itself.
 
 ## Commands
 

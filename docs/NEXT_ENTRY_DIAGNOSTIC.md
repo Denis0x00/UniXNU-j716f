@@ -1,6 +1,19 @@
-# 下一轮：J716F ADT 与真实内核入口诊断
+# 当前诊断与前序入口准备记录
 
-V15 ADT与真实入口诊断已准备，见 [V15_ENTRY_DIAGNOSTIC.md](V15_ENTRY_DIAGNOSTIC.md)。
+## 当前：V21 菜单和 PMIC 基线已确认
+
+截至 2026-10-25，最新进展见 [V21_RESET_DIAGNOSTICS.md](V21_RESET_DIAGNOSTICS.md)。
+V21 已通过主机构建与镜像审计，刷入 `boot_b` 并重启。照片确认放大的 V21 菜单和
+`PMIC RESET: 0x02000001`，尚未观察本版 XNU 启动尝试。
+
+下一步录制第一项 XNU 诊断的启动过程、最终文字与颜色条，区分是否重新出现 Lenovo Logo
+和是否只返回菜单。当前 PMIC 值仅作启动历史基线，不作为外部 watchdog 的确诊。
+`board.toml` 仍保留 V17 payload 设置；V21 独立固件配置与哈希见最新汇总。
+
+## 前序：V13–V15 准备记录
+
+以下内容描述当时的 V13–V15 准备状态；后续 V16–V21 结果以各版本文档及最新汇总为准。
+V15 ADT与真实入口诊断准备见 [V15_ENTRY_DIAGNOSTIC.md](V15_ENTRY_DIAGNOSTIC.md)。
 
 V14 的内存窗口与返回报告已真机验证。最新结果见 [V14_MEMORY_WINDOW.md](V14_MEMORY_WINDOW.md)。
 以下 V13/TWRP 部分保留为前序记录；V14 已完成其后续条件中的单窗口分配、读写和释放验证。

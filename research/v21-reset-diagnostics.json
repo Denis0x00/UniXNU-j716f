@@ -1,0 +1,106 @@
+{
+  "profile": "J716F V21 reset diagnostics",
+  "date": "2026-10-25",
+  "firmware_repository": "https://github.com/Denis0x00/uefi-j716f",
+  "firmware_base_commit": "6948764f131da9e26e81be3a39b2312087e61430",
+  "upstream_mu_base_commit": "42fe563791e51bf5500c2e470ed294ca0c94b97c",
+  "unixnu_library_upstream_commit": "245aca1a9ec5b730b1cad80fade295800d2981f1",
+  "build_profile": "Platforms/Lenovo/j716fPkg/j716f-entry-v21.dsc",
+  "build_profile_sha256": "5ff0691246c280a433942a481719bfa0a658e74fc6d821eebed41e63c0ac5ada",
+  "build_profile_note": "Byte-identical to the local DSC used for the V21 build. The builder used the historical j716f-entry-v15.dsc filename. Both use the historical V15 FDF and output directory.",
+  "changes": [
+    "V21 menu, return-page and stage labels",
+    "Prominent short PMIC summary; CHAR8 Config.Notice uses AsciiSPrint",
+    "Diagnostic menu scale 4 and hidden logo",
+    "Active Silicium framebuffer library scale 5 on the 2560x1600 panel"
+  ],
+  "files": {
+    "j716f-mu-zui13-entry-v21-boot.img": {
+      "bytes": 8331264,
+      "sha256": "88e78f74cbe402fbd9bda0c287e16d3422824d5b51a3ea42a1a441316ebd1efc"
+    },
+    "V21-SILICIUM_UEFI.fd": {
+      "bytes": 7340032,
+      "sha256": "05b5486fc9b75d361b17e93a39bca83871b2b1b926630a6863879eebb8cf5d32"
+    },
+    "V19-BootShim.bin": {
+      "bytes": 112,
+      "sha256": "72bfc9e9137a0e3ab9f7264162968c546ba63533b94d6813814fe84c831d03b4"
+    },
+    "V19-stock-dtb.dtb": {
+      "bytes": 728300,
+      "sha256": "2c0d57deb7f99a081fe4994535c51ca0362bf44b6ad5422a7300f01496f6b3ec"
+    }
+  },
+  "embedded_payload": {
+    "bytes": 67108864,
+    "sha256": "432da56f927a91010c4d328f4f0ca956b16896a0b9a2d432c6d33de286c1fe96"
+  },
+  "host_checks": {
+    "remote_fd_hash_matches": true,
+    "firmware_volume_checksums": true,
+    "ffs_header_checksums": true,
+    "pe_architecture": "AARCH64",
+    "v21_compiled_markers": true,
+    "v19_stage_labels_absent": true,
+    "pmic_provider_present": true,
+    "linked_pe_identity": true,
+    "same_module_guid_set_as_v20": true,
+    "same_embedded_payload_as_v20": true,
+    "android_v2_sha1_id": true,
+    "bootshim_header": true,
+    "gzip_roundtrip": true,
+    "both_stock_dtb_copies": true,
+    "padding_and_length": true
+  },
+  "source_sha256": {
+    "Platforms/Lenovo/j716fPkg/Library/J716fEntryTraceUniXNULib/Main.c": "7a16f002800690f4f9d47046a2f988d9588e2f7231bb56518407bb33da8ee83e",
+    "Platforms/Lenovo/j716fPkg/Library/J716fEntryTraceUniXNULib/source-lock.json": "4f0a04fec686cdce0ab468c53abcebd201646a6da0423c6c427fdcc4fd73fe5a",
+    "Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib/FrameBufferSerialPortLib.c": "a5fe54f148bac50931a74ddabb83fc89d0e43b1b1a87d8eb089083ff186be2e7",
+    "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fKeysDxe.c": "8385eecfd7ad43fc5b735306a2812d2cb997bed63388c6ca14d1990689ac0b14",
+    "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fSpmi.c": "d83bdaccba84d58c753edc14ff5af701729b7cd88f96263f4c68f5bb32fa2466",
+    "Platforms/Lenovo/j716fPkg/Library/J716fWindowMemoryMapLib/MemoryMapLib.c": "8f2c5c8b8dbece234eb385ae16067e0038215abc3933213a0355c63656a36f88"
+  },
+  "flash": {
+    "partition": "boot_b",
+    "current_slot_before": "b",
+    "current_slot_after": "b",
+    "flash_result": "OKAY",
+    "reboot_command_result": "OKAY",
+    "other_partitions_written": []
+  },
+  "device_observation": {
+    "v21_menu_visible": true,
+    "large_menu_text_readable": true,
+    "logo_hidden": true,
+    "pmic_provider_returns_value": true,
+    "pmic_reset_code": "0x02000001",
+    "decoded_bytes_by_provider_packing": {
+      "pon": "0x01",
+      "warm1": "0x00",
+      "warm2": "0x00",
+      "poff": "0x02"
+    },
+    "register_bit_meanings_classified": false,
+    "drivers": "0/0",
+    "kits": 0,
+    "acpi": 0,
+    "framebuffer_log_font_effect_observed": false,
+    "v21_xnu_attempt_observed": false,
+    "v21_xnu_entry_verified": false
+  },
+  "previous_observations": {
+    "V19": "Menu and DarwinBoot checkpoint observed; reset-reason protocol reported Not Found.",
+    "V20": "Read-only PMIC provider added; DarwinBoot exiting boot services text and later menu observed. PMIC value was unreadable in those photographs; stale V19 stage label remained."
+  },
+  "interpretation": "V21 confirms the enlarged menu and a readable PMIC baseline after flashing/rebooting. It does not attribute a later or earlier XNU failure to a specific reset cause.",
+  "next_action": "Record the first XNU entry attempt, final text/color bands, any Lenovo logo reappearance and final menu or held screen.",
+  "limits": [
+    "Host image audit and device menu observation are separate checks.",
+    "V21 has the same embedded FAT payload as V20; this does not establish identity with V16/V17/V18 kernel variants.",
+    "Native platform drivers, physical UFS/root, userspace and iPadOS are not verified.",
+    "Generated images, DTBs, photos, raw logs and build-machine details remain local."
+  ],
+  "firmware_revision": "2c13d875f8b3d38414f61443dc44b9b9559dfcb7",
+  "firmware_source_url": "https://github.com/Denis0x00/uefi-j716f/tree/2c13d875f8b3d38414f61443dc44b9b9559dfcb7"
+}
