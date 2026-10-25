@@ -11,6 +11,7 @@ on:
       - 'scripts/source-artifact-transfer.py'
       - 'ci/source-artifacts-public.pem'
       - 'patches/build-driver/0002-guard-optional-legacy-display-probe.patch'
+      - 'patches/build-driver/0003-allow-boot-progress-without-sheng-pmgr.patch'
       - 'board.toml'
       - 'feeds.toml'
       - 'dts/**'

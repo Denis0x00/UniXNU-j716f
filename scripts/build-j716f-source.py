@@ -16,6 +16,7 @@ from pathlib import Path
 UNIXNU_COMMIT = "42bffe8a56823dad2e448c776b4f94862f3e290a"
 DEFCONFIG = "j716f_source_defconfig"
 SOURCE_FIX = "patches/build-driver/0002-guard-optional-legacy-display-probe.patch"
+PATCH_SERIES_FIX = "patches/build-driver/0003-allow-boot-progress-without-sheng-pmgr.patch"
 
 
 def revision(path):
@@ -25,16 +26,17 @@ def revision(path):
 
 
 def prepare_source_fix(base, device):
-    """Apply the recorded fix to the pinned source, then check both C branches."""
-    patch = device / SOURCE_FIX
+    """Apply recorded compatibility fixes to the pinned source tree."""
+    patches = [device / SOURCE_FIX, device / PATCH_SERIES_FIX]
     command = ["git", "-C", str(base), "apply"]
-    applied = subprocess.run(
-        [*command, "--reverse", "--check", str(patch)],
-        capture_output=True,
-    ).returncode == 0
-    if not applied:
-        subprocess.run([*command, "--check", str(patch)], check=True)
-        subprocess.run([*command, str(patch)], check=True)
+    for patch in patches:
+        applied = subprocess.run(
+            [*command, "--reverse", "--check", str(patch)],
+            capture_output=True,
+        ).returncode == 0
+        if not applied:
+            subprocess.run([*command, "--check", str(patch)], check=True)
+            subprocess.run([*command, str(patch)], check=True)
     # Preprocess the actual added C code in the first bsd_init patch hunk.
     # No Apple headers are needed to test the optional provider reference.
     source = base / "patches/xnu/offline-component-load-probes.patch"
@@ -54,10 +56,11 @@ def prepare_source_fix(base, device):
         cases["unset" if mode is None else mode] = {"provider_referenced": present}
     print("== source fix: legacy display guard passed (unset, disabled, enabled)",
           flush=True)
-    return {"patch": SOURCE_FIX,
-            "sha256": hashlib.sha256(patch.read_bytes()).hexdigest(),
+    return [{"patch": str(path.relative_to(device)),
+             "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+            for path in patches] + [{
             "patched_source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
-            "preprocessor_cases": cases}
+            "preprocessor_cases": cases}]
 
 
 def main():
@@ -74,9 +77,9 @@ def main():
         raise SystemExit("jobs must be positive")
     if not args.check_source_fix_only and platform.system() != "Darwin":
         raise SystemExit("Run this configuration on the macOS runner")
-    source_fix = prepare_source_fix(base, device)
+    source_fixes = prepare_source_fix(base, device)
     if args.check_source_fix_only:
-        print(json.dumps(source_fix, indent=2))
+        print(json.dumps(source_fixes, indent=2))
         return
     sys.path.insert(0, str(base / "scripts"))
     from unixnu.cli import cmd_defconfig, parser as cli_parser, prepare
@@ -107,7 +110,7 @@ def main():
         "defconfig": DEFCONFIG,
         "unixnu_commit": revision(base),
         "device_commit": revision(device),
-        "source_fixes": [source_fix],
+        "source_fixes": source_fixes,
         "status": "started",
         "prelink_performed": False,
         "hardware_boot_validated": False,

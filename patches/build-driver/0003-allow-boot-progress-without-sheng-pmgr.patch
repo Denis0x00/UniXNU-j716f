@@ -1,0 +1,21 @@
+diff --git a/patches/xnu/zzz-boot-progress.patch b/patches/xnu/zzz-boot-progress.patch
+index 4a188fb..f08b958 100644
+--- a/patches/xnu/zzz-boot-progress.patch
++++ b/patches/xnu/zzz-boot-progress.patch
+@@ -144,16 +144,6 @@
+  #endif
+  
+  	throttle_init();
+-@@ -773,7 +775,9 @@
+- 
+- #if defined(XNU_SHENG_PMGR) && XNU_SHENG_PMGR
+- 	extern void sheng_pmgr_run(void);
+-+	boot_progress_stage("original PMGR nub start");
+- 	sheng_pmgr_run();
+-+	boot_progress_stage("original PMGR nub returned");
+- #endif
+- 
+- 	/*
+ @@ -1010,7 +1014,9 @@
+  #endif
+  
