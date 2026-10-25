@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: BSD-2-Clause-Patent
+// Shared SM8250/Kona facts measured from the J716F firmware DT.
+/ {
+    #address-cells = <2>;
+    #size-cells = <2>;
+    interrupt-parent = <&gic>;
+
+    cpus {
+        #address-cells = <2>;
+        #size-cells = <0>;
+        timebase-frequency = <19200000>;
+
+        cpu0: cpu@0 {
+            device_type = "cpu";
+            compatible = "qcom,kryo";
+            reg = <0x0 0x0>;
+            enable-method = "psci";
+            status = "okay";
+        };
+    };
+
+    psci {
+        compatible = "arm,psci-1.0";
+        method = "smc";
+    };
+
+    timer {
+        compatible = "arm,armv8-timer";
+        clock-frequency = <19200000>;
+        status = "okay";
+    };
+
+    soc {
+        compatible = "simple-bus";
+        #address-cells = <2>;
+        #size-cells = <2>;
+        ranges;
+
+        gic: interrupt-controller@17a00000 {
+            compatible = "arm,gic-v3";
+            unixnu,adt-name = "intc";
+            reg = <0x0 0x17a00000 0x0 0x10000>,
+                  <0x0 0x17a60000 0x0 0x100000>;
+            #interrupt-cells = <3>;
+            #address-cells = <0>;
+            interrupt-controller;
+            redistributor-stride = <0x0 0x20000>;
+            status = "okay";
+        };
+    };
+};

@@ -1,0 +1,10 @@
+# Copy to local.toml in this device repository only when building locally.
+# local.toml is ignored by git.
+[build]
+device = "D:/TB-J716F/github-export/UniXNU-j716f"
+uefi = "D:/TB-J716F/github-export/uefi-j716f"
+dtb = "D:/path/to/j716f-firmware.dtb"
+# kernelcache = "D:/path/to/kernelcache"
+# unique_chip_id = "REQUIRED_DEVICE_SEED"
+# trust_cache = "D:/path/to/trustcache.bundle"
+# data_ramdisk = "D:/path/to/data-seed.dbr"

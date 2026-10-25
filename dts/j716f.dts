@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: BSD-2-Clause-Patent
+// Board-level hardware description for Lenovo TB-J716F.
+/dts-v1/;
+/include/ "sm8250.dtsi"
+
+/ {
+    model = "Lenovo Xiaoxin Pad Pro 2021";
+    compatible = "lenovo,j716f", "qcom,kona";
+
+    memory@c0000000 {
+        device_type = "memory";
+        unixnu,adt-name = "dram";
+        reg = <0x0 0xc0000000 0x1 0x40000000>;
+        status = "okay";
+    };
+};

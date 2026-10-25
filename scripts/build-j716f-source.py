@@ -13,7 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-UNIXNU_COMMIT = "245aca1a9ec5b730b1cad80fade295800d2981f1"
+UNIXNU_COMMIT = "42bffe8a56823dad2e448c776b4f94862f3e290a"
 DEFCONFIG = "j716f_source_defconfig"
 SOURCE_FIX = "patches/build-driver/0002-guard-optional-legacy-display-probe.patch"
 

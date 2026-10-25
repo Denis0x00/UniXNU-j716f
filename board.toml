@@ -1,15 +1,23 @@
-# Initial diagnostic firmware port; hardware validation is still pending.
+schema_version = 2
+
 [board]
 example = false
 name = "j716f"
-soc = "SM8250"
-description = "Lenovo Xiaoxin Pad Pro 2021 TB-J716F UniXNU bring-up"
 kit = "j716f"
+soc = "SM8250"
+soc_source = "sm8250"
+os_profile = "ipados-17.7.11-21H461"
+description = "Lenovo Xiaoxin Pad Pro 2021 TB-J716F UniXNU bring-up"
 
-# Candidate Apple payload identity copied from the UniXNU sheng reference.
-# This identifies the IPSW source only; it does not claim that J716F is an
-# Apple device or that this payload is already compatible with the board.
+[components]
+# Keep only components with a checked-in source/build path. ArmCpu,
+# ArmDTPlatform and board peripherals remain planned until their SM8250 ABI
+# inputs are separately reviewed.
+include = ["XnuPrelink", "DarwinBoot"]
+
 [ipsw]
+# Candidate source identity copied from the UniXNU sheng reference. This does
+# not claim that an Apple payload is compatible with the Lenovo board.
 product = "iPad7,1"
 version = "17.7.11"
 build = "21H461"
@@ -19,14 +27,27 @@ board_id = 12
 fetch = ["KernelCache", "DeviceTree", "StaticTrustCache", "Cryptex1,SystemTrustCache"]
 
 [kernel]
-defconfig = "j716f_research_defconfig"
-# Build-driver paths are relative to the assembled scripts/ directory.
-# These archives are used by j716f_source_defconfig's compile-only CI.
+defconfig = "j716f_source_defconfig"
+config_fragments = [
+  "arch:configs/common.config",
+  "soc:configs/sm8250.config",
+  "os:configs/ipados.config",
+]
+patch_series = [
+  "arch:patches/xnu/series",
+  "soc:patches/xnu/series",
+  "os:patches/xnu/series",
+  "device:patches/xnu/series",
+]
 archives = [
   "build-libpthread-kernel.py",
   "build-corecrypto-14.py",
   "build-corecrypto-14.py --namespace",
 ]
+
+[device_tree]
+source = "device:dts/j716f.dts"
+include_dirs = ["soc:dts"]
 
 [firmware]
 config = "j716f"
@@ -34,12 +55,43 @@ dsc = "Platforms/Lenovo/j716fPkg/j716f.dsc"
 fd = "Build/j716fPkg/{target}_CLANGPDB/FV/SILICIUM_UEFI.fd"
 preflight = ["scripts/check-j716f.py"]
 patches = ["Resources/MuPatches/J716f-FaultFooter.patch"]
-packages = ["{uefi}", "{uefi}/Platforms/Lenovo", "{uefi}/Common/Mu", "{uefi}/Common/Mu_OEM_Sample", "{edk2}", "{uefi}/Silicon/Qualcomm", "{uefi}/Silicon/Silicium", "{tree}/package", "{tree}/drivers/DarwinBoot"]
+packages = [
+  "{uefi}",
+  "{uefi}/Platforms/Lenovo",
+  "{uefi}/Common/Mu",
+  "{uefi}/Common/Mu_OEM_Sample",
+  "{edk2}",
+  "{uefi}/Silicon/Qualcomm",
+  "{uefi}/Silicon/Silicium",
+  "{tree}/package",
+  "{tree}/drivers/DarwinBoot",
+]
 
 [firmware.defines]
 ENABLE_SECUREBOOT = 0
 
-# The IPSW section is a source candidate only. Firmware load addresses, the
-# XNU owned-memory window, payload size, userdata windows, kernelcache hash and
-# trust-cache hashes remain intentionally unset until J716F-specific data is
-# available.
+[payload]
+# This describes the current V15 diagnostic payload layout. It is not an
+# assertion that the payload is a bootable iPadOS system.
+volume = "J716F15"
+size_mib = 64
+loader = "firmware"
+title = "J716F V15 entry diagnostic"
+dram_size = "0x140000000"
+timeout = 0
+kernel_args = ["-v", "serial=0", "debug=0x14e", "cpus=1", "-no_slto_panic"]
+
+[payload.adt]
+owned_memory_size = "0x10000000"
+psci_method = "smc"
+ipad_identity = true
+unique_chip_id = "required"
+
+[bootimg.image]
+base = 0
+kernel_offset = 0x8000
+ramdisk_offset = 0x1000000
+tags_offset = 0x100
+dtb_offset = 0x1f00000
+pagesize = 4096
+header_version = 2

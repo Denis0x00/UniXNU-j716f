@@ -12,6 +12,11 @@ on:
       - 'ci/source-artifacts-public.pem'
       - 'patches/build-driver/0002-guard-optional-legacy-display-probe.patch'
       - 'board.toml'
+      - 'feeds.toml'
+      - 'dts/**'
+      - 'socs/**'
+      - 'porting.toml'
+      - 'unixnu.lock'
 
 permissions:
   contents: read
@@ -45,7 +50,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: UniXNU/UniXNU
-          ref: 245aca1a9ec5b730b1cad80fade295800d2981f1
+          ref: 42bffe8a56823dad2e448c776b4f94862f3e290a
           persist-credentials: false
           path: unixnu
 
@@ -67,7 +72,7 @@ jobs:
       - name: Report toolchain
         run: |
           set -euo pipefail
-          mkdir -p unixnu/out/j716f/logs
+          mkdir -p unixnu/out/j716f
           {
             sw_vers
             uname -m
@@ -79,7 +84,7 @@ jobs:
             git -C unixnu rev-parse HEAD
             git -C device rev-parse HEAD
             df -h "$GITHUB_WORKSPACE"
-          } | tee unixnu/out/j716f/logs/toolchain.log
+          } | tee unixnu/out/j716f/toolchain.log
           for tool in git make clang cmake ninja unifdef xcodebuild; do
             command -v "$tool"
           done
@@ -92,7 +97,7 @@ jobs:
           python3 device/scripts/build-j716f-source.py \
             --unixnu "$GITHUB_WORKSPACE/unixnu" \
             --device "$GITHUB_WORKSPACE/device" --jobs 3 \
-            2>&1 | tee unixnu/out/j716f/logs/source-driver.log
+            2>&1 | tee unixnu/out/j716f/source-driver.log
 
       - name: Stage text logs and reports
         if: always()
@@ -103,13 +108,14 @@ jobs:
           root = Path('unixnu/out/j716f')
           target = Path('public-logs')
           target.mkdir(exist_ok=True)
-          candidates = list((root / 'logs').glob('*'))
+          candidates = [path for path in root.rglob('*') if path.is_file()]
           # Only the following source archive diagnostics are added. No binary,
           # IPSW, kernelcache, payload or full build directory is uploaded.
           for folder in ('corecrypto-2023', 'libpthread-kernel'):
-              build = root / 'tree/build' / folder
-              candidates.extend(build.glob('*.json'))
-              candidates.extend(build.rglob('*.log'))
+              builds = list(root.rglob('tree/build/' + folder))
+              for build in builds:
+                  candidates.extend(build.glob('*.json'))
+                  candidates.extend(build.rglob('*.log'))
           for path in candidates:
               if not path.is_file() or path.suffix not in ('.log', '.json'):
                   continue
