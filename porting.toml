@@ -30,21 +30,21 @@ revision = "f82228a9e166603d6a8b522bf0214db3379fad0d"
 id = "firmware"
 status = "device-verified"
 components = []
-paths = ["proprietary-files.txt", "scripts/check-j716f.py", "docs/V14_MEMORY_WINDOW.md", "docs/V15_ENTRY_DIAGNOSTIC.md"]
+paths = ["proprietary-files.txt", "scripts/check-j716f.py", "docs/V14_MEMORY_WINDOW.md", "docs/V15_ENTRY_DIAGNOSTIC.md", "docs/V16_SOURCE_ENTRY_RESULT.md"]
 inputs = ["Mu-Silicium J716F platform, inherited GOP, fixed ZUI memory map, and the board UEFI DSC/FDF."]
 configuration = ["The device board points to the j716f DSC/FD and keeps vendor inputs outside the public repository."]
 procedure = ["Build the diagnostic FD with the local UEFI checkout, audit its inputs, then boot only through boot_b for hardware checks."]
-findings = ["V14 reached the UniXNU menu and exercised the documented button and DarwinBoot protocol paths; V15 firmware has not yet been tested on hardware."]
+findings = ["V14 reached the UniXNU menu and exercised the documented button and DarwinBoot protocol paths.", "V16 on boot_b displayed the green ExitBootServices bar, the blue MMU-off XNU entry probe and the magenta pre-MMU-enable probe; the screen also showed the normal CapsuleRuntimeDxe LockCapsuleInterface callback."]
 completion = ["The FD enters UniXNU, preserves the documented memory reservations, and exposes the framebuffer for the menu."]
-limits = ["V15 initrd/RAM-disk discovery and the real XNU handoff remain unverified; TzDxe is out of scope."]
-next_action = ["Run the V15 image on boot_b and record the last firmware stage before any kernel handoff."]
+limits = ["MMU-on persistence, ArmCpu/ArmDTPlatform initialization, UFS/root, userspace and iPadOS remain unverified; TzDxe is out of scope."]
+next_action = ["Build V17 with a persistent post-MMU diagnostic stop and verify it on boot_b."]
 
 [[area.evidence]]
 kind = "device"
-reference = "docs/V14_MEMORY_WINDOW.md"
-result = "V14 device boot reached the UniXNU menu and returned the documented firmware result."
+reference = "docs/V16_SOURCE_ENTRY_RESULT.md"
+result = "V16 device boot on HA1Q9SKY reached ExitBootServices and the XNU early-entry probes on boot_b; no other partition was written."
 command = "fastboot boot boot_b"
-revision = "3159b53f6fe197d661f1cf31fb2bc1b9e1128f42"
+revision = "b421b9bf8036fe89883f5e4987fb483eda45568b"
 
 [[area]]
 id = "cpu"
@@ -194,38 +194,38 @@ evidence = []
 id = "packaging"
 status = "host-verified"
 components = ["XnuPrelink", "DarwinBoot"]
-paths = ["board.toml", "dts/**", "patches/**", "scripts/**", "package/**", "docs/V15_ENTRY_DIAGNOSTIC.md"]
+paths = ["board.toml", "dts/**", "patches/**", "scripts/**", "package/**", "docs/V15_ENTRY_DIAGNOSTIC.md", "docs/V16_SOURCE_ENTRY_RESULT.md"]
 inputs = ["V15 FAT payload layout, Android boot image v2 parameters, UEFI FD and the real kernel/ADT private inputs."]
 configuration = ["The board declares a 64 MiB diagnostic volume, firmware DarwinBoot loader, measured DRAM and boot image v2 offsets.", "The UEFI repository now declares the shared RAM-disk DXE alongside DiskIoDxe and FAT while retaining the existing V15 embedded-FAT diagnostic path."]
 procedure = ["Run host image audits, verify kernel/ADT hashes and inspect the boot image before any boot_b test."]
-findings = ["V15 host packaging and static audits passed; this does not prove ExitBootServices or an XNU entry on hardware.", "The source build applies a device-local patch-series compatibility fix before the pinned UniXNU resolver, so optional Sheng PMGR context is not required for J716F."]
+findings = ["V15 host packaging and static audits passed.", "V16 host packaging produced the source-prelinked kernel, J716F ADT and boot image used for the boot_b test.", "The source build applies a device-local patch-series compatibility fix before the pinned UniXNU resolver, so optional Sheng PMGR context is not required for J716F."]
 completion = ["Kernel and ADT inputs are reproducible, the payload contains declared files, and the boot image matches the platform header and size constraints."]
-limits = ["Private payload binaries and vendor inputs are intentionally excluded; V15 still needs a device result."]
-next_action = ["After the host checks pass, boot only boot_b and record the first failing handoff stage."]
+limits = ["Private payload binaries and vendor inputs are intentionally excluded; MMU-on continuation and later platform stages remain unverified."]
+next_action = ["Build V17 with a persistent post-MMU diagnostic stop, then boot only boot_b."]
 
 [[area.evidence]]
 kind = "host"
-reference = "docs/V15_ENTRY_DIAGNOSTIC.md"
-result = "V15 kernel/ADT/payload packaging and host audits passed for the local diagnostic artifact."
+reference = "docs/V16_SOURCE_ENTRY_RESULT.md"
+result = "V16 kernel/ADT/payload packaging and host audits passed for the local diagnostic artifact used on boot_b."
 command = "python3 scripts/check-j716f.py"
 revision = "f82228a9e166603d6a8b522bf0214db3379fad0d"
 
 [[area]]
 id = "diagnostics"
-status = "host-verified"
+status = "device-verified"
 components = []
 paths = ["scripts/**", "research/**", "docs/**", "unixnu.lock"]
-inputs = ["Host audit scripts, V14 memory evidence, V15 entry preparation, and source-build reports."]
+inputs = ["Host audit scripts, V14 memory evidence, V15 entry preparation, V16 boot_b observation, and source-build reports."]
 configuration = ["Diagnostic outputs are separated from private binaries and the record distinguishes host, device and planned evidence."]
 procedure = ["Run the preflight and record checks, preserve only text metadata in CI, and use the boot_b-only recovery procedure on hardware."]
-findings = ["The project has reproducible host checks and a documented last-stage strategy, but no real XNU entry or ExitBootServices result yet.", "Source-build diagnostics now record both device-local compatibility patches and keep patch preparation idempotent across repeated macOS runner attempts."]
+findings = ["V16 device evidence confirms ExitBootServices and XNU early-entry probes on boot_b; the result is preserved in docs/V16_SOURCE_ENTRY_RESULT.md.", "Source-build diagnostics record both device-local compatibility patches and keep patch preparation idempotent across repeated macOS runner attempts."]
 completion = ["Each claimed milestone has a reproducible command, matching source/image revision and an accessible result."]
-limits = ["No UART capture or V15 device log is available yet."]
-next_action = ["Run the host migration checks, then collect the V15 boot_b screen/log and update the matching area evidence."]
+limits = ["No UART capture is available; MMU-on persistence, platform drivers, UFS/root and userspace remain unverified."]
+next_action = ["Build V17 with a persistent post-MMU diagnostic stop and update the device evidence after a boot_b test."]
 
 [[area.evidence]]
-kind = "host"
-reference = "research/v15-entry-preparation.json"
-result = "The V15 preparation record contains the audited private-input hashes and explicitly marks hardware entry as pending."
+kind = "device"
+reference = "docs/V16_SOURCE_ENTRY_RESULT.md"
+result = "V16 records the audited private-input hashes and the boot_b screen evidence for ExitBootServices and XNU early entry."
 command = "python3 scripts/porting-record.py check --device ../UniXNU-j716f"
-revision = "f82228a9e166603d6a8b522bf0214db3379fad0d"
+revision = "b421b9bf8036fe89883f5e4987fb483eda45568b"
