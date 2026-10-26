@@ -30,11 +30,24 @@ python3 -m pip install cryptography==46.0.6
 python3 scripts/test-source-artifact-transfer.py -v
 ```
 
-Five test methods pass locally, including both current profiles, a legacy report,
+Five test methods pass locally and in the Ubuntu Actions job, including both current profiles, a legacy report,
 modified input/ciphertext, output overwrite prevention, malformed manifests and
-authenticated archives with invalid contents. Remote end-to-end verification is
-pending the run triggered by this repair. Source compilation/linking and encrypted
-artifact upload do not establish prelink, firmware boot or timer IRQ operation.
+authenticated archives with invalid contents.
+
+## Remote result
+
+[Repair run 40351062303](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40351062303)
+at `816e3c554af49ffb50c82a9eece504cf76e1f0b8` completed successfully:
+Ubuntu transfer checks, macOS source build, encrypted transfer, encrypted upload
+and text diagnostic upload all passed. GitHub reports the encrypted artifact at
+7,123,225 bytes and text diagnostics at 7,001,328 bytes. These are artifact archive
+sizes from the API, not independently downloaded/decrypted contents.
+[Porting record run 40351063573](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40351063573)
+also passed at the same revision.
+
+The successful build step includes the driver's required linked-platform-symbol
+and source archive gates. Source compilation/linking and encrypted artifact upload
+do not establish prelink, firmware boot or timer IRQ operation. P18 remains unflashed.
 
 ## Companion firmware repository
 
@@ -47,3 +60,5 @@ upstream all-device builder. Current checks enforce those modes and pass.
 They do not compile a complete J716F firmware volume; private board inputs are
 still required. The old Dependabot failure is a separate dependency update task,
 with no detailed public error beyond its updater failure annotation.
+The fresh [UEFI run 40351079042](https://github.com/Denis0x00/uefi-j716f/actions/runs/40351079042)
+also passed at `33d196d565b5940d7f0ff0528fe85337a1793b67`.
