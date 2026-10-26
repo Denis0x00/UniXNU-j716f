@@ -1,0 +1,113 @@
+{
+  "version": "V23P17 TOPOLOGY TRACE r1",
+  "host_checks_passed": true,
+  "automatic_start": false,
+  "kernel_entry_requires_manual_arm": true,
+  "variants": {
+    "m": {
+      "version": "V23P17M",
+      "image": "j716f-mu-zui13-kernel-trace-v23p17m-boot.img",
+      "image_bytes": 8347648,
+      "image_sha256": "0cc610c5217561b86ea55f634c66409112ae7565acbab0c39551c87669f9657a",
+      "fd_sha256": "be11305a6502c6589c4c9665dcaf5e34c5fabed9c939d89bfe0007ec64865c68",
+      "payload_sha256": "633ec434480c63c58278f038d4901a69b69608d50d0bffc0f6e4d919d9d36c4c",
+      "kernel_sha256": "a997a9baffa268395a1d2dec49ceb10e851ea8ad8d30544323ba5ff2f7dde892",
+      "app_sha256": "db37389bca9e8fdaee1d647120df3cd33a32e2d126cc47e7a949e7e6c75a38ea",
+      "power_app_sha256": "5af712b62fd62f0cdd6702bafdfe149df68547a1a1c056948a3d5c5ffbfb833d",
+      "nonpayload_changes_vs_p8": [],
+      "compact_sec_matches_p8": true,
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "device_writes_performed": true,
+      "device_launch": {
+        "partition_images_flashed": [
+          "boot_b"
+        ],
+        "current_slot_before_reboot": "b",
+        "slot_unbootable_b_before_reboot": false,
+        "reboot_command_succeeded": true,
+        "image_sha256": "0cc610c5217561b86ea55f634c66409112ae7565acbab0c39551c87669f9657a",
+        "menu_identity_observed": false,
+        "manual_kernel_start_required": true,
+        "recording_ready_user_confirmed": true,
+        "hardware_verified": false,
+        "reader_identity_observed": true
+      }
+    }
+  },
+  "kernel_logic_cases": 45,
+  "reader_logic_cases": 31,
+  "power_logic_cases_reused_for_identical_app": 22,
+  "hardware_verified": false,
+  "device_writes_performed": true,
+  "source_native_arch_timer_kernel": false,
+  "native_timer_driver_integrated": false,
+  "proposed_partition": "boot_b",
+  "next_variant": "m",
+  "status": "P17M boot_b launch and initial P17 reader observed; explicit full-ring new linear session succeeded and INIT CRC reconstructed. Fresh Query/ARM and P17 kernel results pending.",
+  "source_checkout_base": "0c1750c08adede7791be0af002c0c49c87c24781",
+  "source_state": "Uncommitted P17 additions on recorded base; exact source/artifact hashes in manifest",
+  "prior_baseline": "P16 original WFE/misc returns and CNTKCTL0x4f retained over video-observed reboot",
+  "arm_cookie": "0x5031374b45524e4c",
+  "slot_tag": "0x5031375300000000",
+  "slot_phases": {
+    "16": "BCM_ROUTE_SKIPPED",
+    "17": "M1_READBACK",
+    "18": "WFE_MISC_RETURN",
+    "19": "CHOSEN_LOOKUP_RETURN",
+    "20": "STALL_PROPERTY_RETURN",
+    "21": "CPU_TOPOLOGY_RETURN"
+  },
+  "terminal": "Phase12 actual SCTLR_EL1 M1 after original chosen/stall/topology/boot CPU number returns, before publishing boot CPU number",
+  "next_action": "Query once, ARM once in current reader; photograph ID/CRC/template result before one P17M launch.",
+  "limitations": [
+    "Host privileged state/MMU aliases/barriers/SMC mocked; no P17 hardware result.",
+    "Original lookup return witnesses do not by themselves mean a successful lookup; original result-dependent branches remain intact.",
+    "Topology return is before later max-CPU validation, scheduling or platform driver matching.",
+    "Separate source-native-timer/ArmCpu/ArmDTPlatform candidate is not this kernel.",
+    "No timer IRQ, real WFE wait/wakeup, reset-source, scheduler, storage or userspace qualification."
+  ],
+  "source_files": {
+    "scripts/build-v23p17-kernel.py": "01af2ada6b897845afa69114d1b3c16fe24fc7c52ff70f94ccb7bce11bda6d7b",
+    "scripts/v23p17-topology.S": "5fcb557ad79c3b90b89d70b68fec708889e6a78ef9fe4061dfc511dd68643ca6",
+    "scripts/decode-j716f-v23p17.py": "5728100940c132487fdf47e2e4ad91f03d4d9de29c0e963e6eb17eb74ab8d296"
+  },
+  "initial_reader_observation": {
+    "reader_identity": "J716F V23P17 TOPOLOGY TRACE r1",
+    "entry_frozen": true,
+    "entry_signature": "0x43474244",
+    "entry_next": "0x93b7",
+    "entry_size": "0x3fff4",
+    "now_valid": true,
+    "now_next": "0x93b7",
+    "now_size": "0x3fff4",
+    "entry_logical_count": 0,
+    "entry_raw_count": 0,
+    "frozen_checkpoint_id": 0,
+    "all_checkpoint_hits_zero": true,
+    "this_run_id": 1,
+    "queried": false,
+    "armed": false,
+    "current_el": 1,
+    "photo_sha256": "39397270794a1781ba6c36f76ae642fdf88372dbe4fd7cca3096b4d50b1aaa7f",
+    "interpretation": "Valid saturated circular console, not an empty linear log; P17 reader identity observed, no P17 kernel attempt or retention result.",
+    "next_action": "Photographed baseline preserved; explicitly select New linear session twice without moving selection, photograph success before Query/ARM."
+  },
+  "new_linear_session_observation": {
+    "photo_sha256": "78bbd8c5e2ccc42dab22bbc3dc3cfb0f4d3d963ba6608500574a68c405799a52",
+    "frozen_entry_unchanged": true,
+    "entry_console_crc32": "65bc3b3e",
+    "now_valid": true,
+    "now_next": "0x40",
+    "now_size": "0x40",
+    "logical_count": 1,
+    "raw_count": 1,
+    "this_run_id": 1,
+    "queried": false,
+    "armed": false,
+    "last_record_crc32": "df3bcb06",
+    "status_text": "New session OK; old bytes raw/stale. Photo page, then Query and ARM.",
+    "init_crc_reconstructed_match": true,
+    "scope": "Header rollover and single INIT record observed; no Query, ARM, kernel launch or reboot-retention result."
+  }
+}

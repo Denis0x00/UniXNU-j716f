@@ -32,3 +32,16 @@ python3 scripts/build-j716f-source.py --unixnu /path/to/pinned-unixnu \
 以及预链接 ABI，再在真实设备上记录平台匹配、CPU 注册、timebase 前进和
 timer IRQ 计数连续增长。J716F GIC 资源来自已有 stock/recovery 交叉证据，
 不复制 SM8550 地址或 IPI/SMP 策略。当前先保持单核。
+
+## 独立单核 ADT 候选
+
+`make-j716f-native-platform-adt.py` 从既有板级证据生成独立输入，
+显式添加 `/psci/method=smc`；`check-native-platform-adt.py` 独立解码核对
+CPU0 affinity、timebase、NVRAM 输入以及 GIC ranges/reg/stride 的编码和映射。
+实际候选10540字节，SHA256见结构化研究摘要；检查通过。
+GICD=0x17a00000/0x10000、GICR=0x17a60000/0x100000、stride=0x20000
+均来自已有 stock/recovery 交叉证据。保持单核，不复制 SM8550 的 SMP/IPI 常数。
+
+该候选包含新随机种子，仅留本地；没有替换 P13～P17 的固定 ADT，未装入 P17。
+输入检查不访问 MMIO，不证明驱动匹配、IRQ、prelink 或硬件运行。
+源码构建 CI 仍待结果，不把候选配置或输入检查当作已编译成功。

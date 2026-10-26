@@ -23,5 +23,18 @@
     "build-libpthread-kernel.py",
     "build-corecrypto-14.py",
     "build-corecrypto-14.py --namespace"
-  ]
+  ],
+  "adt_input_validation": {
+    "passed": true,
+    "single_cpu": true,
+    "timer_hz": 19200000,
+    "gic_resources_from_stock_and_recovery": true,
+    "psci_method": "smc",
+    "adt_sha256": "9a0cd132007fc369608877f227d1863393982472ce7fe27f706a66907d977874",
+    "hardware_validated": false,
+    "scope": "ADT input ABI/resource encoding only; no driver matching, MMIO, timer IRQ or prelink validation",
+    "adt_bytes": 10540,
+    "original_diagnostic_adt_modified": false,
+    "candidate_installed_in_p17": false
+  }
 }
