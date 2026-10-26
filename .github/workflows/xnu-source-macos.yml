@@ -2,16 +2,23 @@ name: J716F XNU source build
 
 on:
   workflow_dispatch:
+    inputs:
+      native_arch_timer:
+        description: 'Qualify native architectural timer source (no ArmCpu/prelink/device boot)'
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
       - '.github/workflows/xnu-source-macos.yml'
       - 'configs/j716f_source_defconfig'
+      - 'configs/j716f_arch_timer_source_defconfig'
       - 'scripts/build-j716f-source.py'
       - 'scripts/source-artifact-transfer.py'
       - 'ci/source-artifacts-public.pem'
       - 'patches/build-driver/0002-guard-optional-legacy-display-probe.patch'
       - 'patches/build-driver/0003-allow-boot-progress-without-sheng-pmgr.patch'
+      - 'patches/build-driver/0004-restore-xnu-headers-after-reclone.patch'
       - 'board.toml'
       - 'feeds.toml'
       - 'dts/**'
@@ -93,11 +100,17 @@ jobs:
       - name: Build source XNU, pthread and corecrypto
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          J716F_NATIVE_TIMER: ${{ inputs.native_arch_timer }}
         run: |
           set -euo pipefail
+          timer_args=()
+          if [[ "$J716F_NATIVE_TIMER" == "true" ]]; then
+            timer_args+=(--native-arch-timer)
+          fi
           python3 device/scripts/build-j716f-source.py \
             --unixnu "$GITHUB_WORKSPACE/unixnu" \
             --device "$GITHUB_WORKSPACE/device" --jobs 3 \
+            "${timer_args[@]}" \
             2>&1 | tee unixnu/out/j716f/source-driver.log
 
       - name: Stage text logs and reports

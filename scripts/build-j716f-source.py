@@ -17,6 +17,7 @@ UNIXNU_COMMIT = "42bffe8a56823dad2e448c776b4f94862f3e290a"
 DEFCONFIG = "j716f_source_defconfig"
 SOURCE_FIX = "patches/build-driver/0002-guard-optional-legacy-display-probe.patch"
 PATCH_SERIES_FIX = "patches/build-driver/0003-allow-boot-progress-without-sheng-pmgr.patch"
+HEADER_RESTORE_FIX = "patches/build-driver/0004-restore-xnu-headers-after-reclone.patch"
 
 
 def revision(path):
@@ -27,7 +28,7 @@ def revision(path):
 
 def prepare_source_fix(base, device):
     """Apply recorded compatibility fixes to the pinned source tree."""
-    patches = [device / SOURCE_FIX, device / PATCH_SERIES_FIX]
+    patches = [device / SOURCE_FIX, device / PATCH_SERIES_FIX, device / HEADER_RESTORE_FIX]
     command = ["git", "-C", str(base), "apply"]
     for patch in patches:
         applied = subprocess.run(
@@ -69,6 +70,8 @@ def main():
     parser.add_argument("--device", type=Path, required=True)
     parser.add_argument("--jobs", type=int, default=3)
     parser.add_argument("--check-source-fix-only", action="store_true")
+    parser.add_argument("--native-arch-timer", action="store_true",
+                        help="Qualify upstream native timer source; still no ArmCpu, prelink or hardware claim")
     args = parser.parse_args()
     base, device = args.unixnu.resolve(), args.device.resolve()
     if revision(base) != UNIXNU_COMMIT:
@@ -86,8 +89,9 @@ def main():
     from unixnu.config import Context
     from unixnu import kernel
 
+    selected_defconfig = "j716f_arch_timer_source_defconfig" if args.native_arch_timer else DEFCONFIG
     options = cli_parser().parse_args(
-        ["defconfig", DEFCONFIG, "-D", str(device), "-j", str(args.jobs)]
+        ["defconfig", selected_defconfig, "-D", str(device), "-j", str(args.jobs)]
     )
     ctx = Context(options)
     ctx.refuse_example()
@@ -99,15 +103,19 @@ def main():
         raise SystemExit("Source archive construction must be enabled")
     for feature in ("XNU_NATIVE_AES", "XNU_NATIVE_UFS", "XNU_ARMCPU",
                     "XNU_ARM_DT_PLATFORM", "XNU_ARMVIRT_PLATFORM",
-                    "XNU_NATIVE_ARCH_TIMER", "XNU_NATIVE_ADRENO"):
+                    "XNU_NATIVE_ADRENO"):
         if config.get(feature):
             raise SystemExit(f"Source qualification must not enable {feature}")
+    if bool(config.get("XNU_NATIVE_ARCH_TIMER")) != args.native_arch_timer:
+        raise SystemExit("Architectural timer feature must match the selected qualification profile")
     ctx.logs.mkdir(parents=True, exist_ok=True)
     report_path = ctx.logs / "source-build-report.json"
     report = {
         "phase": "source-only",
         "board": ctx.name,
-        "defconfig": DEFCONFIG,
+        "defconfig": selected_defconfig,
+        "native_arch_timer_requested": args.native_arch_timer,
+        "armcpu_driver_integrated": False,
         "unixnu_commit": revision(base),
         "device_commit": revision(device),
         "source_fixes": source_fixes,
@@ -139,6 +147,14 @@ def main():
         data = native.read_bytes()
         if struct.unpack_from("<4I", data) != (0xFEEDFACF, 0x100000C, 0, 2):
             raise RuntimeError("Expected ordinary ARM64 Mach-O executable")
+        bcm_route = bytes.fromhex(
+            "af0038d5ef1d4092000088d200bc70d30000019100080f8b011e8052010000b9df3f03d5"
+        )
+        route_count = data.count(bcm_route)
+        if route_count != (0 if args.native_arch_timer else 1):
+            raise RuntimeError("Linked BCM route count does not match timer profile")
+        report["linked_bcm_route_sequence_count"] = route_count
+        report["native_arch_timer_hardware_validated"] = False
         paths = [native, ctx.tree / "build/libpthread-kernel/libpthread_kernel.a",
                  ctx.tree / "build/corecrypto-2023/libcorecrypto_kernel_noasm.a",
                  ctx.tree / "build/corecrypto-2023/libcorecrypto_kernel_noasm-namespaced.a"]

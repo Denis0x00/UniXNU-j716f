@@ -1,0 +1,18 @@
+From 018c8f3439f1093b7ccd9965db0894516aace274 Mon Sep 17 00:00:00 2001
+Subject: [PATCH] fix(kernel): restore omitted XNU headers after a fresh clone
+
+Backport the upstream two-line fix to the pinned 42bffe8 build driver.
+Source: https://github.com/UniXNU/UniXNU/commit/018c8f3439f1093b7ccd9965db0894516aace274
+
+diff --git a/scripts/unixnu/patches.py b/scripts/unixnu/patches.py
+--- a/scripts/unixnu/patches.py
++++ b/scripts/unixnu/patches.py
+@@ -60,6 +60,8 @@ def prepare(ctx, modules):
+             except Error as error:
+                 shutil.rmtree(work)
+                 raise Error(f'XNU patch {path}: {error}') from error
++        # A fresh clone lacks the public headers newer xnu omits (TrustCache among them); archives compile against it before the kernel build.
++        run(['python3', ctx.tree / 'scripts/prepare-xnu-source.py'], cwd=ctx.tree)
+         stamp.write_text(json.dumps(signature, indent=2) + '\n')
+     patch_list = ctx.work / 'xnu-patches.list'
+     patch_list.write_text(''.join(str(path) + '\n' for path in selected))
