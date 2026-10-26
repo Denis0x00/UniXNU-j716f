@@ -7,4 +7,4 @@ permissions:
 
 jobs:
   porting-record:
-    uses: UniXNU/UniXNU/.github/workflows/porting-record.yml@main
+    uses: UniXNU/UniXNU/.github/workflows/porting-record.yml@ae687009348296e97e49ce6e925795044f363ce6

@@ -43,6 +43,11 @@ kind = "source"
 reference = "research/native-platform-source-candidate.json"
 result = "Isolated native platform source candidate selects ArmDTPlatform/ArmCpu archives, with actual pinned Context/component/archive-plan checks. Source build reports now require linked provider symbols and expose compatibility-patch failure diagnostics. No prelink or hardware claim; diagnostic baseline is preserved."
 
+[[area.evidence]]
+kind = "source"
+reference = "docs/PROGRESS_AFTER_V23P16_20261026.md"
+result = "Publication uses the reviewed ae687009 upstream porting workflow. Historical source entries with commands now carry their documented source-base commits, as required by its stricter evidence validation; no source evidence was promoted to a device result."
+
 [[area]]
 id = "firmware"
 status = "device-verified"
@@ -92,8 +97,9 @@ result = "V23P2 bootloader flash failed with unknown command; fastbootd flash of
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p3-single-factor.json"
-result = "P3A/B builds passed and every extracted non-payload firmware module matches P2. No P3 device operation was performed; the V23 DSC/FDF and platform modules are unchanged."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. P3A/B builds passed and every extracted non-payload firmware module matches P2. No P3 device operation was performed; the V23 DSC/FDF and platform modules are unchanged."
 command = "python tools/package_j716f_v23p3.py; python tools/check_j716f_v23p3_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 [[area.evidence]]
 kind = "source"
@@ -104,8 +110,9 @@ result = "V23P3A was flashed only to boot_b via fastbootd, B activated and reboo
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p4-single-factor.json"
-result = "V23P4 r1 actual non-payload firmware modules match P2; only embedded FAT changes. Original P4 was not flashed after preflight found its markers would be cleared."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. V23P4 r1 actual non-payload firmware modules match P2; only embedded FAT changes. Original P4 was not flashed after preflight found its markers would be cleared."
 command = "python tools/package_j716f_v23p4.py; python tools/check_j716f_v23p4_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
@@ -123,8 +130,9 @@ result = "V23P4 r1 video confirms both early MMIO markers and title mode 5 with 
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p5-matched-mmio.json"
-result = "V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
 command = "python tools/package_j716f_v23p5.py; python tools/check_j716f_v23p5_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
@@ -431,8 +439,9 @@ result = "V23P2 video shows only inline checkpoints 1/2 before the title DSB bou
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p3-single-factor.json"
-result = "P3A changes only the legacy BCM store to NOP. P3B retains it and changes only the title barrier to DMB, preserving other rows DSB. Both retain counter-free PSCI diagnostics; no CPU/PSCI hardware qualification is added."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. P3A changes only the legacy BCM store to NOP. P3B retains it and changes only the title barrier to DMB, preserving other rows DSB. Both retain counter-free PSCI diagnostics; no CPU/PSCI hardware qualification is added."
 command = "python tools/package_j716f_v23p3.py; python tools/check_j716f_v23p3_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
@@ -444,8 +453,9 @@ result = "V23P4 r1 video confirms both early MMIO markers and title mode 5 with 
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p5-matched-mmio.json"
-result = "V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
 command = "python tools/package_j716f_v23p5.py; python tools/check_j716f_v23p5_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
@@ -580,15 +590,17 @@ result = "V23P2 adds only bounded stores within the existing validated framebuff
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p3-single-factor.json"
-result = "P3B uses 20 previously zero bytes inside the existing guarded kernel code cave. It introduces no new firmware allocation, ownership or framebuffer mapping change; real MMIO/barrier behavior is untested."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. P3B uses 20 previously zero bytes inside the existing guarded kernel code cave. It introduces no new firmware allocation, ownership or framebuffer mapping change; real MMIO/barrier behavior is untested."
 command = "python tools/package_j716f_v23p3.py; python tools/check_j716f_v23p3_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p4-single-factor.json"
-result = "V23P4 r1 uses the existing guarded cave (2108 of 2800 bytes) and fixed framebuffer reservation; no mapping or MMU configuration changes. Exact P2 rollback includes restoring the original clear STP."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. V23P4 r1 uses the existing guarded cave (2108 of 2800 bytes) and fixed framebuffer reservation; no mapping or MMU configuration changes. Exact P2 rollback includes restoring the original clear STP."
 command = "python tools/package_j716f_v23p4.py; python tools/check_j716f_v23p4_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
@@ -600,8 +612,9 @@ result = "V23P4 r1 video confirms both early MMIO markers and title mode 5 with 
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p5-matched-mmio.json"
-result = "V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
 command = "python tools/package_j716f_v23p5.py; python tools/check_j716f_v23p5_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
@@ -827,15 +840,17 @@ result = "V23P2 title and two inline 96x96 squares are visible on hardware. The 
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p3-single-factor.json"
-result = "P3 retains P2 mode 5, font and checkpoint geometry. Ten controlled cases executed real renderer, squares and the B dispatcher; 1105920 square pixels were checked. No P3 hardware display result is claimed."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. P3 retains P2 mode 5, font and checkpoint geometry. Ten controlled cases executed real renderer, squares and the B dispatcher; 1105920 square pixels were checked. No P3 hardware display result is claimed."
 command = "python tools/package_j716f_v23p3.py; python tools/check_j716f_v23p3_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p4-single-factor.json"
-result = "V23P4 r1 initializes both early marker regions and retains only two 96x96 rectangles through the subsequent clear. Unicorn checked all 16384000 framebuffer bytes after the actual pre/setup_fb/clear path; hardware visibility is pending."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. V23P4 r1 initializes both early marker regions and retains only two 96x96 rectangles through the subsequent clear. Unicorn checked all 16384000 framebuffer bytes after the actual pre/setup_fb/clear path; hardware visibility is pending."
 command = "python tools/package_j716f_v23p4.py; python tools/check_j716f_v23p4_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
@@ -847,8 +862,9 @@ result = "V23P4 r1 video confirms both early MMIO markers and title mode 5 with 
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p5-matched-mmio.json"
-result = "V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
 command = "python tools/package_j716f_v23p5.py; python tools/check_j716f_v23p5_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
@@ -956,8 +972,9 @@ result = "V23P2 later restarts to its menu and PMIC changes 0x02000001 to 0x0200
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p3-single-factor.json"
-result = "P3 retains the original PSCI arguments and pre-SMC barrier. Host SMC results are mocked and no P3 reset or PMIC observation exists."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. P3 retains the original PSCI arguments and pre-SMC barrier. Host SMC results are mocked and no P3 reset or PMIC observation exists."
 command = "python tools/package_j716f_v23p3.py; python tools/check_j716f_v23p3_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
@@ -969,8 +986,9 @@ result = "V23P4 r1 video confirms both early MMIO markers and title mode 5 with 
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p5-matched-mmio.json"
-result = "V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
 command = "python tools/package_j716f_v23p5.py; python tools/check_j716f_v23p5_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
@@ -1082,8 +1100,9 @@ result = "V23P2 separately packages an 1824-byte guarded probe, reseals crypto a
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p3-single-factor.json"
-result = "P3A/B actual FD/FAT/PE/Android-v2 audits and final crypto HMAC checks passed. Undoing the approved factor and seal reconstructs the exact pinned P2 kernel. P2 and other prior manifests remain preserved."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. P3A/B actual FD/FAT/PE/Android-v2 audits and final crypto HMAC checks passed. Undoing the approved factor and seal reconstructs the exact pinned P2 kernel. P2 and other prior manifests remain preserved."
 command = "python tools/package_j716f_v23p3.py; python tools/check_j716f_v23p3_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 [[area.evidence]]
 kind = "source"
@@ -1094,8 +1113,9 @@ result = "V23P3A was flashed only to boot_b via fastbootd, B activated and reboo
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p4-single-factor.json"
-result = "V23P4 r1 passed actual FD/FAT/PE/Android-v2, source hashes and crypto HMAC audits. Undoing its envelope, clear filter and HMAC seal reconstructs pinned P2. Original P4 was not flashed and is privately archived."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. V23P4 r1 passed actual FD/FAT/PE/Android-v2, source hashes and crypto HMAC audits. Undoing its envelope, clear filter and HMAC seal reconstructs pinned P2. Original P4 was not flashed and is privately archived."
 command = "python tools/package_j716f_v23p4.py; python tools/check_j716f_v23p4_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
@@ -1113,8 +1133,9 @@ result = "V23P4 r1 video confirms both early MMIO markers and title mode 5 with 
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p5-matched-mmio.json"
-result = "V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
 command = "python tools/package_j716f_v23p5.py; python tools/check_j716f_v23p5_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
@@ -1218,8 +1239,9 @@ result = "V23P2 narrows the last visible progress to title stores and RAW checkp
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p3-single-factor.json"
-result = "P3 isolates legacy MMIO and title barrier behavior independently. A retains all DSBs; B uses a title-only DMB dispatcher without changing registers, NZCV or LR. Only menus identify A/B; hardware trials are pending."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. P3 isolates legacy MMIO and title barrier behavior independently. A retains all DSBs; B uses a title-only DMB dispatcher without changing registers, NZCV or LR. Only menus identify A/B; hardware trials are pending."
 command = "python tools/package_j716f_v23p3.py; python tools/check_j716f_v23p3_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 [[area.evidence]]
 kind = "source"
@@ -1229,8 +1251,9 @@ result = "V23P3A was flashed only to boot_b via fastbootd, B activated and reboo
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p4-single-factor.json"
-result = "V23P4 r1 host simulation executes the actual kernel legacy branch, original store and return, then explicitly reenters pre for a complete clear/filter. It verifies stale after-marker removal and preserved registers. Intervening privileged instructions and real MMIO ordering are excluded; device result pending."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. V23P4 r1 host simulation executes the actual kernel legacy branch, original store and return, then explicitly reenters pre for a complete clear/filter. It verifies stale after-marker removal and preserved registers. Intervening privileged instructions and real MMIO ordering are excluded; device result pending."
 command = "python tools/package_j716f_v23p4.py; python tools/check_j716f_v23p4_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
@@ -1248,8 +1271,9 @@ result = "V23P4 r1 video confirms both early MMIO markers and title mode 5 with 
 [[area.evidence]]
 kind = "source"
 reference = "research/v23p5-matched-mmio.json"
-result = "V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
+result = "Source additions were uncommitted on the recorded base; exact source/artifact hashes are in the referenced record and local manifest. V23P5A/B matched controls passed host image, source/HMAC, pair-delta and emulator checks. A kernel equals P4 r1; B differs only in relocated STR-to-NOP and HMAC. Both use compiled menu scale 3, identical non-payload modules, markers and title DSB. No P5 hardware trial or device write. Test A then B on boot_b. See docs/V23P5_MATCHED_MMIO_CONTROL.md."
 command = "python tools/package_j716f_v23p5.py; python tools/check_j716f_v23p5_probe.py (local workspace)"
+revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
 
 [[area.evidence]]
