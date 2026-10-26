@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       native_arch_timer:
-        description: 'Qualify native architectural timer source (no ArmCpu/prelink/device boot)'
+        description: 'Build native timer with ArmCpu/ArmDTPlatform (no prelink/device boot)'
         type: boolean
         default: false
   push:
@@ -14,6 +14,7 @@ on:
       - 'configs/j716f_source_defconfig'
       - 'configs/j716f_arch_timer_source_defconfig'
       - 'scripts/build-j716f-source.py'
+      - 'scripts/prepare-native-platform.py'
       - 'scripts/source-artifact-transfer.py'
       - 'ci/source-artifacts-public.pem'
       - 'patches/build-driver/0002-guard-optional-legacy-display-probe.patch'
@@ -100,7 +101,7 @@ jobs:
       - name: Build source XNU, pthread and corecrypto
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          J716F_NATIVE_TIMER: ${{ inputs.native_arch_timer }}
+          J716F_NATIVE_TIMER: ${{ github.event_name == 'push' || inputs.native_arch_timer }}
         run: |
           set -euo pipefail
           timer_args=()

@@ -9,7 +9,9 @@ The diagnostic intentionally stops before /chosen. Timer IRQs, real WFE wait,
 ArmCpu/GIC, sustained initialization, reset source and userspace are unverified.
 
 P13–P16 are terminal instrumentation on a frozen source-built/prelinked baseline.
-The native timer source profile has only been resolved, not compiled or run.
+The native platform candidate now enables ArmCpu/ArmDTPlatform and their archive recipes;
+actual Context/component/archive-plan checks pass, compilation and hardware are pending.
+Read `docs/NATIVE_PLATFORM_SOURCE_CANDIDATE.md`.
 Next: grouped /chosen/stall/following-init witnesses and a separate source-native
 timer/ArmDTPlatform/ArmCpu integration candidate, initially single-core.
 

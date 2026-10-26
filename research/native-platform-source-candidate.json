@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "scope": "Actual pinned Context/component resolver/archive plan only; not compiled or hardware tested",
+  "enabled": {
+    "XNU_BUILD_ARCHIVES": true,
+    "XNU_SOURCE_CORECRYPTO14": true,
+    "XNU_SOURCE_PTHREAD": true,
+    "XNU_ARM_DT_PLATFORM": true,
+    "XNU_ARMCPU": true,
+    "XNU_NATIVE_ARCH_TIMER": true,
+    "XNU_TRUST_CACHE_RUNTIME": true,
+    "XNU_NATIVE_CS_HASH_CACHE": true
+  },
+  "components": {
+    "XnuPrelink": "f876e3ee62e18fc06653dd75ed7dafcfb3950ac0",
+    "DarwinBoot": "3325e352d7df68a9f9ad74832ed94a6acbbd7390",
+    "ArmDTPlatform": "417ff95d6a6e8607ddea9309ec45c3bfd4a67c60",
+    "ArmCpu": "9066b53bbc82e92a98ec44a11dd50fd13eaf1a1b"
+  },
+  "archives": [
+    "ArmDTPlatform",
+    "ArmCpu",
+    "build-libpthread-kernel.py",
+    "build-corecrypto-14.py",
+    "build-corecrypto-14.py --namespace"
+  ]
+}

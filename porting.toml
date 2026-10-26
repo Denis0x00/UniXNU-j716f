@@ -532,6 +532,11 @@ kind = "source"
 reference = "research/v23p16-timer-wfe.json"
 result = "P16M continuous11.998s video confirms selected P16M, DARWIN BOOT/green handoff, screen loss, Lenovo/Android splash, P16M menu return and read-only reader matching final photo. ENTRY/NOW VALID next=size0x28aa1, consoleCRCB9A3B4BA, logical13/raw26, latest ID2/phase12/A684F65B. Fresh ARM93A96F6F matches prelaunch; ENTRY5AF6E0B5 value93A96F6F00C00808(M0). All six phases16..21 are L1/R1 with bound value5031365393A96F6F and CRCsAA287B4B,E666CD05,FD46BF3F,D6F1DD05,CB065B4B,48BB45ED. TerminalA684F65B records actual CNTKCTL_EL1=0x4f after M1 guard. All nine CRCs reconstruct exactly; growth512 matches ENTRY+six slots+terminal. New reader ID3/query0/armed0, no MAP_FAILURE/RESET_RETURN. Original WFE configuration/init and misc returns completed and records retained over one observed reboot. PMIC02000001->02000041. Timer IRQs, real WFE wait/wakeup, sustained initialization, ArmCpu/GIC, reset source and userspace remain unverified."
 
+[[area.evidence]]
+kind = "source"
+reference = "research/native-platform-source-candidate.json"
+result = "Separate native-timer source candidate now selects ArmCpu/ArmDTPlatform and archive recipes. Actual pinned Context/component resolver/archive-plan checks pass. Corrects prior timer=y/ArmCpu=n build incompatibility; compilation, linkage and hardware remain pending."
+
 [[area]]
 id = "memory"
 status = "device-verified"

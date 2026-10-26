@@ -1,13 +1,15 @@
-# Native architectural timer source qualification; not a J716F bootable kernel.
-# ArmCpu/ArmDTPlatform integration and real timer interrupts remain separate gates.
+# Native architectural timer + ArmCpu/ArmDTPlatform source integration candidate.
+# Use scripts/prepare-native-platform.py or build-j716f-source.py --native-arch-timer.
+# Upstream requires the actual ArmCpu interrupt provider with native timer entry.
+# Compilation/linkage is separate from driver matching and real timer IRQ proof.
 # No IPSW, prelink, device ADT, userdata or board MMIO inputs are used.
 CONFIG_XNU_BUILD_ARCHIVES=y
 CONFIG_XNU_SOURCE_CORECRYPTO14=y
 CONFIG_XNU_SOURCE_PTHREAD=y
 CONFIG_XNU_SOURCE_MOCKFS=n
 CONFIG_XNU_CRYPTO_BOOTSTRAP="source"
-CONFIG_XNU_ARM_DT_PLATFORM=n
-CONFIG_XNU_ARMCPU=n
+CONFIG_XNU_ARM_DT_PLATFORM=y
+CONFIG_XNU_ARMCPU=y
 CONFIG_XNU_ARMVIRT_PLATFORM=n
 CONFIG_XNU_NATIVE_AES=n
 CONFIG_XNU_NATIVE_ARCH_TIMER=y

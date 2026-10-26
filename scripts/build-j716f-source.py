@@ -5,6 +5,7 @@ Do not call kernel.prelink: this phase has no original kernelcache or J716F ADT.
 No device access or firmware, payload, userdata construction is performed.
 """
 import argparse
+import importlib.util
 import hashlib
 import json
 import platform
@@ -71,7 +72,7 @@ def main():
     parser.add_argument("--jobs", type=int, default=3)
     parser.add_argument("--check-source-fix-only", action="store_true")
     parser.add_argument("--native-arch-timer", action="store_true",
-                        help="Qualify upstream native timer source; still no ArmCpu, prelink or hardware claim")
+                        help="Build/link native timer with ArmDTPlatform and ArmCpu; no prelink or hardware claim")
     args = parser.parse_args()
     base, device = args.unixnu.resolve(), args.device.resolve()
     if revision(base) != UNIXNU_COMMIT:
@@ -89,6 +90,14 @@ def main():
     from unixnu.config import Context
     from unixnu import kernel
 
+    original_device = device
+    if args.native_arch_timer:
+        spec = importlib.util.spec_from_file_location(
+            'native_candidate', device/'scripts/prepare-native-platform.py')
+        candidate = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(candidate)
+        device = base.parent/'j716f-native-platform-candidate'
+        candidate.prepare(original_device, device)
     selected_defconfig = "j716f_arch_timer_source_defconfig" if args.native_arch_timer else DEFCONFIG
     options = cli_parser().parse_args(
         ["defconfig", selected_defconfig, "-D", str(device), "-j", str(args.jobs)]
@@ -101,13 +110,15 @@ def main():
     config = ctx.need_config()
     if not config.get("XNU_BUILD_ARCHIVES"):
         raise SystemExit("Source archive construction must be enabled")
-    for feature in ("XNU_NATIVE_AES", "XNU_NATIVE_UFS", "XNU_ARMCPU",
-                    "XNU_ARM_DT_PLATFORM", "XNU_ARMVIRT_PLATFORM",
+    for feature in ("XNU_NATIVE_AES", "XNU_NATIVE_UFS", "XNU_ARMVIRT_PLATFORM",
                     "XNU_NATIVE_ADRENO"):
         if config.get(feature):
             raise SystemExit(f"Source qualification must not enable {feature}")
     if bool(config.get("XNU_NATIVE_ARCH_TIMER")) != args.native_arch_timer:
         raise SystemExit("Architectural timer feature must match the selected qualification profile")
+    for feature in ("XNU_ARMCPU", "XNU_ARM_DT_PLATFORM"):
+        if bool(config.get(feature)) != args.native_arch_timer:
+            raise SystemExit(f"{feature} must match the native platform candidate")
     ctx.logs.mkdir(parents=True, exist_ok=True)
     report_path = ctx.logs / "source-build-report.json"
     report = {
@@ -116,8 +127,10 @@ def main():
         "defconfig": selected_defconfig,
         "native_arch_timer_requested": args.native_arch_timer,
         "armcpu_driver_integrated": False,
+        "armcpu_driver_requested": args.native_arch_timer,
+        "armdt_platform_driver_requested": args.native_arch_timer,
         "unixnu_commit": revision(base),
-        "device_commit": revision(device),
+        "device_commit": revision(original_device),
         "source_fixes": source_fixes,
         "status": "started",
         "prelink_performed": False,
@@ -131,6 +144,10 @@ def main():
         report["references"] = {
             name: module.commit for (kind, name), module in modules.items()
             if kind == "refer" and module.commit
+        }
+        report["components"] = {
+            name: module.commit for (kind, name), module in modules.items()
+            if kind == "driver" and name in ("ArmCpu", "ArmDTPlatform")
         }
         submodules = subprocess.check_output(
             ["git", "-C", str(base), "submodule", "status", "--recursive"],
@@ -158,6 +175,30 @@ def main():
         paths = [native, ctx.tree / "build/libpthread-kernel/libpthread_kernel.a",
                  ctx.tree / "build/corecrypto-2023/libcorecrypto_kernel_noasm.a",
                  ctx.tree / "build/corecrypto-2023/libcorecrypto_kernel_noasm-namespaced.a"]
+        if args.native_arch_timer:
+            # Require defined symbols in the linked Mach-O, not just byte strings
+            # or the existence of unreferenced archive files.
+            symbols = set()
+            command_offset = 32
+            for _ in range(struct.unpack_from('<I', data, 16)[0]):
+                command, size = struct.unpack_from('<II', data, command_offset)
+                if command == 2:
+                    symoff, count, stroff, _ = struct.unpack_from('<4I', data, command_offset+8)
+                    for index in range(count):
+                        string, kind, section, _, value = struct.unpack_from('<IBBHQ', data, symoff+16*index)
+                        if kind & 0xe == 0xe and section and value:
+                            end = data.index(b'\0', stroff+string)
+                            symbols.add(data[stroff+string:end].decode('utf-8'))
+                command_offset += size
+            required = {'_armcpu_timer_interrupts', '_armcpu_registered',
+                        '_armdt_platform_configured', '_rtclock_intr'}
+            if not required <= symbols:
+                raise RuntimeError('Missing linked platform providers: '+str(sorted(required-symbols)))
+            report['linked_platform_symbols'] = sorted(required)
+            report['armcpu_driver_linked'] = True
+            report['armdt_platform_driver_linked'] = True
+            paths += [ctx.tree/'build/armcpu/libArmCpu.a',
+                      ctx.tree/'build/armdt-platform/libArmDTPlatform.a']
         for path in paths:
             content = path.read_bytes()
             if not content:

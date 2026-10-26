@@ -37,10 +37,11 @@ SoC 目录仍是本地过渡快照；板级驱动 ABI 和集成未完成。
 `board.toml` 中的历史 payload 配方不是最新 P16 的构建入口；
 各版本请按独立说明及 `scripts/build-v23p*-kernel.py` 使用。
 
-`j716f_arch_timer_source_defconfig` 是单独的源码资格验证方案，
-当前只解析过配置，尚未完成该方案编译/实机验证；ArmCpu/ArmDTPlatform 未接入。
-GitHub Actions 的普通源码构建与 native timer 选项分别记录结果，
-源码编译成功也不等于设备启动成功。
+[原生平台源码候选](docs/NATIVE_PLATFORM_SOURCE_CANDIDATE.md)现已接入独立配置副本：
+同时选择 native timer、ArmCpu、ArmDTPlatform 及其 archive recipe。
+上游配置解析和组件/构建计划检查已通过；源码编译、链接及实机运行分别验收。
+该方案修正了此前 native timer=y、ArmCpu=n 无法满足上游构建条件的问题。
+GitHub Actions 的 push 默认构建此源码候选，不执行 prelink 或设备刷写。
 
 不发布 Apple/Lenovo 二进制输入、原始 DTB、镜像、照片、原始日志、用户数据、
 随机种子和凭据。公开内容限源码、哈希和脱敏结果摘要。
