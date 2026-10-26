@@ -448,6 +448,13 @@ reference = "research/v23p17-chosen-topology.json"
 revision = "0c1750c08adede7791be0af002c0c49c87c24781"
 command = "Review photographed P17 New session OK page; independently reconstruct INIT CRC from ID/value/prior header."
 result = "Uncommitted P17 additions on recorded base; exact identities in manifest. P17 new-session photo confirms frozen initial ENTRY unchanged, NOW VALID next=size0x40, logical/raw1/1 and THIS RUN ID1/query0/armed0 CRCDF3BCB06. Independently reconstructed INIT CRC matches old header value93b7/3fff4 with new prior0/0. Status New session OK. Full-ring logical reset and INIT publication observed; no Query/ARM, kernel or retention qualification."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p17-chosen-topology.json"
+revision = "0c1750c08adede7791be0af002c0c49c87c24781"
+command = "Review fresh P17 Query/ARM preparation photo; independently reconstruct ID1 phase9 CRC from cookie and prior header."
+result = "Tested P17 additions built on recorded source base; exact source/artifact hashes in manifest; published source commit35c434ef. P17 preparation photo confirms NOW VALID next=size0x180 logical/raw6/6, ID1/query1/armed1, ARM CRC6303C7DA, EL1, PSCI1.1 and SYSTEM_RESET FEATURES0; ARM + six invalid templates OK. ARM CRC independently reconstructs using P17 cookie and prior0x140/0x140. Frozen ENTRY rows remain the initial snapshot; zeros there are expected. Next one recorded P17M launch, first read-only reader after reboot. Kernel execution, terminal and retention remain unobserved; derived complete header0x380 is not a result."
 [[area]]
 id = "cpu"
 status = "planned"
@@ -862,6 +869,13 @@ reference = "research/v23p17-chosen-topology.json"
 revision = "0c1750c08adede7791be0af002c0c49c87c24781"
 command = "Review photographed P17 New session OK page; independently reconstruct INIT CRC from ID/value/prior header."
 result = "Uncommitted P17 additions on recorded base; exact identities in manifest. P17 new-session photo confirms frozen initial ENTRY unchanged, NOW VALID next=size0x40, logical/raw1/1 and THIS RUN ID1/query0/armed0 CRCDF3BCB06. Independently reconstructed INIT CRC matches old header value93b7/3fff4 with new prior0/0. Status New session OK. Full-ring logical reset and INIT publication observed; no Query/ARM, kernel or retention qualification."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p17-chosen-topology.json"
+revision = "0c1750c08adede7791be0af002c0c49c87c24781"
+command = "Review fresh P17 Query/ARM preparation photo; independently reconstruct ID1 phase9 CRC from cookie and prior header."
+result = "Tested P17 additions built on recorded source base; exact source/artifact hashes in manifest; published source commit35c434ef. P17 preparation photo confirms NOW VALID next=size0x180 logical/raw6/6, ID1/query1/armed1, ARM CRC6303C7DA, EL1, PSCI1.1 and SYSTEM_RESET FEATURES0; ARM + six invalid templates OK. ARM CRC independently reconstructs using P17 cookie and prior0x140/0x140. Frozen ENTRY rows remain the initial snapshot; zeros there are expected. Next one recorded P17M launch, first read-only reader after reboot. Kernel execution, terminal and retention remain unobserved; derived complete header0x380 is not a result."
 [[area]]
 id = "storage"
 status = "planned"
@@ -1727,3 +1741,10 @@ reference = "research/v23p17-chosen-topology.json"
 revision = "0c1750c08adede7791be0af002c0c49c87c24781"
 command = "Review photographed P17 New session OK page; independently reconstruct INIT CRC from ID/value/prior header."
 result = "Uncommitted P17 additions on recorded base; exact identities in manifest. P17 new-session photo confirms frozen initial ENTRY unchanged, NOW VALID next=size0x40, logical/raw1/1 and THIS RUN ID1/query0/armed0 CRCDF3BCB06. Independently reconstructed INIT CRC matches old header value93b7/3fff4 with new prior0/0. Status New session OK. Full-ring logical reset and INIT publication observed; no Query/ARM, kernel or retention qualification."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p17-chosen-topology.json"
+revision = "0c1750c08adede7791be0af002c0c49c87c24781"
+command = "Review fresh P17 Query/ARM preparation photo; independently reconstruct ID1 phase9 CRC from cookie and prior header."
+result = "Tested P17 additions built on recorded source base; exact source/artifact hashes in manifest; published source commit35c434ef. P17 preparation photo confirms NOW VALID next=size0x180 logical/raw6/6, ID1/query1/armed1, ARM CRC6303C7DA, EL1, PSCI1.1 and SYSTEM_RESET FEATURES0; ARM + six invalid templates OK. ARM CRC independently reconstructs using P17 cookie and prior0x140/0x140. Frozen ENTRY rows remain the initial snapshot; zeros there are expected. Next one recorded P17M launch, first read-only reader after reboot. Kernel execution, terminal and retention remain unobserved; derived complete header0x380 is not a result."

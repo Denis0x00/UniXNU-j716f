@@ -15,7 +15,9 @@ Read `docs/NATIVE_PLATFORM_SOURCE_CANDIDATE.md`.
 P17M grouped /chosen/stall/topology diagnostic is built and flashed only to boot_b.
 Initial P17 reader is observed: VALID saturated ring, no P17 records, query0/armed0.
 Explicit new linear session succeeded; INIT CRC reconstructed.
-Next: fresh Query/ARM photo and one P17M launch; native platform remains separate/single-core.
+Fresh Query/ARM photo confirms ID1/ARM6303C7DA, NOW0x180, six templates OK.
+Next: one recorded P17M launch; reader FIRST after reboot. Kernel result pending.
+Native platform remains separate/single-core.
 
 ## Rules
 

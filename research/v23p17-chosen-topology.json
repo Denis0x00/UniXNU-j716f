@@ -44,7 +44,7 @@
   "native_timer_driver_integrated": false,
   "proposed_partition": "boot_b",
   "next_variant": "m",
-  "status": "P17M boot_b launch and initial P17 reader observed; explicit full-ring new linear session succeeded and INIT CRC reconstructed. Fresh Query/ARM and P17 kernel results pending.",
+  "status": "P17 reader full-ring rollover and fresh Query/ARM confirmed; ID1 ARM6303C7DA independently reconstructed. One P17M launch authorized; kernel and post-reboot reader results pending.",
   "source_checkout_base": "0c1750c08adede7791be0af002c0c49c87c24781",
   "source_state": "Uncommitted P17 additions on recorded base; exact source/artifact hashes in manifest",
   "prior_baseline": "P16 original WFE/misc returns and CNTKCTL0x4f retained over video-observed reboot",
@@ -59,7 +59,7 @@
     "21": "CPU_TOPOLOGY_RETURN"
   },
   "terminal": "Phase12 actual SCTLR_EL1 M1 after original chosen/stall/topology/boot CPU number returns, before publishing boot CPU number",
-  "next_action": "Query once, ARM once in current reader; photograph ID/CRC/template result before one P17M launch.",
+  "next_action": "Return to menu, launch P17M once with continuous recording; after reboot open reader FIRST before Query/ARM. If stopped, preserve full screen and recording.",
   "limitations": [
     "Host privileged state/MMU aliases/barriers/SMC mocked; no P17 hardware result.",
     "Original lookup return witnesses do not by themselves mean a successful lookup; original result-dependent branches remain intact.",
@@ -109,5 +109,28 @@
     "status_text": "New session OK; old bytes raw/stale. Photo page, then Query and ARM.",
     "init_crc_reconstructed_match": true,
     "scope": "Header rollover and single INIT record observed; no Query, ARM, kernel launch or reboot-retention result."
+  },
+  "arm_observation": {
+    "photo_sha256": "96d2ceda823224af9719de6fd9eaa77122ab7ade31973ca66cba53ae28d70faf",
+    "this_run_id": 1,
+    "query": true,
+    "armed": true,
+    "arm_crc32": "6303c7da",
+    "arm_crc_reconstructed_match": true,
+    "arm_before_next": "0x140",
+    "arm_before_size": "0x140",
+    "now_valid": true,
+    "now_next": "0x180",
+    "now_size": "0x180",
+    "logical_count": 6,
+    "raw_count": 6,
+    "current_el": 1,
+    "psci_version": "0x10001",
+    "system_reset_features": "0x0",
+    "status_text": "ARM + six invalid templates OK. Photograph ID/CRC; launch P17 once.",
+    "frozen_entry_unchanged": true,
+    "kernel_attempt_observed": false,
+    "slot_base_derived": "0x1c0",
+    "complete_terminal_header_derived_not_observed": "0x380"
   }
 }
