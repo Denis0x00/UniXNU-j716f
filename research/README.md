@@ -69,4 +69,4 @@ Latest P11 result: A retained published stage5; B and D each retained matching r
 - [P16 timer/WFE qualification](v23p16-timer-wfe.json): original WFE configure/init and misc returns observed; all six witnesses and CNTKCTL_EL1=0x4f terminal retained over one video-observed reboot. Timer IRQ, actual WFE wait/wakeup and sustained initialization remain unverified.
 - [P16 progress/upstream review](upstream-progress-review-20261026-p16.json): current upstream pins, sheng maintainer device evidence and the remaining native timer/ArmCpu/GIC integration gap. See [progress assessment](../docs/PROGRESS_AFTER_V23P16_20261026.md).
 
-- [P17 grouped continuation](v23p17-chosen-topology.json): built/host verified and flashed only to boot_b. Initial P17 reader and explicit full-ring new-session/INIT confirmed; fresh Query/ARM/kernel pending. P16 remains the kernel baseline.
+- [P17 grouped continuation](v23p17-chosen-topology.json): boot_b hardware reaches original chosen/stall/topology and boot CPU number returns, terminal SCTLR M1. All nine CRCs match fresh ARM and survive one video-observed reboot; stops before boot CPU publication/max-CPU validation.

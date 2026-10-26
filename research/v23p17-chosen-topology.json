@@ -17,7 +17,7 @@
       "nonpayload_changes_vs_p8": [],
       "compact_sec_matches_p8": true,
       "host_checks_passed": true,
-      "hardware_verified": false,
+      "hardware_verified": true,
       "device_writes_performed": true,
       "device_launch": {
         "partition_images_flashed": [
@@ -27,10 +27,10 @@
         "slot_unbootable_b_before_reboot": false,
         "reboot_command_succeeded": true,
         "image_sha256": "0cc610c5217561b86ea55f634c66409112ae7565acbab0c39551c87669f9657a",
-        "menu_identity_observed": false,
+        "menu_identity_observed": true,
         "manual_kernel_start_required": true,
         "recording_ready_user_confirmed": true,
-        "hardware_verified": false,
+        "hardware_verified": true,
         "reader_identity_observed": true
       }
     }
@@ -38,13 +38,13 @@
   "kernel_logic_cases": 45,
   "reader_logic_cases": 31,
   "power_logic_cases_reused_for_identical_app": 22,
-  "hardware_verified": false,
+  "hardware_verified": true,
   "device_writes_performed": true,
   "source_native_arch_timer_kernel": false,
   "native_timer_driver_integrated": false,
   "proposed_partition": "boot_b",
   "next_variant": "m",
-  "status": "P17 reader full-ring rollover and fresh Query/ARM confirmed; ID1 ARM6303C7DA independently reconstructed. One P17M launch authorized; kernel and post-reboot reader results pending.",
+  "status": "P17M chosen/stall/topology and boot CPU number return terminal verified; all nine CRCs match fresh ARM and records survived one video-observed reboot. Actual terminal SCTLR0x3454593d/M1. Deliberate stop before boot CPU publication/max-CPU check.",
   "source_checkout_base": "0c1750c08adede7791be0af002c0c49c87c24781",
   "source_state": "Uncommitted P17 additions on recorded base; exact source/artifact hashes in manifest",
   "prior_baseline": "P16 original WFE/misc returns and CNTKCTL0x4f retained over video-observed reboot",
@@ -59,9 +59,9 @@
     "21": "CPU_TOPOLOGY_RETURN"
   },
   "terminal": "Phase12 actual SCTLR_EL1 M1 after original chosen/stall/topology/boot CPU number returns, before publishing boot CPU number",
-  "next_action": "Return to menu, launch P17M once with continuous recording; after reboot open reader FIRST before Query/ARM. If stopped, preserve full screen and recording.",
+  "next_action": "Preserve P17 result; audit next grouped boot CPU publication/max-CPU validation, bootstrap/current-thread and rtclock_early_init boundaries and logger mapping/stack lifetime before building successor.",
   "limitations": [
-    "Host privileged state/MMU aliases/barriers/SMC mocked; no P17 hardware result.",
+    "Host privileged state/MMU aliases/barriers/SMC remain mocked; separate hardware evidence qualifies only the bounded P17 path described here.",
     "Original lookup return witnesses do not by themselves mean a successful lookup; original result-dependent branches remain intact.",
     "Topology return is before later max-CPU validation, scheduling or platform driver matching.",
     "Separate source-native-timer/ArmCpu/ArmDTPlatform candidate is not this kernel.",
@@ -132,5 +132,117 @@
     "kernel_attempt_observed": false,
     "slot_base_derived": "0x1c0",
     "complete_terminal_header_derived_not_observed": "0x380"
-  }
+  },
+  "post_reboot_observation": {
+    "photo_sha256": "7b2f4a14ae11d4151aa68532d44950b753ed2fd7fc63a080b5ff6e08169d81ee",
+    "video_sha256": "03271c8200843214dcb50e122f0cf18cb3be453d50d76910af950ae934cf7db5",
+    "video_duration_seconds": 13.06499574829932,
+    "video_decoded_frames": 392,
+    "video_review": [
+      "Frame0 identifies P17M menu with chosen/stall/topology -> SCTLR -> reset selected; preceding reader return Success is not a kernel result.",
+      "Samples at3.000s still show menu, at4.000s and5.000s show dark screen; at6.000s and7.032s Lenovo/Android splash.",
+      "Sample8.032s shows P17M menu return; later first reader launch, frame391 at13.032s shows matching ID1/ARM/terminal frozen reader.",
+      "No separate visible SMC acknowledgement or measured green handoff band is claimed."
+    ],
+    "entry_now_valid": true,
+    "entry_next": "0x380",
+    "entry_size": "0x380",
+    "entry_console_crc32": "4847b436",
+    "logical_count": 14,
+    "raw_count": 14,
+    "latest_record_id": 1,
+    "latest_record_phase": 12,
+    "latest_record_crc32": "912996cc",
+    "fresh_arm_crc32": "6303c7da",
+    "entry_sctlr": "0xc00808",
+    "six_witnesses_logical_raw_hits": [
+      1,
+      1
+    ],
+    "all_six_witnesses_bind_fresh_arm": true,
+    "terminal_sctlr": "0x3454593d",
+    "terminal_mmu_enabled": true,
+    "unused_pre_hits": 0,
+    "map_failure_hits": 0,
+    "reset_return_hits": 0,
+    "reader_invocation_id": 2,
+    "reader_query": false,
+    "reader_armed": false,
+    "reader_status_read_only": true,
+    "reconstructed_records": [
+      {
+        "phase": 9,
+        "value": "0x5031374b45524e4c",
+        "before_next_and_size": "0x140",
+        "crc32": "6303c7da",
+        "match": true
+      },
+      {
+        "phase": 10,
+        "value": "0x6303c7da00c00808",
+        "before_next_and_size": "0x180",
+        "crc32": "4d5b8e21",
+        "match": true
+      },
+      {
+        "phase": 16,
+        "value": "0x503137536303c7da",
+        "before_next_and_size": "0x1c0",
+        "crc32": "3d72fa9f",
+        "match": true
+      },
+      {
+        "phase": 17,
+        "value": "0x503137536303c7da",
+        "before_next_and_size": "0x200",
+        "crc32": "becfe439",
+        "match": true
+      },
+      {
+        "phase": 18,
+        "value": "0x503137536303c7da",
+        "before_next_and_size": "0x240",
+        "crc32": "a5ef9603",
+        "match": true
+      },
+      {
+        "phase": 19,
+        "value": "0x503137536303c7da",
+        "before_next_and_size": "0x280",
+        "crc32": "8e58f439",
+        "match": true
+      },
+      {
+        "phase": 20,
+        "value": "0x503137536303c7da",
+        "before_next_and_size": "0x2c0",
+        "crc32": "93af7277",
+        "match": true
+      },
+      {
+        "phase": 21,
+        "value": "0x503137536303c7da",
+        "before_next_and_size": "0x300",
+        "crc32": "dfe1c439",
+        "match": true
+      },
+      {
+        "phase": 12,
+        "value": "0x000000003454593d",
+        "before_next_and_size": "0x340",
+        "crc32": "912996cc",
+        "match": true
+      }
+    ],
+    "terminal_record_survived_observed_reset": true,
+    "menu_identity_observed": true,
+    "original_chosen_stall_topology_return_path_observed": true,
+    "stop_address": "0xfffffff0079e1a98",
+    "stop_before_boot_cpu_number_publication": true,
+    "reset_source_independently_verified": false,
+    "pmic_menu_before": "0x02000001",
+    "pmic_menu_after": "0x02000041",
+    "scope": "One bounded frozen-kernel P17M attempt with nine independently reconstructed CRCs and video-observed reboot retention. Deliberate terminal precedes boot CPU publication/max-CPU validation; no native provider, timer IRQ, scheduler or userspace qualification."
+  },
+  "hardware_verification_scope": "One bounded frozen-kernel P17M attempt with nine independently reconstructed CRCs and video-observed reboot retention. Deliberate terminal precedes boot CPU publication/max-CPU validation; no native provider, timer IRQ, scheduler or userspace qualification."
 }

@@ -2,22 +2,22 @@
 
 ## Current baseline
 
-Read `docs/PROGRESS_AFTER_V23P16_20261026.md`, `docs/V23P16_TIMER_WFE.md` and
-`research/v23p16-timer-wfe.json` first. P16M original WFE configure/init and misc
-return checkpoints plus CNTKCTL_EL1=0x4f survived one video-observed reboot.
-The diagnostic intentionally stops before /chosen. Timer IRQs, real WFE wait,
-ArmCpu/GIC, sustained initialization, reset source and userspace are unverified.
+Read `docs/V23P17_CHOSEN_TOPOLOGY.md` and
+`research/v23p17-chosen-topology.json` first. P17M reached original chosen/stall,
+CPU topology and boot CPU number returns; actual terminal SCTLR0x3454593d/M1.
+Nine CRCs bind fresh ID1/ARM6303C7DA; full logical next=size0x380 and all records
+survived one video-observed reboot. This deliberately stops at0xfffffff0079e1a98,
+before boot CPU publication/max-CPU check. Reset source remains independent.
 
-P13–P16 are terminal instrumentation on a frozen source-built/prelinked baseline.
-The native platform candidate now enables ArmCpu/ArmDTPlatform and their archive recipes;
-actual Context/component/archive-plan checks pass, compilation and hardware are pending.
-Read `docs/NATIVE_PLATFORM_SOURCE_CANDIDATE.md`.
-P17M grouped /chosen/stall/topology diagnostic is built and flashed only to boot_b.
-Initial P17 reader is observed: VALID saturated ring, no P17 records, query0/armed0.
-Explicit new linear session succeeded; INIT CRC reconstructed.
-Fresh Query/ARM photo confirms ID1/ARM6303C7DA, NOW0x180, six templates OK.
-Next: one recorded P17M launch; reader FIRST after reboot. Kernel result pending.
-Native platform remains separate/single-core.
+P13–P17 are bounded diagnostics on a frozen source-built/prelinked kernel.
+Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.
+Native platform candidate is separate/single-core; actual configuration/component/
+archive and ADT input checks pass, compilation and runtime pending. Read
+`docs/NATIVE_PLATFORM_SOURCE_CANDIDATE.md`.
+
+Next: review grouped boot CPU publication/max-CPU validation, current-thread/CPU
+bootstrap and rtclock_early_init boundaries, including logger mapping/stack lifetime.
+No successor build/flash yet. Preserve first read-only P17 results.
 
 ## Rules
 

@@ -63,3 +63,34 @@ THIS RUN ID1、query0、armed0。这是有效的满环形日志，不是空日�
 后续照片确认新会话成功：NOW VALID next=size=0x40，logical/raw=1/1，
 ID1/query0/armed0，INIT CRC=DF3BCB06；从旧next/size与新prior0/0重算完全匹配。
 本阶段仅验证满环形日志的显式会话重建和 INIT 写入，尚未启动 P17 内核。
+
+## P17M 实机结果
+
+连续13.065秒视频确认 P17M 菜单身份、启动后的黑屏、Lenovo/Android 标志、
+返回同版菜单，以及首次打开只读 reader。末帧391与独立照片显示同一结果：
+
+- ENTRY/NOW VALID，next=size=0x380，logical/raw=14/14；新 reader ID2/query0/armed0。
+- ID1 的 ARM6303C7DA 与启动前一致；ENTRY CRC4D5B8E21、SCTLR0xc00808（M0），
+  高32位绑定此次ARM CRC。
+- 六条独立检查点全部L1/R1，CRC依次为3D72FA9F、BECFE439、A5EF9603、
+  8E58F439、93AF7277、DFE1C439，槽值均为503137536303C7DA。
+- 终点phase12 CRC912996CC，实际SCTLR_EL1=0x3454593d（M1）。
+  ARM、ENTRY、六槽及终点共9条CRC均独立重算匹配；日志头达到预期0x380。
+- UNUSED_PRE、MAP_FAILURE、RESET_RETURN无命中；PMIC菜单值02000001→02000041，
+  没有独立据此确定复位来源。
+
+原始 `/chosen` 查询、stall属性处理、platform_stall_panic_or_spin、
+ml_parse_cpu_topology和ml_get_boot_cpu_number返回路径已到达本版终点；
+这组新记录在录像观察到的一次重启后完整保留。到达终点后诊断代码设计上请求
+SYSTEM_RESET，不能把“自动重启”单独当作后续原始初始化崩溃的证据。
+复位来源仍未独立验证，单个查询返回标记也不等于单独证明返回状态成功。
+
+该终点在0xfffffff0079e1a98，尚未发布boot CPU编号、执行max-CPU校验或继续
+cpu_bootstrap/rtclock_early_init；未验证定时器IRQ、GIC驱动、调度、存储或用户态。
+
+## 下一组边界审查
+
+原始反汇编显示后续将发布boot CPU编号、调用ml_get_max_cpu_number并检查边界，
+建立当前线程/CPU状态，再调用machine_set_current_thread、cpu_bootstrap和
+rtclock_early_init。下一版应分组记录这些边界，同时重新核对栈和日志映射的
+生存期。此处仅审查；下一版尚未构建或刷入。独立原生平台源码候选仍待编译结果。

@@ -14,8 +14,9 @@
 | P13 | 短程 MMU-on 执行，直接读回 SCTLR M=1 |
 | P14/P15 | 原始 cpu_data_init 返回，首次 PE_init_platform(0, bootArgs) 进入并返回 |
 | P16 | 原始 WFE configure/init、misc 返回；CNTKCTL_EL1=0x4f，记录经录像观察到的重启后保留 |
+| P17 | 原始 chosen/stall/CPU拓扑与boot CPU编号读取返回；终点SCTLR M1，9条CRC匹配并经录像观察到的重启后保留 |
 
-P16 在 `/chosen` 查询之前主动结束。真实定时器中断、GIC/ArmCpu 驱动匹配、
+P17 在boot CPU编号发布及max-CPU校验之前主动结束。真实定时器中断、GIC/ArmCpu 驱动匹配、
 持续初始化、调度、物理 UFS/root 和用户态尚未验证。诊断基于冻结的内核构建，
 不能视为原生定时器平台集成已经完成。BCM 路由整体排除遵循上游方向，
 原始 BCM 故障机理仍未证明。
@@ -34,7 +35,7 @@ P16 在 `/chosen` 查询之前主动结束。真实定时器中断、GIC/ArmCpu 
 `board.toml`/`feeds.toml`/`unixnu.lock` 保存设备格式、依赖与构建方案；
 `dts/` 和 `socs/sm8250/` 保存经固件证据交叉核对的板级事实。
 SoC 目录仍是本地过渡快照；板级驱动 ABI 和集成未完成。
-`board.toml` 中的历史 payload 配方不是最新 P16 的构建入口；
+`board.toml` 中的历史 payload 配方不是最新 P17 的构建入口；
 各版本请按独立说明及 `scripts/build-v23p*-kernel.py` 使用。
 
 [原生平台源码候选](docs/NATIVE_PLATFORM_SOURCE_CANDIDATE.md)现已接入独立配置副本：
@@ -48,11 +49,10 @@ GitHub Actions 的 push 默认构建此源码候选，不执行 prelink 或设�
 实机诊断只使用 `boot_b`；每次内核启动必须重新执行该版本 Query → ARM。
 TzDxe 不在本阶段范围内。
 
-## P17M 当前测试
+## P17M 当前结果
 
-[chosen/stall/CPU 拓扑分组诊断](docs/V23P17_CHOSEN_TOPOLOGY.md)已构建并完成
-45项实际内核机器码、31项实际链接读取器的主机模拟检查及最终镜像校验。
-已仅刷入 `boot_b`，验证 B 槽激活且可启动，重启命令成功；实机照片确认
-P17 reader 初始页有效、日志为满环形状态，尚未 Query/ARM 或观察到 P17 内核结果。
-显式新线性会话已成功，INIT CRC重算匹配；接下来本次 Query → ARM → 单次 P17M。
-P16 仍是最后已验证的内核里程碑。
+[chosen/stall/CPU拓扑分组诊断](docs/V23P17_CHOSEN_TOPOLOGY.md)已仅通过`boot_b`
+完成一次受控启动：六个独立检查点及终点全到达，实际SCTLR=0x3454593d（M1），
+ARM/ENTRY/六槽/终点共9条CRC重算匹配，完整日志在连续录像观察到的重启后保留。
+P17是当前内核实机里程碑；终点主动请求重启，尚未继续boot CPU发布/校验、
+cpu_bootstrap或rtclock_early_init。下一组先审查这些边界和日志映射/栈生存期。
