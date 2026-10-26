@@ -1,0 +1,79 @@
+{
+  "version": "V23P18 BOOTSTRAP TRACE r1",
+  "host_checks_passed": true,
+  "automatic_start": false,
+  "kernel_entry_requires_manual_arm": true,
+  "variants": {
+    "m": {
+      "version": "V23P18M",
+      "image": "j716f-mu-zui13-kernel-trace-v23p18m-boot.img",
+      "image_bytes": 8343552,
+      "image_sha256": "2a5b694d93d86ec2187310346817f918382b9718e84f68bbbf6206450379900e",
+      "fd_sha256": "2247a5672570f7cc544e9b6e1533366b4fabadd4d0f10db9096001a19dbfedbc",
+      "payload_sha256": "c59baf958feebf31bc2a81613197c4a49576037b80118e4daf5d4cd77893a4df",
+      "kernel_sha256": "bfe90d3a0342af3de475c555d4bd0f07011351cac83e0ab66daa681747e98ac4",
+      "app_sha256": "bd931a37baef5e6348e213f619bf419019aad8407cdb220f49fc162e6cb2a3cb",
+      "power_app_sha256": "5af712b62fd62f0cdd6702bafdfe149df68547a1a1c056948a3d5c5ffbfb833d",
+      "nonpayload_changes_vs_p8": [],
+      "compact_sec_matches_p8": true,
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "device_writes_performed": false
+    }
+  },
+  "kernel_logic_cases": 50,
+  "reader_logic_cases": 31,
+  "power_logic_cases_reused_for_identical_app": 22,
+  "hardware_verified": false,
+  "device_writes_performed": false,
+  "source_native_arch_timer_kernel": false,
+  "native_timer_driver_integrated": false,
+  "proposed_partition": "boot_b",
+  "next_variant": "m",
+  "status": "P18M built and host verified; unflashed",
+  "source_checkout_base": "ed599bf7418821f16b57127d025b31490132bc07",
+  "source_state": "Uncommitted P18 additions on recorded base; exact source/artifact hashes in manifest",
+  "prior_baseline": "P17 original chosen/stall/topology and boot CPU number returns, terminal SCTLR0x3454593d/M1 and nine CRCs retained over one video-observed reboot",
+  "arm_cookie": "0x5031384b45524e4c",
+  "slot_tag": "0x5031385300000000",
+  "slot_phases": {
+    "16": "BCM_ROUTE_SKIPPED",
+    "17": "M1_READBACK",
+    "18": "BOOT_CPU_VALIDATED",
+    "19": "CURRENT_THREAD_SET",
+    "20": "RTC_EARLY_ENTRY",
+    "21": "RTC_EARLY_RETURN"
+  },
+  "terminal": "Phase12 actual SCTLR_EL1 M1 after original rtclock_early_init return, before kernel_debug_string_early at0xfffffff0079e1b18",
+  "next_action": "Read-only P18 reader first after boot_b menu launch; fresh Query/ARM photo and one P18M attempt with continuous recording",
+  "original_path_audit": {
+    "boot_cpu_published_address": "0xfffffff00716f994",
+    "boot_cpu_validated_hook": "0xfffffff0079e1ab8",
+    "current_thread_return_hook": "0xfffffff0079e1b0c",
+    "rtc_early_entry_hook": "0xfffffff007405bd4",
+    "rtc_early_return_stop": "0xfffffff0079e1b18",
+    "cpu_bootstrap_is_ret_stub": true,
+    "original_call_sites_and_lr_preserved": true,
+    "returning_hook_gpr_sp_nzcv_preserved": true,
+    "original_error_branches_preserved": true,
+    "logger_mapping_and_stack_strategy_same_as_p17": true,
+    "no_original_stack_switch_or_translation_teardown_in_new_interval": true,
+    "current_thread_changes_tpidr_and_contextidr_not_ttbr": true,
+    "rtc_callback_runs_synchronous_timebase_conversion": true,
+    "all_register_mmu_barrier_smc_results_are_host_models": true
+  },
+  "limitations": [
+    "No P18 device operation or hardware result. P17 remains the latest verified hardware baseline.",
+    "cpu_bootstrap is a RET stub in this frozen baseline; its return is not full cpu_init.",
+    "CURRENT_THREAD_SET marks original setter return; thread/TPIDR agreement is checked in the host model, not a persisted hardware TPIDR value.",
+    "rtclock_early_init callback registration/timebase conversion is not timer IRQ delivery, counter advancement or a scheduler result.",
+    "System registers, translation aliases, barriers, UEFI and SMC are mocked in host checks; mapping silicon and retention require a device run.",
+    "Separate source-native-timer/ArmCpu/ArmDTPlatform candidate is not this diagnostic kernel.",
+    "No reset-source, GIC interrupt, scheduler, storage or userspace qualification."
+  ],
+  "source_files": {
+    "scripts/build-v23p18-kernel.py": "25f1e9b0dd7493f7a99d76ce88f8e127ea7e4d881bc8f64458bbb457263ac82f",
+    "scripts/v23p18-bootstrap.S": "e4ad9ee1b076e6b11d7f37a4326dda7466bb590c044660b0f117dce09b23baea",
+    "scripts/decode-j716f-v23p18.py": "f6dbfb1fc61d4b3dc1b0da6ad33a6ed0ccd1e820f47c1caacd48e561a872e3db"
+  }
+}

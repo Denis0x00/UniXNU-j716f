@@ -56,3 +56,9 @@ TzDxe 不在本阶段范围内。
 ARM/ENTRY/六槽/终点共9条CRC重算匹配，完整日志在连续录像观察到的重启后保留。
 P17是当前内核实机里程碑；终点主动请求重启，尚未继续boot CPU发布/校验、
 cpu_bootstrap或rtclock_early_init。下一组先审查这些边界和日志映射/栈生存期。
+
+## P18M 待实机测试
+
+[boot CPU / 当前线程 / 早期时钟分组诊断](docs/V23P18_BOOTSTRAP_CLOCK.md)已构建，
+通过50项内核机器码、31项链接reader主机检查及最终镜像审计；尚未刷入。
+终点在rtclock_early_init返回之后，主动请求重启。P17仍为最后实机里程碑。

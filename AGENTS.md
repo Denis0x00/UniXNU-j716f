@@ -15,9 +15,10 @@ Native platform candidate is separate/single-core; actual configuration/componen
 archive and ADT input checks pass, compilation and runtime pending. Read
 `docs/NATIVE_PLATFORM_SOURCE_CANDIDATE.md`.
 
-Next: review grouped boot CPU publication/max-CPU validation, current-thread/CPU
-bootstrap and rtclock_early_init boundaries, including logger mapping/stack lifetime.
-No successor build/flash yet. Preserve first read-only P17 results.
+P18M grouped boot CPU/current-thread/bootstrap/early-clock diagnostic is built and
+host verified (50 kernel/31 linked-reader cases); unflashed. Read
+`docs/V23P18_BOOTSTRAP_CLOCK.md`. Next: boot_b menu, reader FIRST, fresh Query/ARM
+photo and one recorded attempt. Preserve P17 result; no P18 hardware claim.
 
 ## Rules
 

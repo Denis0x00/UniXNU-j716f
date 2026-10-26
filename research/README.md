@@ -70,3 +70,5 @@ Latest P11 result: A retained published stage5; B and D each retained matching r
 - [P16 progress/upstream review](upstream-progress-review-20261026-p16.json): current upstream pins, sheng maintainer device evidence and the remaining native timer/ArmCpu/GIC integration gap. See [progress assessment](../docs/PROGRESS_AFTER_V23P16_20261026.md).
 
 - [P17 grouped continuation](v23p17-chosen-topology.json): boot_b hardware reaches original chosen/stall/topology and boot CPU number returns, terminal SCTLR M1. All nine CRCs match fresh ARM and survive one video-observed reboot; stops before boot CPU publication/max-CPU validation.
+
+- [P18 bootstrap/early clock](v23p18-bootstrap-clock.json): built/host verified, unflashed; original boot CPU validation/current-thread/early clock continuation; P17 hardware baseline preserved.

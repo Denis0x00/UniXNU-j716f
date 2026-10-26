@@ -469,6 +469,13 @@ reference = "research/v23p17-chosen-topology.json"
 revision = "0c1750c08adede7791be0af002c0c49c87c24781"
 command = "Review continuous P17M launch/reboot/first-reader video and photo; reconstruct nine bound record CRCs from ID/value/prior headers."
 result = "P17 built on recorded base with exact source/image hashes in manifest; published sources35c434ef. P17M 13.065s continuous video confirms selected P17M menu, dark screen, Lenovo/Android splash, same menu return and first read-only reader. Frame391 and photo agree: ENTRY/NOW VALID next=size0x380, logical/raw14/14, latest ID1/phase12 CRC912996CC; new reader ID2/query0/armed0. ARM6303C7DA matches prelaunch, ENTRY4D5B8E21 value6303C7DA00C00808; six L1/R1 slot CRCs 3D72FA9F/BECFE439/A5EF9603/8E58F439/93AF7277/DFE1C439 bind P17 tag and fresh ARM. Terminal actual SCTLR0x3454593d M1. All nine CRCs independently reconstruct. Original chosen/stall/CPU topology/boot CPU number return path and full logical publication survived one observed reboot. Deliberate stop0xfffffff0079e1a98 precedes boot CPU publication/max-CPU check and requests SYSTEM_RESET; reset source remains independently unverified. MAP_FAILURE/RESET_RETURN have no hits. No cpu_bootstrap/rtclock_early_init, native driver, timer IRQ or scheduler qualification. Next review grouped bootstrap boundaries and logger mapping/stack lifetime; no successor built/flashed."
+
+[[area.evidence]]
+kind = "host"
+reference = "research/v23p18-bootstrap-clock.json"
+revision = "ed599bf7418821f16b57127d025b31490132bc07"
+command = "Private workspace: check_j716f_v23p18.py; check_j716f_v23p18_reader.py; package_j716f_v23p18.py"
+result = "Uncommitted P18 additions on recorded base; exact source/image hashes in manifest. P18M built: 50 actual-kernel and 31 linked-reader mocked cases; final FD/FAT/EFI/source/HMAC/nonpayload/SEC/Android v2 audits passed. Original boot CPU publication/max-CPU checks, thread bootstrap/machine_set_current_thread, cpu_bootstrap RET stub and rtclock_early_init/timebase callback execute in host model. BL/LR, returning wrapper GPR/SP/NZCV and original failure branches preserved. Stop0xfffffff0079e1b18 records actual SCTLR in a device run then requests SYSTEM_RESET. No P18 device write or hardware result; P17 remains baseline. No native provider, timer IRQ, full cpu_init, scheduling or userspace qualification."
 [[area]]
 id = "cpu"
 status = "planned"
@@ -634,6 +641,13 @@ reference = "research/v23p17-chosen-topology.json"
 revision = "0c1750c08adede7791be0af002c0c49c87c24781"
 command = "Review continuous P17M launch/reboot/first-reader video and photo; reconstruct nine bound record CRCs from ID/value/prior headers."
 result = "P17 built on recorded base with exact source/image hashes in manifest; published sources35c434ef. P17M 13.065s continuous video confirms selected P17M menu, dark screen, Lenovo/Android splash, same menu return and first read-only reader. Frame391 and photo agree: ENTRY/NOW VALID next=size0x380, logical/raw14/14, latest ID1/phase12 CRC912996CC; new reader ID2/query0/armed0. ARM6303C7DA matches prelaunch, ENTRY4D5B8E21 value6303C7DA00C00808; six L1/R1 slot CRCs 3D72FA9F/BECFE439/A5EF9603/8E58F439/93AF7277/DFE1C439 bind P17 tag and fresh ARM. Terminal actual SCTLR0x3454593d M1. All nine CRCs independently reconstruct. Original chosen/stall/CPU topology/boot CPU number return path and full logical publication survived one observed reboot. Deliberate stop0xfffffff0079e1a98 precedes boot CPU publication/max-CPU check and requests SYSTEM_RESET; reset source remains independently unverified. MAP_FAILURE/RESET_RETURN have no hits. No cpu_bootstrap/rtclock_early_init, native driver, timer IRQ or scheduler qualification. Next review grouped bootstrap boundaries and logger mapping/stack lifetime; no successor built/flashed."
+
+[[area.evidence]]
+kind = "host"
+reference = "research/v23p18-bootstrap-clock.json"
+revision = "ed599bf7418821f16b57127d025b31490132bc07"
+command = "Private workspace: check_j716f_v23p18.py; check_j716f_v23p18_reader.py; package_j716f_v23p18.py"
+result = "Uncommitted P18 additions on recorded base; exact source/image hashes in manifest. P18M built: 50 actual-kernel and 31 linked-reader mocked cases; final FD/FAT/EFI/source/HMAC/nonpayload/SEC/Android v2 audits passed. Original boot CPU publication/max-CPU checks, thread bootstrap/machine_set_current_thread, cpu_bootstrap RET stub and rtclock_early_init/timebase callback execute in host model. BL/LR, returning wrapper GPR/SP/NZCV and original failure branches preserved. Stop0xfffffff0079e1b18 records actual SCTLR in a device run then requests SYSTEM_RESET. No P18 device write or hardware result; P17 remains baseline. No native provider, timer IRQ, full cpu_init, scheduling or userspace qualification."
 [[area]]
 id = "memory"
 status = "device-verified"
@@ -904,6 +918,13 @@ reference = "research/v23p17-chosen-topology.json"
 revision = "0c1750c08adede7791be0af002c0c49c87c24781"
 command = "Review continuous P17M launch/reboot/first-reader video and photo; reconstruct nine bound record CRCs from ID/value/prior headers."
 result = "P17 built on recorded base with exact source/image hashes in manifest; published sources35c434ef. P17M 13.065s continuous video confirms selected P17M menu, dark screen, Lenovo/Android splash, same menu return and first read-only reader. Frame391 and photo agree: ENTRY/NOW VALID next=size0x380, logical/raw14/14, latest ID1/phase12 CRC912996CC; new reader ID2/query0/armed0. ARM6303C7DA matches prelaunch, ENTRY4D5B8E21 value6303C7DA00C00808; six L1/R1 slot CRCs 3D72FA9F/BECFE439/A5EF9603/8E58F439/93AF7277/DFE1C439 bind P17 tag and fresh ARM. Terminal actual SCTLR0x3454593d M1. All nine CRCs independently reconstruct. Original chosen/stall/CPU topology/boot CPU number return path and full logical publication survived one observed reboot. Deliberate stop0xfffffff0079e1a98 precedes boot CPU publication/max-CPU check and requests SYSTEM_RESET; reset source remains independently unverified. MAP_FAILURE/RESET_RETURN have no hits. No cpu_bootstrap/rtclock_early_init, native driver, timer IRQ or scheduler qualification. Next review grouped bootstrap boundaries and logger mapping/stack lifetime; no successor built/flashed."
+
+[[area.evidence]]
+kind = "host"
+reference = "research/v23p18-bootstrap-clock.json"
+revision = "ed599bf7418821f16b57127d025b31490132bc07"
+command = "Private workspace: check_j716f_v23p18.py; check_j716f_v23p18_reader.py; package_j716f_v23p18.py"
+result = "Uncommitted P18 additions on recorded base; exact source/image hashes in manifest. P18M built: 50 actual-kernel and 31 linked-reader mocked cases; final FD/FAT/EFI/source/HMAC/nonpayload/SEC/Android v2 audits passed. Original boot CPU publication/max-CPU checks, thread bootstrap/machine_set_current_thread, cpu_bootstrap RET stub and rtclock_early_init/timebase callback execute in host model. BL/LR, returning wrapper GPR/SP/NZCV and original failure branches preserved. Stop0xfffffff0079e1b18 records actual SCTLR in a device run then requests SYSTEM_RESET. No P18 device write or hardware result; P17 remains baseline. No native provider, timer IRQ, full cpu_init, scheduling or userspace qualification."
 [[area]]
 id = "storage"
 status = "planned"
@@ -1325,6 +1346,13 @@ reference = "research/v23p17-chosen-topology.json"
 revision = "0c1750c08adede7791be0af002c0c49c87c24781"
 command = "Review continuous P17M launch/reboot/first-reader video and photo; reconstruct nine bound record CRCs from ID/value/prior headers."
 result = "P17 built on recorded base with exact source/image hashes in manifest; published sources35c434ef. P17M 13.065s continuous video confirms selected P17M menu, dark screen, Lenovo/Android splash, same menu return and first read-only reader. Frame391 and photo agree: ENTRY/NOW VALID next=size0x380, logical/raw14/14, latest ID1/phase12 CRC912996CC; new reader ID2/query0/armed0. ARM6303C7DA matches prelaunch, ENTRY4D5B8E21 value6303C7DA00C00808; six L1/R1 slot CRCs 3D72FA9F/BECFE439/A5EF9603/8E58F439/93AF7277/DFE1C439 bind P17 tag and fresh ARM. Terminal actual SCTLR0x3454593d M1. All nine CRCs independently reconstruct. Original chosen/stall/CPU topology/boot CPU number return path and full logical publication survived one observed reboot. Deliberate stop0xfffffff0079e1a98 precedes boot CPU publication/max-CPU check and requests SYSTEM_RESET; reset source remains independently unverified. MAP_FAILURE/RESET_RETURN have no hits. No cpu_bootstrap/rtclock_early_init, native driver, timer IRQ or scheduler qualification. Next review grouped bootstrap boundaries and logger mapping/stack lifetime; no successor built/flashed."
+
+[[area.evidence]]
+kind = "host"
+reference = "research/v23p18-bootstrap-clock.json"
+revision = "ed599bf7418821f16b57127d025b31490132bc07"
+command = "Private workspace: check_j716f_v23p18.py; check_j716f_v23p18_reader.py; package_j716f_v23p18.py"
+result = "Uncommitted P18 additions on recorded base; exact source/image hashes in manifest. P18M built: 50 actual-kernel and 31 linked-reader mocked cases; final FD/FAT/EFI/source/HMAC/nonpayload/SEC/Android v2 audits passed. Original boot CPU publication/max-CPU checks, thread bootstrap/machine_set_current_thread, cpu_bootstrap RET stub and rtclock_early_init/timebase callback execute in host model. BL/LR, returning wrapper GPR/SP/NZCV and original failure branches preserved. Stop0xfffffff0079e1b18 records actual SCTLR in a device run then requests SYSTEM_RESET. No P18 device write or hardware result; P17 remains baseline. No native provider, timer IRQ, full cpu_init, scheduling or userspace qualification."
 [[area]]
 id = "diagnostics"
 status = "device-verified"
@@ -1790,3 +1818,10 @@ reference = "research/v23p17-chosen-topology.json"
 revision = "0c1750c08adede7791be0af002c0c49c87c24781"
 command = "Review continuous P17M launch/reboot/first-reader video and photo; reconstruct nine bound record CRCs from ID/value/prior headers."
 result = "P17 built on recorded base with exact source/image hashes in manifest; published sources35c434ef. P17M 13.065s continuous video confirms selected P17M menu, dark screen, Lenovo/Android splash, same menu return and first read-only reader. Frame391 and photo agree: ENTRY/NOW VALID next=size0x380, logical/raw14/14, latest ID1/phase12 CRC912996CC; new reader ID2/query0/armed0. ARM6303C7DA matches prelaunch, ENTRY4D5B8E21 value6303C7DA00C00808; six L1/R1 slot CRCs 3D72FA9F/BECFE439/A5EF9603/8E58F439/93AF7277/DFE1C439 bind P17 tag and fresh ARM. Terminal actual SCTLR0x3454593d M1. All nine CRCs independently reconstruct. Original chosen/stall/CPU topology/boot CPU number return path and full logical publication survived one observed reboot. Deliberate stop0xfffffff0079e1a98 precedes boot CPU publication/max-CPU check and requests SYSTEM_RESET; reset source remains independently unverified. MAP_FAILURE/RESET_RETURN have no hits. No cpu_bootstrap/rtclock_early_init, native driver, timer IRQ or scheduler qualification. Next review grouped bootstrap boundaries and logger mapping/stack lifetime; no successor built/flashed."
+
+[[area.evidence]]
+kind = "host"
+reference = "research/v23p18-bootstrap-clock.json"
+revision = "ed599bf7418821f16b57127d025b31490132bc07"
+command = "Private workspace: check_j716f_v23p18.py; check_j716f_v23p18_reader.py; package_j716f_v23p18.py"
+result = "Uncommitted P18 additions on recorded base; exact source/image hashes in manifest. P18M built: 50 actual-kernel and 31 linked-reader mocked cases; final FD/FAT/EFI/source/HMAC/nonpayload/SEC/Android v2 audits passed. Original boot CPU publication/max-CPU checks, thread bootstrap/machine_set_current_thread, cpu_bootstrap RET stub and rtclock_early_init/timebase callback execute in host model. BL/LR, returning wrapper GPR/SP/NZCV and original failure branches preserved. Stop0xfffffff0079e1b18 records actual SCTLR in a device run then requests SYSTEM_RESET. No P18 device write or hardware result; P17 remains baseline. No native provider, timer IRQ, full cpu_init, scheduling or userspace qualification."
