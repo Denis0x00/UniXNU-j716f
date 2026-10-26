@@ -20,6 +20,23 @@ OUTPUTS = (
     "build/corecrypto-2023/libcorecrypto_kernel_noasm.a",
     "build/corecrypto-2023/libcorecrypto_kernel_noasm-namespaced.a",
 )
+NATIVE_OUTPUTS = ("build/armcpu/libArmCpu.a",
+                  "build/armdt-platform/libArmDTPlatform.a")
+
+
+def output_manifest(report):
+    """Select an exact allowlist from the source build profile, never from paths."""
+    if report.get("status") != "compiled" or report.get("prelink_performed") is not False:
+        raise ValueError("Expected a successful source-only build report")
+    native = report.get("native_arch_timer_requested", False)
+    if type(native) is not bool:
+        raise ValueError("Expected a boolean native timer profile")
+    names = OUTPUTS + NATIVE_OUTPUTS if native else OUTPUTS
+    entries = report["artifacts"]
+    records = {entry["path"]: entry for entry in entries}
+    if len(records) != len(entries) or set(records) != set(names):
+        raise ValueError("Unexpected build output manifest for source profile")
+    return names, records
 
 
 def sha(data):
@@ -71,15 +88,11 @@ def main():
     if args.command == "seal":
         report_data = args.report.read_bytes()
         report = json.loads(report_data)
-        if report["status"] != "compiled" or report["prelink_performed"]:
-            raise SystemExit("Expected a successful source-only build report")
-        records = {entry["path"]: entry for entry in report["artifacts"]}
-        if set(records) != set(OUTPUTS):
-            raise SystemExit("Unexpected build output manifest")
+        names, records = output_manifest(report)
         archive = io.BytesIO()
         with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as target:
             target.writestr("source-build-report.json", report_data)
-            for name in OUTPUTS:
+            for name in names:
                 content = (args.root / name).read_bytes()
                 if sha(content) != records[name]["sha256"] or len(content) != records[name]["bytes"]:
                     raise SystemExit("Build output differs from its report: " + name)
@@ -102,12 +115,14 @@ def main():
         secret = key.decrypt(data[54:end], oaep())
         content = AESGCM(secret).decrypt(data[42:54], data[end:], data[:end])
         with zipfile.ZipFile(io.BytesIO(content)) as archive:
-            if set(archive.namelist()) != set(OUTPUTS) | {"source-build-report.json"}:
-                raise SystemExit("Unexpected decrypted archive contents")
             report = json.loads(archive.read("source-build-report.json"))
-            for entry in report["artifacts"]:
-                raw = archive.read(entry["path"])
-                if sha(raw) != entry["sha256"] or len(raw) != entry["bytes"]:
+            names, records = output_manifest(report)
+            if (len(archive.namelist()) != len(names) + 1 or
+                    set(archive.namelist()) != set(names) | {"source-build-report.json"}):
+                raise SystemExit("Unexpected decrypted archive contents")
+            for name in names:
+                raw = archive.read(name)
+                if sha(raw) != records[name]["sha256"] or len(raw) != records[name]["bytes"]:
                     raise SystemExit("Decrypted output differs from its build report")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("xb") as stream:

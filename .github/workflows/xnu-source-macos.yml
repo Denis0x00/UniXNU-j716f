@@ -16,6 +16,7 @@ on:
       - 'scripts/build-j716f-source.py'
       - 'scripts/prepare-native-platform.py'
       - 'scripts/source-artifact-transfer.py'
+      - 'scripts/test-source-artifact-transfer.py'
       - 'ci/source-artifacts-public.pem'
       - 'patches/build-driver/0002-guard-optional-legacy-display-probe.patch'
       - 'patches/build-driver/0003-allow-boot-progress-without-sheng-pmgr.patch'
@@ -45,7 +46,24 @@ env:
   DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
 
 jobs:
+  transfer-checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+      - name: Check encrypted transfer for baseline and native platform outputs
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --no-input cryptography==46.0.6
+          python3 scripts/test-source-artifact-transfer.py -v
+
   source:
+    needs: transfer-checks
     runs-on: macos-26
     timeout-minutes: 360
     steps:
@@ -114,6 +132,54 @@ jobs:
             "${timer_args[@]}" \
             2>&1 | tee unixnu/out/j716f/source-driver.log
 
+      - name: Encrypt source outputs for local bring-up
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --no-input cryptography==46.0.6
+          reports="$(find unixnu/out/j716f -type f -path '*/logs/source-build-report.json' -print)"
+          test -n "$reports"
+          test "$(printf '%s\n' "$reports" | wc -l | tr -d ' ')" -eq 1
+          report="$reports"
+          root="${report%/logs/source-build-report.json}/tree"
+          echo "transfer: report = $report"
+          echo "transfer: root = $root"
+          SOURCE_TREE="$root" SOURCE_REPORT="$report" python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from cryptography.hazmat.primitives import serialization
+
+          root = Path(os.environ['SOURCE_TREE'])
+          report_path = Path(os.environ['SOURCE_REPORT'])
+          key_path = Path('device/ci/source-artifacts-public.pem')
+          report = json.loads(report_path.read_text())
+          print('transfer: cryptography import ok')
+          print('transfer: report status =', report.get('status'))
+          print('transfer: prelink performed =', report.get('prelink_performed'))
+          print('transfer: manifest entries =', len(report.get('artifacts', [])))
+          for entry in report.get('artifacts', []):
+              path = root / entry['path']
+              print('transfer: output', entry['path'], 'bytes=', path.stat().st_size,
+                    'reported=', entry['bytes'])
+          key = serialization.load_pem_public_key(key_path.read_bytes())
+          print('transfer: public key type =', type(key).__name__,
+                'bits =', key.key_size)
+          PY
+          SOURCE_TREE="$root" SOURCE_REPORT="$report" python3 device/scripts/source-artifact-transfer.py seal \
+            --root "$root" \
+            --report "$report" \
+            --public-key device/ci/source-artifacts-public.pem \
+            --output private-transfer/j716f-source-only.enc \
+            2>&1 | tee unixnu/out/j716f/source-transfer.log
+
+      - name: Upload encrypted source outputs
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: j716f-source-encrypted-${{ github.run_id }}-${{ github.run_attempt }}
+          path: private-transfer/j716f-source-only.enc
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Stage text logs and reports
         if: always()
         run: |
@@ -161,50 +227,3 @@ jobs:
             echo 'This run performs source compilation only. It does not perform prelink or prove a J716F boot.'
             echo 'Text diagnostics and an encrypted source-output bundle are uploaded. Only the local private key can decrypt the bundle.'
           } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Encrypt source outputs for local bring-up
-        run: |
-          set -euo pipefail
-          python3 -m pip install --disable-pip-version-check --no-input cryptography==46.0.6
-          reports="$(find unixnu/out/j716f -type f -path '*/logs/source-build-report.json' -print)"
-          test -n "$reports"
-          test "$(printf '%s\n' "$reports" | wc -l | tr -d ' ')" -eq 1
-          report="$reports"
-          root="${report%/logs/source-build-report.json}/tree"
-          echo "transfer: report = $report"
-          echo "transfer: root = $root"
-          SOURCE_TREE="$root" SOURCE_REPORT="$report" python3 - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-          from cryptography.hazmat.primitives import serialization
-
-          root = Path(os.environ['SOURCE_TREE'])
-          report_path = Path(os.environ['SOURCE_REPORT'])
-          key_path = Path('device/ci/source-artifacts-public.pem')
-          report = json.loads(report_path.read_text())
-          print('transfer: cryptography import ok')
-          print('transfer: report status =', report.get('status'))
-          print('transfer: prelink performed =', report.get('prelink_performed'))
-          print('transfer: manifest entries =', len(report.get('artifacts', [])))
-          for entry in report.get('artifacts', []):
-              path = root / entry['path']
-              print('transfer: output', entry['path'], 'bytes=', path.stat().st_size,
-                    'reported=', entry['bytes'])
-          key = serialization.load_pem_public_key(key_path.read_bytes())
-          print('transfer: public key type =', type(key).__name__,
-                'bits =', key.key_size)
-          PY
-          SOURCE_TREE="$root" SOURCE_REPORT="$report" python3 device/scripts/source-artifact-transfer.py seal \
-            --root "$root" \
-            --report "$report" \
-            --public-key device/ci/source-artifacts-public.pem \
-            --output private-transfer/j716f-source-only.enc
-
-      - name: Upload encrypted source outputs
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: j716f-source-encrypted-${{ github.run_id }}-${{ github.run_attempt }}
-          path: private-transfer/j716f-source-only.enc
-          if-no-files-found: error
-          retention-days: 3
