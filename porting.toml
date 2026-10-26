@@ -38,6 +38,11 @@ result = "Uncommitted P13 sources on the recorded Git base; exact source/artifac
 command = "python3 tools/package_j716f_v23p13.py"
 revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 
+[[area.evidence]]
+kind = "source"
+reference = "research/native-platform-source-candidate.json"
+result = "Isolated native platform source candidate selects ArmDTPlatform/ArmCpu archives, with actual pinned Context/component/archive-plan checks. Source build reports now require linked provider symbols and expose compatibility-patch failure diagnostics. No prelink or hardware claim; diagnostic baseline is preserved."
+
 [[area]]
 id = "firmware"
 status = "device-verified"
@@ -394,6 +399,11 @@ result = "P16M continuous11.998s video confirms selected P16M, DARWIN BOOT/green
 kind = "source"
 reference = "research/upstream-progress-review-20261026-p16.json"
 result = "P16 progress assessment and pinned upstream/sheng comparison: bounded original early-init returns verified; source native-timer/ArmCpu/GIC integration and real timer IRQ delivery remain separate next steps. No new hardware test."
+
+[[area.evidence]]
+kind = "source"
+reference = "research/native-platform-source-candidate.json"
+result = "Isolated native platform source candidate selects ArmDTPlatform/ArmCpu archives, with actual pinned Context/component/archive-plan checks. Source build reports now require linked provider symbols and expose compatibility-patch failure diagnostics. No prelink or hardware claim; diagnostic baseline is preserved."
 
 [[area]]
 id = "cpu"
@@ -756,6 +766,11 @@ result = "Uncommitted sources on recorded base; hashes in manifest. P16M timer/W
 kind = "source"
 reference = "research/v23p16-timer-wfe.json"
 result = "P16M continuous11.998s video confirms selected P16M, DARWIN BOOT/green handoff, screen loss, Lenovo/Android splash, P16M menu return and read-only reader matching final photo. ENTRY/NOW VALID next=size0x28aa1, consoleCRCB9A3B4BA, logical13/raw26, latest ID2/phase12/A684F65B. Fresh ARM93A96F6F matches prelaunch; ENTRY5AF6E0B5 value93A96F6F00C00808(M0). All six phases16..21 are L1/R1 with bound value5031365393A96F6F and CRCsAA287B4B,E666CD05,FD46BF3F,D6F1DD05,CB065B4B,48BB45ED. TerminalA684F65B records actual CNTKCTL_EL1=0x4f after M1 guard. All nine CRCs reconstruct exactly; growth512 matches ENTRY+six slots+terminal. New reader ID3/query0/armed0, no MAP_FAILURE/RESET_RETURN. Original WFE configuration/init and misc returns completed and records retained over one observed reboot. PMIC02000001->02000041. Timer IRQs, real WFE wait/wakeup, sustained initialization, ArmCpu/GIC, reset source and userspace remain unverified."
+
+[[area.evidence]]
+kind = "source"
+reference = "research/native-platform-source-candidate.json"
+result = "Isolated native platform source candidate selects ArmDTPlatform/ArmCpu archives, with actual pinned Context/component/archive-plan checks. Source build reports now require linked provider symbols and expose compatibility-patch failure diagnostics. No prelink or hardware claim; diagnostic baseline is preserved."
 
 [[area]]
 id = "storage"
@@ -1150,6 +1165,11 @@ reference = "research/v23p12r2-session-rollover.json"
 revision = "db1d13ec94dc2922d6b6209469fe430dcd0e6271"
 command = "Private workspace: check_j716f_v23p12r2_reader.py; package_j716f_v23p12r2.py; byte-identity reuse checks."
 result = "P12 r2 A/B built and host verified, unflashed. New reader requires explicit double confirmation before discarding a VALID saturated/exhausted console logical history; frozen entry remains, payload not bulk-cleared, INIT records old next/size, failure locks Query/ARM. 45 actual-linked reader cases passed including full-session-to-both-unchanged-kernels-to-frozen-reader flow, changed-console cancellation, failure and stale-ID gates. A/B kernel/ADT/probes equal r1 byte for byte; 58 prior assembled cases reused after identity check. Power app equals P11, 22 cases reused. Final FD/FAT/EFI/source/HMAC/nonpayload/boot-image checks passed. No r2 hardware, retention or MMU-on result; A first on boot_b only."
+
+[[area.evidence]]
+kind = "source"
+reference = "research/native-platform-source-candidate.json"
+result = "Isolated native platform source candidate selects ArmDTPlatform/ArmCpu archives, with actual pinned Context/component/archive-plan checks. Source build reports now require linked provider symbols and expose compatibility-patch failure diagnostics. No prelink or hardware claim; diagnostic baseline is preserved."
 
 [[area]]
 id = "diagnostics"
@@ -1573,3 +1593,8 @@ result = "P12 r2A Query/ARM photo shows NOW VALID next=size0x38ca9 logical5/raw5
 kind = "source"
 reference = "research/v23p12r2-session-rollover.json"
 result = "P12 r2A postreboot photo confirms ENTRY/NOW VALID next=size0x38e69 consoleCRCC067D0A6, logical12/raw12 latest ID1/phase21/04FFEC87. Fresh ARM063FE873 matches prelaunch; ENTRY1210179B value063FE87300C00808(M0). All six stages16..21 are L1/R1 with CRCsE66CD221,AA22646F,B1021655,9AB5746F,8742F221,04FFEC87 and ARM-bound value50313253063FE873; all eight CRCs reconstruct exactly. New reader ID2/query0/armed0, read-only. User explicitly reports automatic reboot/menu return; no continuous video reviewed. A skipped BCM and reached all six commits/publication, with matching records present after reported reboot. Kernel SMC/reset source, original BCM completion, MMU-on and manual session rollover remain unqualified. r2B original-STR control is next."
+
+[[area.evidence]]
+kind = "source"
+reference = "research/native-platform-source-candidate.json"
+result = "Native platform source candidate has separate configuration, component/archive plan and link-symbol gates; no device access, runtime timer IRQ or new retention result."

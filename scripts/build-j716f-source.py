@@ -37,8 +37,11 @@ def prepare_source_fix(base, device):
             capture_output=True,
         ).returncode == 0
         if not applied:
-            subprocess.run([*command, "--check", str(patch)], check=True)
-            subprocess.run([*command, str(patch)], check=True)
+            for suffix in (["--check", str(patch)], [str(patch)]):
+                result = subprocess.run([*command, *suffix], capture_output=True, text=True)
+                if result.returncode:
+                    raise RuntimeError(f"Source compatibility patch {patch.name}: "
+                                       +(result.stdout+result.stderr)[-1800:])
     # Preprocess the actual added C code in the first bsd_init patch hunk.
     # No Apple headers are needed to test the optional provider reference.
     source = base / "patches/xnu/offline-component-load-probes.patch"
@@ -220,4 +223,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as error:
+        # Make the actual failure visible in the check annotation as well as
+        # the source build log. No tokens or environment values are emitted.
+        message = str(error).replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+        print('::error title=J716F source build::'+message, flush=True)
+        raise
