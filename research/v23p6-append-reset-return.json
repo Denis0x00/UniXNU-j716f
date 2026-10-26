@@ -1,0 +1,51 @@
+{
+  "version": "V23P6 RAMLOG r1",
+  "image_sha256": "a939905b05f4db01aa88311f7e0a1f420ed0b95e39661a871e03108e903f82e3",
+  "video_sha256": "a8c67092ebe0eb36cf51e4a2cc806f9156214376829df95f841f7e84289fd0a4",
+  "video_seconds": 33.52168822553897,
+  "before": {
+    "next": "0x37bd9",
+    "size": "0x37bd9",
+    "markers": 0,
+    "appended_this_run": 0
+  },
+  "after_append": {
+    "next": "0x37c09",
+    "size": "0x37c09",
+    "markers": 1,
+    "appended_this_run": 1,
+    "header_valid": true,
+    "readback_message": "APPEND READBACK OK",
+    "bytes_added": 48
+  },
+  "timeline_samples": [
+    {
+      "pts": 2.002,
+      "frame": 60,
+      "observation": "Append readback OK; count now=1."
+    },
+    {
+      "pts": 14.008,
+      "frame": 420,
+      "observation": "Warm restart selected; prior append success message."
+    },
+    {
+      "pts": 15.01,
+      "frame": 450,
+      "observation": "Warm reset returned. Reset/retention NOT proven."
+    },
+    {
+      "pts": 28.018,
+      "frame": 840,
+      "observation": "Application returned to parent EFI diagnosis; START IMAGE, Success, code 0."
+    }
+  ],
+  "warm_reset_returned": true,
+  "actual_reboot_observed": false,
+  "append_verified": true,
+  "retention_verified": false,
+  "recovery_readback_verified": false,
+  "reset_failure_cause": "Unknown. Current app does not expose PSCI function/return codes or actual installed ResetSystem pointer.",
+  "efi_success_interpretation": "Normal successful application return; not proof of successful reset or XNU boot.",
+  "transcription_correction": "First-header next/size is 00037BD9, not 0003FBD9; free bytes were 33819."
+}

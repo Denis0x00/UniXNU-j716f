@@ -1,0 +1,300 @@
+{
+  "version": "V23P15 PLATFORM TRACE r1",
+  "host_checks_passed": true,
+  "automatic_start": false,
+  "kernel_entry_requires_manual_arm": true,
+  "variants": {
+    "m": {
+      "version": "V23P15M",
+      "image": "j716f-mu-zui13-kernel-trace-v23p15m-boot.img",
+      "image_bytes": 8347648,
+      "image_sha256": "c4d391792432b154f8e0c24f02359394d7ec53008c9f202ffd627e337415e8f1",
+      "fd_sha256": "304ee4b9ad15db13aa39c7b45ccef9a9241b047e1ca5e07f2a06d099e475f72c",
+      "payload_sha256": "90fb802c7ac1efeb0056994d72a7ad01fcb91ce45152fa8b0cbba6e3d572826b",
+      "kernel_sha256": "ba56ebf5ecc4b71b62a797dbdfaf0a992b93e6d007eb01ad607cfd7d57562c97",
+      "app_sha256": "17dcfa61eaff20c6192a73137a1bef613cd4f398c97f012552484f6ef973c5e1",
+      "power_app_sha256": "5af712b62fd62f0cdd6702bafdfe149df68547a1a1c056948a3d5c5ffbfb833d",
+      "nonpayload_changes_vs_p8": [],
+      "compact_sec_matches_p8": true,
+      "host_checks_passed": true,
+      "hardware_verified": true,
+      "device_writes_performed": true,
+      "device_launch": {
+        "partition_images_flashed": [
+          "boot_b"
+        ],
+        "current_slot_before_reboot": "b",
+        "slot_unbootable_b_before_reboot": false,
+        "reboot_command_succeeded": true,
+        "image_sha256": "c4d391792432b154f8e0c24f02359394d7ec53008c9f202ffd627e337415e8f1",
+        "menu_identity_observed": true,
+        "manual_kernel_start_required": true,
+        "recording_ready_user_confirmed": true,
+        "hardware_verified": true,
+        "reader_identity_observed": true,
+        "hardware_verified_scope": "One fresh bound P15 attempt reached original PE_init_platform(0, bootArgs) entry and original return address, then actual SCTLR M1 terminal before next arm_init call. All six logical/raw witnesses and terminal retained over one video-observed reboot to read-only P15 reader. No sustained continuation, interrupt/GIC/native timer or userspace qualification."
+      }
+    }
+  },
+  "kernel_logic_cases": 41,
+  "reader_logic_cases": 31,
+  "power_logic_cases_reused_for_identical_app": 22,
+  "hardware_verified": true,
+  "device_writes_performed": true,
+  "source_native_arch_timer_kernel": false,
+  "native_timer_driver_integrated": false,
+  "proposed_partition": "boot_b",
+  "next_variant": "m",
+  "status": "P15M bound PE_init_platform entry/return and actual M1 terminal retained over one video-observed reboot",
+  "source_checkout_base": "db1d13ec94dc2922d6b6209469fe430dcd0e6271",
+  "source_state": "Uncommitted P15 sources on recorded base; exact source/artifact hashes in private manifest",
+  "prior_baseline": "P14M fresh bound six checkpoints and actual M1 terminal after cpu_data_init return retained after user-reported automatic reboot; all9 CRCs reconstructed; no reset video/source attribution",
+  "reference_review": "Uses P14 upstream/sheng review without a new online head check; source build pin unchanged",
+  "arm_cookie": "0x5031354b45524e4c",
+  "slot_tag": "0x5031355300000000",
+  "slot_phases": {
+    "16": "BCM_ROUTE_SKIPPED",
+    "17": "M1_READBACK",
+    "18": "CPU_DATA_INIT_DONE",
+    "19": "PE_CALL_PREP",
+    "20": "PE_INIT_ENTRY",
+    "21": "PE_INIT_RETURNED"
+  },
+  "terminal": "Phase12 actual SCTLR after PE_init_platform(0, bootArgs) returns; before next arm_init call; then SYSTEM_RESET request",
+  "original_platform_bl_preserved": true,
+  "original_platform_return_address": "0xfffffff0079e19fc",
+  "entry_requires_fresh_query_arm_each_launch": true,
+  "next_action": "Preserve read-only result; audit subsequent configure_timer_apple_regs/WFE and miscellaneous setup before placing new original-continuation checkpoints. Every kernel launch requires fresh version-specific Query/ARM; no direct consumed-ARM relaunch.",
+  "limitations": [
+    "Host architectural registers/MMU aliases/cache/barriers/SMC mocked; hardware evidence is limited to the photographed/video-bound terminal attempt.",
+    "Terminal frozen-baseline bridge, not a source-native-timer rebuild or ArmCpu/GIC integration.",
+    "First PE_init_platform call argument is zero; no continuation after its return or interrupt/storage/userspace qualification.",
+    "Missing fresh ARM deliberately halts at admission and can leave old DarwinBoot display.",
+    "Video observes one reboot/menu/reader cycle; reset source is not independently attributed."
+  ],
+  "source_files": {
+    "scripts/build-v23p15-kernel.py": "678e6fbd04024b6f6765ce1814091058e38205ccbf23fafef2a25c5f3d69ea61",
+    "scripts/v23p15-platform.S": "8d4a93985bac5ad41f7ce48b3c044e730ed1baccdd29172c3be39edd2f7b1310",
+    "scripts/decode-j716f-v23p15.py": "e0d3449a733307df73dd4bb0f1229d9a9adc47d5a557638c084644d0f420ec5f"
+  },
+  "initial_reader_observation": {
+    "reader_identity": "J716F V23P15 PLATFORM TRACE r1",
+    "entry_signature": "0x43474244",
+    "entry_next": "0x32564",
+    "entry_size": "0x32564",
+    "entry_console_crc32": null,
+    "console_crc32_note": "Photo preserved privately; CRC text not confidently transcribed. No binary console capture.",
+    "entry_now_valid": true,
+    "now_matches_entry": true,
+    "logical_count": 0,
+    "raw_count": 0,
+    "frozen_checkpoint_id": 0,
+    "all_eight_rows_logical_raw_hits_zero": true,
+    "all_four_terminal_rows_raw_hits_zero": true,
+    "this_run_id": 1,
+    "query": false,
+    "armed": false,
+    "el": 1,
+    "unused_linear_tail_bytes": 55952,
+    "query_budget_bytes": 896,
+    "room_sufficient": true,
+    "kernel_launch_observed": false,
+    "interpretation": "Read-only P15 initial baseline after intervening fastboot/firmware boot. No recognized raw trace records; this does not negate prior P14 immediate reader retention evidence or establish P15 kernel execution."
+  },
+  "armed_reader_observation": {
+    "reader_identity": "J716F V23P15 PLATFORM TRACE r1",
+    "frozen_initial_header_and_rows_unchanged": true,
+    "entry_next": "0x32564",
+    "entry_size": "0x32564",
+    "now_valid": true,
+    "now_next": "0x326a4",
+    "now_size": "0x326a4",
+    "logical_count": 5,
+    "raw_count": 5,
+    "this_run_id": 1,
+    "query": true,
+    "armed": true,
+    "arm_crc32": "B9A219EB",
+    "arm_prior_header": "0x32664",
+    "arm_cookie": "5031354B45524E4C",
+    "arm_crc_reconstructed": true,
+    "header_growth_bytes": 320,
+    "growth_matches_four_query_records_plus_arm": true,
+    "six_invalid_templates_success_displayed": true,
+    "psci_version": "0x00010001",
+    "system_reset_features": 0,
+    "el": 1,
+    "new_session_observed": false,
+    "kernel_launch_observed": false,
+    "expected_terminal_header_if_complete": "0x328a4",
+    "expected_header_is_prediction_only": true
+  },
+  "postlaunch_reader_observation": {
+    "reader_identity": "J716F V23P15 PLATFORM TRACE r1",
+    "entry_now_valid": true,
+    "entry_now_next": "0x328a4",
+    "entry_now_size": "0x328a4",
+    "console_crc32": "F498612C",
+    "logical_count": 13,
+    "raw_count": 13,
+    "latest_id": 1,
+    "latest_phase": 12,
+    "latest_crc32": "F286B6BF",
+    "fresh_arm_matches_prelaunch": true,
+    "all_nine_record_crcs_reconstructed": true,
+    "records": [
+      {
+        "phase": 9,
+        "name": "ARM",
+        "offset": "0x32664",
+        "value": "5031354B45524E4C",
+        "crc32": "B9A219EB",
+        "logical_hits": 1,
+        "raw_hits": 1,
+        "crc_reconstructed": true
+      },
+      {
+        "phase": 10,
+        "name": "KERNEL_ENTRY",
+        "offset": "0x326a4",
+        "value": "B9A219EB00C00808",
+        "crc32": "F2FD8F05",
+        "logical_hits": 1,
+        "raw_hits": 1,
+        "crc_reconstructed": true
+      },
+      {
+        "phase": 16,
+        "name": "BCM_ROUTE_SKIPPED",
+        "offset": "0x326e4",
+        "value": "50313553B9A219EB",
+        "crc32": "99CE21F7",
+        "logical_hits": 1,
+        "raw_hits": 1,
+        "crc_reconstructed": true
+      },
+      {
+        "phase": 17,
+        "name": "M1_READBACK",
+        "offset": "0x32724",
+        "value": "50313553B9A219EB",
+        "crc32": "D58097B9",
+        "logical_hits": 1,
+        "raw_hits": 1,
+        "crc_reconstructed": true
+      },
+      {
+        "phase": 18,
+        "name": "CPU_DATA_INIT_DONE",
+        "offset": "0x32764",
+        "value": "50313553B9A219EB",
+        "crc32": "CEA0E583",
+        "logical_hits": 1,
+        "raw_hits": 1,
+        "crc_reconstructed": true
+      },
+      {
+        "phase": 19,
+        "name": "PE_CALL_PREP",
+        "offset": "0x327a4",
+        "value": "50313553B9A219EB",
+        "crc32": "E51787B9",
+        "logical_hits": 1,
+        "raw_hits": 1,
+        "crc_reconstructed": true
+      },
+      {
+        "phase": 20,
+        "name": "PE_INIT_ENTRY",
+        "offset": "0x327e4",
+        "value": "50313553B9A219EB",
+        "crc32": "F8E001F7",
+        "logical_hits": 1,
+        "raw_hits": 1,
+        "crc_reconstructed": true
+      },
+      {
+        "phase": 21,
+        "name": "PE_INIT_RETURNED",
+        "offset": "0x32824",
+        "value": "50313553B9A219EB",
+        "crc32": "B6E7E7E2",
+        "logical_hits": 1,
+        "raw_hits": 1,
+        "crc_reconstructed": true
+      },
+      {
+        "phase": 12,
+        "name": "INIT_STOP_SCTLR",
+        "offset": "0x32864",
+        "value": "000000003454593D",
+        "crc32": "F286B6BF",
+        "logical_hits": 1,
+        "raw_hits": 1,
+        "crc_reconstructed": true
+      }
+    ],
+    "header_growth_from_armed_bytes": 512,
+    "growth_matches_entry_six_slots_terminal": true,
+    "terminal_sctlr": "0x3454593d",
+    "terminal_m_bit": 1,
+    "new_reader_id": 2,
+    "new_reader_query": false,
+    "new_reader_armed": false,
+    "unused_pre_raw_hits": 0,
+    "map_failure_raw_hits": 0,
+    "reset_return_raw_hits": 0,
+    "video_reader_matches_still_photo": true,
+    "continuous_reboot_video_reviewed": true,
+    "one_reboot_to_p15_menu_then_read_only_reader_observed": true,
+    "reset_source_established": false,
+    "hardware_scope": "One fresh bound P15 attempt reached original PE_init_platform(0, bootArgs) entry and original return address, then actual SCTLR M1 terminal before next arm_init call. All six logical/raw witnesses and terminal retained over one video-observed reboot to read-only P15 reader. No sustained continuation, interrupt/GIC/native timer or userspace qualification."
+  },
+  "video_review": {
+    "duration_seconds": 13.931666666666667,
+    "fps": 30.00358894604618,
+    "frame_count": 418,
+    "continuous_cycle_reviewed": true,
+    "menu_identity": "V23P15M",
+    "kernel_row_selected_before_handoff": true,
+    "observed_samples": [
+      {
+        "frame": 0,
+        "event": "P15M menu, kernel row selected; prior reader returned Success"
+      },
+      {
+        "frame": 93,
+        "event": "DARWIN BOOT stage"
+      },
+      {
+        "frame": 95,
+        "event": "Transient green handoff/diagnostic display"
+      },
+      {
+        "frame": 96,
+        "event": "Screen dark"
+      },
+      {
+        "frame": 165,
+        "event": "Lenovo/Android splash"
+      },
+      {
+        "frame": 225,
+        "event": "Returned P15M menu, reader selected"
+      },
+      {
+        "frame": 330,
+        "event": "START IMAGE for reader EFI; not another kernel launch"
+      },
+      {
+        "frame": 417,
+        "event": "Read-only P15 reader matches still photo"
+      }
+    ],
+    "event_sample_timing_note": "Frame/fps gives sampled times; no exact first-event frame or kernel execution duration inferred.",
+    "pmic_before": "0x02000001",
+    "pmic_after": "0x02000041",
+    "reset_source_established": false
+  },
+  "hardware_verified_scope": "One fresh bound P15 attempt reached original PE_init_platform(0, bootArgs) entry and original return address, then actual SCTLR M1 terminal before next arm_init call. All six logical/raw witnesses and terminal retained over one video-observed reboot to read-only P15 reader. No sustained continuation, interrupt/GIC/native timer or userspace qualification."
+}

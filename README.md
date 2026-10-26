@@ -1,68 +1,48 @@
 # UniXNU-j716f
 
-Lenovo Xiaoxin Pad Pro 2021 (`TB-J716F`, board name `j716f`, Qualcomm
-SM8250/Kona) 的 UniXNU 设备仓库。当前仍是 research / bring-up port，不能宣称
-已经启动 iPadOS、iOS 或完整真实 XNU。
+联想小新 Pad Pro 2021（TB-J716F，SM8250/Kona）的 UniXNU 设备移植仓库。
+当前处于早期内核 bring-up，尚未完成 iPadOS 启动。
+配套固件：[uefi-j716f](https://github.com/Denis0x00/uefi-j716f)。
 
-## 迁移状态
+## 当前进度（2026-10-26）
 
-仓库已按 UniXNU 格式 2 组织：
+| 范围 | 已验证内容 |
+| --- | --- |
+| 固件与交接 | UEFI 菜单、硬件按键、RAM FAT、DarwinBoot 和早期 XNU 交接 |
+| 内存 | 一个 256 MiB 窗口两轮读写通过；不代表全部 RAM |
+| 诊断日志 | 版本专用 ARM、CRC、独立检查点、重启后只读读取 |
+| P13 | 短程 MMU-on 执行，直接读回 SCTLR M=1 |
+| P14/P15 | 原始 cpu_data_init 返回，首次 PE_init_platform(0, bootArgs) 进入并返回 |
+| P16 | 原始 WFE configure/init、misc 返回；CNTKCTL_EL1=0x4f，记录经录像观察到的重启后保留 |
 
-- `board.toml` 固定 `ipados-17.7.11-21H461` 候选、`j716f_source_defconfig`、DTS
-  入口、payload 和 Android boot image 参数。
-- `dts/j716f.dts` 与 `socs/sm8250/` 保存从 ZUI DTB0/DTBO8 和 recovery FDT
-  交叉核对的 CPU0、GIC、计时器和主连续 DRAM 描述。
-- `porting.toml`、`AGENTS.md` 和记录工作流覆盖配置、固件、驱动适配、组装与诊断。
-- `socs/sm8250` 是临时的 board-local evidence snapshot。官方尚无已审查的
-  `UniXNU-sm8250-common` 公共仓库；在拆出共享仓库并固定提交前，不把它当作完成的
-  SoC 支持。
+P16 在 `/chosen` 查询之前主动结束。真实定时器中断、GIC/ArmCpu 驱动匹配、
+持续初始化、调度、物理 UFS/root 和用户态尚未验证。诊断基于冻结的内核构建，
+不能视为原生定时器平台集成已经完成。BCM 路由整体排除遵循上游方向，
+原始 BCM 故障机理仍未证明。
 
-## 当前验证范围
+## 当前文档与证据
 
-截至 2026-10-25：
+- [P16 后的实际进度及上游/sheng 对照](docs/PROGRESS_AFTER_V23P16_20261026.md)
+- [P16 测试说明](docs/V23P16_TIMER_WFE.md) · [结构化结果](research/v23p16-timer-wfe.json)
+- [移植记录](porting.toml) · [证据索引](research/README.md)
+- [P13 MMU](docs/V23P13_MMU_CONTINUATION.md) · [P14 early init](docs/V23P14_EARLY_INIT.md)
+- [P15 平台初始化](docs/V23P15_PLATFORM_INIT.md)
+- [历史进度归档](docs/HISTORY_THROUGH_V23P16.md)
 
-- 诊断镜像通过 `boot_b` 进入 UniXNU 菜单；GOP、音量键和电源键已有真机观察。
-- V14 验证一个 256 MiB DarwinBoot 窗口，7/7 检查通过；两轮读写累计验证 512 MiB。
-- V16 观察到 ExitBootServices 与 XNU 早期入口探针；V17 记录 post-MMU 复位检查点。
-- V18 改为 WFE 停点后仍复位，具体来源尚未确定。
-- V19/V20 增加复位诊断；V21 已构建、校验、刷入 `boot_b` 并进入放大菜单，
-  照片确认 `PMIC RESET: 0x02000001`。这是当前启动的历史基线，尚不能据此归因复位。
-- V21 录像确认入口三色条及 Lenovo Logo 再现；PMIC 变为 `0x02000041`，复位来源未知。
-- V22A（1 秒）／V22B（3 秒）镜像已构建并通过主机审计，尚未刷写。持续 MMU-on、原生平台驱动、物理 UFS/root、
-  trust cache、userdata 和用户态均未验证，未启动 iPadOS。
+## 构建与仓库边界
 
-最新汇总：[V22 MMU 后检查点](docs/V22_POST_MMU_CHECKPOINT.md)，
-[V22 元数据](research/v22-checkpoint-preparation.json)，
-[V21 复位诊断](docs/V21_RESET_DIAGNOSTICS.md)，
-[公开验证元数据](research/v21-reset-diagnostics.json)，
-[配套固件仓库](https://github.com/Denis0x00/uefi-j716f)。
+`board.toml`/`feeds.toml`/`unixnu.lock` 保存设备格式、依赖与构建方案；
+`dts/` 和 `socs/sm8250/` 保存经固件证据交叉核对的板级事实。
+SoC 目录仍是本地过渡快照；板级驱动 ABI 和集成未完成。
+`board.toml` 中的历史 payload 配方不是最新 P16 的构建入口；
+各版本请按独立说明及 `scripts/build-v23p*-kernel.py` 使用。
 
-`board.toml` 的 payload 选项仍保留 V17 定时复位方案；它不是已刷入 V21 的完整
-配方。V21 使用独立 UEFI 诊断配置，内嵌负载与 V20 相同，具体来源与边界见最新汇总。
+`j716f_arch_timer_source_defconfig` 是单独的源码资格验证方案，
+当前只解析过配置，尚未完成该方案编译/实机验证；ArmCpu/ArmDTPlatform 未接入。
+GitHub Actions 的普通源码构建与 native timer 选项分别记录结果，
+源码编译成功也不等于设备启动成功。
 
-## 构建与检查
-
-从最新 UniXNU checkout 执行：
-
-```sh
-./unixnu defconfig j716f_source_defconfig -D ../UniXNU-j716f
-./unixnu fetch -D ../UniXNU-j716f
-./unixnu status --json -D ../UniXNU-j716f
-./unixnu tree -D ../UniXNU-j716f
-python3 scripts/porting-record.py check --device ../UniXNU-j716f
-```
-
-DTS 独立检查：
-
-```sh
-dtc -I dts -O dtb -i ../UniXNU-j716f/socs/sm8250/dts \
-  -o /tmp/j716f.dtb ../UniXNU-j716f/dts/j716f.dts
-```
-
-私有路径放在 `local.toml`（由 `local.toml.example` 复制），不要提交厂商二进制、IPSW、
-原始 DTB、kernelcache、trust cache、Data seed、payload、照片、日志或密钥。
-
-## 真机边界
-
-当前诊断测试只允许 `boot_b`；不要写 `boot_a`、vbmeta、userdata 或其他分区。
-TzDxe 仍不在本轮范围内。
+不发布 Apple/Lenovo 二进制输入、原始 DTB、镜像、照片、原始日志、用户数据、
+随机种子和凭据。公开内容限源码、哈希和脱敏结果摘要。
+实机诊断只使用 `boot_b`；每次内核启动必须重新执行该版本 Query → ARM。
+TzDxe 不在本阶段范围内。

@@ -1,0 +1,72 @@
+{
+  "kind": "host emulation of actual Recovery machine code; external functions mocked",
+  "input_image_sha256": "2f1e995265b396ba09e8c552fda737ba2d2791ca863538a4409ea75fc952f33f",
+  "relocated_image_sha256": "18bc2d9ecc05388a9c3ba9a5aadb8ea119c2c78f83f519f7640b70e12c6431dc",
+  "parameters": {
+    "mem_address": 2952790016,
+    "mem_size": 1048576,
+    "record_size": 4096,
+    "console_size": 262144,
+    "ftrace_size": 4096,
+    "pmsg_size": 4096,
+    "mem_type": 0,
+    "ecc": 0,
+    "dump_oops": 1
+  },
+  "dump_zones": 190,
+  "console": {
+    "base": 2953568256,
+    "bytes": 262144,
+    "signature_xor": 0
+  },
+  "ftrace": [
+    {
+      "base": 2953830400,
+      "bytes": 512,
+      "signature_xor": 267165
+    },
+    {
+      "base": 2953830912,
+      "bytes": 512,
+      "signature_xor": 267165
+    },
+    {
+      "base": 2953831424,
+      "bytes": 512,
+      "signature_xor": 267165
+    },
+    {
+      "base": 2953831936,
+      "bytes": 512,
+      "signature_xor": 267165
+    },
+    {
+      "base": 2953832448,
+      "bytes": 512,
+      "signature_xor": 267165
+    },
+    {
+      "base": 2953832960,
+      "bytes": 512,
+      "signature_xor": 267165
+    },
+    {
+      "base": 2953833472,
+      "bytes": 512,
+      "signature_xor": 267165
+    },
+    {
+      "base": 2953833984,
+      "bytes": 512,
+      "signature_xor": 267165
+    }
+  ],
+  "pmsg": {
+    "base": 2953834496,
+    "bytes": 4096,
+    "signature_xor": 0
+  },
+  "live_header_verified": false,
+  "retention_verified": false,
+  "iomem_explanation": "b0000000-b007ffff uses request_mem_region/ioremap; b0080000-b00fffff is reserved System RAM and uses pfn_valid/vmap, without a persistent_ram resource entry."
+}

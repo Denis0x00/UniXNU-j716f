@@ -1,0 +1,397 @@
+{
+  "version": "V23P16 WFE TRACE r1",
+  "host_checks_passed": true,
+  "automatic_start": false,
+  "kernel_entry_requires_manual_arm": true,
+  "variants": {
+    "m": {
+      "version": "V23P16M",
+      "image": "j716f-mu-zui13-kernel-trace-v23p16m-boot.img",
+      "image_bytes": 8351744,
+      "image_sha256": "a9ce7d32de4998ecc97cddb31e369d7fc8eb71defd58e6b65c942de70a020d42",
+      "fd_sha256": "acdddc7524e93bfeeaaacc2d70683ea92970c4fc42d4c739132e43876ee955b8",
+      "payload_sha256": "3a3277f65ac7072cb5bb0b88746b506b088958f1ad94878765403afa19f11497",
+      "kernel_sha256": "f3473601519eeae350ab8621c78d3f25ac99f0dde4694592f016989f3c962ff9",
+      "app_sha256": "8ff4ed97532d5273e23031179a7494e69c3bf92a161cbffe5c972a9d280f6aaf",
+      "power_app_sha256": "5af712b62fd62f0cdd6702bafdfe149df68547a1a1c056948a3d5c5ffbfb833d",
+      "nonpayload_changes_vs_p8": [],
+      "compact_sec_matches_p8": true,
+      "host_checks_passed": true,
+      "hardware_verified": true,
+      "device_writes_performed": true,
+      "device_launch": {
+        "partition_images_flashed": [
+          "boot_b"
+        ],
+        "current_slot_before_reboot": "b",
+        "slot_unbootable_b_before_reboot": false,
+        "reboot_command_succeeded": true,
+        "image_sha256": "a9ce7d32de4998ecc97cddb31e369d7fc8eb71defd58e6b65c942de70a020d42",
+        "menu_identity_observed": true,
+        "manual_kernel_start_required": true,
+        "recording_ready_user_confirmed": true,
+        "hardware_verified": true
+      },
+      "reader_identity_observed": true,
+      "hardware_verified_scope": "One fresh bound ID2 P16M attempt reached original PE return, timer RET stub return, original wfe_timeout_configure return, original wfe_timeout_init return and misc setup completion. M1 guards passed; actual terminal CNTKCTL_EL1=0x4f retained with all six witnesses over video-observed reboot to P16 menu and read-only reader. Timer interrupts, actual WFE wait/wakeup, sustained initialization, ArmCpu/GIC, reset source and userspace remain unverified."
+    }
+  },
+  "kernel_logic_cases": 48,
+  "reader_logic_cases": 31,
+  "power_logic_cases_reused_for_identical_app": 22,
+  "hardware_verified": true,
+  "device_writes_performed": true,
+  "source_native_arch_timer_kernel": false,
+  "native_timer_driver_integrated": false,
+  "proposed_partition": "boot_b",
+  "next_variant": "m",
+  "status": "P16M original WFE configure/init and misc returns, bound terminal CNTKCTL0x4f retained over video-observed reboot",
+  "source_checkout_base": "db1d13ec94dc2922d6b6209469fe430dcd0e6271",
+  "source_state": "Uncommitted P16 sources on recorded base; exact source/artifact hashes in private manifest",
+  "prior_baseline": "P15M original PE_init_platform(0, bootArgs) entry/return and bound M1 terminal retained over continuous video-observed reboot; all9 CRCs reconstruct; reset source unproven",
+  "reference_review": {
+    "date": "2026-10-26",
+    "heads": {
+      "UniXNU": "ae687009348296e97e49ce6e925795044f363ce6",
+      "UniXNU-sheng": "08cde20edc3254ed6f7df8d0f5384fb887786e8f",
+      "UniXNU-sm8550-common": "23b2049fcd9e30356161def84231334fb55ecca9",
+      "ArmCpu": "9066b53bbc82e92a98ec44a11dd50fd13eaf1a1b"
+    },
+    "heads_changed_from_prior_review": false,
+    "files": {
+      "ArmCpu/AGENTS.md": "14cdcbe68ef6ab13dfa37f1ecd7f8ded5db95d83419756dcd237925c9c3fed57",
+      "ArmCpu/ArmCpu.cpp": "3c87b3bd617be5582a6a24ff797c359497ee9feaa702ee883ecee4270db21c9f",
+      "ArmCpu/README.md": "57e9736e3a8e1db273ad5a62f64236fc5ca1cbad16efc7615bfda80ff249c36c",
+      "UniXNU/AGENTS.md": "ea11e40ead1e83cb46514407413aa7934f577b38ab615ab002fa97c75296841a",
+      "UniXNU/docs/zh/porting/bring-up.md": "71d6c016867619da06d1cca56785794e0851997e976d54ce2bc1d6e894ad1642",
+      "UniXNU/docs/zh/porting/migration.md": "6cc434883242868e7a04a5444e2378d73d662c3563368306ec1e844f68bc7e0f",
+      "UniXNU/patches/xnu/architectural-timer-entry.patch": "809b0c951545d889a2a37c730189283e7e890340894bab6d937c914dbd20b8e5",
+      "UniXNU/scripts/check-native-arch-timer-checkpoints.py": "519c74f75f4fa9949f38e183048760e737992abcf7ea22b48df0ee26d8d71f82",
+      "UniXNU-sheng/AGENTS.md": "8e95e5e049ee4705849d4674f9369f774ebb4060c24670d1b2eb112ddf81d1c2",
+      "UniXNU-sheng/board.toml": "01672a102e77bff734aea9c854d43e00e9f0bb04397fe1d2c3d93e61d32d56cf",
+      "UniXNU-sheng/porting.toml": "6c0f488657d79779dbeeeb4a7ab7289e2c09eb515aa4723fca72ca6426e86855",
+      "UniXNU-sheng/README.md": "f1a187e1e0d73625000c1b15212401e41c8f945063f810154c12bcfabc9a0651",
+      "UniXNU-sm8550-common/AGENTS.md": "589921dfbc7dc27f71ad2fa606a6f1602477ec51042e544a4ec5f0a50c7dcb7b",
+      "UniXNU-sm8550-common/configs/sm8550.config": "484ef9a88382db2eb9f1131900f99417d2ac77160966d06d97887d657dccdcdd",
+      "UniXNU-sm8550-common/soc.toml": "a7177808bb17a4548660847ef11024a4046734f26a25a32ff1feaa4e281c1bdc"
+    },
+    "findings": [
+      "Upstream native timer entry excludes complete BCM routing block.",
+      "sheng selects ArmDTPlatform/ArmCpu and remains described as work in progress; do not infer hardware stability from offline HVF fixtures.",
+      "ArmCpu enables GIC/timebase and dispatches architectural virtual timer PPI27 to rtclock_intr; no SM8550 GIC addresses or SPI IPI policy copied.",
+      "Source build pin remains 42bffe8a56823dad2e448c776b4f94862f3e290a; this diagnostic remains a frozen-baseline bridge."
+    ]
+  },
+  "baseline_audit": {
+    "apple_timer_and_misc_functions": "Already single-instruction RET stubs",
+    "wfe_configure": "Original wfe_events_sec parser, platform-frequency division, bit calculation and global write preserved",
+    "wfe_init": "Original threshold<64 guard, CNTKCTL_EL1 read/OR(threshold<<4)/OR(0xf)/write preserved; old bits are not cleared",
+    "primary_host_fixture": {
+      "frequency_hz": 19200000,
+      "default_threshold": 4,
+      "incoming_cntkctl": "0x100",
+      "terminal_cntkctl": "0x14f",
+      "architectural_registers_mocked": true
+    },
+    "wfe_wait_or_timer_irq_qualified": false
+  },
+  "arm_cookie": "0x5031364b45524e4c",
+  "slot_tag": "0x5031365300000000",
+  "slot_phases": {
+    "16": "BCM_ROUTE_SKIPPED",
+    "17": "M1_READBACK",
+    "18": "TIMER_STUB_RETURN",
+    "19": "WFE_CONFIG_RETURN",
+    "20": "WFE_INIT_RETURN",
+    "21": "MISC_SETUP_DONE"
+  },
+  "terminal": "Phase12 actual CNTKCTL_EL1 after M1 guard, after original timer/WFE/misc returns, before chosen DT lookup; SYSTEM_RESET request follows",
+  "original_platform_timer_wfe_misc_bl_preserved": true,
+  "entry_requires_fresh_query_arm_each_launch": true,
+  "next_action": "Preserve this read-only result; next instrument original /chosen SecureDTLookupEntry, xnu_platform_stall property lookup and following control-flow/initialization boundary. Each new attempt requires fresh version-specific Query/ARM; do not directly relaunch consumed P16 ARM.",
+  "limitations": [
+    "Terminal frozen-baseline bridge, not source-native-timer rebuild or ArmCpu/GIC integration.",
+    "Phase12 is CNTKCTL, not SCTLR. CNTKCTL preserves incoming firmware bits; host0x14f is not a hardware expectation.",
+    "Return from WFE setup does not prove a WFE wait/wakeup, timer IRQ, scheduler or userspace.",
+    "Missing fresh ARM deliberately halts at admission and may leave old DarwinBoot display.",
+    "Hardware verification is limited to the documented single bound terminal attempt; host mocked checks remain host evidence.",
+    "Continuous video establishes reboot/menu/reader sequence, but not the independently measured reset source."
+  ],
+  "source_files": {
+    "scripts/build-v23p16-kernel.py": "7c7031e5eef7412f0841d7af62dcdf0f54da9620712f623d7937a064a8d49fef",
+    "scripts/v23p16-wfe.S": "60d03a9334789bcc000593a880d37254fc719d52c6550ea61138e83782de1cce",
+    "scripts/decode-j716f-v23p16.py": "b2909ee419e2271036c2e0ef7a1ff126e2a50e77157795457d13236edbc6e254"
+  },
+  "device_operation_summary": "P16M flashed only to boot_b after final image/source hash and fastbootd product/unlock/slot/partition gates. B active and bootable verified; reboot command succeeded. Recording readiness confirmed. Menu appearance, initial reader, fresh Query/ARM and kernel observations remain pending. Phase12 is CNTKCTL, not SCTLR. Open P16 reader FIRST and photograph the full initial page before Query/ARM/session action or kernel launch.",
+  "initial_reader_observation": {
+    "reader_identity": "J716F V23P16 WFE TRACE r1",
+    "entry_header": {
+      "signature": "43474244",
+      "next": "00028761",
+      "size": "00028761",
+      "console_crc32": "ECF994E2",
+      "valid": true
+    },
+    "now_header_matches_entry": true,
+    "logical_count": 0,
+    "raw_count": 13,
+    "raw_latest": {
+      "id": 1,
+      "phase": 12,
+      "crc32": "F286B6BF"
+    },
+    "frozen_checkpoint_id": 1,
+    "old_raw_arm": {
+      "logical_hits": 0,
+      "raw_hits": 1,
+      "crc32": "B9A219EB",
+      "cookie": "5031354B45524E4C"
+    },
+    "old_raw_entry": {
+      "logical_hits": 0,
+      "raw_hits": 1,
+      "crc32": "F2FD8F05",
+      "value": "B9A219EB00C00808"
+    },
+    "P16_slot_logical_hits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "P16_slot_raw_hits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "P16_terminal_hits": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "current_invocation": {
+      "id": 2,
+      "query": false,
+      "armed": false,
+      "last_crc": "00000000",
+      "el": 1,
+      "psci": "00000000",
+      "features": "0000000000000000"
+    },
+    "unused_linear_tail_bytes": 96403,
+    "query_arm_attempt_budget_bytes": 896,
+    "new_session_required": false,
+    "P16_kernel_launch_observed": false,
+    "parent_menu_identity_observed": false,
+    "interpretation": "Valid linear header with enough room. Raw13 are old P15-pattern records outside current logical history; P16 cookie-bound slot/final scanners do not count them. No P16 kernel progress or controlled retention yet."
+  },
+  "fresh_arm_observation": {
+    "reader_identity": "J716F V23P16 WFE TRACE r1",
+    "initial_frozen_header_unchanged": true,
+    "now_header": {
+      "valid": true,
+      "next": "000288A1",
+      "size": "000288A1"
+    },
+    "logical_count": 5,
+    "raw_count": 18,
+    "current_invocation": {
+      "id": 2,
+      "query": true,
+      "armed": true,
+      "crc32": "93A96F6F",
+      "el": 1,
+      "psci_version": "00010001",
+      "system_reset_features": "0000000000000000"
+    },
+    "arm_templates_status": "ARM + six invalid templates OK",
+    "arm_cookie": "5031364B45524E4C",
+    "arm_prior_header": "00028861",
+    "arm_crc_reconstructed": "93A96F6F",
+    "growth_from_initial_bytes": 320,
+    "expected_slot_tag_value": "5031365393A96F6F",
+    "expected_complete_terminal_header_not_observed": "00028AA1",
+    "new_session_observed": false,
+    "kernel_launch_observed": false
+  },
+  "postlaunch_reader_observation": {
+    "reader_identity": "J716F V23P16 WFE TRACE r1",
+    "entry_now_valid": true,
+    "entry_now_next": "0x28aa1",
+    "entry_now_size": "0x28aa1",
+    "console_crc32": "B9A3B4BA",
+    "console_crc_note": "Transcribed display value; no binary console dump or independent full-console CRC recomputation.",
+    "logical_count": 13,
+    "raw_count": 26,
+    "latest_id": 2,
+    "latest_phase": 12,
+    "latest_crc32": "A684F65B",
+    "fresh_arm_matches_prelaunch": true,
+    "all_nine_record_crcs_reconstructed": true,
+    "records": [
+      {
+        "phase": 9,
+        "offset": "0x28861",
+        "value": "5031364B45524E4C",
+        "crc32": "93A96F6F",
+        "reconstructed_matches": true,
+        "name": "ARM",
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 10,
+        "offset": "0x288a1",
+        "value": "93A96F6F00C00808",
+        "crc32": "5AF6E0B5",
+        "reconstructed_matches": true,
+        "name": "KERNEL_ENTRY",
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 16,
+        "offset": "0x288e1",
+        "value": "5031365393A96F6F",
+        "crc32": "AA287B4B",
+        "reconstructed_matches": true,
+        "name": "BCM_ROUTE_SKIPPED",
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 17,
+        "offset": "0x28921",
+        "value": "5031365393A96F6F",
+        "crc32": "E666CD05",
+        "reconstructed_matches": true,
+        "name": "M1_READBACK",
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 18,
+        "offset": "0x28961",
+        "value": "5031365393A96F6F",
+        "crc32": "FD46BF3F",
+        "reconstructed_matches": true,
+        "name": "TIMER_STUB_RETURN",
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 19,
+        "offset": "0x289a1",
+        "value": "5031365393A96F6F",
+        "crc32": "D6F1DD05",
+        "reconstructed_matches": true,
+        "name": "WFE_CONFIG_RETURN",
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 20,
+        "offset": "0x289e1",
+        "value": "5031365393A96F6F",
+        "crc32": "CB065B4B",
+        "reconstructed_matches": true,
+        "name": "WFE_INIT_RETURN",
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 21,
+        "offset": "0x28a21",
+        "value": "5031365393A96F6F",
+        "crc32": "48BB45ED",
+        "reconstructed_matches": true,
+        "name": "MISC_SETUP_DONE",
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 12,
+        "offset": "0x28a61",
+        "value": "000000000000004F",
+        "crc32": "A684F65B",
+        "reconstructed_matches": true,
+        "name": "WFE_STOP_CNTKCTL",
+        "logical_hits": 1,
+        "raw_hits": 1
+      }
+    ],
+    "header_growth_from_armed_bytes": 512,
+    "growth_matches_entry_six_slots_terminal": true,
+    "slot_bound_value": "5031365393A96F6F",
+    "entry_sctlr": "0x00c00808",
+    "terminal_register": "CNTKCTL_EL1",
+    "terminal_value": "0x4f",
+    "phase17_m1_readback_committed": true,
+    "late_slot_and_terminal_m1_guards_passed": true,
+    "new_reader_id": 3,
+    "new_reader_query": false,
+    "new_reader_armed": false,
+    "unused_pre_raw_hits": 0,
+    "map_failure_raw_hits": 0,
+    "reset_return_raw_hits": 0,
+    "continuous_reboot_video_reviewed": true,
+    "video_reader_matches_still_photo": true,
+    "reset_source_established": false,
+    "hardware_scope": "One fresh bound ID2 P16M attempt reached original PE return, timer RET stub return, original wfe_timeout_configure return, original wfe_timeout_init return and misc setup completion. M1 guards passed; actual terminal CNTKCTL_EL1=0x4f retained with all six witnesses over video-observed reboot to P16 menu and read-only reader. Timer interrupts, actual WFE wait/wakeup, sustained initialization, ArmCpu/GIC, reset source and userspace remain unverified."
+  },
+  "video_review": {
+    "duration_seconds": 11.998333333333333,
+    "frame_count": 360,
+    "fps": 30.004167245450756,
+    "continuous_reboot_to_menu_and_reader_observed": true,
+    "landmarks": [
+      {
+        "frame": 0,
+        "event": "P16M menu, kernel selected, PMIC02000001"
+      },
+      {
+        "frame": 82,
+        "event": "DARWIN BOOT status"
+      },
+      {
+        "frame": 84,
+        "event": "Transient green handoff band"
+      },
+      {
+        "frame": 85,
+        "event": "Display dark"
+      },
+      {
+        "frame": 150,
+        "event": "Lenovo/Android splash visible"
+      },
+      {
+        "frame": 210,
+        "event": "P16M menu returned, reader selected, PMIC02000041"
+      },
+      {
+        "frame": 270,
+        "event": "START IMAGE belongs to selected reader EFI, not a second kernel launch"
+      },
+      {
+        "frame": 330,
+        "event": "P16 read-only reader"
+      },
+      {
+        "frame": 359,
+        "event": "Reader values match final still photo"
+      }
+    ],
+    "pmic_before": "02000001",
+    "pmic_after": "02000041",
+    "reset_source_established": false,
+    "video_reader_matches_still_photo": true
+  },
+  "hardware_verified_scope": "One fresh bound ID2 P16M attempt reached original PE return, timer RET stub return, original wfe_timeout_configure return, original wfe_timeout_init return and misc setup completion. M1 guards passed; actual terminal CNTKCTL_EL1=0x4f retained with all six witnesses over video-observed reboot to P16 menu and read-only reader. Timer interrupts, actual WFE wait/wakeup, sustained initialization, ArmCpu/GIC, reset source and userspace remain unverified."
+}

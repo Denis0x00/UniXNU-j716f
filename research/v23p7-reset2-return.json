@@ -1,0 +1,73 @@
+{
+  "version": "V23P7 RESET r1",
+  "image_sha256": "919cd695ac28b4eada47b663ee3724575aaefaa5a8778a71f0c2c4581527f23e",
+  "video_sha256": "70a67e56f88dfcd74ba1a5fe992e33eb6b3ed8c194e1cfd39650d3b77c14478b",
+  "photo_sha256": "6f8a71c7655d6ffc0748d7a5ddd77ad7af93538d482030d7d9e108d940c292ec",
+  "video_seconds": 10.498328042328042,
+  "video_frames": 315,
+  "observed": {
+    "current_el": 1,
+    "driver_identity_match": true,
+    "query_complete": true,
+    "psci_version": "0x00010001",
+    "features_reset": "0x0",
+    "features_reset2": "0x0",
+    "last_fid": "0xc4000012",
+    "reset2_x0": "0xfffffffffffffffe",
+    "status32": -2,
+    "decoded_status": "INVALID_PARAMS",
+    "x1_through_x3": [
+      "0x0",
+      "0x0",
+      "0x0"
+    ],
+    "display_status": "Direct RESET2 RETURNED",
+    "ring_valid_all_observed_states": true,
+    "p7_entry": 0,
+    "states": [
+      {
+        "video_seconds": 0,
+        "next": "0x2958a",
+        "size": "0x2958a",
+        "p7_now": 6
+      },
+      {
+        "video_seconds": 3,
+        "next": "0x296a3",
+        "size": "0x296a3",
+        "p7_now": 8,
+        "returned_reset2": true
+      },
+      {
+        "video_seconds": 4,
+        "next": "0x297bc",
+        "size": "0x297bc",
+        "p7_now": 10,
+        "returned_reset2": true
+      }
+    ],
+    "reset2_attempts_observed": 2,
+    "bytes_per_pre_return_pair": 281,
+    "actual_reboot_observed": false
+  },
+  "transcription": "Enlarged photo and video confirm final hex digit E: -2 INVALID_PARAMS. Supersedes initial visual reading of all-F (-1).",
+  "reset2_return_verified": true,
+  "reset_success_verified": false,
+  "retention_verified": false,
+  "recovery_readback_verified": false,
+  "system_reset_tested": false,
+  "claims_xnu_progress": false,
+  "limits": [
+    "FEATURES=0 reports function availability, not success of the requested reset.",
+    "No actual reboot, so RAM retention is not tested.",
+    "Record counts are same-run app observations, not independent Recovery data.",
+    "P6 internal SMC result is uncaptured; its old Warm implementation only falls back when FEATURES fails.",
+    "Old uninitialized argument fields are not a proven root cause or sufficient fix.",
+    "TF-A reference implementation is not evidence of J716F secure firmware internals."
+  ],
+  "next_action": "Use existing P7 Direct SYSTEM_RESET once; film returned registers or actual reboot and first read-only re-entry before more queries.",
+  "references": [
+    "https://github.com/torvalds/linux/blob/master/include/uapi/linux/psci.h",
+    "https://github.com/ARM-software/arm-trusted-firmware/blob/master/lib/psci/psci_system_off.c"
+  ]
+}

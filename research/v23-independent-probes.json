@@ -1,0 +1,411 @@
+{
+  "profile": "J716F V23 independent PSCI/counter/direct MMU records",
+  "updated_at": "2026-10-25",
+  "source_state": "Local uncommitted V23 additions on the V22 source parents; no V23 push performed.",
+  "device_source_parent": "db1d13ec94dc2922d6b6209469fe430dcd0e6271",
+  "firmware_source_parent": "a325b2a928707cc618730ee2a0c0a1bac7ed8db2",
+  "upstream_review_commit": "16e592abee8a550dec8154ed1f38b5ebc4f16213",
+  "variants": {
+    "p": {
+      "variant": "V23P",
+      "mode": 1,
+      "image": "j716f-mu-zui13-entry-v23p-boot.img",
+      "image_bytes": 8343552,
+      "image_sha256": "0379e78e65b639900ab92b7f6f0d688224ccfbf6cb0d7eafdec5e6f87e1739bd",
+      "fd_sha256": "d245560f05dc71706425c1cc191ab15b9e428adcf7ec1a53d1c4e3235e57bed6",
+      "payload_sha256": "6c18de6a314caac81ff1577dee260aeaa31ff565259da99c494ed1b6c684996e",
+      "probe": {
+        "variant": "V23P",
+        "kernel_sha256": "f6c18ed405430a1eb644f195dd433fe91290e71ed3553f8104bfcb80709623ba",
+        "baseline_sha256": "cab8f385a44d21fc6f455cb501227452212ba44d34a9fa03d04fcf7e85324214",
+        "changes_confined": true,
+        "probe_bytes": 1192,
+        "probe_capacity": 2800,
+        "exception_vectors": 16,
+        "source_crypto_hmac": {
+          "offset": 1449688,
+          "computed": "bfa11bc2f805beaba5145aaed2babf39164671d00ff3e6578eccd277d43768ac",
+          "stored": "bfa11bc2f805beaba5145aaed2babf39164671d00ff3e6578eccd277d43768ac",
+          "matches": true
+        },
+        "counter_loop_bound": null,
+        "psci_function": "0x84000009",
+        "uses_counter": false,
+        "uses_psci": true,
+        "direct_mmu_display_mapping": false,
+        "normal_kernel_continuation": false,
+        "hardware_verified": false
+      },
+      "boot": {
+        "kernel_sha256": "e074aa3f0fe95449f6ab0fed8719edb0a524b722c255dc31dfaf33662294b352",
+        "ramdisk_bytes": 0,
+        "header_version": 2,
+        "kernel_address": "0x8000",
+        "tags_address": "0x100",
+        "separate_dtb_bytes": 728300,
+        "separate_dtb_address": "0x1f00000"
+      },
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "linked_modules": {
+        "UniXNU.efi": {
+          "bytes": 90112,
+          "sha256": "5e219d78170b4b884358783da87d4b84e72eaca20307e3bcdb093d8db6f2e05d"
+        },
+        "DarwinBoot.efi": {
+          "bytes": 19456,
+          "sha256": "e6f42f35fa13efb83d3e3d97121b0c726c0744b25fdb9a821547173b83022f9c"
+        },
+        "J716fKeysDxe.efi": {
+          "bytes": 11264,
+          "sha256": "31356536c324dda7b2161e0efddf207748f2ec8d25d94bf7c1be72a56fb8b904"
+        }
+      },
+      "source_hashes": {
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.dsc": "6a295e3d0046205284d52f4931ed2a17bc1f3c7276648e3753299acf357c13b6",
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.fdf": "b1a29c9e13560f6ddd34461be450ba11ab56b52d9082576af9df79f03f5a858b",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_DXE.inc": "85619cde27c7de56466afac05d4a855935136ed6aef00a031d5f3652d84c8736",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_APRIORI.inc": "005f48c9ba1898b32b329cc53c5a8fd802304c483a915bb6a7d778c2d6ebad2c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fWindowMemoryMapLib/MemoryMapLib.c": "8f2c5c8b8dbece234eb385ae16067e0038215abc3933213a0355c63656a36f88",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fKeysDxe.c": "8385eecfd7ad43fc5b735306a2812d2cb997bed63388c6ca14d1990689ac0b14",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fSpmi.c": "d83bdaccba84d58c753edc14ff5af701729b7cd88f96263f4c68f5bb32fa2466",
+        "Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib/FrameBufferSerialPortLib.c": "a5fe54f148bac50931a74ddabb83fc89d0e43b1b1a87d8eb089083ff186be2e7",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Volume.c": "ab9a7b36a258cfb43b8c15fee86393ec9a1978e9b3d3e8d8e2a83b2f36bdbff2",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Ui.c": "241a27392c1e8cc7191ecff38fa3ac023e70ce4938a26ba87dfd805f5053c916",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Toml.c": "4d82a7de6196873df6f0a2cc033c67d337f505c53d235b053b8c6458d7332a2a",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Internal.h": "0587430657f938891fbdf8d03ddc2704a8689cfc94887515a5c952d68f11610e",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/IoResult.h": "09401aa4dd013af81f4634413acd71ea217f3ef5a2c71d56f1161b7c7b7d1054",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Menu.c": "f9e4ffd78c8a6e2551ec81c6de78eeddcd67e34269dfa442e8959d7f79d1bb72",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/source-lock.json": "8c9c6bd5d541641a47e882b60323ccc2571c96684966461df4092fc56c2d2006",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Slice.c": "5cbd409945711c13a9dad18ed6eb5a7c0df49c9b53e7599424c03e23ed2126f8",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Main.c": "252c76c6d11dd7823bf6d6dda28b8d5e7e4a4b56315d42f722478ba0c7d5528b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Font.c": "391c7dbc8c6eb3cd07230e3dd8d38e4ba8a5a9b603bcaecb4d8e62a4603d2ac6",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Kext.c": "f1869ca42e03faf9bd967619ba70dcd3329fb8839513811306478548f67f9aa4",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/LogoShape.h": "8fe96788c3c1e27df7f4209c31ae1b3818ae99cf858d6dae457cd16643a6a43b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Inject.c": "a0072e04b6ff233746aec973d38e288bdcc689481f660f043fbf8f3b8a9d4943",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/UniXNULib.inf": "2b556a2e73cdf7e06be818d63ead70e970e46e463394114c92de636c23c96683",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Config.c": "0c7474f912699e80878f6cf816ea48b0b5f798682665a8e7792df29d92a17d9c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Boot.c": "da03fbfaf44737174af64edf12fd04e6a0537a10b4d4d7a9e57e5fe47fae609d",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Logo.c": "da9d49c502f42c489742d2abaa8a300db1c265b0fcf807e4d7bd3d8aa8a9e4a1"
+      }
+    },
+    "c": {
+      "variant": "V23C",
+      "mode": 2,
+      "image": "j716f-mu-zui13-entry-v23c-boot.img",
+      "image_bytes": 8331264,
+      "image_sha256": "0344c9b261f41d46b49831db76f500136a58119b5fb92a126c9714787c2f8b9d",
+      "fd_sha256": "e0a47e39e79d97d873361f1422e7363473de6b670f9f67d49455c89a87a95e7b",
+      "payload_sha256": "16098b4d03da5285cfaac9ea8ab527792c39627826eafa5e243eae5d7b58c6f0",
+      "probe": {
+        "variant": "V23C",
+        "kernel_sha256": "48dfa65bcd0a069f3df111931e6837253721734324ef87f472f2ac1fb918c665",
+        "baseline_sha256": "cab8f385a44d21fc6f455cb501227452212ba44d34a9fa03d04fcf7e85324214",
+        "changes_confined": true,
+        "probe_bytes": 1304,
+        "probe_capacity": 2800,
+        "exception_vectors": 16,
+        "source_crypto_hmac": {
+          "offset": 1449688,
+          "computed": "d89dca5eaaa3bc9dd46c0c9bde76035297bd1151bddb971ba15965127f44ff72",
+          "stored": "d89dca5eaaa3bc9dd46c0c9bde76035297bd1151bddb971ba15965127f44ff72",
+          "matches": true
+        },
+        "counter_loop_bound": 1048576,
+        "psci_function": null,
+        "uses_counter": true,
+        "uses_psci": false,
+        "direct_mmu_display_mapping": false,
+        "normal_kernel_continuation": false,
+        "hardware_verified": false
+      },
+      "boot": {
+        "kernel_sha256": "641087995b87a2971ea6233c91e9c7e376a45b75999a3ac5879c0b50ba2d7e05",
+        "ramdisk_bytes": 0,
+        "header_version": 2,
+        "kernel_address": "0x8000",
+        "tags_address": "0x100",
+        "separate_dtb_bytes": 728300,
+        "separate_dtb_address": "0x1f00000"
+      },
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "linked_modules": {
+        "UniXNU.efi": {
+          "bytes": 90112,
+          "sha256": "5e219d78170b4b884358783da87d4b84e72eaca20307e3bcdb093d8db6f2e05d"
+        },
+        "DarwinBoot.efi": {
+          "bytes": 19456,
+          "sha256": "e6f42f35fa13efb83d3e3d97121b0c726c0744b25fdb9a821547173b83022f9c"
+        },
+        "J716fKeysDxe.efi": {
+          "bytes": 11264,
+          "sha256": "31356536c324dda7b2161e0efddf207748f2ec8d25d94bf7c1be72a56fb8b904"
+        }
+      },
+      "source_hashes": {
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.dsc": "6a295e3d0046205284d52f4931ed2a17bc1f3c7276648e3753299acf357c13b6",
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.fdf": "b1a29c9e13560f6ddd34461be450ba11ab56b52d9082576af9df79f03f5a858b",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_DXE.inc": "85619cde27c7de56466afac05d4a855935136ed6aef00a031d5f3652d84c8736",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_APRIORI.inc": "005f48c9ba1898b32b329cc53c5a8fd802304c483a915bb6a7d778c2d6ebad2c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fWindowMemoryMapLib/MemoryMapLib.c": "8f2c5c8b8dbece234eb385ae16067e0038215abc3933213a0355c63656a36f88",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fKeysDxe.c": "8385eecfd7ad43fc5b735306a2812d2cb997bed63388c6ca14d1990689ac0b14",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fSpmi.c": "d83bdaccba84d58c753edc14ff5af701729b7cd88f96263f4c68f5bb32fa2466",
+        "Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib/FrameBufferSerialPortLib.c": "a5fe54f148bac50931a74ddabb83fc89d0e43b1b1a87d8eb089083ff186be2e7",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Volume.c": "ab9a7b36a258cfb43b8c15fee86393ec9a1978e9b3d3e8d8e2a83b2f36bdbff2",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Ui.c": "241a27392c1e8cc7191ecff38fa3ac023e70ce4938a26ba87dfd805f5053c916",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Toml.c": "4d82a7de6196873df6f0a2cc033c67d337f505c53d235b053b8c6458d7332a2a",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Internal.h": "0587430657f938891fbdf8d03ddc2704a8689cfc94887515a5c952d68f11610e",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/IoResult.h": "09401aa4dd013af81f4634413acd71ea217f3ef5a2c71d56f1161b7c7b7d1054",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Menu.c": "f9e4ffd78c8a6e2551ec81c6de78eeddcd67e34269dfa442e8959d7f79d1bb72",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/source-lock.json": "8c9c6bd5d541641a47e882b60323ccc2571c96684966461df4092fc56c2d2006",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Slice.c": "5cbd409945711c13a9dad18ed6eb5a7c0df49c9b53e7599424c03e23ed2126f8",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Main.c": "252c76c6d11dd7823bf6d6dda28b8d5e7e4a4b56315d42f722478ba0c7d5528b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Font.c": "391c7dbc8c6eb3cd07230e3dd8d38e4ba8a5a9b603bcaecb4d8e62a4603d2ac6",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Kext.c": "f1869ca42e03faf9bd967619ba70dcd3329fb8839513811306478548f67f9aa4",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/LogoShape.h": "8fe96788c3c1e27df7f4209c31ae1b3818ae99cf858d6dae457cd16643a6a43b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Inject.c": "a0072e04b6ff233746aec973d38e288bdcc689481f660f043fbf8f3b8a9d4943",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/UniXNULib.inf": "2b556a2e73cdf7e06be818d63ead70e970e46e463394114c92de636c23c96683",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Config.c": "0c7474f912699e80878f6cf816ea48b0b5f798682665a8e7792df29d92a17d9c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Boot.c": "da03fbfaf44737174af64edf12fd04e6a0537a10b4d4d7a9e57e5fe47fae609d",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Logo.c": "da9d49c502f42c489742d2abaa8a300db1c265b0fcf807e4d7bd3d8aa8a9e4a1"
+      }
+    },
+    "v": {
+      "variant": "V23V",
+      "mode": 3,
+      "image": "j716f-mu-zui13-entry-v23v-boot.img",
+      "image_bytes": 8343552,
+      "image_sha256": "5ae93aa7726378914db16ab93bde67af6cb7f62d25ad1b36836efe0f0455c425",
+      "fd_sha256": "daf58fc518898f822116f03f1c15546c901e63692540b51adb5b3854d28dda96",
+      "payload_sha256": "d5d840bf2db3ff2f69619457f6140855f229bf24724720f7dacc6abf5b7ae51d",
+      "probe": {
+        "variant": "V23V",
+        "kernel_sha256": "7ecbe6216fcdd2eaab0cfb24399aa847fd33e7a4acc3d39dcee4e6bf01b4c174",
+        "baseline_sha256": "cab8f385a44d21fc6f455cb501227452212ba44d34a9fa03d04fcf7e85324214",
+        "changes_confined": true,
+        "probe_bytes": 1304,
+        "probe_capacity": 2800,
+        "exception_vectors": 16,
+        "source_crypto_hmac": {
+          "offset": 1449688,
+          "computed": "9461d1cc2a1f406a646a7b23d70a792bb4a0476f8a3037ac0bb015a20c94b363",
+          "stored": "9461d1cc2a1f406a646a7b23d70a792bb4a0476f8a3037ac0bb015a20c94b363",
+          "matches": true
+        },
+        "counter_loop_bound": 1048576,
+        "psci_function": null,
+        "uses_counter": true,
+        "uses_psci": false,
+        "direct_mmu_display_mapping": false,
+        "normal_kernel_continuation": false,
+        "hardware_verified": false
+      },
+      "boot": {
+        "kernel_sha256": "85629cbda04d774e1b7230e4f0782413b95393f1501ed18e618ad8db5efe6a45",
+        "ramdisk_bytes": 0,
+        "header_version": 2,
+        "kernel_address": "0x8000",
+        "tags_address": "0x100",
+        "separate_dtb_bytes": 728300,
+        "separate_dtb_address": "0x1f00000"
+      },
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "linked_modules": {
+        "UniXNU.efi": {
+          "bytes": 90112,
+          "sha256": "5e219d78170b4b884358783da87d4b84e72eaca20307e3bcdb093d8db6f2e05d"
+        },
+        "DarwinBoot.efi": {
+          "bytes": 19456,
+          "sha256": "e6f42f35fa13efb83d3e3d97121b0c726c0744b25fdb9a821547173b83022f9c"
+        },
+        "J716fKeysDxe.efi": {
+          "bytes": 11264,
+          "sha256": "31356536c324dda7b2161e0efddf207748f2ec8d25d94bf7c1be72a56fb8b904"
+        }
+      },
+      "source_hashes": {
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.dsc": "6a295e3d0046205284d52f4931ed2a17bc1f3c7276648e3753299acf357c13b6",
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.fdf": "b1a29c9e13560f6ddd34461be450ba11ab56b52d9082576af9df79f03f5a858b",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_DXE.inc": "85619cde27c7de56466afac05d4a855935136ed6aef00a031d5f3652d84c8736",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_APRIORI.inc": "005f48c9ba1898b32b329cc53c5a8fd802304c483a915bb6a7d778c2d6ebad2c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fWindowMemoryMapLib/MemoryMapLib.c": "8f2c5c8b8dbece234eb385ae16067e0038215abc3933213a0355c63656a36f88",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fKeysDxe.c": "8385eecfd7ad43fc5b735306a2812d2cb997bed63388c6ca14d1990689ac0b14",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fSpmi.c": "d83bdaccba84d58c753edc14ff5af701729b7cd88f96263f4c68f5bb32fa2466",
+        "Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib/FrameBufferSerialPortLib.c": "a5fe54f148bac50931a74ddabb83fc89d0e43b1b1a87d8eb089083ff186be2e7",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Volume.c": "ab9a7b36a258cfb43b8c15fee86393ec9a1978e9b3d3e8d8e2a83b2f36bdbff2",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Ui.c": "241a27392c1e8cc7191ecff38fa3ac023e70ce4938a26ba87dfd805f5053c916",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Toml.c": "4d82a7de6196873df6f0a2cc033c67d337f505c53d235b053b8c6458d7332a2a",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Internal.h": "0587430657f938891fbdf8d03ddc2704a8689cfc94887515a5c952d68f11610e",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/IoResult.h": "09401aa4dd013af81f4634413acd71ea217f3ef5a2c71d56f1161b7c7b7d1054",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Menu.c": "f9e4ffd78c8a6e2551ec81c6de78eeddcd67e34269dfa442e8959d7f79d1bb72",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/source-lock.json": "8c9c6bd5d541641a47e882b60323ccc2571c96684966461df4092fc56c2d2006",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Slice.c": "5cbd409945711c13a9dad18ed6eb5a7c0df49c9b53e7599424c03e23ed2126f8",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Main.c": "252c76c6d11dd7823bf6d6dda28b8d5e7e4a4b56315d42f722478ba0c7d5528b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Font.c": "391c7dbc8c6eb3cd07230e3dd8d38e4ba8a5a9b603bcaecb4d8e62a4603d2ac6",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Kext.c": "f1869ca42e03faf9bd967619ba70dcd3329fb8839513811306478548f67f9aa4",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/LogoShape.h": "8fe96788c3c1e27df7f4209c31ae1b3818ae99cf858d6dae457cd16643a6a43b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Inject.c": "a0072e04b6ff233746aec973d38e288bdcc689481f660f043fbf8f3b8a9d4943",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/UniXNULib.inf": "2b556a2e73cdf7e06be818d63ead70e970e46e463394114c92de636c23c96683",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Config.c": "0c7474f912699e80878f6cf816ea48b0b5f798682665a8e7792df29d92a17d9c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Boot.c": "da03fbfaf44737174af64edf12fd04e6a0537a10b4d4d7a9e57e5fe47fae609d",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Logo.c": "da9d49c502f42c489742d2abaa8a300db1c265b0fcf807e4d7bd3d8aa8a9e4a1"
+      }
+    },
+    "m": {
+      "variant": "V23M",
+      "mode": 4,
+      "image": "j716f-mu-zui13-entry-v23m-boot.img",
+      "image_bytes": 8335360,
+      "image_sha256": "2ec9169caa74256eec17281c2f4c4e198bdf5e67e050a02e6532f5e06a525bcc",
+      "fd_sha256": "61055d041fdc4113fe22466cabddc644aadf1a1f855d648b378901c6d824d561",
+      "payload_sha256": "1f7f3798088ce09cc3ba5d44628782e2ec7e92135a9a38b2888ef4fb3b14f851",
+      "probe": {
+        "variant": "V23M",
+        "kernel_sha256": "9e4075eb25d5a2f3f689fdcc797d52a262dce5da3fce585ed13bba989705c4f8",
+        "baseline_sha256": "cab8f385a44d21fc6f455cb501227452212ba44d34a9fa03d04fcf7e85324214",
+        "changes_confined": true,
+        "probe_bytes": 1480,
+        "probe_capacity": 2800,
+        "exception_vectors": 16,
+        "source_crypto_hmac": {
+          "offset": 1449688,
+          "computed": "a36965a34ffbdde7978c4c845415a2e5e2f2b74a878858e118515e016bc87bd0",
+          "stored": "a36965a34ffbdde7978c4c845415a2e5e2f2b74a878858e118515e016bc87bd0",
+          "matches": true
+        },
+        "counter_loop_bound": null,
+        "psci_function": null,
+        "uses_counter": false,
+        "uses_psci": false,
+        "direct_mmu_display_mapping": true,
+        "normal_kernel_continuation": false,
+        "hardware_verified": false
+      },
+      "boot": {
+        "kernel_sha256": "0f86b9d78dcb77588f494faf8b4b33fa3876f045cd2336fd3df3e989050490d7",
+        "ramdisk_bytes": 0,
+        "header_version": 2,
+        "kernel_address": "0x8000",
+        "tags_address": "0x100",
+        "separate_dtb_bytes": 728300,
+        "separate_dtb_address": "0x1f00000"
+      },
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "linked_modules": {
+        "UniXNU.efi": {
+          "bytes": 90112,
+          "sha256": "5e219d78170b4b884358783da87d4b84e72eaca20307e3bcdb093d8db6f2e05d"
+        },
+        "DarwinBoot.efi": {
+          "bytes": 19456,
+          "sha256": "e6f42f35fa13efb83d3e3d97121b0c726c0744b25fdb9a821547173b83022f9c"
+        },
+        "J716fKeysDxe.efi": {
+          "bytes": 11264,
+          "sha256": "31356536c324dda7b2161e0efddf207748f2ec8d25d94bf7c1be72a56fb8b904"
+        }
+      },
+      "source_hashes": {
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.dsc": "6a295e3d0046205284d52f4931ed2a17bc1f3c7276648e3753299acf357c13b6",
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.fdf": "b1a29c9e13560f6ddd34461be450ba11ab56b52d9082576af9df79f03f5a858b",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_DXE.inc": "85619cde27c7de56466afac05d4a855935136ed6aef00a031d5f3652d84c8736",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_APRIORI.inc": "005f48c9ba1898b32b329cc53c5a8fd802304c483a915bb6a7d778c2d6ebad2c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fWindowMemoryMapLib/MemoryMapLib.c": "8f2c5c8b8dbece234eb385ae16067e0038215abc3933213a0355c63656a36f88",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fKeysDxe.c": "8385eecfd7ad43fc5b735306a2812d2cb997bed63388c6ca14d1990689ac0b14",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fSpmi.c": "d83bdaccba84d58c753edc14ff5af701729b7cd88f96263f4c68f5bb32fa2466",
+        "Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib/FrameBufferSerialPortLib.c": "a5fe54f148bac50931a74ddabb83fc89d0e43b1b1a87d8eb089083ff186be2e7",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Volume.c": "ab9a7b36a258cfb43b8c15fee86393ec9a1978e9b3d3e8d8e2a83b2f36bdbff2",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Ui.c": "241a27392c1e8cc7191ecff38fa3ac023e70ce4938a26ba87dfd805f5053c916",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Toml.c": "4d82a7de6196873df6f0a2cc033c67d337f505c53d235b053b8c6458d7332a2a",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Internal.h": "0587430657f938891fbdf8d03ddc2704a8689cfc94887515a5c952d68f11610e",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/IoResult.h": "09401aa4dd013af81f4634413acd71ea217f3ef5a2c71d56f1161b7c7b7d1054",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Menu.c": "f9e4ffd78c8a6e2551ec81c6de78eeddcd67e34269dfa442e8959d7f79d1bb72",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/source-lock.json": "8c9c6bd5d541641a47e882b60323ccc2571c96684966461df4092fc56c2d2006",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Slice.c": "5cbd409945711c13a9dad18ed6eb5a7c0df49c9b53e7599424c03e23ed2126f8",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Main.c": "252c76c6d11dd7823bf6d6dda28b8d5e7e4a4b56315d42f722478ba0c7d5528b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Font.c": "391c7dbc8c6eb3cd07230e3dd8d38e4ba8a5a9b603bcaecb4d8e62a4603d2ac6",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Kext.c": "f1869ca42e03faf9bd967619ba70dcd3329fb8839513811306478548f67f9aa4",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/LogoShape.h": "8fe96788c3c1e27df7f4209c31ae1b3818ae99cf858d6dae457cd16643a6a43b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Inject.c": "a0072e04b6ff233746aec973d38e288bdcc689481f660f043fbf8f3b8a9d4943",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/UniXNULib.inf": "2b556a2e73cdf7e06be818d63ead70e970e46e463394114c92de636c23c96683",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Config.c": "0c7474f912699e80878f6cf816ea48b0b5f798682665a8e7792df29d92a17d9c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Boot.c": "da03fbfaf44737174af64edf12fd04e6a0537a10b4d4d7a9e57e5fe47fae609d",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Logo.c": "da9d49c502f42c489742d2abaa8a300db1c265b0fcf807e4d7bd3d8aa8a9e4a1"
+      }
+    }
+  },
+  "host_logic_checks": {
+    "passed_cases": 16,
+    "renderer_pixel_values_checked": 118272,
+    "preserves_x17_through_x29": true,
+    "scope": "Mocked system registers, counter/PSCI/SCTLR; not hardware qualification."
+  },
+  "device_operation": {
+    "partition": "boot_b",
+    "variant": "V23P",
+    "flash_succeeded": true,
+    "activate_b_succeeded": true,
+    "reboot_command_succeeded": true,
+    "pre_activation_current_slot": "a",
+    "pre_activation_b_unbootable": true,
+    "pre_activation_b_successful": false,
+    "b_retry_count": "unsupported/unknown",
+    "post_activation_current_slot": "b",
+    "post_activation_b_unbootable": false,
+    "started_in_fastbootd": true,
+    "transition_to_bootloader_succeeded": true
+  },
+  "hardware_observation": {
+    "variant": "V23P",
+    "date": "2026-10-25",
+    "trial_count": 1,
+    "video_sha256": "de867fdbfc070d711dc6f36a51667f59fba2d5d2df52a7e055379a5f445ca148",
+    "video_bytes": 1692317,
+    "decoded_frames": 723,
+    "duration_seconds": 24.096662056247123,
+    "observations": [
+      "Menu identifies J716F V23P - PSCI reset without counter.",
+      "Startup PMIC is 0x02000041 before and after this attempt.",
+      "Frame 44 at 1.466667s shows green ExitBootServices band.",
+      "Frame 45 at 1.500000s shows V23 0000000000000001; subsequent screen clear is visible.",
+      "Only the title line is readable on the diagnostic screen; EL, SCTLR, FUNC, STAGE A0/A1, RETURN and E0 are not observed.",
+      "Title is still present at frame 557 (18.563333s), partially disappears at frame 558 (18.596667s), and is absent at frame 559 (18.630000s).",
+      "Sample at 21.03s shows Lenovo logo. By 23.03s the V23P menu has returned."
+    ],
+    "timing": {
+      "title_first_frame": 45,
+      "title_first_pts": 1.5,
+      "title_last_full_frame": 557,
+      "title_last_full_pts": 18.563333333333336,
+      "title_first_partial_disappearance_frame": 558,
+      "title_first_partial_disappearance_pts": 18.596666666666668,
+      "title_first_absent_frame": 559,
+      "title_first_absent_pts": 18.630000000000003,
+      "title_to_first_partial_disappearance_seconds": 17.096666666666668,
+      "precision_limit": "Camera scan/exposure and framebuffer visibility; this does not time an SMC call."
+    },
+    "interpretation": [
+      "The V23 pre-MMU diagnostic prefix and first framebuffer line executed.",
+      "The title line alone does not prove draw_line returned or its final DSB completed.",
+      "CurrentEL/SCTLR reads, subsequent rendering, STAGE A0 and PSCI call execution are unverified.",
+      "The later restart does not qualify PSCI and does not classify the reset source.",
+      "No counter result, direct MMU-on result, normal platform continuation or persistent-log result is established."
+    ],
+    "host_followup": "A full-renderer integration run with mocked system registers and SMC reached A0/A1 and one SMC; real hardware barrier, register and reset behavior remains unverified.",
+    "next_action": "Instrument the common prefix around first-line completion/DSB/return and register reads before testing more variants; avoid diagnosing counter/PSCI from this screen alone.",
+    "psci_hardware_verified": false,
+    "reset_source": "unknown"
+  },
+  "other_variants_hardware_tested": false,
+  "limits": [
+    "All probes are terminal; no normal platform boot or root attempt.",
+    "Screen records require video; no reset-persistent RAM log claim.",
+    "Counter permissions, PSCI reset and real MMU translation remain hardware gates.",
+    "The approximately 20-second V22 reset source remains unclassified."
+  ]
+}

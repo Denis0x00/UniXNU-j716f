@@ -1,42 +1,45 @@
 # J716F device repository guide
 
-This repository owns the TB-J716F board description, SoC transition snapshot,
-component selection, firmware references and packaging policy. It does not
-contain vendor binaries, IPSW members, trust caches, userdata or boot images.
+## Current baseline
 
-## Read first
+Read `docs/PROGRESS_AFTER_V23P16_20261026.md`, `docs/V23P16_TIMER_WFE.md` and
+`research/v23p16-timer-wfe.json` first. P16M original WFE configure/init and misc
+return checkpoints plus CNTKCTL_EL1=0x4f survived one video-observed reboot.
+The diagnostic intentionally stops before /chosen. Timer IRQs, real WFE wait,
+ArmCpu/GIC, sustained initialization, reset source and userspace are unverified.
 
-Read the UniXNU [porting guide](https://unixnu.com/zh/porting/),
-[migration guide](https://unixnu.com/zh/porting/migration), [device repository](https://unixnu.com/zh/porting/device-repository),
-[device tree](https://unixnu.com/zh/porting/device-tree), [UEFI integration](https://unixnu.com/zh/porting/uefi-firmware),
-and [bring-up order](https://unixnu.com/zh/porting/bring-up) before changing this port.
+P13–P16 are terminal instrumentation on a frozen source-built/prelinked baseline.
+The native timer source profile has only been resolved, not compiled or run.
+Next: grouped /chosen/stall/following-init witnesses and a separate source-native
+timer/ArmDTPlatform/ArmCpu integration candidate, initially single-core.
 
-## Work boundaries
+## Rules
 
-- Keep physical addresses, CPU affinity, GIC ranges, memory reservations and
-  firmware paths tied to the committed research evidence.
-- Keep the local `socs/sm8250` source marked as a transition snapshot until a
-  reviewed `UniXNU-sm8250-common` repository and fixed commit exist.
-- Add reusable drivers to their canonical component repository; board wiring and
-  package policy belong here.
-- Do not add or publish Apple/Lenovo binary inputs, raw DTBs, payload images,
-  photos, logs, seeds or VM credentials.
-- Current diagnostic hardware testing remains `boot_b` only; do not write `boot_a`, vbmeta or
-  userdata. TzDxe is outside the current scope.
+- Preserve all prior hardware evidence and version-specific source/artifact hashes.
+  Never rerun build-only recorders over hardware results. Earlier notes in
+  `docs/AGENT_CHECKPOINT_HISTORY_THROUGH_P16.md` are chronological, not current actions.
+- Each launch requires fresh version-specific Query/ARM; consumed ARM intentionally
+  halts admission. Photograph the read-only reader first after reboot, before writes.
+- Hardware tests remain boot_b only. Do not write boot_a, vbmeta or userdata.
+  TzDxe is outside the current scope.
+- Tie physical addresses, CPU affinity, GIC ranges, reservations and firmware paths
+  to checked-in evidence. Do not copy sheng/SM8550 constants into SM8250.
+- Keep `socs/sm8250` marked as a transition snapshot until a reusable public source
+  is reviewed and pinned. Reusable drivers belong in canonical component repositories;
+  board wiring and package policy belong here.
+- Publish no Apple/Lenovo binary inputs, raw DTBs, payload images, photos, raw logs,
+  seeds, personal/device identifiers or credentials. Use sanitized summaries/hashes.
+- `porting.toml` is authoritative. Update affected findings/evidence with changes;
+  keep source, host and device evidence separate and bound to their tested revision.
 
-## Current checkpoint
+## Upstream references and commands
 
-See `docs/V22_POST_MMU_CHECKPOINT.md` and `research/v22-checkpoint-preparation.json`.
-V21 video confirms its own green/blue/magenta entry bands and a restart through
-the Lenovo logo; startup PMIC changes from `0x02000001` to `0x02000041`. The reset
-cause and sustained MMU-on execution remain unverified. V22A (1s) and V22B (3s)
-passed host builds and artifact audits but have not been flashed. Keep version
-evidence distinct. `board.toml` retains the historical V17 recipe; V22 uses
-`scripts/build-v22-payload.py` and the independent firmware V22 DSC/FDF.
+Read the official porting, migration, device-repository, device-tree, UEFI and
+bring-up guides before board changes: https://unixnu.com/zh/porting/ .
+Do not silently change the pinned source-build revision. The historical board
+payload recipe and independent diagnostic profiles are different build paths.
 
-## Commands
-
-From the latest UniXNU checkout:
+From a reviewed UniXNU checkout:
 
 ```sh
 ./unixnu defconfig j716f_source_defconfig -D ../UniXNU-j716f
@@ -45,13 +48,6 @@ From the latest UniXNU checkout:
 python3 scripts/porting-record.py check --device ../UniXNU-j716f
 ```
 
-Use a local `unixnu.local.toml` for private paths. Build the kernel, package,
-firmware, payload and boot image in dependency order only after the required
-IPSW, trust-cache, Data seed and firmware DTB inputs are available.
-
-## Porting record
-
-`porting.toml` is authoritative. Update the affected area's findings or
-evidence whenever board code, configuration, firmware integration or packaging
-changes. Separate host verification from device observations; the current
-record does not claim a bootable iPadOS port.
+Use a private local configuration for input paths. Build kernel, package, firmware,
+payload and boot image in dependency order; source compilation alone is not a
+prelink, hardware boot or userspace result.

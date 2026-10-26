@@ -1,0 +1,928 @@
+{
+  "version": "V23P11 KERNEL TRACE r1",
+  "host_checks_passed": true,
+  "automatic_start": false,
+  "kernel_entry_requires_manual_arm": true,
+  "variants": {
+    "a": {
+      "version": "V23P11A",
+      "image": "j716f-mu-zui13-kernel-trace-v23p11a-boot.img",
+      "image_bytes": 8339456,
+      "image_sha256": "e19591e47ae931348d1c1e5a8f01ab9a2e397a2108c21cb0a9b75af187bdbea5",
+      "fd_sha256": "7ffd3e8de18189cb4a6a0c743d1fe458b0cf08b09817edd0c4b26afa63d041b4",
+      "payload_sha256": "df4ce288bded33678f2d3d33bd3dccd6608d201c2f092965ca71b51700e86943",
+      "kernel_sha256": "e6c0f2ead1def3d8d961df1040b3874da6e928b409e983cada26c17a5689a4cc",
+      "app_sha256": "a9a646c9f422063e78d2b31a27f8fe9b01e6035419782c34d72eac6d12af7e52",
+      "power_app_sha256": "5af712b62fd62f0cdd6702bafdfe149df68547a1a1c056948a3d5c5ffbfb833d",
+      "nonpayload_changes_vs_p8": [],
+      "nonpayload_changes_vs_p9": [],
+      "reader_matches_p9": true,
+      "compact_sec_matches_p8": true,
+      "host_checks_passed": true,
+      "hardware_verified": true,
+      "device_writes_performed": true,
+      "terminal_site": "0xfffffff0073fe32c",
+      "terminal_description": "before BCM STR",
+      "probe_sha256": "eb935f2b5a41494ed533d18d6993b7d884b0ae59b9dd12fc977451a5b9ed68b1",
+      "probe_bytes": 2152,
+      "entry_writer_source_matches_p9": true,
+      "mmu_enable_attempted": false,
+      "mapping_setup_used": false,
+      "terminal_first_barrier": "DSB SY",
+      "terminal_record_survived_observed_reset": true,
+      "device_launch": {
+        "partition_images_flashed": [
+          "boot_b"
+        ],
+        "current_slot_before_reboot": "b",
+        "slot_unbootable_b_before_reboot": false,
+        "reboot_command_succeeded": true,
+        "image_sha256": "e19591e47ae931348d1c1e5a8f01ab9a2e397a2108c21cb0a9b75af187bdbea5",
+        "hardware_verified": false,
+        "menu_only_launch": true,
+        "menu_identity_observed": true,
+        "kernel_launch_observed": true
+      },
+      "initial_reader_observation": {
+        "evidence_kind": "user-supplied initial reader photo; original media private",
+        "photo_sha256": "bad09106cae96954d1b100c2682b1ed64a3406d9cd02030633f104433686d851",
+        "reader_identity": "J716F V23P9 KERNEL TRACE r1",
+        "parent_menu_variant_visible": false,
+        "expected_variant_from_recorded_flash": "V23P11A",
+        "entry": {
+          "signature": "0x43474244",
+          "next": "0x2baf2",
+          "size": "0x2baf2",
+          "console_crc32": "0x413a1021",
+          "logical_count": 0,
+          "raw_count": 7,
+          "raw_latest_id": 1,
+          "raw_latest_phase": 11,
+          "raw_latest_crc32": "0xd8f17b33"
+        },
+        "now_valid": true,
+        "now_next": "0x2baf2",
+        "now_size": "0x2baf2",
+        "frozen_checkpoint_id": 1,
+        "frozen_rows": {
+          "ARM_KERNEL": {
+            "logical": 0,
+            "raw": 1,
+            "logical_crc32": 0,
+            "raw_crc32": "0xde027ae6",
+            "raw_value": "0x50394b45524e454c"
+          },
+          "KERNEL_ENTRY": {
+            "logical": 0,
+            "raw": 1,
+            "logical_crc32": 0,
+            "raw_crc32": "0xf3461909",
+            "raw_value": "0xc00808"
+          },
+          "PRE_MMU": {
+            "logical": 0,
+            "raw": 1,
+            "logical_crc32": 0,
+            "raw_crc32": "0xd8f17b33",
+            "raw_value": "0xc00808"
+          },
+          "POST_MMU": {
+            "logical": 0,
+            "raw": 0
+          },
+          "MAP_FAILURE": {
+            "logical": 0,
+            "raw": 0
+          },
+          "RESET_RETURN": {
+            "logical": 0,
+            "raw": 0
+          }
+        },
+        "this_run": {
+          "id": 2,
+          "query": false,
+          "armed": false,
+          "last_record_crc32": 0,
+          "current_el": 1,
+          "psci_version_unqueried": true,
+          "features_unqueried": true
+        },
+        "status": "Read only. Photograph ENTRY before Query or ARM.",
+        "interpretation": "Valid starting header, no logical records. Raw ID1 ARM/ENTRY/phase11 CRCs match historical P10A, not current P11 stages; phase11 raw value is SCTLR rather than P11S. No current kernel launch or reset retention is established. Parent P11A identity is tied to recorded flash, not visible in this photo."
+      },
+      "query_arm_observation": {
+        "evidence_kind": "user-supplied ARM page photo; original private",
+        "photo_sha256": "1dc9439d29e0ac4ad7549415d8a7c71ecb258bfc2c2d581ccff884a919ca2a7c",
+        "reader_identity": "J716F V23P9 KERNEL TRACE r1",
+        "parent_menu_variant_visible": false,
+        "expected_variant_from_recorded_flash": "V23P11A",
+        "frozen_entry_unchanged": true,
+        "frozen_entry_next": "0x2baf2",
+        "frozen_entry_size": "0x2baf2",
+        "frozen_entry_crc32": "0x413a1021",
+        "now_valid": true,
+        "now_next": "0x2bc32",
+        "now_size": "0x2bc32",
+        "logical_count": 5,
+        "raw_count": 12,
+        "this_run": {
+          "id": 2,
+          "query": true,
+          "armed": true,
+          "last_record_crc32": "0x58e2dbcf",
+          "current_el": 1,
+          "psci_version": "0x00010001",
+          "system_reset_features": 0
+        },
+        "status": "ARM readback OK. Photograph ID/CRC; return to menu and start kernel.",
+        "arm_record": {
+          "phase": 9,
+          "value": "0x50394b45524e454c",
+          "before_next": "0x2bbf2",
+          "before_size": "0x2bbf2",
+          "crc32": "0x58e2dbcf",
+          "reconstructed_crc32_matches": true
+        },
+        "kernel_launch_observed": false,
+        "interpretation": "Fresh ID2 ARM is bound by its new CRC and prior header. Frozen raw ID1 rows remain historical P10A as intended. No P11 kernel stage or reboot observation yet."
+      },
+      "terminal_video_observation": {
+        "evidence_kind": "user-supplied continuous video, reviewed decoded frames; original and extracted images private",
+        "video_sha256": "8171ca0a05a3fd4eb27ca650b2dae23a09666258dd27e4b304e1895285251bfe",
+        "video_frames": 317,
+        "video_fps": 30.004732607666824,
+        "video_seconds": 10.565,
+        "reviewed_key_frames": {
+          "0": {
+            "seconds": 0.0,
+            "private_decoded_frame_sha256": "1de7fc09113ce21bab4918fe49e994ddaa346cec26a84967f8006253d93978c8"
+          },
+          "55": {
+            "seconds": 1.833044,
+            "private_decoded_frame_sha256": "e24da93908b38d8033db84d077d7f87cf1433f3ea511d2a74f131597480af567"
+          },
+          "61": {
+            "seconds": 2.033013,
+            "private_decoded_frame_sha256": "c515cd649031fa55078de4219f8760d6bbcfb33b3e42c417452b3e6a760b0ca5"
+          },
+          "124": {
+            "seconds": 4.132681,
+            "private_decoded_frame_sha256": "88f48c9781469ed980096982ae68feba2128a90645992dfd112bf4a4009ec459"
+          },
+          "179": {
+            "seconds": 5.965726,
+            "private_decoded_frame_sha256": "fd30947ab639a39a225a0c82b97fc697a120dc03e8ad2a2a6fd3c7c01875d44a"
+          },
+          "316": {
+            "seconds": 10.531672,
+            "private_decoded_frame_sha256": "013ba595b08bf5beb638deb1f7789727d2b31d3abda0f67afb194e3274db31c5"
+          }
+        },
+        "sequence": [
+          "Frame0 confirms V23P11A COMMIT TRACE r1 menu and selected STOP before BCM STR entry; PMIC 02000001.",
+          "Frame55 still shows selected A; frame56 is the first dark frame in the inspected 55..61 sequence. No readable DarwinBoot handoff or kernel-screen checkpoint in that short transition.",
+          "Frame124 shows Lenovo/Powered by Android splash; frame179 confirms return to P11A menu with PMIC 02000041.",
+          "Manual reader reentry follows. Frame316 is a clear frozen ENTRY/NOW page with fresh ID2 ARM/ENTRY/stage5. New invocation ID3/query0/armed0 remains read-only."
+        ],
+        "entry": {
+          "signature": "0x43474244",
+          "next": "0x2bcb2",
+          "size": "0x2bcb2",
+          "console_crc32": "0x94cc810c",
+          "logical_count": 7,
+          "raw_count": 14,
+          "logical_latest_id": 2,
+          "raw_latest_id": 2,
+          "logical_latest_phase": 11,
+          "raw_latest_phase": 11,
+          "logical_latest_crc32": "0x43aa3200",
+          "raw_latest_crc32": "0x43aa3200"
+        },
+        "now_valid": true,
+        "now_next": "0x2bcb2",
+        "now_size": "0x2bcb2",
+        "frozen_checkpoint_id": 2,
+        "frozen_rows": {
+          "ARM_KERNEL": {
+            "logical": 1,
+            "raw": 1,
+            "crc32": "0x58e2dbcf",
+            "value": "0x50394b45524e454c"
+          },
+          "KERNEL_ENTRY": {
+            "logical": 1,
+            "raw": 1,
+            "crc32": "0xaac67917",
+            "value": "0xc00808"
+          },
+          "PRE_MMU": {
+            "logical": 1,
+            "raw": 1,
+            "crc32": "0x43aa3200",
+            "value": "0x5031315300000005"
+          },
+          "POST_MMU": {
+            "logical": 0,
+            "raw": 0
+          },
+          "MAP_FAILURE": {
+            "logical": 0,
+            "raw": 0
+          },
+          "RESET_RETURN": {
+            "logical": 0,
+            "raw": 0
+          }
+        },
+        "this_run": {
+          "id": 3,
+          "query": false,
+          "armed": false,
+          "last_record_crc32": 0,
+          "current_el": 1,
+          "psci_version_unqueried": true,
+          "features_unqueried": true
+        },
+        "status": "Read only. Photograph ENTRY before Query or ARM.",
+        "matched_prelaunch_arm": true,
+        "all_three_record_crcs_reconstructed": true,
+        "header_delta_from_armed": 128,
+        "retained_progress_stage": 5,
+        "reboot_cycle_observed": true,
+        "pmic_before": "0x02000001",
+        "pmic_after": "0x02000041",
+        "reset_source_independently_identified": false,
+        "conclusion": "P11A before-BCM control reaches stage5 of the new terminal writer and preserves the matching ARM/ENTRY/published stage5 records over one observed reboot to read-only reader. The surviving stage5 code is a lower bound on executed writer progress; it is not a precise reset PC or independent reset-source proof.",
+        "limits": [
+          "Original BCM STR is not executed in A; its external transaction remains unqualified.",
+          "No MMU enable, console mapping, counter or normal XNU continuation is tested.",
+          "Only final stage5 is retained; this is not five independent hardware stage captures.",
+          "New menu power-action app execution is not shown; no hardware SYSTEM_OFF result.",
+          "One controlled immediate reboot result; no power-off/ZUI/Recovery retention or repeatability claim."
+        ]
+      },
+      "hardware_verification_scope": "Before-BCM P11A stage5 and matching record-chain retention over one observed reboot only"
+    },
+    "b": {
+      "version": "V23P11B",
+      "image": "j716f-mu-zui13-kernel-trace-v23p11b-boot.img",
+      "image_bytes": 8347648,
+      "image_sha256": "94c97bacfef84deab3bceaacfee5f1f95b20f4e74a57c01f9beb5bbabc64a40c",
+      "fd_sha256": "ff9921ed4d277df00fdd31691b7c0a3f5f051312645550bf12f1d7a4af920f0e",
+      "payload_sha256": "ec1f69aef9addf802f25cd6139baf05a28b3a685ed83bab19fd3f348bae7120e",
+      "kernel_sha256": "c7271c83bfa4a7b4e5a62e85f4b5a2f36b257189ad3a4943e24e2aa5bf9848d6",
+      "app_sha256": "a9a646c9f422063e78d2b31a27f8fe9b01e6035419782c34d72eac6d12af7e52",
+      "power_app_sha256": "5af712b62fd62f0cdd6702bafdfe149df68547a1a1c056948a3d5c5ffbfb833d",
+      "nonpayload_changes_vs_p8": [],
+      "nonpayload_changes_vs_p9": [],
+      "reader_matches_p9": true,
+      "compact_sec_matches_p8": true,
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "device_writes_performed": true,
+      "terminal_site": "0xfffffff0073fe330",
+      "terminal_description": "after BCM STR, before ISB",
+      "probe_sha256": "eb935f2b5a41494ed533d18d6993b7d884b0ae59b9dd12fc977451a5b9ed68b1",
+      "probe_bytes": 2152,
+      "entry_writer_source_matches_p9": true,
+      "mmu_enable_attempted": false,
+      "mapping_setup_used": false,
+      "terminal_first_barrier": "DSB SY",
+      "terminal_record_survived_observed_reset": false,
+      "device_launch": {
+        "partition_images_flashed": [
+          "boot_b"
+        ],
+        "current_slot_before_reboot": "b",
+        "slot_unbootable_b_before_reboot": false,
+        "reboot_command_succeeded": true,
+        "image_sha256": "94c97bacfef84deab3bceaacfee5f1f95b20f4e74a57c01f9beb5bbabc64a40c",
+        "hardware_verified": false,
+        "recording_ready_user_confirmed": true,
+        "manual_kernel_start_required": true,
+        "menu_identity_observed": true,
+        "kernel_launch_observed": true
+      },
+      "initial_reader_observation": {
+        "evidence_kind": "user-supplied initial P11B reader photo; original media private",
+        "photo_sha256": "15fec7c4c7e4dc6ecd45f838c2eace33424945bbaa9cb61a560215c3eab5eb30",
+        "reader_identity": "J716F V23P9 KERNEL TRACE r1",
+        "parent_menu_variant_visible": false,
+        "expected_variant_from_recorded_flash": "V23P11B",
+        "entry": {
+          "signature": "0x43474244",
+          "next": "0x2c55a",
+          "size": "0x2c55a",
+          "console_crc32": "0xac4189d6",
+          "logical_count": 0,
+          "raw_count": 7,
+          "raw_latest_id": 1,
+          "raw_latest_phase": 11,
+          "raw_latest_crc32": "0xd8f17b33"
+        },
+        "now_valid": true,
+        "now_next": "0x2c55a",
+        "now_size": "0x2c55a",
+        "frozen_checkpoint_id": 1,
+        "frozen_rows": {
+          "ARM_KERNEL": {
+            "logical": 0,
+            "raw": 1,
+            "raw_crc32": "0xde027ae6",
+            "raw_value": "0x50394b45524e454c"
+          },
+          "KERNEL_ENTRY": {
+            "logical": 0,
+            "raw": 1,
+            "raw_crc32": "0xf3461909",
+            "raw_value": "0xc00808"
+          },
+          "PRE_MMU": {
+            "logical": 0,
+            "raw": 1,
+            "raw_crc32": "0xd8f17b33",
+            "raw_value": "0xc00808"
+          },
+          "POST_MMU": {
+            "logical": 0,
+            "raw": 0
+          },
+          "MAP_FAILURE": {
+            "logical": 0,
+            "raw": 0
+          },
+          "RESET_RETURN": {
+            "logical": 0,
+            "raw": 0
+          }
+        },
+        "this_run": {
+          "id": 2,
+          "query": false,
+          "armed": false,
+          "last_record_crc32": 0,
+          "current_el": 1,
+          "psci_version_unqueried": true,
+          "features_unqueried": true
+        },
+        "status": "Read only. Photograph ENTRY before Query or ARM.",
+        "interpretation": "Valid initial B reader header and no logical records; raw ID1 CRCs match old P10A, not P11B. P11A stage5 was retained over its immediate observed reboot, but this later intervening fastboot/firmware boot is a separate path. Session ID2 is reused here; identify the upcoming B attempt by its actual fresh ARM CRC plus ID/prior header. No B kernel launch observed."
+      },
+      "query_arm_observation": {
+        "evidence_kind": "user-supplied Query and ARM page photos; original media private",
+        "query_photo_sha256": "80d577b0a51c3d21217f23dbffd6e277be455399b8cdb2efbe1e33f51830967b",
+        "arm_photo_sha256": "58b8375c99f3be9aba9464526fc53d7249130a9c62953787fc2af0e3ac6d06db",
+        "reader_identity": "J716F V23P9 KERNEL TRACE r1",
+        "parent_menu_variant_visible": false,
+        "expected_variant_from_recorded_flash": "V23P11B",
+        "frozen_entry_unchanged": true,
+        "frozen_entry_next": "0x2c55a",
+        "frozen_entry_size": "0x2c55a",
+        "frozen_entry_crc32": "0xac4189d6",
+        "query": {
+          "now_valid": true,
+          "now_next": "0x2c65a",
+          "now_size": "0x2c65a",
+          "logical_count": 4,
+          "raw_count": 11,
+          "id": 2,
+          "queried": true,
+          "armed": false,
+          "crc32": "0x9e81cf4a",
+          "phase": 8,
+          "value": 0,
+          "prior_next": "0x2c61a",
+          "prior_size": "0x2c61a",
+          "reconstructed_crc32_matches": true,
+          "status": "Query OK. Select ARM, photograph ID/CRC, then return to menu."
+        },
+        "now_valid": true,
+        "now_next": "0x2c69a",
+        "now_size": "0x2c69a",
+        "logical_count": 5,
+        "raw_count": 12,
+        "this_run": {
+          "id": 2,
+          "query": true,
+          "armed": true,
+          "last_record_crc32": "0xe7b94b0f",
+          "current_el": 1,
+          "psci_version": "0x00010001",
+          "system_reset_features": 0
+        },
+        "arm_record": {
+          "phase": 9,
+          "value": "0x50394b45524e454c",
+          "before_next": "0x2c65a",
+          "before_size": "0x2c65a",
+          "crc32": "0xe7b94b0f",
+          "reconstructed_crc32_matches": true
+        },
+        "status": "ARM readback OK. Photograph ID/CRC; return to menu and start kernel.",
+        "kernel_launch_observed": false,
+        "interpretation": "Fresh B ID2 ARM E7B94B0F is distinct from P11A ID2 ARM58E2DBCF. Both Query and ARM CRCs reconstruct exactly; frozen raw ID1 P10A rows remain unchanged. No B kernel/terminal result yet."
+      },
+      "terminal_video_observation": {
+        "evidence_kind": "user-supplied continuous video; original and extracted frames private",
+        "video_sha256": "0aed7664d1f2a71b0c40c8f49e341f560b377e9e26f8d4725649879d03a59f6f",
+        "video_frames": 947,
+        "video_fps": 30.004752600728732,
+        "video_seconds": 31.561666666666667,
+        "reviewed_key_frames": {
+          "0": {
+            "seconds": 0.0,
+            "private_decoded_frame_sha256": "8ec63071a6d4335592f623aa7a7bea0f6304e72913b7aa5e785218bd7887e195"
+          },
+          "82": {
+            "seconds": 2.7329,
+            "private_decoded_frame_sha256": "e2fda3c6f2199464ae100c9459811fb6d9b4d3df1a2c6b6386965da1ed8e0db2"
+          },
+          "165": {
+            "seconds": 5.499129,
+            "private_decoded_frame_sha256": "56d1335a727b7a1fd98a9611c5109f099fe6caa2e349071371c401e858e23838"
+          },
+          "617": {
+            "seconds": 20.563409,
+            "private_decoded_frame_sha256": "d6bf0ea3ea6a6ccd3842ecc628b0cf49f3c84a93f60eed3e6182478b2c77dd53"
+          },
+          "658": {
+            "seconds": 21.929859,
+            "private_decoded_frame_sha256": "4bc4f265d2075e691998f673925468c1e1769d4ca931d1ec3bc1f9862c7500e8"
+          },
+          "740": {
+            "seconds": 24.66276,
+            "private_decoded_frame_sha256": "b0b03e42666acc3f440e7a9f87668432987581c90eb3e4e6d778f19ba48d857c"
+          },
+          "781": {
+            "seconds": 26.02921,
+            "private_decoded_frame_sha256": "1a41cd1f5e20904f8b6c3b53f6844f4d972e64c6629fe464cbc21f65b3ec0fd3"
+          },
+          "905": {
+            "seconds": 30.161888,
+            "private_decoded_frame_sha256": "34ed645584633669b62ba1128c70057e6594dda6da29298202846b9c6f5c3c07"
+          },
+          "946": {
+            "seconds": 31.528339,
+            "private_decoded_frame_sha256": "3c6cdfb9c02393ec8834ed71dc00561a34222ac2d41c4827776971fa10b37e07"
+          }
+        },
+        "sequence": [
+          "Frame0 confirms P11B COMMIT TRACE r1 menu, selected STOP after BCM STR before ISB; PMIC02000001. Reader returned Success is the prior EFI reader exit, not a reset result.",
+          "Frame82 shows green handoff band. Frame165 shows DarwinBoot inputs validated/exiting boot services on the old menu framebuffer; that retained display is not a kernel stopping PC.",
+          "Frame617 still shows the diagnostic display; frame658 is dark. Frame740 shows Lenovo/Powered by Android splash.",
+          "Frame781 confirms return to P11B menu with PMIC02000041. Frames905/946 show manual read-only reader reentry, fresh ID2 ARM/ENTRY and raw phase11 stage1, new invocation ID3/query0/armed0."
+        ],
+        "entry": {
+          "signature": "0x43474244",
+          "next": "0x2c6da",
+          "size": "0x2c6da",
+          "console_crc32": "0xd603fa7f",
+          "logical_count": 6,
+          "raw_count": 14,
+          "logical_latest_id": 2,
+          "logical_latest_phase": 10,
+          "logical_latest_crc32": "0xf901c2da",
+          "raw_latest_id": 2,
+          "raw_latest_phase": 11,
+          "raw_latest_crc32": "0x796b1792"
+        },
+        "now_valid": true,
+        "now_next": "0x2c6da",
+        "now_size": "0x2c6da",
+        "frozen_checkpoint_id": 2,
+        "frozen_rows": {
+          "ARM_KERNEL": {
+            "logical": 1,
+            "raw": 1,
+            "crc32": "0xe7b94b0f",
+            "value": "0x50394b45524e454c"
+          },
+          "KERNEL_ENTRY": {
+            "logical": 1,
+            "raw": 1,
+            "crc32": "0xf901c2da",
+            "value": "0xc00808"
+          },
+          "PRE_MMU": {
+            "logical": 0,
+            "raw": 1,
+            "logical_crc32": 0,
+            "raw_crc32": "0x796b1792",
+            "logical_value": 0,
+            "raw_value": "0x5031315300000001"
+          },
+          "POST_MMU": {
+            "logical": 0,
+            "raw": 0
+          },
+          "MAP_FAILURE": {
+            "logical": 0,
+            "raw": 0
+          },
+          "RESET_RETURN": {
+            "logical": 0,
+            "raw": 0
+          }
+        },
+        "this_run": {
+          "id": 3,
+          "query": false,
+          "armed": false,
+          "last_record_crc32": 0,
+          "current_el": 1,
+          "psci_version_unqueried": true,
+          "features_unqueried": true
+        },
+        "status": "Read only. Photograph ENTRY before Query or ARM.",
+        "matched_prelaunch_arm": true,
+        "all_three_record_crcs_reconstructed": true,
+        "header_delta_from_armed": 64,
+        "expected_header_after_terminal_publication": "0x2c71a",
+        "retained_progress_stage": 1,
+        "stage1_raw_only": true,
+        "terminal_header_publication_observed": false,
+        "stage2_or_later_observed": false,
+        "reboot_cycle_observed": true,
+        "pmic_before": "0x02000001",
+        "pmic_after": "0x02000041",
+        "reset_source_independently_identified": false,
+        "conclusion": "Fresh B ID2 ARM/ENTRY/raw-stage1 match reconstructed CRCs over the observed reboot. The audited B path passes original BCM STR and stores the terminal body. No stage2 or published terminal header is retained. Compared with A stage5, first terminal DSB completion or subsequent stage2 rewrite/visibility/retention is the next diagnostic boundary; exact stopping PC and reset source are not established.",
+        "limits": [
+          "A raw-only surviving stage1 is a progress lower bound, not proof that the first DSB stalled.",
+          "Progress rewrites are not atomic; interruption or visibility/retention effects may obscure later execution.",
+          "Original STR instruction was crossed; external BCM transaction completion is unqualified.",
+          "No evidence of terminal SYSTEM_RESET execution, returned reset, MMU enable, counter or normal XNU continuation.",
+          "No menu power-action application execution or hardware SYSTEM_OFF qualification."
+        ]
+      },
+      "hardware_verification_scope": "Fresh matching ARM/ENTRY and raw-only terminal stage1 over observed B reboot; terminal publication not verified",
+      "raw_terminal_record_survived_observed_reset": true
+    },
+    "d": {
+      "version": "V23P11D",
+      "image": "j716f-mu-zui13-kernel-trace-v23p11d-boot.img",
+      "image_bytes": 8343552,
+      "image_sha256": "0a0b647be892107591787f05b4709286b20ab49c25125822e81a306bc65c73af",
+      "fd_sha256": "8413989c08a35759fa9c40c75f7f37dff3f8ea1a0d12e10ecaa2a64bb87b176f",
+      "payload_sha256": "37fe65e78d54e59d2436ffa1a85549fce28607c817158b9a2bb97dc76f5f19ae",
+      "kernel_sha256": "428edc0f2c1ec32d37ce8b45580ddc948869600f7ca7b57db53547231085d725",
+      "app_sha256": "a9a646c9f422063e78d2b31a27f8fe9b01e6035419782c34d72eac6d12af7e52",
+      "power_app_sha256": "5af712b62fd62f0cdd6702bafdfe149df68547a1a1c056948a3d5c5ffbfb833d",
+      "nonpayload_changes_vs_p8": [],
+      "nonpayload_changes_vs_p9": [],
+      "reader_matches_p9": true,
+      "compact_sec_matches_p8": true,
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "device_writes_performed": true,
+      "terminal_site": "0xfffffff0073fe330",
+      "terminal_description": "after BCM STR; terminal first DSB replaced by DMB",
+      "probe_sha256": "ec08e778c3fdf1797f9ae4c2348a0ca0d9f9a5e2c97b851a1af7555ce3869fe8",
+      "probe_bytes": 2152,
+      "entry_writer_source_matches_p9": true,
+      "mmu_enable_attempted": false,
+      "mapping_setup_used": false,
+      "terminal_first_barrier": "DMB SY",
+      "terminal_record_survived_observed_reset": false,
+      "device_launch": {
+        "partition_images_flashed": [
+          "boot_b"
+        ],
+        "current_slot_before_reboot": "b",
+        "slot_unbootable_b_before_reboot": false,
+        "reboot_command_succeeded": true,
+        "image_sha256": "0a0b647be892107591787f05b4709286b20ab49c25125822e81a306bc65c73af",
+        "hardware_verified": false,
+        "recording_ready_user_confirmed": true,
+        "manual_kernel_start_required": true,
+        "menu_identity_observed": true,
+        "kernel_launch_observed": true
+      },
+      "initial_reader_observation": {
+        "evidence_kind": "user-supplied initial D reader photo; original private",
+        "photo_sha256": "873022fa57f943a223872dc869bea277ba5797ba08f3e52ab6a4b9ba02301383",
+        "reader_identity": "J716F V23P9 KERNEL TRACE r1",
+        "parent_menu_variant_visible": false,
+        "expected_variant_from_recorded_flash": "V23P11D",
+        "entry": {
+          "signature": "0x43474244",
+          "next": "0x2f1fb",
+          "size": "0x2f1fb",
+          "console_crc32": "0x65e3f901",
+          "logical_count": 0,
+          "raw_count": 0,
+          "latest_id": 0,
+          "latest_phase": 0,
+          "latest_crc32": 0
+        },
+        "now_valid": true,
+        "now_next": "0x2f1fb",
+        "now_size": "0x2f1fb",
+        "frozen_checkpoint_id": 0,
+        "all_six_frozen_checkpoint_rows_zero": true,
+        "this_run": {
+          "id": 1,
+          "query": false,
+          "armed": false,
+          "last_record_crc32": 0,
+          "current_el": 1,
+          "psci_version_unqueried": true,
+          "features_unqueried": true
+        },
+        "status": "Read only. Photograph ENTRY before Query or ARM.",
+        "interpretation": "Valid initial header after intervening fastboot/firmware boot, no recognized logical or raw trace records. This is a fresh D baseline, not a controlled reset-retention result or evidence against the separately observed A/B immediate reboot results. D menu identity is tied to recorded flash, not visible in photo. No D kernel execution yet."
+      },
+      "transcription_corrections": [
+        {
+          "field": "initial_reader_observation.entry.console_crc32",
+          "previous_transcription": "0x55c3f901",
+          "corrected_transcription": "0x65e3f901",
+          "basis": "Reexamined rotated full-resolution initial and ARM photos; frozen ENTRY unchanged. Initial image hash preserved."
+        }
+      ],
+      "query_arm_observation": {
+        "evidence_kind": "user-supplied Query and ARM photos; originals private",
+        "query_photo_sha256": "c7dfc86d536c6786a05958fcd0f5464680d3c4d76a23f502a65fbb1d84cdca1a",
+        "arm_photo_sha256": "a2d2092fb41d42bec597cb995d66d3b713673e8c254687590f6b9546361d65e0",
+        "reader_identity": "J716F V23P9 KERNEL TRACE r1",
+        "parent_menu_variant_visible": false,
+        "expected_variant_from_recorded_flash": "V23P11D",
+        "frozen_entry_unchanged": true,
+        "frozen_entry_next": "0x2f1fb",
+        "frozen_entry_size": "0x2f1fb",
+        "frozen_entry_crc32": "0x65e3f901",
+        "all_six_frozen_rows_still_zero": true,
+        "query": {
+          "now_valid": true,
+          "now_next": "0x2f2fb",
+          "now_size": "0x2f2fb",
+          "logical_count": 4,
+          "raw_count": 4,
+          "id": 1,
+          "queried": true,
+          "armed": false,
+          "crc32": "0x16b5614f",
+          "phase": 8,
+          "value": 0,
+          "prior_next": "0x2f2bb",
+          "prior_size": "0x2f2bb",
+          "reconstructed_crc32_matches": true,
+          "status": "Query OK. Select ARM, photograph ID/CRC, then return to menu."
+        },
+        "now_valid": true,
+        "now_next": "0x2f33b",
+        "now_size": "0x2f33b",
+        "logical_count": 5,
+        "raw_count": 5,
+        "this_run": {
+          "id": 1,
+          "query": true,
+          "armed": true,
+          "last_record_crc32": "0x6f8de50a",
+          "current_el": 1,
+          "psci_version": "0x00010001",
+          "system_reset_features": 0
+        },
+        "arm_record": {
+          "phase": 9,
+          "value": "0x50394b45524e454c",
+          "before_next": "0x2f2fb",
+          "before_size": "0x2f2fb",
+          "crc32": "0x6f8de50a",
+          "reconstructed_crc32_matches": true
+        },
+        "status": "ARM readback OK. Photograph ID/CRC; return to menu and start kernel.",
+        "kernel_launch_observed": false,
+        "interpretation": "D fresh Query and ARM completed with matching reconstructed record CRCs. Frozen initial snapshot remains empty as designed; no D kernel or stage result yet."
+      },
+      "terminal_video_observation": {
+        "evidence_kind": "user-supplied continuous video; original and decoded frames private",
+        "video_sha256": "8c7f7e2122cc1e33e916b9fc0636bb8cb8405c0679a330386e213ce73db02f96",
+        "video_frames": 925,
+        "video_fps": 30.003243593902045,
+        "video_seconds": 30.83,
+        "reviewed_key_frames": {
+          "0": {
+            "seconds": 0.0,
+            "private_decoded_frame_sha256": "771b8b29d1f97d683c7702f13f88d7b3388430c63bed9081b975d0294aaa67ab"
+          },
+          "80": {
+            "seconds": 2.666378,
+            "private_decoded_frame_sha256": "7fa5882349e5a96a6bf7ec4c94488a16bfba8f7baa2df59f51b696672c07f837"
+          },
+          "160": {
+            "seconds": 5.332757,
+            "private_decoded_frame_sha256": "8431991a01650a2e1518143b4af3530b9c0d4a678ea15ee78c473308dd4635d7"
+          },
+          "603": {
+            "seconds": 20.097827,
+            "private_decoded_frame_sha256": "ff46c869e4bd4d18286212e51c08105d9bb56e609982ef9559f6ae84b88f0d4f"
+          },
+          "643": {
+            "seconds": 21.431016,
+            "private_decoded_frame_sha256": "4fcb795eb26c1e66b77ae19dbaeb9a045e28a80aa7a8fa5f4d6f7b8711c35e61"
+          },
+          "683": {
+            "seconds": 22.764205,
+            "private_decoded_frame_sha256": "7cbb8cddcde85621124174e5be7ea4a3d313ed1cb8a9eae6f5ea7663a991f7f2"
+          },
+          "723": {
+            "seconds": 24.097395,
+            "private_decoded_frame_sha256": "0b11b3f32db0a39f1b9405c1696919707ab7606b5a205e70ca67eb23e20e125b"
+          },
+          "884": {
+            "seconds": 29.463481,
+            "private_decoded_frame_sha256": "aaa8c553428ea1d55ce82060519d6586b83cb5f6b0c027f273146b2f34832e9a"
+          },
+          "924": {
+            "seconds": 30.79667,
+            "private_decoded_frame_sha256": "be68d98c180ee9dad9f1b3be0e4513f5b29c7a591741c002d426e561a5545676"
+          }
+        },
+        "sequence": [
+          "Frame0 confirms P11D COMMIT TRACE r1 menu, selected after BCM STR FIRST DMB control; PMIC02000001. Prior reader returned Success is EFI app exit, not reset success.",
+          "Frame80 shows green handoff band; frame160 shows DarwinBoot input/exit text on retained menu framebuffer. This is not an exact kernel stopping PC.",
+          "Frame603 still shows retained display, frame643 is dark, frame683 shows Lenovo/Powered by Android splash, frame723 returns to D menu with PMIC02000041.",
+          "Frames884/924 show read-only reader with matching fresh ID1 ARM, ENTRY and raw-only phase11 stage1; new invocation ID2/query0/armed0."
+        ],
+        "entry": {
+          "signature": "0x43474244",
+          "next": "0x2f37b",
+          "size": "0x2f37b",
+          "console_crc32": "0x995ccd03",
+          "logical_count": 6,
+          "raw_count": 7,
+          "logical_latest_id": 1,
+          "logical_latest_phase": 10,
+          "logical_latest_crc32": "0x16ccb8ab",
+          "raw_latest_id": 1,
+          "raw_latest_phase": 11,
+          "raw_latest_crc32": "0x96a66de3"
+        },
+        "now_valid": true,
+        "now_next": "0x2f37b",
+        "now_size": "0x2f37b",
+        "frozen_checkpoint_id": 1,
+        "frozen_rows": {
+          "ARM_KERNEL": {
+            "logical": 1,
+            "raw": 1,
+            "crc32": "0x6f8de50a",
+            "value": "0x50394b45524e454c"
+          },
+          "KERNEL_ENTRY": {
+            "logical": 1,
+            "raw": 1,
+            "crc32": "0x16ccb8ab",
+            "value": "0xc00808"
+          },
+          "PRE_MMU": {
+            "logical": 0,
+            "raw": 1,
+            "logical_crc32": 0,
+            "raw_crc32": "0x96a66de3",
+            "logical_value": 0,
+            "raw_value": "0x5031315300000001"
+          },
+          "POST_MMU": {
+            "logical": 0,
+            "raw": 0
+          },
+          "MAP_FAILURE": {
+            "logical": 0,
+            "raw": 0
+          },
+          "RESET_RETURN": {
+            "logical": 0,
+            "raw": 0
+          }
+        },
+        "this_run": {
+          "id": 2,
+          "query": false,
+          "armed": false,
+          "last_record_crc32": 0,
+          "current_el": 1,
+          "psci_version_unqueried": true,
+          "features_unqueried": true
+        },
+        "matched_prelaunch_arm": true,
+        "all_three_record_crcs_reconstructed": true,
+        "header_delta_from_armed": 64,
+        "expected_header_after_terminal_publication": "0x2f3bb",
+        "retained_progress_stage": 1,
+        "stage1_raw_only": true,
+        "terminal_header_publication_observed": false,
+        "stage2_or_later_observed": false,
+        "reboot_cycle_observed": true,
+        "pmic_before": "0x02000001",
+        "pmic_after": "0x02000041",
+        "reset_source_independently_identified": false,
+        "conclusion": "Fresh D ID1 ARM/ENTRY/raw-stage1 match reconstructed CRCs over observed reboot. First DSB-to-DMB substitution did not change retained stage or logical publication relative to B in these trials. Original BCM STR was crossed; external completion, first barrier completion, later execution/visibility/retention and exact stopping PC remain unresolved.",
+        "limits": [
+          "One reviewed trial per variant; no repeatability or general DMB/DSB equivalence claim.",
+          "Same-slot progress updates are non-atomic. Raw stage1 is a lower bound, not proof that DMB stalled or stage2 never executed.",
+          "No evidence of terminal SYSTEM_RESET execution/source, MMU enable or normal XNU continuation.",
+          "No menu power-action hardware qualification."
+        ]
+      },
+      "hardware_verification_scope": "Fresh matching ARM/ENTRY and raw-only stage1 over observed D reboot; terminal publication unverified",
+      "raw_terminal_record_survived_observed_reset": true
+    }
+  },
+  "kernel_logic_cases": 40,
+  "reader_logic_cases": 18,
+  "power_logic_cases": 22,
+  "power_actions_hardware_verified": false,
+  "hardware_verified": false,
+  "device_writes_performed": true,
+  "proposed_partition": "boot_b",
+  "status": "P11A retained published stage5; P11B and P11D each retained fresh matching raw-only stage1 over observed reboot. First DSB-to-DMB substitution showed no retained-progress improvement in these trials. Exact PC and reset source unresolved; P10C gated.",
+  "prior_evidence": "research/v23p10-prefix-controls.json: A published terminal record retained; B fresh raw phase11 C49C5711 with logical header at KERNEL_ENTRY DCD7DF11. B reset is user reported; supplied clip does not contain the later reboot.",
+  "phase11_meaning": "P11S retained publication progress lower bound, NOT SCTLR or MMU-on",
+  "progress_values": {
+    "1": "0x5031315300000001",
+    "2": "0x5031315300000002",
+    "3": "0x5031315300000003",
+    "4": "0x5031315300000004",
+    "5": "0x5031315300000005"
+  },
+  "progress_stages": [
+    "Record body stored before first barrier",
+    "First barrier passed and stage2 stored",
+    "Record readback passed and stage3 stored",
+    "Header fields stored and stage4 stored",
+    "Final terminal DSB passed and stage5 stored"
+  ],
+  "limitations": [
+    "Progress rewrites are not atomic; interruption can invalidate phase11.",
+    "A surviving code is a lower bound; absence is not an exact stopping PC.",
+    "Barriers/MMIO/system registers/SMC/UEFI are mocked in host tests.",
+    "No device retention, MMIO completion, reset source, MMU-on or new power action qualification."
+  ],
+  "source_sha256": {
+    "scripts/build-v23p11-kernel.py": "65da5232326c8882c189191f2d8b404829dc0ca556df14d4f61af745b8f82cb7",
+    "scripts/v23p11-commit.S": "f5f9eea0c5c96cd17e66a275e8660ae877b0ddc60b69eb6f600ceec88b756fc7",
+    "scripts/build-v23-payload.py": "c931812f74cbad5edd7237d85c331a7a9ed553028e48c94832d6b7dd3371618c",
+    "scripts/v23p9-trace.S": "1555310a5a89507ccade7c175ac3c063d23d21b97f7fb3af729f24cfbb22ccd8"
+  },
+  "private_host_tool_sha256": {
+    "build_j716f_v23p11.sh": "17c3a875a947f46b1b7dab68a91a6145ccf0d4aba8b6702eb1bed3fc14e64649",
+    "check_j716f_v23p11.py": "37cd8e24c111ffccf4a8b605d06f833ce26ca2419e62d1421b3dcd28ae4b7cb4",
+    "check_j716f_v23p11_power.py": "4216484d128172abba0b441b0f8fb08feba7b22df2bdf6654212b9a325da789c",
+    "check_j716f_v23p11_reader.py": "f1926128f8b736b1183b2b241a72a2ad99616dac841a16dff92af20498d8ebde",
+    "make_j716f_v23p11_fat.py": "a326d5db9af7d2b255f66eb5eab9ee84471c303a533262c3afba99879de95a27",
+    "manage_j716f_v23p11_vm.py": "c1e12409f1701a7a4de7b1bbb641230bf9992d1ef90093a056854947c6fd1d44",
+    "package_j716f_v23p11.py": "e1a4142015e7a46af2836dcbfd198440828bae525cd4276f9cfa1e395b05c184",
+    "record_j716f_v23p11.py": "c82287944dbe09a25e75db98baa267ff58174c3d75c6e5a6da65dad07a45ba09",
+    "snapshot_j716f_v23p11.py": "f2593fce9d855895be69d47ad4191b3429eebf8e1b28b24ed7b6ebeb4098d5f8"
+  },
+  "firmware_source_sha256": {
+    "Platforms/Lenovo/j716fPkg/j716f-commit-trace-v23p11.dsc": "c379f28dea80f9a0d23e2f56dcf6b806ff4b308e37726d9c43976d73ae29a5f3",
+    "Platforms/Lenovo/j716fPkg/j716f-commit-trace-v23p11.fdf": "389e908035fd6cb912cb1a0880cce241465aba721c30e5a0853c75d19743b405",
+    "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_DXE.inc": "85619cde27c7de56466afac05d4a855935136ed6aef00a031d5f3652d84c8736",
+    "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_APRIORI.inc": "005f48c9ba1898b32b329cc53c5a8fd802304c483a915bb6a7d778c2d6ebad2c",
+    "Platforms/Lenovo/j716fPkg/Application/J716fKernelTrace/Panel.h": "4689ee7753007f5491f5738eeaa26c39d8e04a85e5ba75cc2e89c325d1bdd004",
+    "Platforms/Lenovo/j716fPkg/Application/J716fKernelTrace/Main.c": "3ec7a745eef0641c77d05b62825e78df49305e695c480cfb34ef4c2380695793",
+    "Platforms/Lenovo/j716fPkg/Application/J716fKernelTrace/Font.c": "588d0968cc8565aa882f755356bb7ac9440670a973265218b72639bbdc099f81",
+    "Platforms/Lenovo/j716fPkg/Application/J716fKernelTrace/J716fKernelTrace.inf": "3ace2f3da9810d48dd9c1894328cb4bb0d20fa950e6dd7bd3a3db0840c580c56",
+    "Platforms/Lenovo/j716fPkg/Application/J716fKernelTrace/Ring.h": "cde3bfb861c8ba8402da044b18bd0a069b70acf78d5712ec0a90b7181f64825e",
+    "Platforms/Lenovo/j716fPkg/Application/J716fKernelTrace/Trace.h": "7b5c6b1d74169b9ebd491c2b49c951c560642e7702942af92912375113bc94c9",
+    "Platforms/Lenovo/j716fPkg/Application/J716fKernelTrace/Smc.S": "44e792bc917de7ca4e940f8029217bff53cb28681f9d4c6c851d4f367db8942f",
+    "Platforms/Lenovo/j716fPkg/Application/J716fPowerAction/Main.c": "b695076b04de6ac568b7a056fd063d070cbb24c87c1f867a6e8729b3cbc72098",
+    "Platforms/Lenovo/j716fPkg/Application/J716fPowerAction/J716fPowerAction.inf": "ba44b394af50c91c99a376c67aa87ac455d77b8fbaf3d4d626a4e87dc1d04637",
+    "Platforms/Lenovo/j716fPkg/Application/J716fPowerAction/Smc.S": "44e792bc917de7ca4e940f8029217bff53cb28681f9d4c6c851d4f367db8942f",
+    "Platforms/Lenovo/j716fPkg/Library/J716fRamLogMemoryMapLib/MemoryMapLib.inf": "21f9b88f7cb14f2c3514bb2cda83c5215f5a42c9bac9839bbe5979de5fbbe415",
+    "Platforms/Lenovo/j716fPkg/Library/J716fRamLogMemoryMapLib/MemoryMapLib.c": "9c997b1263299b0f170e8940f4066702dd1d3c9011ccdc51974482a7d7bb22f8",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Volume.c": "ab9a7b36a258cfb43b8c15fee86393ec9a1978e9b3d3e8d8e2a83b2f36bdbff2",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Ui.c": "241a27392c1e8cc7191ecff38fa3ac023e70ce4938a26ba87dfd805f5053c916",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Toml.c": "4d82a7de6196873df6f0a2cc033c67d337f505c53d235b053b8c6458d7332a2a",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Internal.h": "0587430657f938891fbdf8d03ddc2704a8689cfc94887515a5c952d68f11610e",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/IoResult.h": "09401aa4dd013af81f4634413acd71ea217f3ef5a2c71d56f1161b7c7b7d1054",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Menu.c": "f9e4ffd78c8a6e2551ec81c6de78eeddcd67e34269dfa442e8959d7f79d1bb72",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/source-lock.json": "e1cfd25dad61309b9e98ca6ff0c1cd9add83fbfae1c547359c71e0dc57487894",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Slice.c": "5cbd409945711c13a9dad18ed6eb5a7c0df49c9b53e7599424c03e23ed2126f8",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Main.c": "0b8c3240eb27b541889a5648b3914e11920b8d319c70b8b2d0c7e36020a9bb6a",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Font.c": "391c7dbc8c6eb3cd07230e3dd8d38e4ba8a5a9b603bcaecb4d8e62a4603d2ac6",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Kext.c": "f1869ca42e03faf9bd967619ba70dcd3329fb8839513811306478548f67f9aa4",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/LogoShape.h": "8fe96788c3c1e27df7f4209c31ae1b3818ae99cf858d6dae457cd16643a6a43b",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Inject.c": "a0072e04b6ff233746aec973d38e288bdcc689481f660f043fbf8f3b8a9d4943",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/UniXNULib.inf": "2b556a2e73cdf7e06be818d63ead70e970e46e463394114c92de636c23c96683",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Config.c": "0c7474f912699e80878f6cf816ea48b0b5f798682665a8e7792df29d92a17d9c",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Boot.c": "da03fbfaf44737174af64edf12fd04e6a0537a10b4d4d7a9e57e5fe47fae609d",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Logo.c": "da9d49c502f42c489742d2abaa8a300db1c265b0fcf807e4d7bd3d8aa8a9e4a1",
+    "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fKeysDxe.c": "8385eecfd7ad43fc5b735306a2812d2cb997bed63388c6ca14d1990689ac0b14",
+    "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fSpmi.c": "d83bdaccba84d58c753edc14ff5af701729b7cd88f96263f4c68f5bb32fa2466",
+    "Mu_Basecore/ArmPkg/Library/ArmPsciResetSystemLib/ArmPsciResetSystemLib.c": "32dd3f12e4606489df2bd967670bd191057493c67073a83f159e14828a08b9f6",
+    "Mu_Basecore/ArmPkg/Library/ArmMonitorLib/AArch64/ArmMonitorLib.S": "31bc773bbaf8a43d36a8dac371a50639a14f8afb01f61db12165fd3e7bff0eb7",
+    "Mu_Basecore/MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystem.c": "82d1714bc6f5cfaa4d4a23a983a3352d800395d01e7059071496437b4967de1f",
+    "Silicon/Silicium/SiliciumPkg/SiliciumPkg.dsc.inc": "82f76ccf6e6341caeda867ad42d2bd8a34bba00dbeb4282bdf5a5bbc2875c8b8"
+  },
+  "next_action": "Design and host-audit P12 independent non-overwriting progress witnesses with fresh attempt/CRC binding and qualified console ownership; add a matched original-BCM-STR versus skipped-STR control separately from the barrier factor. Audit live registers, stack and MMU/cache state; qualify mapping lifetime before pre/post-MMU probes. Preserve P11 evidence and boot_b-only scope; P10C remains gated. See docs/UPSTREAM_REFERENCE_REVIEW_20261026.md.",
+  "post_p11_upstream_review": {
+    "reference": "docs/UPSTREAM_REFERENCE_REVIEW_20261026.md",
+    "upstream_revision": "ae687009348296e97e49ce6e925795044f363ce6",
+    "scope": "source review only; existing observations preserved"
+  }
+}

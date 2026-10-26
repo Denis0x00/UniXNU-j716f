@@ -1,0 +1,644 @@
+{
+  "updated_at": "2026-10-25",
+  "profile": "J716F V23P5 matched STR/NOP controls; menu scale 3",
+  "source_state": "Local uncommitted additions. Two P5A and one P5B boot_b flash/reboot operations; one reviewed video per variant. No P5 push.",
+  "upstream_review": {
+    "repository": "https://github.com/UniXNU/UniXNU",
+    "main_commit": "16e592abee8a550dec8154ed1f38b5ebc4f16213",
+    "method": "git ls-remote origin refs/heads/main; fetch main; read pinned docs and patch",
+    "references": [
+      "docs/zh/porting/bring-up.md",
+      "docs/zh/porting/steps.md",
+      "docs/zh/porting/platform.md",
+      "docs/zh/porting/log-capture.md",
+      "patches/xnu/architectural-timer-entry.patch"
+    ],
+    "direction": "Follow staged bring-up, isolate one factor, save evidence and defer driver/root integration until entry is qualified.",
+    "current_stage": "Early kernel entry in bring-up stage 5; stage 5 not complete.",
+    "scope": "Device-local terminal diagnostics retain the previously tested frozen baseline; not a full rebase to reviewed upstream main.",
+    "source_integration": "Current native architectural timer option is disabled. Upstream conditionally skips BCM timer routing when it is enabled. P5 isolates only one legacy store; this is not full timer adaptation.",
+    "remaining_work": [
+      "Advanced Logger/QR firmware export integration and device verification",
+      "QEMU firmware/entry fixtures; Unicorn is not a full firmware boot",
+      "Consolidate confirmed fixes into the standard device source recipe",
+      "Qualify and pin common SoC support"
+    ]
+  },
+  "variants": {
+    "p5a": {
+      "variant": "V23P5A",
+      "mode": 5,
+      "image": "j716f-mu-zui13-entry-v23p5a-boot.img",
+      "image_bytes": 8355840,
+      "image_sha256": "ff4a9b75f72119d88758bdd9588cddf59e08b12ccf656050a3f5902d09d09886",
+      "fd_sha256": "ffe80b0282cb1b3595ae20dbc2729129e6af87dfac9ce3dcc1ec19b06a4384c5",
+      "payload_sha256": "26520b74d5a505956e1d8e8f9d7fe6418334275a1909755cdbfc7dcb9c9025e6",
+      "probe": {
+        "variant": "V23P5A",
+        "kernel_sha256": "70557ad0961d1df6be51a95f171c71d95d85f7167cbeb21c27bbaf775a06b97b",
+        "baseline_sha256": "cab8f385a44d21fc6f455cb501227452212ba44d34a9fa03d04fcf7e85324214",
+        "changes_confined": true,
+        "probe_bytes": 2108,
+        "probe_capacity": 2800,
+        "exception_vectors": 16,
+        "source_crypto_hmac": {
+          "offset": 1449688,
+          "computed": "708061d0f03289f197a14a5e57bc1825e896e3c144f94e801a861b7f433a3523",
+          "stored": "708061d0f03289f197a14a5e57bc1825e896e3c144f94e801a861b7f433a3523",
+          "matches": true
+        },
+        "counter_loop_bound": null,
+        "psci_function": "0x84000009",
+        "uses_counter": false,
+        "uses_psci": true,
+        "direct_mmu_display_mapping": false,
+        "normal_kernel_continuation": false,
+        "hardware_verified": false,
+        "display_mode": 5,
+        "checkpoints": {
+          "1": "Before title renderer call",
+          "2": "Title stores complete; before original DSB",
+          "3": "After original title DSB; before RET",
+          "4": "Title call returned; before CurrentEL",
+          "5": "CurrentEL read completed",
+          "6": "EL renderer returned; before SCTLR read",
+          "7": "SCTLR read completed",
+          "8": "SCTLR renderer returned",
+          "9": "FUNC renderer returned",
+          "10": "A0 renderer returned; before SMC argument setup",
+          "11": "SMC returned; x0 retained in x21",
+          "12": "Exception entry before register reads"
+        },
+        "raw_checkpoint_geometry": {
+          "x": 1280,
+          "y": 32,
+          "pitch": 104,
+          "width": 96,
+          "height": 96
+        },
+        "checkpoint_limits": "Inline stores without barriers; absence alone does not prove non-execution.",
+        "control_kernel_sha256": "5984888de0c85d8a06e56b3524ce185fa608851ada096b531a23d059edbcf8de",
+        "control_probe_sha256": "f0e9819df126934e1388d0219fd11ac45deeb1d2f19444d66b50ec0c3e544039",
+        "single_factor_verified": true,
+        "diagnostic_mode_unchanged": 5,
+        "diagnostic_revision": "matched-str-nop",
+        "clear_filter": {
+          "site": "0xfffffff0073fc574",
+          "target": "0xfffffff0073fccd8",
+          "before": "3f7d81a8",
+          "preserves_only_envelope_rectangles": true
+        },
+        "mutation": {
+          "site": "0xfffffff0073fe32c",
+          "before": "010000b9",
+          "after": "3dfaff17",
+          "stub": "0xfffffff0073fcc20",
+          "return": "0xfffffff0073fe330",
+          "before_marker": {
+            "x": 1280,
+            "y": 192,
+            "width": 96,
+            "height": 96
+          },
+          "after_marker": {
+            "x": 1384,
+            "y": 192,
+            "width": 96,
+            "height": 96
+          },
+          "original_store": "str w1, [x0]"
+        },
+        "envelope_interpretation": {
+          "both_markers": "Execution advanced past the factor site; B has no legacy MMIO write there.",
+          "before_only": "No visible after-marker; no PC trace or store-completion proof.",
+          "limits": "Neither missing square 3 nor reboot alone proves a DSB stall, PSCI execution or reset cause."
+        },
+        "matched_control_kernel_sha256": "70557ad0961d1df6be51a95f171c71d95d85f7167cbeb21c27bbaf775a06b97b",
+        "matched_factor": {
+          "site": "0xfffffff0073fcc98",
+          "original_site": "0xfffffff0073fe32c",
+          "instruction": "str w1, [x0]",
+          "bytes": "010000b9",
+          "allowed_delta": "Only this 4-byte instruction and the 32-byte HMAC versus P5A"
+        },
+        "menu_scale": 3,
+        "menu_scale_hardware_verified": false
+      },
+      "boot": {
+        "kernel_sha256": "ab6bb3daa76ce21c6fd6cac1f8cc274b30e053578ea26dff97df9de6d468f945",
+        "ramdisk_bytes": 0,
+        "header_version": 2,
+        "kernel_address": "0x8000",
+        "tags_address": "0x100",
+        "separate_dtb_bytes": 728300,
+        "separate_dtb_address": "0x1f00000"
+      },
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "linked_modules": {
+        "UniXNU.efi": {
+          "bytes": 90112,
+          "sha256": "003600a809c04bc709af747a93fe2bf21165992c0db4ac00582bdf1e20b398c7"
+        },
+        "DarwinBoot.efi": {
+          "bytes": 19456,
+          "sha256": "e6f42f35fa13efb83d3e3d97121b0c726c0744b25fdb9a821547173b83022f9c"
+        },
+        "J716fKeysDxe.efi": {
+          "bytes": 11264,
+          "sha256": "31356536c324dda7b2161e0efddf207748f2ec8d25d94bf7c1be72a56fb8b904"
+        }
+      },
+      "source_hashes": {
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.dsc": "6a295e3d0046205284d52f4931ed2a17bc1f3c7276648e3753299acf357c13b6",
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.fdf": "b1a29c9e13560f6ddd34461be450ba11ab56b52d9082576af9df79f03f5a858b",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_DXE.inc": "85619cde27c7de56466afac05d4a855935136ed6aef00a031d5f3652d84c8736",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_APRIORI.inc": "005f48c9ba1898b32b329cc53c5a8fd802304c483a915bb6a7d778c2d6ebad2c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fWindowMemoryMapLib/MemoryMapLib.c": "8f2c5c8b8dbece234eb385ae16067e0038215abc3933213a0355c63656a36f88",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fKeysDxe.c": "8385eecfd7ad43fc5b735306a2812d2cb997bed63388c6ca14d1990689ac0b14",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fSpmi.c": "d83bdaccba84d58c753edc14ff5af701729b7cd88f96263f4c68f5bb32fa2466",
+        "Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib/FrameBufferSerialPortLib.c": "a5fe54f148bac50931a74ddabb83fc89d0e43b1b1a87d8eb089083ff186be2e7",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Volume.c": "ab9a7b36a258cfb43b8c15fee86393ec9a1978e9b3d3e8d8e2a83b2f36bdbff2",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Ui.c": "241a27392c1e8cc7191ecff38fa3ac023e70ce4938a26ba87dfd805f5053c916",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Toml.c": "4d82a7de6196873df6f0a2cc033c67d337f505c53d235b053b8c6458d7332a2a",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Internal.h": "0587430657f938891fbdf8d03ddc2704a8689cfc94887515a5c952d68f11610e",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/IoResult.h": "09401aa4dd013af81f4634413acd71ea217f3ef5a2c71d56f1161b7c7b7d1054",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Menu.c": "f9e4ffd78c8a6e2551ec81c6de78eeddcd67e34269dfa442e8959d7f79d1bb72",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/source-lock.json": "e1cfd25dad61309b9e98ca6ff0c1cd9add83fbfae1c547359c71e0dc57487894",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Slice.c": "5cbd409945711c13a9dad18ed6eb5a7c0df49c9b53e7599424c03e23ed2126f8",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Main.c": "0b8c3240eb27b541889a5648b3914e11920b8d319c70b8b2d0c7e36020a9bb6a",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Font.c": "391c7dbc8c6eb3cd07230e3dd8d38e4ba8a5a9b603bcaecb4d8e62a4603d2ac6",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Kext.c": "f1869ca42e03faf9bd967619ba70dcd3329fb8839513811306478548f67f9aa4",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/LogoShape.h": "8fe96788c3c1e27df7f4209c31ae1b3818ae99cf858d6dae457cd16643a6a43b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Inject.c": "a0072e04b6ff233746aec973d38e288bdcc689481f660f043fbf8f3b8a9d4943",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/UniXNULib.inf": "2b556a2e73cdf7e06be818d63ead70e970e46e463394114c92de636c23c96683",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Config.c": "0c7474f912699e80878f6cf816ea48b0b5f798682665a8e7792df29d92a17d9c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Boot.c": "da03fbfaf44737174af64edf12fd04e6a0537a10b4d4d7a9e57e5fe47fae609d",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Logo.c": "da9d49c502f42c489742d2abaa8a300db1c265b0fcf807e4d7bd3d8aa8a9e4a1"
+      }
+    },
+    "p5b": {
+      "variant": "V23P5B",
+      "mode": 5,
+      "image": "j716f-mu-zui13-entry-v23p5b-boot.img",
+      "image_bytes": 8347648,
+      "image_sha256": "5bf043d831eacc3cfe0f894bb3f35aba297793fc10980b30821e56628c6a11e3",
+      "fd_sha256": "ab0525194e9c583747d409f5f0fd17169099970f83fa23295ea6948805b53780",
+      "payload_sha256": "88c8e70262c0cb6fe608915d0bcfc9f13610d334e35d304638826e12254f7502",
+      "probe": {
+        "variant": "V23P5B",
+        "kernel_sha256": "2c79f1fe2d2d2fce02c96518e1a0f07d522d1391daeb9f74f1ab965210d5fc8b",
+        "baseline_sha256": "cab8f385a44d21fc6f455cb501227452212ba44d34a9fa03d04fcf7e85324214",
+        "changes_confined": true,
+        "probe_bytes": 2108,
+        "probe_capacity": 2800,
+        "exception_vectors": 16,
+        "source_crypto_hmac": {
+          "offset": 1449688,
+          "computed": "f75616f0519fc3548a985a65d8665aee93af81ff966bba7076cc4d5d498bb144",
+          "stored": "f75616f0519fc3548a985a65d8665aee93af81ff966bba7076cc4d5d498bb144",
+          "matches": true
+        },
+        "counter_loop_bound": null,
+        "psci_function": "0x84000009",
+        "uses_counter": false,
+        "uses_psci": true,
+        "direct_mmu_display_mapping": false,
+        "normal_kernel_continuation": false,
+        "hardware_verified": false,
+        "display_mode": 5,
+        "checkpoints": {
+          "1": "Before title renderer call",
+          "2": "Title stores complete; before original DSB",
+          "3": "After original title DSB; before RET",
+          "4": "Title call returned; before CurrentEL",
+          "5": "CurrentEL read completed",
+          "6": "EL renderer returned; before SCTLR read",
+          "7": "SCTLR read completed",
+          "8": "SCTLR renderer returned",
+          "9": "FUNC renderer returned",
+          "10": "A0 renderer returned; before SMC argument setup",
+          "11": "SMC returned; x0 retained in x21",
+          "12": "Exception entry before register reads"
+        },
+        "raw_checkpoint_geometry": {
+          "x": 1280,
+          "y": 32,
+          "pitch": 104,
+          "width": 96,
+          "height": 96
+        },
+        "checkpoint_limits": "Inline stores without barriers; absence alone does not prove non-execution.",
+        "control_kernel_sha256": "5984888de0c85d8a06e56b3524ce185fa608851ada096b531a23d059edbcf8de",
+        "control_probe_sha256": "f0e9819df126934e1388d0219fd11ac45deeb1d2f19444d66b50ec0c3e544039",
+        "single_factor_verified": true,
+        "diagnostic_mode_unchanged": 5,
+        "diagnostic_revision": "matched-str-nop",
+        "clear_filter": {
+          "site": "0xfffffff0073fc574",
+          "target": "0xfffffff0073fccd8",
+          "before": "3f7d81a8",
+          "preserves_only_envelope_rectangles": true
+        },
+        "mutation": {
+          "site": "0xfffffff0073fe32c",
+          "before": "010000b9",
+          "after": "3dfaff17",
+          "stub": "0xfffffff0073fcc20",
+          "return": "0xfffffff0073fe330",
+          "before_marker": {
+            "x": 1280,
+            "y": 192,
+            "width": 96,
+            "height": 96
+          },
+          "after_marker": {
+            "x": 1384,
+            "y": 192,
+            "width": 96,
+            "height": 96
+          },
+          "original_store": "str w1, [x0]"
+        },
+        "envelope_interpretation": {
+          "both_markers": "Execution advanced past the factor site; B has no legacy MMIO write there.",
+          "before_only": "No visible after-marker; no PC trace or store-completion proof.",
+          "limits": "Neither missing square 3 nor reboot alone proves a DSB stall, PSCI execution or reset cause."
+        },
+        "matched_control_kernel_sha256": "70557ad0961d1df6be51a95f171c71d95d85f7167cbeb21c27bbaf775a06b97b",
+        "matched_factor": {
+          "site": "0xfffffff0073fcc98",
+          "original_site": "0xfffffff0073fe32c",
+          "instruction": "nop",
+          "bytes": "1f2003d5",
+          "allowed_delta": "Only this 4-byte instruction and the 32-byte HMAC versus P5A"
+        },
+        "menu_scale": 3,
+        "menu_scale_hardware_verified": false
+      },
+      "boot": {
+        "kernel_sha256": "349ad409688505066cadb97f49c1c5a8ab1b884bfc6498c7ae0b1f130efe4814",
+        "ramdisk_bytes": 0,
+        "header_version": 2,
+        "kernel_address": "0x8000",
+        "tags_address": "0x100",
+        "separate_dtb_bytes": 728300,
+        "separate_dtb_address": "0x1f00000"
+      },
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "linked_modules": {
+        "UniXNU.efi": {
+          "bytes": 90112,
+          "sha256": "003600a809c04bc709af747a93fe2bf21165992c0db4ac00582bdf1e20b398c7"
+        },
+        "DarwinBoot.efi": {
+          "bytes": 19456,
+          "sha256": "e6f42f35fa13efb83d3e3d97121b0c726c0744b25fdb9a821547173b83022f9c"
+        },
+        "J716fKeysDxe.efi": {
+          "bytes": 11264,
+          "sha256": "31356536c324dda7b2161e0efddf207748f2ec8d25d94bf7c1be72a56fb8b904"
+        }
+      },
+      "source_hashes": {
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.dsc": "6a295e3d0046205284d52f4931ed2a17bc1f3c7276648e3753299acf357c13b6",
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.fdf": "b1a29c9e13560f6ddd34461be450ba11ab56b52d9082576af9df79f03f5a858b",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_DXE.inc": "85619cde27c7de56466afac05d4a855935136ed6aef00a031d5f3652d84c8736",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_APRIORI.inc": "005f48c9ba1898b32b329cc53c5a8fd802304c483a915bb6a7d778c2d6ebad2c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fWindowMemoryMapLib/MemoryMapLib.c": "8f2c5c8b8dbece234eb385ae16067e0038215abc3933213a0355c63656a36f88",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fKeysDxe.c": "8385eecfd7ad43fc5b735306a2812d2cb997bed63388c6ca14d1990689ac0b14",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fSpmi.c": "d83bdaccba84d58c753edc14ff5af701729b7cd88f96263f4c68f5bb32fa2466",
+        "Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib/FrameBufferSerialPortLib.c": "a5fe54f148bac50931a74ddabb83fc89d0e43b1b1a87d8eb089083ff186be2e7",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Volume.c": "ab9a7b36a258cfb43b8c15fee86393ec9a1978e9b3d3e8d8e2a83b2f36bdbff2",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Ui.c": "241a27392c1e8cc7191ecff38fa3ac023e70ce4938a26ba87dfd805f5053c916",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Toml.c": "4d82a7de6196873df6f0a2cc033c67d337f505c53d235b053b8c6458d7332a2a",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Internal.h": "0587430657f938891fbdf8d03ddc2704a8689cfc94887515a5c952d68f11610e",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/IoResult.h": "09401aa4dd013af81f4634413acd71ea217f3ef5a2c71d56f1161b7c7b7d1054",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Menu.c": "f9e4ffd78c8a6e2551ec81c6de78eeddcd67e34269dfa442e8959d7f79d1bb72",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/source-lock.json": "e1cfd25dad61309b9e98ca6ff0c1cd9add83fbfae1c547359c71e0dc57487894",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Slice.c": "5cbd409945711c13a9dad18ed6eb5a7c0df49c9b53e7599424c03e23ed2126f8",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Main.c": "0b8c3240eb27b541889a5648b3914e11920b8d319c70b8b2d0c7e36020a9bb6a",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Font.c": "391c7dbc8c6eb3cd07230e3dd8d38e4ba8a5a9b603bcaecb4d8e62a4603d2ac6",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Kext.c": "f1869ca42e03faf9bd967619ba70dcd3329fb8839513811306478548f67f9aa4",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/LogoShape.h": "8fe96788c3c1e27df7f4209c31ae1b3818ae99cf858d6dae457cd16643a6a43b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Inject.c": "a0072e04b6ff233746aec973d38e288bdcc689481f660f043fbf8f3b8a9d4943",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/UniXNULib.inf": "2b556a2e73cdf7e06be818d63ead70e970e46e463394114c92de636c23c96683",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Config.c": "0c7474f912699e80878f6cf816ea48b0b5f798682665a8e7792df29d92a17d9c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Boot.c": "da03fbfaf44737174af64edf12fd04e6a0537a10b4d4d7a9e57e5fe47fae609d",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Logo.c": "da9d49c502f42c489742d2abaa8a300db1c265b0fcf807e4d7bd3d8aa8a9e4a1"
+      }
+    }
+  },
+  "matched_pair": {
+    "passed": true,
+    "kernel_allowed_changes": [
+      "4-byte relocated legacy STR -> NOP",
+      "32-byte source crypto HMAC"
+    ],
+    "changed_kernel_bytes": 36,
+    "factor_va": "0xfffffff0073fcc98",
+    "same_non_payload_modules_within_pair": true,
+    "changed_modules_vs_p4r1": [
+      "9b665204-a133-47a2-9396-9e2b370a4e25",
+      "a4934a8e-547b-4e44-b2b2-e044ebfa19eb"
+    ],
+    "menu_change": "Only Main.c scale 4 -> 3 plus its comment; source-lock adds change note.",
+    "p5a_kernel_equals_p4r1": true,
+    "hardware_verified": false
+  },
+  "host_logic_checks": {
+    "passed": true,
+    "cases": [
+      {
+        "variant": "V23P5A",
+        "diagnostic_revision": "matched-str-nop",
+        "probe_bytes": 2108,
+        "stub_bytes": 284,
+        "passed": true,
+        "entry": "actual kernel legacy branch",
+        "original_store_hits": 1,
+        "actual_return_target_verified": true,
+        "before_store_after_marker_black": true,
+        "preserved_registers": [
+          "x0",
+          "x1",
+          "x15",
+          "x16",
+          "x17",
+          "x18",
+          "x19",
+          "x20",
+          "x21",
+          "x22",
+          "x23",
+          "x24",
+          "x25",
+          "x26",
+          "x27",
+          "x28",
+          "x29",
+          "x30",
+          "SP"
+        ],
+        "legacy_to_pre_liveness_checked": true,
+        "full_clear_bytes_checked": 16384000,
+        "marker_pixels_checked": 18432,
+        "clear_kept_only_two_markers": true,
+        "title_dsb_unchanged": true,
+        "actual_renderer_to_title_dsb": true,
+        "prefix_squares_checked": [
+          1,
+          2
+        ],
+        "mmio_page_mapped": true,
+        "scope": "Actual branch, envelope, store, return, pre/setup_fb and full clear/filter plus real title renderer up to DSB in Unicorn. MMIO modeled as RAM. Intervening ISB/TLBI/IC/MSR/TTBR/vector path excluded; no hardware ordering, permission, reset or MMU qualification."
+      },
+      {
+        "variant": "V23P5B",
+        "diagnostic_revision": "matched-str-nop",
+        "probe_bytes": 2108,
+        "stub_bytes": 284,
+        "passed": true,
+        "entry": "actual kernel legacy branch",
+        "original_store_hits": 0,
+        "actual_return_target_verified": true,
+        "before_store_after_marker_black": true,
+        "preserved_registers": [
+          "x0",
+          "x1",
+          "x15",
+          "x16",
+          "x17",
+          "x18",
+          "x19",
+          "x20",
+          "x21",
+          "x22",
+          "x23",
+          "x24",
+          "x25",
+          "x26",
+          "x27",
+          "x28",
+          "x29",
+          "x30",
+          "SP"
+        ],
+        "legacy_to_pre_liveness_checked": true,
+        "full_clear_bytes_checked": 16384000,
+        "marker_pixels_checked": 18432,
+        "clear_kept_only_two_markers": true,
+        "title_dsb_unchanged": true,
+        "actual_renderer_to_title_dsb": true,
+        "prefix_squares_checked": [
+          1,
+          2
+        ],
+        "mmio_page_mapped": false,
+        "scope": "Actual branch, envelope, store, return, pre/setup_fb and full clear/filter plus real title renderer up to DSB in Unicorn. MMIO modeled as RAM. Intervening ISB/TLBI/IC/MSR/TTBR/vector path excluded; no hardware ordering, permission, reset or MMU qualification."
+      }
+    ],
+    "hardware_verified": false
+  },
+  "menu_scale": 3,
+  "menu_scale_previous": 4,
+  "menu_scale_compiled": true,
+  "menu_scale_device_observed": true,
+  "device_writes_performed": true,
+  "hardware_verified": false,
+  "hardware_trials": {
+    "p5a_flash_and_reboot": 2,
+    "p5a_video_review": 1,
+    "p5b_flash_and_reboot": 1,
+    "p5b_video_review": 1
+  },
+  "proposed_partition": "boot_b",
+  "proposed_test_order": [
+    "p5a",
+    "p5b"
+  ],
+  "limits": [
+    "External MMIO transaction completion and barriers remain hardware gates.",
+    "The two emulator cases stop before title DSB; the intervening privileged kernel path is excluded.",
+    "No PSCI, reset source, counter, sustained MMU-on, ArmCpu, UFS/root or userland result."
+  ],
+  "device_operations": [
+    {
+      "variant": "V23P5A",
+      "partition": "boot_b",
+      "mode": "fastbootd",
+      "finished_at": "2026-10-25T21:26:23.941382+08:00",
+      "image_sha256": "ff4a9b75f72119d88758bdd9588cddf59e08b12ccf656050a3f5902d09d09886",
+      "flash_succeeded": true,
+      "activate_b_succeeded": true,
+      "current_slot_verified": "b",
+      "slot_unbootable": "no",
+      "reboot_command_succeeded": true,
+      "retry_count_query": "unsupported",
+      "hardware_result": "pending user video",
+      "result": "V23P5A was flashed only to boot_b in fastbootd; B activation, current-slot b and slot-unbootable:b=no were verified; reboot command succeeded. A menu identity, marker progression and reset observations await video. P5B remains unflashed. No PSCI or MMU-on result is claimed."
+    },
+    {
+      "variant": "V23P5A",
+      "partition": "boot_b",
+      "mode": "fastbootd",
+      "finished_at": "2026-10-25T21:29:10.733664+08:00",
+      "image_sha256": "ff4a9b75f72119d88758bdd9588cddf59e08b12ccf656050a3f5902d09d09886",
+      "flash_succeeded": true,
+      "activate_b_succeeded": true,
+      "current_slot_verified": "b",
+      "slot_unbootable": "no",
+      "reboot_command_succeeded": true,
+      "retry_count_query": "unsupported",
+      "hardware_result": "pending video",
+      "result": "User requested a second flash of the same audited P5A. Flash to boot_b, B activation and reboot command succeeded. No diagnostic observation is established.",
+      "video_review": "P5A menu identity and visible progression reviewed; see video_observations.p5a. No PSCI or reset-source proof."
+    },
+    {
+      "variant": "V23P5B",
+      "partition": "boot_b",
+      "mode": "fastbootd",
+      "finished_at": "2026-10-25T21:34:36.719638+08:00",
+      "image_sha256": "5bf043d831eacc3cfe0f894bb3f35aba297793fc10980b30821e56628c6a11e3",
+      "flash_succeeded": true,
+      "activate_b_succeeded": true,
+      "current_slot_verified": "b",
+      "slot_unbootable": "no",
+      "reboot_command_succeeded": true,
+      "retry_count_query": "unsupported",
+      "hardware_result": "Video reviewed; checkpoint observations recorded, functional/reset attribution unverified.",
+      "result": "V23P5B was flashed only to boot_b in fastbootd; B activation, current-slot b and slot-unbootable:b=no were verified; reboot command succeeded. Its menu identity and diagnostic progress await video. Reviewed P5A remains the visible control; no P5B functional, PSCI or MMU-on result is claimed.",
+      "video_review": "B menu, both lower markers and partial title captured; see video_observations.p5b. PSCI and reset cause remain unverified."
+    }
+  ],
+  "video_observations": {
+    "p5a": {
+      "variant": "V23P5A",
+      "review_date": "2026-10-25",
+      "video_sha256": "a96615cd525085be37310ddc8109f78cf72ae00b1375d06b39db9cf405d19697",
+      "frame_count": 768,
+      "duration_seconds": 25.59666232638889,
+      "method": "Decoded all 768 frames. Visually reviewed one-second overview, every entry frame 30-65 and loss frame 540-580, full diagnostic/menu frames and restart samples.",
+      "menu_identity": "J716F V23P5A - A: original STR; matched MMIO envelope",
+      "compact_menu_observed": true,
+      "compiled_menu_scale": 3,
+      "title_mode": 5,
+      "prefix_squares_visible": [
+        1,
+        2
+      ],
+      "prefix_square_3_observed": false,
+      "early_mmio_before_marker_visible": true,
+      "early_mmio_after_marker_visible": true,
+      "currentel_sctlr_observed": false,
+      "psci_progress_observed": false,
+      "timeline": {
+        "first_green_blue_frame": {
+          "frame": 45,
+          "pts": 1.5
+        },
+        "title_and_four_markers_sample": {
+          "frame": 47,
+          "pts": 1.5666666666666667
+        },
+        "last_diagnostic_frame": {
+          "frame": 568,
+          "pts": 18.93166666666667
+        },
+        "first_frame_without_diagnostics": {
+          "frame": 569,
+          "pts": 18.965000000000003
+        },
+        "lenovo_android_logo_sample": {
+          "frame": 631,
+          "pts": 21.030000000000005
+        },
+        "returned_p5a_menu_sample": {
+          "frame": 690,
+          "pts": 22.996666666666673
+        }
+      },
+      "entry_to_screen_loss_seconds_approx": 17.47,
+      "timing_limits": "Adjacent camera frames bracket display loss (~0.033s) plus scanout/exposure uncertainty. No hardware timer measurement. P4 r1 was about 15.94s; this trial reproduces visible checkpoint progress, not identical timing.",
+      "pmic_before": "0x02000001",
+      "pmic_after": "0x02000041",
+      "reset_source": "unclassified",
+      "comparison_to_p4r1": "Same visible progress: both early MMIO markers plus title mode 5 and prefix 1/2, without visible prefix 3 or EL/SCTLR. A uses the exact P4 r1 kernel; menu scale change did not remove this visible record in this trial.",
+      "conclusion": "Execution advanced past original STR and retained the after marker through the clear/title stage. External transaction completion, DSB completion, PSCI and reset cause remain unproven.",
+      "next_action": "Test the already audited P5B NOP control on boot_b with the same recording procedure.",
+      "limits": [
+        "Missing checkpoint 3 does not prove DSB is stalled.",
+        "Lenovo/Powered by Android splash does not establish Android OS boot.",
+        "One A trial cannot establish stability or cause; compare B under matching conditions.",
+        "No counter, sustained MMU-on, ArmCpu, UFS/root or userspace milestone."
+      ]
+    },
+    "p5b": {
+      "variant": "V23P5B",
+      "review_date": "2026-10-25",
+      "video_sha256": "f3514915937a9da6bb82d1678e781e72c9131f6abfdb644639992f42dad60376",
+      "frame_count": 244,
+      "duration_seconds": 8.131659836065575,
+      "method": "Decoded all 244 frames; visually reviewed overview, every entry frame 25-65, full frame 56, menu and restart samples.",
+      "menu_identity": "J716F V23P5B - B: skip STR; matched MMIO envelope",
+      "compact_menu_observed": true,
+      "compiled_menu_scale": 3,
+      "title_partial_text_observed": "V23 and incomplete following characters",
+      "title_mode_readable": false,
+      "early_mmio_before_marker_visible": true,
+      "early_mmio_after_marker_visible": true,
+      "prefix_square_1_region": "Partial white/blue area visible; completion not established.",
+      "prefix_square_2_observed": false,
+      "prefix_square_3_observed": false,
+      "currentel_sctlr_observed": false,
+      "a0_or_pre_smc_checkpoint_observed": false,
+      "psci_execution_verified": false,
+      "timeline": {
+        "last_menu_frame_before_entry": {
+          "frame": 54,
+          "pts": 1.8
+        },
+        "first_entry_band": {
+          "frame": 55,
+          "pts": 1.8333333333333335
+        },
+        "two_lower_markers_and_partial_title": {
+          "frame": 56,
+          "pts": 1.8666666666666667
+        },
+        "first_frame_without_diagnostics": {
+          "frame": 57,
+          "pts": 1.9000000000000001
+        },
+        "returned_p5b_menu_sample": {
+          "frame": 180,
+          "pts": 5.998333333333334
+        }
+      },
+      "diagnostic_frames_captured": 1,
+      "entry_to_screen_loss_seconds_approx": 0.067,
+      "timing_limits": "Camera samples only (~33ms spacing), with scanout/exposure uncertainty; not a hardware timer measurement or execution duration. Residual menu and incomplete title cannot locate the final PC.",
+      "pmic_before": "0x02000001",
+      "pmic_after": "0x02000041",
+      "reset_source": "unclassified",
+      "later_behavior": "Lenovo/Powered by Android splash, then return to P5B menu; no Android OS boot established.",
+      "comparison_to_p5a": "A diagnostics persisted about 17.47s after entry. B has one captured diagnostic frame, both lower markers and partial title. Neither timing nor missing rendered checkpoints establishes the cause.",
+      "conclusion": "B reached the NOP envelope and began title rendering. The rapid restart does not by itself mean less execution progress.",
+      "hypotheses": [
+        {
+          "claim": "Skipping the legacy store may allow execution to reach the intended PSCI SYSTEM_RESET quickly.",
+          "basis": "The diagnostic contains x0=0x84000009 setup, DSB SY and SMC #0; unlike A, B omits the legacy MMIO write.",
+          "status": "unverified; A0/RAW10/pre-SMC not captured"
+        }
+      ],
+      "next_action": "Prepare a P5B-derived single-instruction control replacing SMC at 0xfffffff0073fc798 with B . (bytes 00000014), retaining the preceding DSB, markers, menu and all other instructions; reseal HMAC and audit before any boot_b test. Do not branch to the existing halt routine, which adds a DSB. This control is not yet built.",
+      "limits": [
+        "No DSB completion or PSCI execution proof.",
+        "No watchdog or other reset-source attribution from PMIC or timing.",
+        "No counter, sustained MMU-on, ArmCpu, UFS/root or userspace milestone."
+      ]
+    }
+  },
+  "next_action": "Prepare a P5B-derived single-instruction control replacing SMC at 0xfffffff0073fc798 with B . (bytes 00000014), retaining the preceding DSB, markers, menu and all other instructions; reseal HMAC and audit before any boot_b test. Do not branch to the existing halt routine, which adds a DSB. This control is not yet built."
+}

@@ -1,0 +1,31 @@
+{
+  "version": "V23P7 RESET r1",
+  "image_sha256": "919cd695ac28b4eada47b663ee3724575aaefaa5a8778a71f0c2c4581527f23e",
+  "evidence_kind": "User report; no new photo/video for these SYSTEM_RESET attempts yet.",
+  "reported_sequence": [
+    "First Direct SYSTEM_RESET rebooted.",
+    "After reentry, selecting SYSTEM_RESET displayed blocked.",
+    "User reran Query PSCI, then Direct SYSTEM_RESET rebooted again.",
+    "User subsequently forced power off and entered ZUI13 before the requested post-reset inventory capture."
+  ],
+  "source_verified_gate": {
+    "query_state_initially_false_on_fresh_load": true,
+    "requires_completed_queries_and_version_at_least_0_2": true,
+    "blocked_action_does_not_execute_smc": true
+  },
+  "second_attempt_query_state": "Incomplete before rerunning Query; user confirms blocked.",
+  "second_attempt_bottom_status": "SYSTEM_RESET blocked (user confirmation).",
+  "first_reset_user_reported": true,
+  "repeatability_verified": false,
+  "retention_verified": false,
+  "recovery_readback_verified": false,
+  "claims_xnu_progress": false,
+  "interpretation": "The non-rebooting selection was the app query gate, not an observed failing SMC. Two actual SYSTEM_RESET reboots are user-reported. Intervening forced shutdown and ZUI boot prevent attributing later marker state to only the earlier reset path; this does not prove RAM was cleared.",
+  "next_action": "Reconnect in fastboot with recording ready; use the installed P7 on boot_b. Capture fresh read-only baseline, Query, capture baseline/query state, invoke SYSTEM_RESET once, then capture initial read-only reentry without forced shutdown or ZUI detour. Stop and report if it enters ZUI.",
+  "successful_system_reset_invocations_user_reported": 2,
+  "gate_explanation_confirmed_by_user": true,
+  "system_reset_error_return_reported": false,
+  "repeatability_user_reported": true,
+  "repeatability_evidence_scope": "Two successful reset invocations reported directly by user; no independent SYSTEM_RESET video or ring capture yet.",
+  "intervening_forced_poweroff_and_zui13": true
+}
