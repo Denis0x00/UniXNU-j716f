@@ -31,8 +31,9 @@ halt before later witness/root replacement. Shared CRC leaves probe within2800 b
 TCR-aware walker correction: T1SZ26 =>38-bit VA, eight-bit L1 index; high probe/stack
 already mapped in P20. Console mapping was absent; legacy high-gap report superseded.
 No real TLB/cache/register/IRQ claim. P20 hardware result remains latest.
-Next explicit new linear session, review photo, then fresh Query/ARM photo
-before one P21M; reader FIRST after reboot. No repeat flash required. Never rerun old recorders.
+Explicit session now confirmed: NOW VALID next=size0x40 logical/raw1, ID1/query0/armed0;
+INIT CRC B00D3D5C independently matches reconstructed record. ENTRY stays frozen.
+Next fresh Query/ARM once each in same reader, review success photo before one P21M; reader FIRST after reboot. No repeat flash required. Never rerun old recorders.
 
 P13–P21 are bounded diagnostics on a frozen source-built/prelinked kernel.
 Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.

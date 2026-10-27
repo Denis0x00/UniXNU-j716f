@@ -602,6 +602,13 @@ reference = "research/v23p21-vm-switch.json"
 revision = "fd764ab8149dbeae6addab7781825dbe6f962dc9"
 command = "Review P21 initial read-only reader photograph before session/Query/ARM"
 result = "P21 initial reader photo confirms VM SWITCH TRACE r1 at EL1; VALID next0x125fb/size0x3fff4 full circular console, displayed CRC633B24C3; logical/raw0, frozen ID0, all eight checkpoint and four terminal/failure rows zero; THIS RUN ID1/query0/armed0. No usable linear tail; explicit New linear session twice required before Query/ARM, then photograph success/NOW. Parent menu not pictured; whole-console CRC not independently recomputed. No P21 kernel attempt, TTBR switch or reboot-retention result observed."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p21-vm-switch.json"
+revision = "d046bfbe7a1b389159b84344522fbc828ea22f69"
+command = "Review explicit P21 session photo and independently recompute INIT CRC"
+result = "P21 New session OK observed in full photo: NOW VALID next=size0x40, logical/raw1/1, ID1/query0/armed0/EL1; frozen ENTRY still old full-ring header. Displayed INIT CRC B00D3D5C independently matches reconstruction from reader format and photographed headers, no direct RAM dump. Linear tail262068 bytes. Next Query and ARM once each in same reader, photograph success before single P21M. No kernel attempt or TTBR-switch/retention result observed."
 [[area]]
 id = "cpu"
 status = "planned"
@@ -893,6 +900,13 @@ reference = "research/v23p21-vm-switch.json"
 revision = "fd764ab8149dbeae6addab7781825dbe6f962dc9"
 command = "Review P21 initial read-only reader photograph before session/Query/ARM"
 result = "P21 initial reader photo confirms VM SWITCH TRACE r1 at EL1; VALID next0x125fb/size0x3fff4 full circular console, displayed CRC633B24C3; logical/raw0, frozen ID0, all eight checkpoint and four terminal/failure rows zero; THIS RUN ID1/query0/armed0. No usable linear tail; explicit New linear session twice required before Query/ARM, then photograph success/NOW. Parent menu not pictured; whole-console CRC not independently recomputed. No P21 kernel attempt, TTBR switch or reboot-retention result observed."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p21-vm-switch.json"
+revision = "d046bfbe7a1b389159b84344522fbc828ea22f69"
+command = "Review explicit P21 session photo and independently recompute INIT CRC"
+result = "P21 New session OK observed in full photo: NOW VALID next=size0x40, logical/raw1/1, ID1/query0/armed0/EL1; frozen ENTRY still old full-ring header. Displayed INIT CRC B00D3D5C independently matches reconstruction from reader format and photographed headers, no direct RAM dump. Linear tail262068 bytes. Next Query and ARM once each in same reader, photograph success before single P21M. No kernel attempt or TTBR-switch/retention result observed."
 [[area]]
 id = "memory"
 status = "device-verified"
@@ -1289,6 +1303,13 @@ reference = "research/v23p21-vm-switch.json"
 revision = "fd764ab8149dbeae6addab7781825dbe6f962dc9"
 command = "Review P21 initial read-only reader photograph before session/Query/ARM"
 result = "P21 initial reader photo confirms VM SWITCH TRACE r1 at EL1; VALID next0x125fb/size0x3fff4 full circular console, displayed CRC633B24C3; logical/raw0, frozen ID0, all eight checkpoint and four terminal/failure rows zero; THIS RUN ID1/query0/armed0. No usable linear tail; explicit New linear session twice required before Query/ARM, then photograph success/NOW. Parent menu not pictured; whole-console CRC not independently recomputed. No P21 kernel attempt, TTBR switch or reboot-retention result observed."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p21-vm-switch.json"
+revision = "d046bfbe7a1b389159b84344522fbc828ea22f69"
+command = "Review explicit P21 session photo and independently recompute INIT CRC"
+result = "P21 New session OK observed in full photo: NOW VALID next=size0x40, logical/raw1/1, ID1/query0/armed0/EL1; frozen ENTRY still old full-ring header. Displayed INIT CRC B00D3D5C independently matches reconstruction from reader format and photographed headers, no direct RAM dump. Linear tail262068 bytes. Next Query and ARM once each in same reader, photograph success before single P21M. No kernel attempt or TTBR-switch/retention result observed."
 [[area]]
 id = "storage"
 status = "planned"
@@ -1843,6 +1864,13 @@ reference = "research/v23p21-vm-switch.json"
 revision = "fd764ab8149dbeae6addab7781825dbe6f962dc9"
 command = "Review P21 initial read-only reader photograph before session/Query/ARM"
 result = "P21 initial reader photo confirms VM SWITCH TRACE r1 at EL1; VALID next0x125fb/size0x3fff4 full circular console, displayed CRC633B24C3; logical/raw0, frozen ID0, all eight checkpoint and four terminal/failure rows zero; THIS RUN ID1/query0/armed0. No usable linear tail; explicit New linear session twice required before Query/ARM, then photograph success/NOW. Parent menu not pictured; whole-console CRC not independently recomputed. No P21 kernel attempt, TTBR switch or reboot-retention result observed."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p21-vm-switch.json"
+revision = "d046bfbe7a1b389159b84344522fbc828ea22f69"
+command = "Review explicit P21 session photo and independently recompute INIT CRC"
+result = "P21 New session OK observed in full photo: NOW VALID next=size0x40, logical/raw1/1, ID1/query0/armed0/EL1; frozen ENTRY still old full-ring header. Displayed INIT CRC B00D3D5C independently matches reconstruction from reader format and photographed headers, no direct RAM dump. Linear tail262068 bytes. Next Query and ARM once each in same reader, photograph success before single P21M. No kernel attempt or TTBR-switch/retention result observed."
 [[area]]
 id = "diagnostics"
 status = "device-verified"
@@ -2441,3 +2469,10 @@ reference = "research/v23p21-vm-switch.json"
 revision = "fd764ab8149dbeae6addab7781825dbe6f962dc9"
 command = "Review P21 initial read-only reader photograph before session/Query/ARM"
 result = "P21 initial reader photo confirms VM SWITCH TRACE r1 at EL1; VALID next0x125fb/size0x3fff4 full circular console, displayed CRC633B24C3; logical/raw0, frozen ID0, all eight checkpoint and four terminal/failure rows zero; THIS RUN ID1/query0/armed0. No usable linear tail; explicit New linear session twice required before Query/ARM, then photograph success/NOW. Parent menu not pictured; whole-console CRC not independently recomputed. No P21 kernel attempt, TTBR switch or reboot-retention result observed."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p21-vm-switch.json"
+revision = "d046bfbe7a1b389159b84344522fbc828ea22f69"
+command = "Review explicit P21 session photo and independently recompute INIT CRC"
+result = "P21 New session OK observed in full photo: NOW VALID next=size0x40, logical/raw1/1, ID1/query0/armed0/EL1; frozen ENTRY still old full-ring header. Displayed INIT CRC B00D3D5C independently matches reconstruction from reader format and photographed headers, no direct RAM dump. Linear tail262068 bytes. Next Query and ARM once each in same reader, photograph success before single P21M. No kernel attempt or TTBR-switch/retention result observed."

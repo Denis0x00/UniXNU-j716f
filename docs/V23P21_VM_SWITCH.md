@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-P21M已构建并通过主机校验，现已仅刷入boot_b，重启命令成功；初始reader已确认，满环形日志需先新建线性会话。P20实机结果及旧镜像完整保留。
+P21M已构建并通过主机校验，现已仅刷入boot_b，重启命令成功；初始reader及显式线性会话成功已确认，Query/ARM和内核测试待进行。P20实机结果及旧镜像完整保留。
 继续原始VM准备、physmap/protection与qsort，执行原始TTBR1、TTBR0设置函数，
 完成原始TLBI/DSB/ISB后停在0xfffffff0073f5e0c，记录实际SCTLR_EL1并请求SYSTEM_RESET。
 **这仍不是arm_vm_init整体返回，不进入后续pmap_bootstrap。**
@@ -78,3 +78,12 @@ PSCI与FEATURES显示0为未查询状态，不是功能不支持的结论。
 旧数据仍可能被raw扫描视作陈旧记录；ENTRY冻结显示继续保留原始满环形状态。
 先拍New session OK和NOW新日志头，再核对后执行Query/ARM；尚无P21内核或根切换结果。
 原始照片仅私有保存，console CRC为照片显示值，未独立重算完整console。
+
+## 显式线性会话成功（2026-10-27）
+
+下一张完整照片显示New session OK；NOW VALID、next=size=0x40、logical/raw=1/1，
+THIS RUN仍ID1/query0/armed0/EL1。ENTRY冻结保留原next0x125fb/size0x3fff4，属预期。
+最后记录CRC=B00D3D5C；按reader格式重建INIT前48字节独立重算一致，
+INIT携带旧next/size，记录自身头字段来自重置后的空日志。未直接读取RAM原始字节。
+当前剩余线性空间262068字节，足够Query/ARM；冻结检查点及终点/failure仍零。
+下一步在同一reader内Query→ARM各一次，拍完整成功状态再核对；尚无P21内核或TTBR切换结果。
