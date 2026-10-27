@@ -732,6 +732,13 @@ reference = "research/v23p19-startup-init.json"
 revision = "f8cf6d2b480a0c26b36c3ece9eedd6116af0ff50"
 command = "Private workspace P19 machine-code/dependency/linked-reader checks and final image audit"
 result = "P19M built and host verified: 57 actual-kernel, six dependency and 31 linked-reader modeled cases; final image/source/HMAC/nonpayload/SEC checks pass. Original debug/startup (849 callbacks, 27 functions), timer_call_init, cpu_init and processor_bootstrap execute in host model; BL/LR and original error branches preserved. 191 high virtual data-page mappings checked against original tables. MIDR/cache/debug/DAIF/counter and MMU/SMC/UEFI are synthetic models, no device claim. Intentional SCTLR/M1 stop at0xfffffff0079e1b34 then SYSTEM_RESET request, before later arm_init/arm_vm_init. Uncommitted P19 additions on recorded base with exact hashes; no flash. P18 remains latest hardware baseline; no native provider/timer IRQ/scheduler/storage/userspace result."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p19-startup-init.json"
+revision = "7b6f57f39e752de887106201e1d7284168829fc7"
+command = "Review shared P19 boot_b launch status; preserve CPU/memory validation as pending until photographed reader results"
+result = "P19 build manifest now records boot_b flash/activation and successful reboot command after user recording readiness. Initial read-only reader, fresh Query/ARM and kernel execution remain unobserved. This launch adds no CPU or memory/retention qualification; P18 remains the latest hardware kernel baseline."
 [[area]]
 id = "memory"
 status = "device-verified"
@@ -1044,6 +1051,13 @@ reference = "research/v23p19-startup-init.json"
 revision = "f8cf6d2b480a0c26b36c3ece9eedd6116af0ff50"
 command = "Private workspace P19 machine-code/dependency/linked-reader checks and final image audit"
 result = "P19M built and host verified: 57 actual-kernel, six dependency and 31 linked-reader modeled cases; final image/source/HMAC/nonpayload/SEC checks pass. Original debug/startup (849 callbacks, 27 functions), timer_call_init, cpu_init and processor_bootstrap execute in host model; BL/LR and original error branches preserved. 191 high virtual data-page mappings checked against original tables. MIDR/cache/debug/DAIF/counter and MMU/SMC/UEFI are synthetic models, no device claim. Intentional SCTLR/M1 stop at0xfffffff0079e1b34 then SYSTEM_RESET request, before later arm_init/arm_vm_init. Uncommitted P19 additions on recorded base with exact hashes; no flash. P18 remains latest hardware baseline; no native provider/timer IRQ/scheduler/storage/userspace result."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p19-startup-init.json"
+revision = "7b6f57f39e752de887106201e1d7284168829fc7"
+command = "Review shared P19 boot_b launch status; preserve CPU/memory validation as pending until photographed reader results"
+result = "P19 build manifest now records boot_b flash/activation and successful reboot command after user recording readiness. Initial read-only reader, fresh Query/ARM and kernel execution remain unobserved. This launch adds no CPU or memory/retention qualification; P18 remains the latest hardware kernel baseline."
 [[area]]
 id = "storage"
 status = "planned"
