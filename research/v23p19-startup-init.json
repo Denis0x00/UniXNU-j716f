@@ -44,7 +44,7 @@
   "native_timer_driver_integrated": false,
   "proposed_partition": "boot_b",
   "next_variant": "m",
-  "status": "P19 initial read-only reader observed; valid linear header and sufficient tail; fresh Query/ARM and kernel attempt pending",
+  "status": "Fresh P19 ID1 Query/ARM confirmed; reconstructed ARM CRC17BBA853 matches; single kernel attempt pending",
   "source_checkout_base": "f8cf6d2b480a0c26b36c3ece9eedd6116af0ff50",
   "source_state": "P19 additions on recorded base; exact source and artifact hashes in this manifest",
   "prior_hardware_baseline": "P18 original boot CPU publication/validation, current-thread setter and rtclock_early_init return; nine CRCs retained over one video-observed reboot",
@@ -115,7 +115,7 @@
       "UEFI/input"
     ]
   },
-  "next_action": "In current reader, Query then ARM once each; photograph ID/ARM CRC/template status before single kernel launch",
+  "next_action": "Return to menu, continuously record exactly one P19M launch; first open reader and photograph full frozen page after reboot, before further Query/ARM",
   "limitations": [
     "P19 is host verified only; P18 remains latest device milestone.",
     "Original debug/startup now reads CNTVCT; reaching this group is not an advancing-counter or IRQ qualification.",
@@ -162,5 +162,43 @@
     "p19_kernel_launch_observed": false,
     "next_required_action": "In current reader, Query then ARM once each; photograph ID/ARM CRC/template status before single kernel launch"
   },
-  "published_diagnostic_source_revision": "7b6f57f39e752de887106201e1d7284168829fc7"
+  "published_diagnostic_source_revision": "7b6f57f39e752de887106201e1d7284168829fc7",
+  "fresh_query_arm_observation": {
+    "date": "2026-10-27",
+    "photo_sha256": "fe16232a6fca706ce18b756643668a1c5f108996567543c313adc9457f50e41d",
+    "identity": "J716F V23P19 STARTUP TRACE r1",
+    "frozen_entry_unchanged": true,
+    "frozen_entry_next": "0x2cbb8",
+    "frozen_entry_size": "0x2cbb8",
+    "frozen_entry_console_crc32": "0x22fc408c",
+    "frozen_checkpoint_id": 0,
+    "frozen_checkpoint_and_terminal_rows_zero": true,
+    "now_valid": true,
+    "now_next": "0x2ccf8",
+    "now_size": "0x2ccf8",
+    "logical_count": 5,
+    "raw_count": 5,
+    "this_run_id": 1,
+    "query_complete": true,
+    "armed": true,
+    "arm_crc32": "0x17bba853",
+    "current_el": 1,
+    "psci_version": "0x00010001",
+    "system_reset_features": "0x0000000000000000",
+    "status": "ARM + six invalid templates OK",
+    "reconstructed_arm": {
+      "id": 1,
+      "phase": 9,
+      "cookie": "0x5031394b45524e4c",
+      "prior_next": "0x2ccb8",
+      "prior_size": "0x2ccb8",
+      "crc32": "17BBA853",
+      "independent_crc_matches": true
+    },
+    "header_growth_bytes": 320,
+    "p19_kernel_launch_observed": false,
+    "derived_complete_terminal_header": "0x2cef8",
+    "derived_header_is_observed": false,
+    "next_required_action": "Return to menu, continuously record exactly one P19M launch; first open reader and photograph full frozen page after reboot, before further Query/ARM"
+  }
 }

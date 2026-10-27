@@ -15,8 +15,9 @@ model), timer_call_init/cpu_init/processor_bootstrap return group; terminal
 0xfffffff0079e1b34 before later arm_init/arm_vm_init. 57 kernel +6 dependency
 +31 linked-reader checks. MIDR/cache/debug/DAIF/counter, SP banks, MMU aliases,
 barriers, SMC and UEFI are modeled; no P19 kernel result. P19 initial reader confirmed EL1/VALID next=size0x2cbb8, logical/raw0,
-ID1/query0/armed0; 78908-byte tail needs no new session. Next Query/ARM once each
-and photograph ID/CRC/templates before single P19M. No P19 kernel result.
+ID1/query0/armed0; 78908-byte tail needs no new session. Fresh Query/ARM confirmed ID1/query1/armed1, CRC17BBA853 independently matches,
+next=size0x2ccf8 logical/raw5/5, six templates OK. Next continuous video of one
+P19M launch; first read-only reader after reboot before Query/ARM. No kernel result.
 
 P13–P19 are bounded diagnostics on a frozen source-built/prelinked kernel.
 Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.

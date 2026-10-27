@@ -26,7 +26,7 @@ P18 在rtclock_early_init返回后主动结束；cpu_bootstrap在该基线中只
 ## P19M 待实机测试
 
 [startup/timer/CPU/processor分组诊断](docs/V23P19_STARTUP_INIT.md)已构建，
-57项内核机器码、6项依赖和31项链接reader主机检查通过；现已仅刷入boot_b并成功发出重启命令，初始只读reader已确认，fresh Query/ARM和内核测试待进行。
+57项内核机器码、6项依赖和31项链接reader主机检查通过；现已仅刷入boot_b并成功发出重启命令，初始reader与fresh ID1 Query/ARM已确认，ARM CRC17BBA853重算匹配；内核测试待进行。
 保留原始startup回调及后续调用；processor_bootstrap返回后有意请求重启。
 P18仍是最新实机进度，timer IRQ/调度尚未验证。
 

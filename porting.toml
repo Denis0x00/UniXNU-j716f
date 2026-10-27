@@ -532,6 +532,13 @@ reference = "research/v23p19-startup-init.json"
 revision = "186c15b3693466dc84d15b38642c7d9e91e5d568"
 command = "Review P19 initial read-only reader photograph before Query/ARM"
 result = "P19 initial reader photo confirms STARTUP TRACE r1 at EL1, ENTRY/NOW VALID next=size0x2cbb8, displayed consoleCRC22FC408C, logical/raw0, frozenID0 and all checkpoint/terminal rows zero; THIS RUN ID1/query0/armed0. Linear tail78908 exceeds Query896 requirement; no new session needed. Parent menu not pictured, whole console CRC not independently recomputed. No fresh Query/ARM, kernel attempt or retention result; next photograph fresh Query/ARM before one P19M launch."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p19-startup-init.json"
+revision = "db327fd241ce7016d4fb080eaf99e653c752d3b4"
+command = "Review photographed fresh P19 Query/ARM and independently reconstruct phase9 CRC"
+result = "Fresh P19 Query/ARM photo: NOW VALID next=size0x2ccf8 logical/raw5/5, ID1/query1/armed1 ARM CRC17BBA853, EL1, PSCI1.1/SYSTEM_RESET FEATURES0; ARM + six invalid templates OK. ARM phase9 CRC independently reconstructs from cookie5031394b45524e4c and prior0x2ccb8. Growth320 matches four Query records plus ARM. Frozen initial ENTRY0x2cbb8/CRC22FC408C/ID0 rows unchanged. Single P19M launch pending, no kernel or retention result; complete terminal header0x2cef8 is derived only."
 [[area]]
 id = "cpu"
 status = "planned"
@@ -753,6 +760,13 @@ reference = "research/v23p19-startup-init.json"
 revision = "186c15b3693466dc84d15b38642c7d9e91e5d568"
 command = "Review P19 initial read-only reader photograph before Query/ARM"
 result = "P19 initial reader photo confirms STARTUP TRACE r1 at EL1, ENTRY/NOW VALID next=size0x2cbb8, displayed consoleCRC22FC408C, logical/raw0, frozenID0 and all checkpoint/terminal rows zero; THIS RUN ID1/query0/armed0. Linear tail78908 exceeds Query896 requirement; no new session needed. Parent menu not pictured, whole console CRC not independently recomputed. No fresh Query/ARM, kernel attempt or retention result; next photograph fresh Query/ARM before one P19M launch."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p19-startup-init.json"
+revision = "db327fd241ce7016d4fb080eaf99e653c752d3b4"
+command = "Review photographed fresh P19 Query/ARM and independently reconstruct phase9 CRC"
+result = "Fresh P19 Query/ARM photo: NOW VALID next=size0x2ccf8 logical/raw5/5, ID1/query1/armed1 ARM CRC17BBA853, EL1, PSCI1.1/SYSTEM_RESET FEATURES0; ARM + six invalid templates OK. ARM phase9 CRC independently reconstructs from cookie5031394b45524e4c and prior0x2ccb8. Growth320 matches four Query records plus ARM. Frozen initial ENTRY0x2cbb8/CRC22FC408C/ID0 rows unchanged. Single P19M launch pending, no kernel or retention result; complete terminal header0x2cef8 is derived only."
 [[area]]
 id = "memory"
 status = "device-verified"
@@ -1079,6 +1093,13 @@ reference = "research/v23p19-startup-init.json"
 revision = "186c15b3693466dc84d15b38642c7d9e91e5d568"
 command = "Review P19 initial read-only reader photograph before Query/ARM"
 result = "P19 initial reader photo confirms STARTUP TRACE r1 at EL1, ENTRY/NOW VALID next=size0x2cbb8, displayed consoleCRC22FC408C, logical/raw0, frozenID0 and all checkpoint/terminal rows zero; THIS RUN ID1/query0/armed0. Linear tail78908 exceeds Query896 requirement; no new session needed. Parent menu not pictured, whole console CRC not independently recomputed. No fresh Query/ARM, kernel attempt or retention result; next photograph fresh Query/ARM before one P19M launch."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p19-startup-init.json"
+revision = "db327fd241ce7016d4fb080eaf99e653c752d3b4"
+command = "Review photographed fresh P19 Query/ARM and independently reconstruct phase9 CRC"
+result = "Fresh P19 Query/ARM photo: NOW VALID next=size0x2ccf8 logical/raw5/5, ID1/query1/armed1 ARM CRC17BBA853, EL1, PSCI1.1/SYSTEM_RESET FEATURES0; ARM + six invalid templates OK. ARM phase9 CRC independently reconstructs from cookie5031394b45524e4c and prior0x2ccb8. Growth320 matches four Query records plus ARM. Frozen initial ENTRY0x2cbb8/CRC22FC408C/ID0 rows unchanged. Single P19M launch pending, no kernel or retention result; complete terminal header0x2cef8 is derived only."
 [[area]]
 id = "storage"
 status = "planned"
@@ -1563,6 +1584,13 @@ reference = "research/v23p19-startup-init.json"
 revision = "186c15b3693466dc84d15b38642c7d9e91e5d568"
 command = "Review P19 initial read-only reader photograph before Query/ARM"
 result = "P19 initial reader photo confirms STARTUP TRACE r1 at EL1, ENTRY/NOW VALID next=size0x2cbb8, displayed consoleCRC22FC408C, logical/raw0, frozenID0 and all checkpoint/terminal rows zero; THIS RUN ID1/query0/armed0. Linear tail78908 exceeds Query896 requirement; no new session needed. Parent menu not pictured, whole console CRC not independently recomputed. No fresh Query/ARM, kernel attempt or retention result; next photograph fresh Query/ARM before one P19M launch."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p19-startup-init.json"
+revision = "db327fd241ce7016d4fb080eaf99e653c752d3b4"
+command = "Review photographed fresh P19 Query/ARM and independently reconstruct phase9 CRC"
+result = "Fresh P19 Query/ARM photo: NOW VALID next=size0x2ccf8 logical/raw5/5, ID1/query1/armed1 ARM CRC17BBA853, EL1, PSCI1.1/SYSTEM_RESET FEATURES0; ARM + six invalid templates OK. ARM phase9 CRC independently reconstructs from cookie5031394b45524e4c and prior0x2ccb8. Growth320 matches four Query records plus ARM. Frozen initial ENTRY0x2cbb8/CRC22FC408C/ID0 rows unchanged. Single P19M launch pending, no kernel or retention result; complete terminal header0x2cef8 is derived only."
 [[area]]
 id = "diagnostics"
 status = "device-verified"
@@ -2091,3 +2119,10 @@ reference = "research/v23p19-startup-init.json"
 revision = "186c15b3693466dc84d15b38642c7d9e91e5d568"
 command = "Review P19 initial read-only reader photograph before Query/ARM"
 result = "P19 initial reader photo confirms STARTUP TRACE r1 at EL1, ENTRY/NOW VALID next=size0x2cbb8, displayed consoleCRC22FC408C, logical/raw0, frozenID0 and all checkpoint/terminal rows zero; THIS RUN ID1/query0/armed0. Linear tail78908 exceeds Query896 requirement; no new session needed. Parent menu not pictured, whole console CRC not independently recomputed. No fresh Query/ARM, kernel attempt or retention result; next photograph fresh Query/ARM before one P19M launch."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p19-startup-init.json"
+revision = "db327fd241ce7016d4fb080eaf99e653c752d3b4"
+command = "Review photographed fresh P19 Query/ARM and independently reconstruct phase9 CRC"
+result = "Fresh P19 Query/ARM photo: NOW VALID next=size0x2ccf8 logical/raw5/5, ID1/query1/armed1 ARM CRC17BBA853, EL1, PSCI1.1/SYSTEM_RESET FEATURES0; ARM + six invalid templates OK. ARM phase9 CRC independently reconstructs from cookie5031394b45524e4c and prior0x2ccb8. Growth320 matches four Query records plus ARM. Frozen initial ENTRY0x2cbb8/CRC22FC408C/ID0 rows unchanged. Single P19M launch pending, no kernel or retention result; complete terminal header0x2cef8 is derived only."

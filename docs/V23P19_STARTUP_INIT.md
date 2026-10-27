@@ -99,3 +99,14 @@ THIS RUN ID1/query0/armed0/CRC0，处于只读初始状态。父菜单未在照�
 下一步在当前reader内Query→ARM各一次，拍下ID/ARM CRC及模板结果，
 核对后才启动一次P19M。尚无本轮Query/ARM、内核检查点或重启保留结果。
 console CRC仅为照片显示值，没有完整console字节进行独立重算。
+
+## Fresh Query/ARM（2026-10-27）
+
+准备照片确认 NOW VALID next=size0x2ccf8，logical/raw=5/5，本次
+ID1/query1/armed1、EL1，PSCI1.1、SYSTEM_RESET FEATURES0；状态为
+ARM + six invalid templates OK。ARM CRC17BBA853按P19 cookie、ID1和
+prior0x2ccb8/0x2ccb8独立重算匹配。相对初始头增长320字节，符合四条Query记录加ARM。
+冻结初始ENTRY0x2cbb8/CRC22FC408C、ID0及零检查点行不变，是初始快照。
+
+接下来返回菜单，连续录像，仅启动一次P19M；重启后首先打开reader拍完整页，
+不先Query/ARM。尚无内核或重启保留结果；完整终点header0x2cef8只是推导值。
