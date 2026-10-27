@@ -1,0 +1,363 @@
+{
+  "date": "2026-10-27",
+  "kind": "source-and-existing-evidence-review",
+  "device_repository_base": "0a0c03039382fcbabdd8622f26f3de07eb4a8df9",
+  "scope": "Documentation refresh only; no build, prelink, firmware write or hardware test in this review.",
+  "upstream_sources": {
+    "UniXNU": {
+      "revision": "f85b5a60a90847dd1d640ee787b54f6a79333969",
+      "branch": "main",
+      "commit_date": "2026-10-26T18:35:18Z",
+      "message": "docs: refresh device records",
+      "files": {
+        "docs/zh/porting/bring-up.md": {
+          "sha256": "71d6c016867619da06d1cca56785794e0851997e976d54ce2bc1d6e894ad1642",
+          "url": "https://github.com/UniXNU/UniXNU/blob/f85b5a60a90847dd1d640ee787b54f6a79333969/docs/zh/porting/bring-up.md"
+        },
+        "docs/zh/porting/log-capture.md": {
+          "sha256": "a8c477357e7b8c79945c1b52dec35ca62f2f9a46c0bc065aa81901922be2d98f",
+          "url": "https://github.com/UniXNU/UniXNU/blob/f85b5a60a90847dd1d640ee787b54f6a79333969/docs/zh/porting/log-capture.md"
+        },
+        "docs/zh/porting/migration.md": {
+          "sha256": "6cc434883242868e7a04a5444e2378d73d662c3563368306ec1e844f68bc7e0f",
+          "url": "https://github.com/UniXNU/UniXNU/blob/f85b5a60a90847dd1d640ee787b54f6a79333969/docs/zh/porting/migration.md"
+        },
+        "docs/zh/porting/platform.md": {
+          "sha256": "53f0af3b06c9fefa69ec6b29d8764625bfa8d2d31f2603b8f951e684f3c4f4c9",
+          "url": "https://github.com/UniXNU/UniXNU/blob/f85b5a60a90847dd1d640ee787b54f6a79333969/docs/zh/porting/platform.md"
+        },
+        "patches/xnu/architectural-timer-entry.patch": {
+          "sha256": "809b0c951545d889a2a37c730189283e7e890340894bab6d937c914dbd20b8e5",
+          "url": "https://github.com/UniXNU/UniXNU/blob/f85b5a60a90847dd1d640ee787b54f6a79333969/patches/xnu/architectural-timer-entry.patch"
+        }
+      }
+    },
+    "UniXNU-sheng": {
+      "revision": "08cde20edc3254ed6f7df8d0f5384fb887786e8f",
+      "branch": "main",
+      "commit_date": "2026-10-25T23:34:42Z",
+      "message": "docs(porting): record the WiFi join and speed on sheng",
+      "files": {
+        "board.toml": {
+          "sha256": "01672a102e77bff734aea9c854d43e00e9f0bb04397fe1d2c3d93e61d32d56cf",
+          "url": "https://github.com/UniXNU/UniXNU-sheng/blob/08cde20edc3254ed6f7df8d0f5384fb887786e8f/board.toml"
+        },
+        "porting.toml": {
+          "sha256": "6c0f488657d79779dbeeeb4a7ab7289e2c09eb515aa4723fca72ca6426e86855",
+          "url": "https://github.com/UniXNU/UniXNU-sheng/blob/08cde20edc3254ed6f7df8d0f5384fb887786e8f/porting.toml"
+        },
+        "configs/sheng_defconfig": {
+          "sha256": "a5e84f2a4a6ad2ec4368890b344d173d1545ae4d7e55cd38957b03dee10b72c8",
+          "url": "https://github.com/UniXNU/UniXNU-sheng/blob/08cde20edc3254ed6f7df8d0f5384fb887786e8f/configs/sheng_defconfig"
+        },
+        "dts/sheng.dts": {
+          "sha256": "3a4d88129d44a98dd9ab9e22a338e3ea92a1389ac0fad700ba11980813ced655",
+          "url": "https://github.com/UniXNU/UniXNU-sheng/blob/08cde20edc3254ed6f7df8d0f5384fb887786e8f/dts/sheng.dts"
+        }
+      }
+    },
+    "UniXNU-sm8550-common": {
+      "revision": "23b2049fcd9e30356161def84231334fb55ecca9",
+      "branch": "main",
+      "commit_date": "2026-10-24T18:03:13Z",
+      "message": "docs: describe SM8550 ownership and agent workflow",
+      "files": {
+        "README.md": {
+          "sha256": "36793f92cc802e271027dcd2b1d760cfdc6ba808f7400c7f05ab1160e14090e9",
+          "url": "https://github.com/UniXNU/UniXNU-sm8550-common/blob/23b2049fcd9e30356161def84231334fb55ecca9/README.md"
+        },
+        "dts/sm8550.dtsi": {
+          "sha256": "3e6d53ad38c5d9d00c09c9bf76d8a4764af5efc45f67533a4aea1aeb8e4fb84f",
+          "url": "https://github.com/UniXNU/UniXNU-sm8550-common/blob/23b2049fcd9e30356161def84231334fb55ecca9/dts/sm8550.dtsi"
+        }
+      }
+    },
+    "ArmCpu": {
+      "revision": "9066b53bbc82e92a98ec44a11dd50fd13eaf1a1b",
+      "branch": "main",
+      "commit_date": "2026-10-24T18:03:51Z",
+      "message": "docs: document component scope and shared porting workflow",
+      "files": {
+        "ArmCpu.cpp": {
+          "sha256": "3c87b3bd617be5582a6a24ff797c359497ee9feaa702ee883ecee4270db21c9f",
+          "url": "https://github.com/UniXNU/ArmCpu/blob/9066b53bbc82e92a98ec44a11dd50fd13eaf1a1b/ArmCpu.cpp"
+        }
+      }
+    },
+    "uefi-sheng": {
+      "revision": "20ac23d5e0937106c2129303dfc931b3390ae660",
+      "branch": "sheng",
+      "commit_date": "2026-10-24T19:02:03Z",
+      "message": "docs: link saved build inputs and early boot diagnosis",
+      "files": {
+        "README.md": {
+          "sha256": "914c099fe06fbb6265171176456cdb71432fa80bc4d7f45c4dc4a2bd11443946",
+          "url": "https://github.com/UniXNU/uefi-sheng/blob/20ac23d5e0937106c2129303dfc931b3390ae660/README.md"
+        },
+        "Platforms/Xiaomi/shengPkg/sheng.dsc": {
+          "sha256": "ac57ebeb5ea9853e5daba7e65761fad253505f0f6e28d4c72df2560e9d4c0645",
+          "url": "https://github.com/UniXNU/uefi-sheng/blob/20ac23d5e0937106c2129303dfc931b3390ae660/Platforms/Xiaomi/shengPkg/sheng.dsc"
+        },
+        "Platforms/Xiaomi/shengPkg/sheng.fdf": {
+          "sha256": "0554c765ff1ec5d2989ba006818b30c5ef61aa6a559990fb511cfa849235af32",
+          "url": "https://github.com/UniXNU/uefi-sheng/blob/20ac23d5e0937106c2129303dfc931b3390ae660/Platforms/Xiaomi/shengPkg/sheng.fdf"
+        }
+      }
+    }
+  },
+  "upstream_delta": {
+    "previous_review": "ae687009348296e97e49ce6e925795044f363ce6",
+    "current_review": "f85b5a60a90847dd1d640ee787b54f6a79333969",
+    "commits": [
+      {
+        "sha": "f85b5a60a90847dd1d640ee787b54f6a79333969",
+        "message": "docs: refresh device records"
+      }
+    ],
+    "changed_paths": [
+      "devices.toml",
+      "docs/.vitepress/device-catalog.json",
+      "docs/.vitepress/device-records/camellia.toml",
+      "docs/.vitepress/device-records/cas.toml",
+      "docs/.vitepress/device-records/cheeseburger.toml",
+      "docs/.vitepress/device-records/fuxi-mouse233.toml",
+      "docs/.vitepress/device-records/hero2lte.toml",
+      "docs/.vitepress/device-records/instantnoodlep-zhangp996.toml",
+      "docs/.vitepress/device-records/instantnoodlep.toml",
+      "docs/.vitepress/device-records/j716f-emptyghost.toml",
+      "docs/.vitepress/device-records/j716f.toml",
+      "docs/.vitepress/device-records/kebab-stevedang67889.toml",
+      "docs/.vitepress/device-records/oneplus13t.toml",
+      "docs/.vitepress/device-records/sirius-yooglery.toml",
+      "docs/.vitepress/device-records/sirius.toml",
+      "docs/.vitepress/device-records/sm-t733.toml",
+      "docs/devices/alioth-fjcx555.md",
+      "docs/devices/alioth-songchiyu.md",
+      "docs/devices/alioth.md",
+      "docs/devices/bbk-a2.md",
+      "docs/devices/camellia.md",
+      "docs/devices/cas.md",
+      "docs/devices/cheeseburger.md",
+      "docs/devices/d2xq.md",
+      "docs/devices/dizi.md",
+      "docs/devices/fuxi-kerfand.md",
+      "docs/devices/fuxi-mouse233.md",
+      "docs/devices/hero2lte.md",
+      "docs/devices/houji-kizashi3.md",
+      "docs/devices/index.md",
+      "docs/devices/instantnoodlep-zhangp996.md",
+      "docs/devices/instantnoodlep.md",
+      "docs/devices/j716f-emptyghost.md",
+      "docs/devices/j716f.md",
+      "docs/devices/kebab-stevedang67889.md",
+      "docs/devices/lumia950-twisstedtoast.md",
+      "docs/devices/oneplus13t.md",
+      "docs/devices/sirius-yooglery.md",
+      "docs/devices/sirius.md",
+      "docs/devices/sm-t733.md",
+      "docs/devices/songyuan.md",
+      "docs/devices/umi-agxmx666.md",
+      "docs/devices/umi-neowiseq.md",
+      "docs/zh/devices/alioth-fjcx555.md",
+      "docs/zh/devices/alioth-songchiyu.md",
+      "docs/zh/devices/alioth.md",
+      "docs/zh/devices/bbk-a2.md",
+      "docs/zh/devices/camellia.md",
+      "docs/zh/devices/cas.md",
+      "docs/zh/devices/cheeseburger.md",
+      "docs/zh/devices/d2xq.md",
+      "docs/zh/devices/dizi.md",
+      "docs/zh/devices/fuxi-kerfand.md",
+      "docs/zh/devices/fuxi-mouse233.md",
+      "docs/zh/devices/hero2lte.md",
+      "docs/zh/devices/houji-kizashi3.md",
+      "docs/zh/devices/index.md",
+      "docs/zh/devices/instantnoodlep-zhangp996.md",
+      "docs/zh/devices/instantnoodlep.md",
+      "docs/zh/devices/j716f-emptyghost.md",
+      "docs/zh/devices/j716f.md",
+      "docs/zh/devices/kebab-stevedang67889.md",
+      "docs/zh/devices/lumia950-twisstedtoast.md",
+      "docs/zh/devices/oneplus13t.md",
+      "docs/zh/devices/sirius-yooglery.md",
+      "docs/zh/devices/sirius.md",
+      "docs/zh/devices/sm-t733.md",
+      "docs/zh/devices/songyuan.md",
+      "docs/zh/devices/umi-agxmx666.md",
+      "docs/zh/devices/umi-neowiseq.md"
+    ],
+    "conclusion": "Only device catalog/record documentation changed; no new core MMU, timer-entry, ArmCpu or sheng implementation fix found in this delta.",
+    "build_pin_changed": false,
+    "current_build_pin": "42bffe8a56823dad2e448c776b4f94862f3e290a"
+  },
+  "current_device_milestone": {
+    "version": "V23P21M",
+    "reference": "research/v23p21-vm-switch.json",
+    "scope": "Original TTBR1/TTBR0 setters returned and original TLBI/DSB/ISB completed; immediate bounded stop before full arm_vm_init return.",
+    "six_slots_logical_raw_hits": "1/1 each",
+    "nine_record_crcs_match": true,
+    "terminal_sctlr": "0x3454593d",
+    "observed_reboot_retention": true,
+    "reset_requested_by_diagnostic": true,
+    "reset_source_independently_proven": false
+  },
+  "prepared_candidate": {
+    "version": "V23P22M",
+    "reference": "research/v23p22-vm-return.json",
+    "kernel_cases": 26,
+    "dependency_cases": 8,
+    "reader_cases": 31,
+    "hardware_verified": false,
+    "device_writes_performed": false,
+    "test_deferred_by_user": true,
+    "targets": [
+      "PMAP_BOOTSTRAP_RETURN",
+      "VM_FINAL_READY",
+      "ARM_VM_RETURN"
+    ],
+    "lifetime_limit": "Static bootstrap log subtables reviewed only through the immediate original arm_vm_init caller return; host model, no P22 silicon qualification."
+  },
+  "sheng_comparison": {
+    "source": "UniXNU-sheng/porting.toml at 08cde20edc3254ed6f7df8d0f5384fb887786e8f",
+    "maintainer_device_records": [
+      "GPU workload",
+      "Wi-Fi join and throughput",
+      "audio playback/capture",
+      "charging",
+      "CPU/GPU frequency changes"
+    ],
+    "independently_retested_here": false,
+    "known_limits": [
+      "Wi-Fi throughput/password persistence",
+      "speaker tuning/protection",
+      "low-battery shutdown panic"
+    ],
+    "reusable_patterns": [
+      "ArmDTPlatform and ArmCpu archive/initialization integration",
+      "GIC timer PPI27 to rtclock_intr with observable counters",
+      "DTS/ADT/PSCI resource consistency",
+      "storage-bound persistent logger and read-only Linux reader after storage qualification"
+    ],
+    "not_transferable_as_board_facts": [
+      "SM8550 MMIO addresses",
+      "CPU affinity/SMP/IPI policy",
+      "UFS/SMMU/power values",
+      "userdata/log partition offsets"
+    ]
+  },
+  "project_stage": "Upstream bring-up stage 5 in progress; stages 6 storage/root and 7 userspace unverified. Reaching PE_init_platform does not prove IOKit platform-provider matching.",
+  "native_candidate": {
+    "reference": "docs/NATIVE_PLATFORM_SOURCE_CANDIDATE.md",
+    "source_build_ci_success_revision": "816e3c554af49ffb50c82a9eece504cf76e1f0b8",
+    "separate_from_frozen_diagnostics": true,
+    "prelink_or_hardware_irq_verified": false
+  },
+  "ci_snapshot": {
+    "UniXNU-j716f": [
+      {
+        "id": 40442160497,
+        "name": "J716F XNU source build",
+        "head_sha": "0a0c03039382fcbabdd8622f26f3de07eb4a8df9",
+        "event": "push",
+        "status": "in_progress",
+        "conclusion": null,
+        "html_url": "https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40442160497"
+      },
+      {
+        "id": 40442160496,
+        "name": "Porting record",
+        "head_sha": "0a0c03039382fcbabdd8622f26f3de07eb4a8df9",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40442160496"
+      },
+      {
+        "id": 40438699733,
+        "name": "Porting record",
+        "head_sha": "c35197e51c6f9c67bfb08b9532c91c159832082f",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40438699733"
+      },
+      {
+        "id": 40438699447,
+        "name": "J716F XNU source build",
+        "head_sha": "c35197e51c6f9c67bfb08b9532c91c159832082f",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40438699447"
+      },
+      {
+        "id": 40438237824,
+        "name": "Porting record",
+        "head_sha": "4f7afbe68e6fa3dbe927aa885a627d681d60e128",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40438237824"
+      }
+    ],
+    "uefi-j716f": [
+      {
+        "id": 40442169963,
+        "name": "J716F UEFI source checks",
+        "head_sha": "7af29c4b220b7fba38bee8d5ba44509445b11b46",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/Denis0x00/uefi-j716f/actions/runs/40442169963"
+      },
+      {
+        "id": 40438706143,
+        "name": "J716F UEFI source checks",
+        "head_sha": "9b3ff8674e24c3d65fe6060e126e84bafb5e1079",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/Denis0x00/uefi-j716f/actions/runs/40438706143"
+      },
+      {
+        "id": 40438244941,
+        "name": "J716F UEFI source checks",
+        "head_sha": "aa6efff3c896c8c21b5bfb9d9c036eae8185c47b",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/Denis0x00/uefi-j716f/actions/runs/40438244941"
+      },
+      {
+        "id": 40438030135,
+        "name": "J716F UEFI source checks",
+        "head_sha": "588e40ae1e4f9028b2ba587b2f0927a0eff9ded8",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/Denis0x00/uefi-j716f/actions/runs/40438030135"
+      },
+      {
+        "id": 40437787095,
+        "name": "J716F UEFI source checks",
+        "head_sha": "0411b13871e99d06e48e12e27a4b7f06c7701168",
+        "event": "push",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/Denis0x00/uefi-j716f/actions/runs/40437787095"
+      }
+    ]
+  },
+  "next_actions": [
+    "Keep P22 unflashed until user resumes this test; then one fresh version-bound Query/ARM launch on boot_b with reader photos before and after.",
+    "Qualify the native platform candidate prelink and ABI with single-core ADT; observe provider match, CPU registration, advancing timebase and real timer IRQ counts.",
+    "Qualify scheduling before secondary CPUs; inventory UFS clocks/PHY/SMMU/DMA, then controlled reads and root volume.",
+    "Add persistent storage logger/Linux reader and manually complete one retrieval/bootloader-return cycle before unattended testing."
+  ],
+  "preserved_evidence_sha256": {
+    "research\\v23p21-vm-switch.json": "97b50a4908e0c5a92d55696bad2277506eb3e1409fba3b4b1db929edee0988de",
+    "research\\v23p22-vm-return.json": "e52888c5992b23fadede6b41bdfaeb4d8c9b5fd65478d0baa5eab9abdecae6b0",
+    "docs\\v23p21-validation.json": "faef68132df767bb064f2277cec53e0741aefd755bfcdca1ca7fc2f5a7af11be",
+    "docs\\v23p22-validation.json": "dcfe3a0c9a218f24ff871717156038fae4a9011c74ad920b1d3ce981e025ef67"
+  }
+}

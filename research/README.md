@@ -1,4 +1,13 @@
-# Research notes
+# 研究与证据索引
+
+## 当前入口（2026-10-27）
+
+- 最新实机：[P21 VM 切换](v23p21-vm-switch.json)。
+- 已构建待测：[P22 VM 返回](v23p22-vm-return.json)，尚未刷入。
+- [最新上游与 sheng 对照](upstream-progress-review-20261027-p22.json)及[进度说明](../docs/PROGRESS_AFTER_V23P22_20261027.md)。
+- [权威移植记录](../porting.toml)。下文保留各时间点的历史记录，“最新准备”等措辞仅适用于当时。
+
+## 历史记录（按原时间顺序保留）
 
 最新准备：[V23P8 retention](v23p8-retention.json)，测试步骤见
 [V23P8](../docs/V23P8_RETENTION.md)。它区分无效日志头与仍可识别的载荷字节，
