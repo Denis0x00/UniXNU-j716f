@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-P21M已构建并通过主机校验，现已仅刷入boot_b，重启命令成功；初始reader及显式线性会话成功已确认，Query/ARM和内核测试待进行。P20实机结果及旧镜像完整保留。
+P21M已构建并通过主机校验，现已仅刷入boot_b，重启命令成功；初始reader、线性会话及fresh Query/ARM已确认，单次内核测试待进行。P20实机结果及旧镜像完整保留。
 继续原始VM准备、physmap/protection与qsort，执行原始TTBR1、TTBR0设置函数，
 完成原始TLBI/DSB/ISB后停在0xfffffff0073f5e0c，记录实际SCTLR_EL1并请求SYSTEM_RESET。
 **这仍不是arm_vm_init整体返回，不进入后续pmap_bootstrap。**
@@ -87,3 +87,15 @@ THIS RUN仍ID1/query0/armed0/EL1。ENTRY冻结保留原next0x125fb/size0x3fff4�
 INIT携带旧next/size，记录自身头字段来自重置后的空日志。未直接读取RAM原始字节。
 当前剩余线性空间262068字节，足够Query/ARM；冻结检查点及终点/failure仍零。
 下一步在同一reader内Query→ARM各一次，拍完整成功状态再核对；尚无P21内核或TTBR切换结果。
+
+## Fresh Query/ARM（2026-10-27）
+
+照片确认NOW VALID next=size0x180、logical/raw6/6，THIS RUN ID1/query1/armed1，
+EL1、PSCI1.1、SYSTEM_RESET FEATURES0，底部ARM + six invalid templates OK。
+按P21 cookie5032314b45524e4c、ID1、phase9及ARM前头0x140/0x140重建记录，
+CRC145911AB独立重算匹配；不是原始RAM转储。相对新会话0x40增长320字节，
+符合四条Query记录加ARM；六条有效记录包含先前INIT，六个模板仍无效待内核提交。
+ENTRY冻结旧满环形头、ID0和零检查点行为预期，不代表ARM失败。
+
+下一步返回菜单并连续录像，只启动一次P21M；重启后首先打开P21 reader拍完整页，
+先不Query/ARM。若停住先保留画面和等待时长。当前尚无内核、TTBR切换或重启保留结果。

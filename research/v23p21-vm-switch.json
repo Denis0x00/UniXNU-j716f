@@ -266,7 +266,7 @@
   "next_variant": "m",
   "source_checkout_base": "47dacd6fb374463d7eab5a0124f3ef044c47ad3a",
   "source_state": "Independent P21 additions on recorded base; exact source/artifact hashes bind this build",
-  "status": "P21 explicit linear session successful; INIT CRC independently matches; ID1/query0/armed0, fresh Query/ARM and kernel attempt pending",
+  "status": "Fresh P21 ID1 Query/ARM confirmed; ARM CRC145911AB independently matches; one kernel attempt pending",
   "prior_hardware_baseline": "P20 original VM allocation/layout/protection return before TCR/TTBR; nine CRCs retained over one video-observed reboot",
   "arm_cookie": "0x5032314b45524e4c",
   "slot_tag": "0x5032315300000000",
@@ -334,7 +334,7 @@
     ],
     "counter": "constant19200000; no entropy or advancement qualification"
   },
-  "next_action": "In this same reader, Query PSCI + record once, then ARM next kernel attempt once; photograph full page showing Query/ARM/template success before returning to menu or launching P21M.",
+  "next_action": "Return to menu and continuously record exactly one P21M launch; after reboot open P21 reader FIRST and photograph full page before Query/ARM. If stalled, preserve screen and report wait duration.",
   "limitations": [
     "Host qualification only; P20 remains latest device result.",
     "Stop follows original TTBR1/TTBR0 setters and TLB sync, but arm_vm_init has not fully returned.",
@@ -413,5 +413,42 @@
     "terminal_map_failure_reset_return_raw_hits_zero": true,
     "p21_kernel_launch_observed": false,
     "next_required_action": "In this same reader, Query PSCI + record once, then ARM next kernel attempt once; photograph full page showing Query/ARM/template success before returning to menu or launching P21M."
+  },
+  "fresh_query_arm_observation": {
+    "date": "2026-10-27",
+    "photo_sha256": "08d07dd2bbd6897df6c827f8e5d8a9b5111509da946ab04160155e69379c6dd2",
+    "identity": "J716F V23P21 VM SWITCH TRACE r1",
+    "frozen_entry_unchanged": true,
+    "frozen_entry_next": "0x125fb",
+    "frozen_entry_size": "0x3fff4",
+    "frozen_entry_console_crc32": "0x633b24c3",
+    "frozen_checkpoint_id": 0,
+    "frozen_checkpoint_and_terminal_rows_zero": true,
+    "now_valid": true,
+    "now_next": "0x180",
+    "now_size": "0x180",
+    "logical_count": 6,
+    "raw_count": 6,
+    "this_run_id": 1,
+    "query_complete": true,
+    "armed": true,
+    "arm_crc32": "0x145911ab",
+    "current_el": 1,
+    "psci_version": "0x00010001",
+    "system_reset_features": "0x0000000000000000",
+    "status": "ARM + six invalid templates OK",
+    "reconstructed_arm": {
+      "id": 1,
+      "phase": 9,
+      "cookie": "0x5032314b45524e4c",
+      "prior_next": "0x140",
+      "prior_size": "0x140",
+      "crc32": "145911AB",
+      "independent_crc_matches": true
+    },
+    "crc_scope": "Reconstructed ARM prefix using checked reader format and photographed headers, not a raw RAM dump",
+    "header_growth_since_session_bytes": 320,
+    "p21_kernel_launch_observed": false,
+    "next_required_action": "Return to menu and continuously record exactly one P21M launch; after reboot open P21 reader FIRST and photograph full page before Query/ARM. If stalled, preserve screen and report wait duration."
   }
 }

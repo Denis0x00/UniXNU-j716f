@@ -33,7 +33,9 @@ already mapped in P20. Console mapping was absent; legacy high-gap report supers
 No real TLB/cache/register/IRQ claim. P20 hardware result remains latest.
 Explicit session now confirmed: NOW VALID next=size0x40 logical/raw1, ID1/query0/armed0;
 INIT CRC B00D3D5C independently matches reconstructed record. ENTRY stays frozen.
-Next fresh Query/ARM once each in same reader, review success photo before one P21M; reader FIRST after reboot. No repeat flash required. Never rerun old recorders.
+Fresh Query/ARM confirmed ID1/query1/armed1, ARM CRC145911AB independently matches;
+NOW next=size0x180 logical/raw6/6, PSCI1.1/FEATURES0, six templates OK.
+Next one continuously recorded P21M launch; reader FIRST after reboot. No repeat flash required. Never rerun old recorders.
 
 P13–P21 are bounded diagnostics on a frozen source-built/prelinked kernel.
 Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.
