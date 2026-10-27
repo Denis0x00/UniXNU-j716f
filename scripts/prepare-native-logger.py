@@ -15,8 +15,8 @@ import shutil
 PREIMAGES = {
  'osfmk/arm64/start.s': '837c29dbd72fbbbcf5e142821a3de773d727ef8072eccb6a980b84cb7e99091f',
  'osfmk/arm64/arm_vm_init.c': '372d0449a312dc4391aa1e6b5adee35dd2a87b4c7beb0000954a3d84808493e3',
- 'osfmk/arm/arm_init.c': '02b768806f3b56e2db6ae57b8e6e9ad6783a7686d1ebc50ec170f543be369a46',
- 'osfmk/arm64/sleh.c': 'c190c36f36a0c799b7b13af8d485fd6bfce2d604b51bf3a4f0499eaf33377bfe',
+ 'osfmk/arm/arm_init.c': '46dabcb3fa33b61787fbadf46a8438aa9cd1109428a0294cb0c734997238feb8',
+ 'osfmk/arm64/sleh.c': '10638ba610f21870182dd4b9ff6f5503fc320de5073bf7c1cfbef64b0a4c124a',
  'osfmk/kern/sched_prim.c': '7a8a87dd5ee0d04b4284a3c16765b063e0ea328d147722cbc035d9880cb84a8c',
  'osfmk/conf/Makefile.arm64': '83e43ad7ccd513e87fc3594b5242e8ba5aa465bac4d51fb8bdfc722fd502155b',
 }

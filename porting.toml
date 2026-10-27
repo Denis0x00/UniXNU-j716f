@@ -1853,6 +1853,11 @@ limits = ["Private payload binaries and vendor inputs are excluded. Bounded MMU-
 next_action = ["CI40448429664 baseline received/prelinked (kernel c74b038d, 52248576 bytes); preserve provenance. Build a new logger candidate and dedicated payload/firmware, then reverse-audit native kernel/ADT/reader through final boot image. No hardware admission yet."]
 
 [[area.evidence]]
+kind = "source"
+reference = "scripts/prepare-native-logger.py"
+result = "CI40457413880 passed transfer/host tests, then correctly refused an arm_init.c preimage mismatch before compilation. A fresh local replay of the full pinned series (including the existing boot-progress compatibility fix) isolated the differences to upstream boot-progress hooks in arm_init.c and sleh.c. Reviewed exact post-series hashes replace the incomplete-tree hashes; refusal is not relaxed. The regenerated device patch applies cleanly; no new linked kernel yet."
+
+[[area.evidence]]
 kind = "host"
 reference = "docs/NATIVE_MAINLINE.md"
 result = "2026-10-27 baseline received with six artifact checks, source provider definitions and observer ABI; fixed XnuPrelink preserves native executable segments and crypto POST HMAC. Prelinked SHA256 c74b038df2afb8bf260491f0168e44b47dde04e353575f489ecfd16c575f46e6. Not a final image or logger-qualified launch candidate."
@@ -2221,6 +2226,11 @@ findings = ["2026-10-27 P22显式线性会话成功照片确认：NOW VALID next
 completion = ["Each claimed milestone has a reproducible command, matching source/image revision and an accessible result."]
 limits = ["No UART capture is available. Bounded MMU-on and P16 early-init records survive an observed reboot; sustained execution, platform drivers, UFS/root and userspace remain unverified."]
 next_action = ["P22 is closed; preserve all evidence. Establish candidate/session-bound recoverable entry/VM/platform/exception/IRQ records and a read-only reader before hardware."]
+
+[[area.evidence]]
+kind = "source"
+reference = "scripts/prepare-native-logger.py"
+result = "CI40457413880 failure was a pre-compilation input gate, not a hardware event. Full ordered source replay corrected the two reviewed boot-progress preimages; all other preimages remain byte-identical. Keep failed CI and local attempts as evidence; do not weaken patch or linked-code gates."
 
 [[area.evidence]]
 kind = "host"
