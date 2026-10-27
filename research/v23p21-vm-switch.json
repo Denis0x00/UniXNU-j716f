@@ -238,7 +238,20 @@
       },
       "host_checks_passed": true,
       "hardware_verified": false,
-      "device_writes_performed": false
+      "device_writes_performed": true,
+      "device_launch": {
+        "partition_images_flashed": [
+          "boot_b"
+        ],
+        "current_slot_before_reboot": "b",
+        "slot_unbootable_b_before_reboot": false,
+        "reboot_command_succeeded": true,
+        "image_sha256": "77f3a49bff49f9bf842cb4715649f3c862c0084b81564e31d1e997e92f180131",
+        "menu_identity_observed": false,
+        "manual_kernel_start_required": true,
+        "recording_ready_user_confirmed": true,
+        "hardware_verified": false
+      }
     }
   },
   "kernel_logic_cases": 26,
@@ -246,14 +259,14 @@
   "dependency_logic_cases": 5,
   "power_logic_cases_reused_for_identical_app": 22,
   "hardware_verified": false,
-  "device_writes_performed": false,
+  "device_writes_performed": true,
   "source_native_arch_timer_kernel": false,
   "native_timer_driver_integrated": false,
   "proposed_partition": "boot_b",
   "next_variant": "m",
   "source_checkout_base": "47dacd6fb374463d7eab5a0124f3ef044c47ad3a",
   "source_state": "Independent P21 additions on recorded base; exact source/artifact hashes bind this build",
-  "status": "P21M built and host qualified, unflashed; P20 remains latest bounded hardware milestone",
+  "status": "P21M flashed only to boot_b and reboot command succeeded; reader/ARM/kernel observations pending",
   "prior_hardware_baseline": "P20 original VM allocation/layout/protection return before TCR/TTBR; nine CRCs retained over one video-observed reboot",
   "arm_cookie": "0x5032314b45524e4c",
   "slot_tag": "0x5032315300000000",
@@ -321,7 +334,7 @@
     ],
     "counter": "constant19200000; no entropy or advancement qualification"
   },
-  "next_action": "When fastboot and recording ready: boot_b only, P21 reader FIRST, photograph initial page; fresh Query then ARM once each and photograph; one P21M launch; reader FIRST after reboot.",
+  "next_action": "Open P21 reader and photograph the full initial read-only page before Query/ARM; menu identity and kernel attempt not yet observed.",
   "limitations": [
     "Host qualification only; P20 remains latest device result.",
     "Stop follows original TTBR1/TTBR0 setters and TLB sync, but arm_vm_init has not fully returned.",
@@ -334,5 +347,7 @@
     "scripts/build-v23p21-kernel.py": "d60b378a241c6f1eaba6791f6c2c2a3a7525415112a271448398cd3265f8314e",
     "scripts/v23p21-switch.S": "9b6a1a2bdd19875cf0a304c68493b5356ebd160261affc8acb18f2023ee8d659",
     "scripts/decode-j716f-v23p21.py": "a1bf022c39920dba28d199acbbb0f197ab2e438b547a41767f2a8fbcf1990f78"
-  }
+  },
+  "menu_launch_recorded": true,
+  "published_source_revision_at_launch": "cac6434346472c840ed8a55add0b6cd265523338"
 }

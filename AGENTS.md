@@ -18,7 +18,8 @@ No repeat P20 needed; preserve P19 and all earlier version-specific evidence.
 27 kernel +5 dependency +31 linked-reader host cases remain bounded mocked checks.
 Never rerun build-only recorders over results or reuse consumed ARM.
 
-P21M built/host qualified, UNFLASHED. Read `docs/V23P21_VM_SWITCH.md` and
+P21M built/host qualified; flashed only to boot_b, B active/bootable verified,
+reboot command succeeded; menu identity and initial read-only reader pending. Read `docs/V23P21_VM_SWITCH.md` and
 `research/v23p21-vm-switch.json`. 26 kernel +5 dependency +31 linked-reader cases.
 Original TTBR1/TTBR0 BL/LR preserved; console bridge changes only empty root0 L1 slot2,
 borrowing console-only bootstrap L2/L3 until immediate stop0xfffffff0073f5e0c after
@@ -27,7 +28,7 @@ halt before later witness/root replacement. Shared CRC leaves probe within2800 b
 TCR-aware walker correction: T1SZ26 =>38-bit VA, eight-bit L1 index; high probe/stack
 already mapped in P20. Console mapping was absent; legacy high-gap report superseded.
 No real TLB/cache/register/IRQ claim. P20 hardware result remains latest.
-Next boot_b only with current fastboot/recording readiness, P21 reader FIRST,
+Next P21 reader FIRST before Query/ARM; no repeat flash required,
 fresh Query/ARM photo, one P21M; reader FIRST after reboot. Never rerun old recorders.
 
 P13–P21 are bounded diagnostics on a frozen source-built/prelinked kernel.

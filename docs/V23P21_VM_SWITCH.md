@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-P21M已构建并通过主机校验，尚未刷入。P20实机结果及旧镜像完整保留。
+P21M已构建并通过主机校验，现已仅刷入boot_b，重启命令成功；初始画面待确认。P20实机结果及旧镜像完整保留。
 继续原始VM准备、physmap/protection与qsort，执行原始TTBR1、TTBR0设置函数，
 完成原始TLBI/DSB/ISB后停在0xfffffff0073f5e0c，记录实际SCTLR_EL1并请求SYSTEM_RESET。
 **这仍不是arm_vm_init整体返回，不进入后续pmap_bootstrap。**
@@ -55,3 +55,12 @@ P21在两个新根安装之前检查TCR、MAIR、旧根关系、精确console子
 按[设备记录要求](https://unixnu.com/zh/porting/device-repository/)分开源码、主机和设备证据。
 冻结source pin/内核/ADT与native候选不改变，不搬用sheng/SM8550物理地址。
 结构化记录：设备research/v23p21-vm-switch.json；固件docs/v23p21-validation.json为构建快照。
+
+## boot_b 刷入与重启命令（2026-10-27）
+
+本轮录像已获用户确认，镜像哈希、唯一设备、模式、解锁、槽数及容量核对通过。
+仅刷入boot_b，激活B槽并核对可启动，重启命令成功。镜像SHA256：
+`77f3a49bff49f9bf842cb4715649f3c862c0084b81564e31d1e997e92f180131`。
+
+菜单及reader画面尚待照片确认；尚无本轮Query/ARM、内核启动或根切换实机结果。
+下一步首先打开P21 reader拍完整初始页，先不Query/ARM。P20仍为最新内核实机里程碑。
