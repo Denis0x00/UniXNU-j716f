@@ -150,7 +150,35 @@ def check_report(report, lock):
             raise ValueError('Wrong native driver revision: '+name)
     if not report.get('armcpu_driver_linked') or not report.get('armdt_platform_driver_linked'):
         raise ValueError('Driver link gates did not pass')
+    expected_logger = lock.get('persistent_logger_in_selected_artifact')
+    if type(expected_logger) is not bool:
+        raise ValueError('Lock must explicitly select logger or historical baseline')
+    log = report.get('native_early_log', {})
+    if expected_logger:
+        candidate = lock.get('logger_candidate_sha256', '')
+        if (len(candidate) != 64 or any(c not in '0123456789abcdef' for c in candidate) or
+                report.get('recoverable_logger_requested') is not True or
+                log.get('candidate_sha256') != candidate or
+                log.get('linked', {}).get('candidate_sha256') != candidate or
+                log['linked'].get('kernel_sha256') != entries[KERNEL]['sha256'] or
+                log['linked'].get('launch_admitted') is not False):
+            raise ValueError('Source report is not the selected linked logger candidate')
+    elif log or report.get('recoverable_logger_requested'):
+        raise ValueError('Logger candidate cannot be received under a historical baseline lock')
     return names, entries
+
+
+def check_selected_logger(path, report, lock):
+    """Recheck actual local bytes, never promote a CI summary into evidence."""
+    if not lock['persistent_logger_in_selected_artifact']:
+        return None
+    result = load_module('check-native-logger').check(path, lock['logger_candidate_sha256'])
+    linked = report['native_early_log']['linked']
+    for key in ('candidate_sha256', 'window_segment', 'window_va', 'window_bytes',
+                'symbols', 'source_crypto_hmac', 'pre_mmu'):
+        if result[key] != linked.get(key):
+            raise ValueError('Local logger audit disagrees with source CI: '+key)
+    return result
 
 
 def check_board(board):

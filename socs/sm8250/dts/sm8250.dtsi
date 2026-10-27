@@ -25,6 +25,7 @@
     };
 
     timer {
+        unixnu,adt-name = "timer";
         compatible = "arm,armv8-timer";
         clock-frequency = <19200000>;
         // Binding order and flags independently agree in stock/recovery FDT.

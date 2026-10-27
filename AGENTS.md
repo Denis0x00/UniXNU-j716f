@@ -18,16 +18,30 @@ payload settings are archived in docs/archive/board-v17.toml; P22 is a different
 historical packaging path. Native packaging must never inherit timed entry
 reset or binary cave patches. Keep the UniXNU source pin unchanged.
 
-Selected receive-only baseline: run40448429664/attempt1 at fcf79e5624c2ab2b0d3c090a3f522fe494a89bdc,
-locked in configs/native-candidate-lock.json. This artifact contains the
-volatile IRQ observer, NOT the new recoverable early logger. Do not describe
-it as hardware-ready after prelink alone. A logger rebuild needs its own lock.
+Selected native logger: run40458123294/attempt1 at
+474c8a65b731d293987afdf550112f7b02f9ea32, locked separately in
+configs/native-log-candidate-40458123294.json. Receive, XnuPrelink, separate
+reader/ARM, dedicated FD and final Android image reverse-audit now pass on the
+host. Final boot SHA256 is
+801ddb86b29844e316053f4d061a9fd2cb266e47f1c27ed1d46745b036dbb8e7.
+There has been NO native hardware launch, retention, IRQ or scheduling result.
+The older run40448429664 lock/receipt remains historical, without this logger.
 
-Next outcome: exact native provenance through prelink/payload/final image plus
-recoverable entry/VM/platform/exception/IRQ evidence. Then verify platform
+Next outcome: review the host-audited image and recovery plan, then obtain
+separate user authorization for a reader-only boot_b test. Native launch needs
+another explicit gate: physical RAM retention and recovery after a hang remain
+unqualified. Then verify platform
 matching -> CPU registration -> GIC -> real timer IRQ/rtclock/EOI -> single-core
 scheduling on the SAME candidate. UFS/root/userspace follow that gate.
 No device write/reboot is authorized by a host build or checker.
+
+The generic board.toml firmware route still names the historical DSC; its
+preflight now FAILS CLOSED before reading vendor inputs. Do not bypass it.
+Use only the documented dedicated staging/packaging scripts for this candidate.
+Do not alter board.toml merely to modernize comments: it is part of the selected
+logger identity. Standard initrd, Advanced Logger/QR and a clean pinned shared
+firmware dependency closure remain open. The actual build used documented local
+dependency modifications; its post-build hash snapshot is not a clean-rebuild claim.
 
 Previous agent instructions are archived verbatim in
 docs/archive/AGENTS-before-native-mainline.md as historical context, not actions.

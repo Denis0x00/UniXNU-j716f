@@ -20,6 +20,14 @@ on:
       - 'scripts/check-native-logger.py'
       - 'scripts/decode-native-log.py'
       - 'scripts/test-native-log.py'
+      - 'scripts/decode-native-pages.py'
+      - 'scripts/native_image_formats.py'
+      - 'scripts/test-native-image-formats.py'
+      - 'scripts/build-native-payload.py'
+      - 'scripts/prepare-native-firmware.py'
+      - 'scripts/prepare-native-reader.py'
+      - 'scripts/make-native-mainline-adt.py'
+      - 'scripts/package-native-image.py'
       - 'scripts/source-artifact-transfer.py'
       - 'scripts/test-source-artifact-transfer.py'
       - 'scripts/native_candidate.py'
@@ -27,6 +35,7 @@ on:
       - 'scripts/prelink-native-candidate.py'
       - 'scripts/test-native-candidate.py'
       - 'configs/native-candidate-lock.json'
+      - 'configs/native-log-candidate-*.json'
       - 'ci/source-artifacts-public.pem'
       - 'patches/build-driver/0002-guard-optional-legacy-display-probe.patch'
       - 'patches/build-driver/0003-allow-boot-progress-without-sheng-pmgr.patch'
@@ -76,6 +85,8 @@ jobs:
         run: python3 scripts/test-native-candidate.py -v
       - name: Check production retained-log ABI, page mapper and AArch64 assembly
         run: python3 scripts/test-native-log.py --cc gcc
+      - name: Check firmware container corruption refusal with synthetic inputs
+        run: python3 scripts/test-native-image-formats.py -v
 
   source:
     needs: transfer-checks

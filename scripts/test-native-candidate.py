@@ -6,6 +6,8 @@ import io
 import json
 from pathlib import Path
 import struct
+import subprocess
+import sys
 import tempfile
 import tomllib
 import unittest
@@ -48,6 +50,14 @@ def fixture():
 
 
 class NativeCandidateTest(unittest.TestCase):
+    def test_generic_firmware_route_fails_before_inputs(self):
+        with tempfile.TemporaryDirectory() as folder:
+            result = subprocess.run([sys.executable, str(HERE/'check-j716f.py')],
+                                    cwd=folder, capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('generic board.toml firmware/bootimg route', result.stderr)
+        self.assertNotIn('Traceback', result.stderr)
+
     def setUp(self):
         self.lock = json.loads((HERE.parent/'configs/native-candidate-lock.json').read_text())
         transfer = load_module('source-artifact-transfer')
@@ -123,6 +133,20 @@ class NativeCandidateTest(unittest.TestCase):
             report = copy.deepcopy(self.report); report[key] = value
             with self.subTest(key=key), self.assertRaises(ValueError):
                 check_report(report, self.lock)
+
+    def test_logger_lock_cannot_be_satisfied_by_old_baseline(self):
+        lock=copy.deepcopy(self.lock);lock['persistent_logger_in_selected_artifact']=True
+        lock['logger_candidate_sha256']='a'*64
+        with self.assertRaises(ValueError):check_report(self.report,lock)
+        report=copy.deepcopy(self.report)
+        report['recoverable_logger_requested']=True
+        report['native_early_log']={'candidate_sha256':'a'*64,'linked':{
+            'candidate_sha256':'a'*64,'kernel_sha256':sha(b'x'),'launch_admitted':False}}
+        self.assertEqual(len(check_report(report,lock)[0]),6)
+        with self.assertRaises(ValueError):check_report(report,self.lock)
+        for key,value in (('candidate_sha256','b'*64),('kernel_sha256','0'*64),('launch_admitted',True)):
+            bad=copy.deepcopy(report);bad['native_early_log']['linked'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):check_report(bad,lock)
         for key in ('ArmCpu', 'ArmDTPlatform'):
             report = copy.deepcopy(self.report); report['components'][key] = '0'*40
             with self.assertRaises(ValueError):

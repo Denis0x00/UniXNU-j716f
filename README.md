@@ -13,8 +13,8 @@
 | UEFI/GOP/按键/加载器 | 多轮实机诊断可用 | 不代表 XNU 显示、输入或存储驱动 |
 | 内存 | V14 的 256 MiB 窗口读写；P22 原始 arm_vm_init 返回 | 不代表全部 RAM、回收、长期映射或 DMA |
 | P22M | 已完成并封存；六槽 L1/R1，九条重建 CRC，终点 M=1，重启后首次 reader 保留 | 临时日志桥接，有界返回即请求复位；实际复位源未独立证明 |
-| 原生平台 | 固定 CI40448429664 已认证接收并通过 XnuPrelink；52,248,576 字节 | 无日志的接收基线不准上机；尚无最终镜像 |
-| 可恢复原生日志 | 已接入入口、VM、平台、同步/SP1 异常、真实 IRQ 与调度源代码；双编译器主机检查通过 | 新完整 XNU CI、只读 reader、实机长期映射/保留均待验证 |
+| 原生平台与最终镜像 | CI40458123294 的带日志内核已接收、预链接并进入专用 boot.img；反解逐字节核对通过 | 主机结果；没有本候选的实机启动证据 |
+| 原生日志与读取器 | 入口/VM/平台/CPU/异常/IRQ/调度已接真实源码；独立 reader/ARM 已编译，14 组真实 EFI 模拟通过 | 实机长期映射、挂死恢复和 RAM 保留尚待验证；不保证所有失败均有日志 |
 | IRQ/调度/UFS/根卷/用户态 | 无本板完成证据 | 不得以链接通过或旧内核函数返回代替 |
 
 [P22 收尾](docs/P22_CLOSED_NATIVE_MAINLINE.md)与[脱敏实机结果](research/p22-closed-20261027.json)
@@ -41,20 +41,32 @@ SoC 仍是明确标识的板内过渡快照；未静默升级依赖或选用未�
 python3 scripts/build-j716f-source.py --unixnu /path/to/pinned-UniXNU --device /path/to/UniXNU-j716f --native-arch-timer --jobs 3
 ```
 
-[选定 CI 40448429664](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40448429664)
-及六产物接收锁见 `configs/native-candidate-lock.json`。接收和预链接分别使用
+[选定 CI 40458123294](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40458123294)
+及六产物接收锁见 `configs/native-log-candidate-40458123294.json`。接收和预链接分别使用
 `scripts/receive-native-candidate.py`、`scripts/prelink-native-candidate.py`。
 命令及前提见[原生主线](docs/NATIVE_MAINLINE.md)。
 
 接收器校验加密 artifact 摘要、认证解密、源码/组件版本、六产物和实际 Mach-O。
 预链接器使用固定 OS 配方，并检查原生可执行字节、provider 符号与 source POST HMAC。
-这些工具不访问设备；选定的旧 CI 原生基线没有可恢复日志，不能仅因预链接通过就上机。
+这些工具不访问设备。旧 CI40448429664 的无日志基线单独封存，不替代当前候选。
+
+最终镜像 `j716f-native-log-40458123294-boot.img`：8,359,936 字节，SHA256
+`801ddb86b29844e316053f4d061a9fd2cb266e47f1c27ed1d46745b036dbb8e7`。
+镜像内原生预链接内核：52,563,968 字节，SHA256
+`150c5c5f13a4337eb05218232f3a157429f0974ba49f71b4627789497132d074`。
+镜像和原始报告仅留私有工作区；[脱敏主机证据](research/native-image-40458123294.json)。
+
+**固件只能走本轮专用 staging/packaging 路径。** `board.toml` 的普通 firmware DSC
+尚未迁移，默认 preflight 已改为直接拒绝；不要用 `--skip-preflight` 绕过。
+当前保留 7 MiB FD 与嵌入 FAT，不是标准 initrd；Advanced Logger/二维码也未集成。
+实际共用固件依赖包含已记录的本地修改，不能宣称从全部干净固定仓库复现。
 
 主机回归：
 
 ```sh
 python3 scripts/test-native-candidate.py -v
 python3 scripts/test-source-artifact-transfer.py -v
+python3 scripts/test-native-image-formats.py -v
 python3 scripts/test-native-log.py --cc gcc
 # 在固定 UniXNU 中运行：
 python3 scripts/porting-record.py check --device /path/to/UniXNU-j716f
@@ -63,9 +75,10 @@ python3 scripts/porting-record.py check --device /path/to/UniXNU-j716f
 ## 安全与证据
 
 仅在另行核对候选和恢复方案后测试 `boot_b`；不写 `boot_a`、vbmeta、userdata，不处理 TzDxe。
-历史 P22 的 Query/ARM 流程只用于该版本，不是未实现的原生日志流程。
+历史 P22 的 Query/ARM 流程只用于该版本，不可代替本轮独立的原生 reader/ARM。
 原生候选必须具有独立会话/候选身份和只读取证通道；不可复用已消耗 ARM。
 已获用户授权推送脱敏源码并运行 CI；具体运行及结果见原生主线记录。未刷机或重启。
+下一步先审查恢复方案并另行授权 reader-only 测试；原生启动、实机日志闭环和 IRQ/调度仍未准入。
 
 公开仓库只保留代码、配置、哈希与脱敏结论，不发布 Apple/Lenovo 输入、
 完整 DTB/ADT、镜像、照片视频、原始日志、设备标识、随机种子、凭据或私钥。

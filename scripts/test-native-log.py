@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Execute production ABI/map helpers, mutation checks and AArch64 assembly."""
 import argparse
+import copy
 import importlib.util
 from pathlib import Path
 import shutil
 import struct
 import subprocess
 import tempfile
+import zlib
 
 ROOT=Path(__file__).resolve().parents[1]
 def load(name):
@@ -48,7 +50,7 @@ def main():
         work=Path(folder)
         for name in maker.FILES:shutil.copyfile(ROOT/'package/native-log'/name,work/name)
         candidate,_,header=maker.identity(ROOT);(work/'NativeCandidate.h').write_text(header)
-        for name in ('LogTests','MapTests'):
+        for name in ('LogTests','MapTests','FirmwareTests','MenuTests'):
             out=work/name
             subprocess.run([a.cc,'-std=c11','-Wall','-Wextra','-Werror','-O2',
                 str(ROOT/'package/native-log'/f'{name}.c'),'-o',str(out)],check=True)
@@ -57,6 +59,31 @@ def main():
         result=decoder.decode(fixture,fixture_id)
         assert len(result['records'])==63 and not result['native_timer_chain_consistent']
         assert not result['hardware_validated']
+        pages_decoder=load('decode-native-pages')
+        def words(raw):return [f'{v:016x}' for v in struct.unpack('<16Q',raw)]
+        pages={'candidate':fixture_id,'dbgc':list(struct.unpack_from('<3I',fixture)),
+               'stable':True,'header':words(fixture[16:144]),'present_count':63,
+               'records':[{'slot':i,'words':words(fixture[144+i*128:272+i*128])} for i in range(63)],
+               'session_crc32':f'{zlib.crc32(fixture[16:16+8192]):08x}'}
+        sid=f'{struct.unpack_from("<Q",fixture,16+48)[0]:016x}'
+        recovered=pages_decoder.reconstruct(pages,fixture_id,sid)
+        assert recovered['records']==result['records'] and not recovered['whole_console_crc_independently_reconstructed']
+        appended=copy.deepcopy(pages);appended['dbgc'][1]+=64;appended['dbgc'][2]+=64
+        assert pages_decoder.reconstruct(appended,fixture_id,sid)['recovered_before_console_tail']
+        for mode in ('missing','duplicate','word','session_crc','candidate','stable'):
+            bad=copy.deepcopy(pages)
+            if mode=='missing':bad['records'].pop()
+            elif mode=='duplicate':bad['records'][1]=bad['records'][0]
+            elif mode=='word':bad['records'][0]['words'][1]='0000000000000000'
+            elif mode=='session_crc':bad['session_crc32']='00000000'
+            elif mode=='candidate':bad['candidate']='0'*64
+            else:bad['stable']=False
+            try:pages_decoder.reconstruct(bad,fixture_id,sid)
+            except ValueError:pass
+            else:raise AssertionError('Invalid reader transcription accepted: '+mode)
+        try:pages_decoder.reconstruct(pages,fixture_id,'ffffffffffffffff')
+        except ValueError:pass
+        else:raise AssertionError('Wrong independent ARM session accepted')
         for byte in (0,4,8,16+16,16+60,16+128+112,16+128+116):
             data=bytearray(fixture);data[byte]^=1
             try:r=decoder.decode(data,fixture_id)

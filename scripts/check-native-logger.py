@@ -27,7 +27,23 @@ def disassemble(path):
             if (Path(prefix)/'llvm-objdump').is_file():
                 tool = str(Path(prefix)/'llvm-objdump'); break
     if not tool:
-        raise ValueError('Linked pre-MMU audit requires llvm-objdump')
+        # Local Windows receipt checks can use Capstone. CI still uses LLVM.
+        # Walk executable sections independently; skip embedded data without
+        # letting it truncate the remainder. Reached undecodable bytes fail.
+        try:
+            from capstone import Cs, CS_ARCH_ARM64, CS_MODE_ARM
+        except ImportError as exc:
+            raise ValueError('Linked pre-MMU audit requires llvm-objdump or capstone') from exc
+        image = MachO(Path(path).read_bytes())
+        decoder = Cs(CS_ARCH_ARM64, CS_MODE_ARM); decoder.skipdata = True
+        instructions = {}
+        for _,va,_,off,size,prot in image.segments:
+            if not prot & 4: continue
+            for ins in decoder.disasm(image.data[off:off+size],va):
+                if ins.mnemonic != '.byte':
+                    instructions[ins.address] = (ins.mnemonic.lower(),ins.op_str)
+        if not instructions: raise ValueError('No decoded AArch64 instructions')
+        return instructions
     result = subprocess.run([tool, '--disassemble', '--no-show-raw-insn', str(path)],
                             capture_output=True, text=True, check=True)
     instructions = {}

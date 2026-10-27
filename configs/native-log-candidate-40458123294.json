@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "candidate": "NATIVE-LOG-40458123294",
+  "purpose": "Retained-logger source candidate for audited prelink and dedicated packaging; not hardware-qualified",
+  "repository": "Denis0x00/UniXNU-j716f",
+  "run_id": 40458123294,
+  "run_attempt": 1,
+  "device_commit": "474c8a65b731d293987afdf550112f7b02f9ea32",
+  "unixnu_commit": "42bffe8a56823dad2e448c776b4f94862f3e290a",
+  "artifact_id": 12712679017,
+  "artifact_name": "j716f-source-encrypted-40458123294-1",
+  "artifact_bytes": 7140809,
+  "artifact_sha256": "d0af0cd3ad4ec3b4d57b5ba1c9f9aec257b1c799af3e92183dc5cfc7a8880adb",
+  "artifact_expires_utc": "2026-10-30T06:02:53Z",
+  "components": {
+    "ArmCpu": "9066b53bbc82e92a98ec44a11dd50fd13eaf1a1b",
+    "ArmDTPlatform": "417ff95d6a6e8607ddea9309ec45c3bfd4a67c60",
+    "XnuPrelink": "f876e3ee62e18fc06653dd75ed7dafcfb3950ac0",
+    "DarwinBoot": "3325e352d7df68a9f9ad74832ed94a6acbbd7390"
+  },
+  "xnu_commit": "d8b80295118ef25ac3a784134bcf95cd8e88109f",
+  "os_profile": "ipados-17.7.11-21H461",
+  "kernelcache_sha256": "f18b4df865405f2a287b84977d7aca745e056d656d9fc9df1662970ce2969de7",
+  "native_adt_sha256": "9a0cd132007fc369608877f227d1863393982472ce7fe27f706a66907d977874",
+  "persistent_logger_in_selected_artifact": true,
+  "logger_candidate_sha256": "1c19ee51d5388dcfbbaefd41dcf361a54ccee3d08d889f6f0e4bb6f69a08d892",
+  "hardware_qualification": false
+}

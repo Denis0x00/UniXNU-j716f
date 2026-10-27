@@ -13,7 +13,7 @@ import subprocess
 import sys
 import zipfile
 
-from native_candidate import HERE, KERNEL, check_kernel, check_report, save_new, sha
+from native_candidate import HERE, KERNEL, check_kernel, check_report, check_selected_logger, save_new, sha
 
 
 def outer(data, lock):
@@ -33,7 +33,7 @@ def main():
     parser.add_argument('--artifact-zip', type=Path, required=True)
     parser.add_argument('--private-key', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--selection', type=Path, default=HERE.parent/'configs/native-candidate-lock.json')
+    parser.add_argument('--selection', type=Path, default=HERE.parent/'configs/native-log-candidate-40458123294.json')
     args = parser.parse_args()
     lock = json.loads(args.selection.read_text(encoding='utf-8'))
     encrypted = outer(args.artifact_zip.read_bytes(), lock)
@@ -71,10 +71,12 @@ def main():
         with target.open('xb') as stream:
             stream.write(content)
     save_new(args.output/'source-build-report.json', report)
+    logger = check_selected_logger(args.output/'tree'/KERNEL, report, lock)
     receipt = {'schema': 1, 'stage': 'native-artifact-received', 'selection': lock,
                'selection_sha256': sha(args.selection.read_bytes()), 'kernel': kernel,
                'artifacts': report['artifacts'], 'prelink_performed': False,
-               'persistent_early_logger_present': False, 'hardware_launch_admitted': False,
+               'logger_checks': logger,
+               'persistent_early_logger_present': logger is not None, 'hardware_launch_admitted': False,
                'device_writes_performed': False}
     save_new(args.output/'receipt.json', receipt)
     print(json.dumps({'stage': receipt['stage'], 'kernel_sha256': kernel['kernel_sha256'],

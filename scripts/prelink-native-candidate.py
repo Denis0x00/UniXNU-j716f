@@ -11,7 +11,7 @@ import subprocess
 import sys
 import tomllib
 
-from native_candidate import HERE, KERNEL, MachO, check_kernel, check_report, save_new, sha
+from native_candidate import HERE, KERNEL, MachO, check_kernel, check_report, check_selected_logger, save_new, sha
 
 PINS = {
     'kits/XnuPrelink/emit_prelink.py': 'fdbfecbb1dbd25d2cc9c693111e07b6081f17bd3a6b0a0934d4191bc08162311',
@@ -43,7 +43,7 @@ def main():
     parser.add_argument('--unixnu', type=Path, required=True)
     parser.add_argument('--kernelcache', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--selection', type=Path, default=HERE.parent/'configs/native-candidate-lock.json')
+    parser.add_argument('--selection', type=Path, default=HERE.parent/'configs/native-log-candidate-40458123294.json')
     args = parser.parse_args()
     lock = json.loads(args.selection.read_text(encoding='utf-8'))
     receipt = json.loads((args.received/'receipt.json').read_text(encoding='utf-8'))
@@ -59,6 +59,10 @@ def main():
     source_checks = check_kernel(source)
     if receipt.get('artifacts') != source_report['artifacts'] or receipt.get('kernel') != source_checks:
         raise ValueError('Receipt/content/report disagreement')
+    source_logger = check_selected_logger(args.received/'tree'/KERNEL, source_report, lock)
+    if (receipt.get('logger_checks') != source_logger or
+            receipt.get('persistent_early_logger_present') != (source_logger is not None)):
+        raise ValueError('Receipt logger/content disagreement')
     for path, digest in PINS.items():
         if sha((args.unixnu/path).read_bytes()) != digest:
             raise ValueError('Prelink tool/profile bytes differ from pin: '+path)
@@ -91,6 +95,7 @@ def main():
     output = target.read_bytes()
     text = audit_native_preserved(source, output)
     checks = check_kernel(output)
+    logger = check_selected_logger(target, source_report, lock)
     report = json.loads(target.with_suffix('.json').read_text())
     if report['candidate_sha256'] != sha(output) or report['candidate_bytes'] != len(output) or report['source_inputs_modified']:
         raise ValueError('XnuPrelink output/report disagreement')
@@ -102,7 +107,8 @@ def main():
                 'source_kernel_sha256': sha(source), 'kernel_sha256': sha(output),
                 'prelink_report_sha256': sha(target.with_suffix('.json').read_bytes()),
                 'native_executable_segments_unchanged': text, 'checks': checks,
-                'persistent_early_logger_present': False, 'hardware_launch_admitted': False,
+                'logger_checks': logger,
+                'persistent_early_logger_present': logger is not None, 'hardware_launch_admitted': False,
                 'device_writes_performed': False, 'runtime_qualified': False}
     save_new(args.output/'native-prelink.json', manifest)
     print(json.dumps({'stage': manifest['stage'], 'kernel_sha256': sha(output),
