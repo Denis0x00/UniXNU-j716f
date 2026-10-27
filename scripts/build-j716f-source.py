@@ -150,6 +150,13 @@ def main():
             observer = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(observer)
             armcpu = modules[('driver', 'ArmCpu')]
+            # In-tree git submodules have origin='base' and Module.commit=None;
+            # that field is populated only by feed fetches. Check actual HEAD.
+            armcpu.commit = revision(armcpu.path)
+            armdt = modules[('driver', 'ArmDTPlatform')]
+            armdt.commit = revision(armdt.path)
+            if armdt.commit != '417ff95d6a6e8607ddea9309ec45c3bfd4a67c60':
+                raise RuntimeError('Unexpected ArmDTPlatform commit')
             report['native_irq_observer'] = observer.install(
                 original_device, ctx.tree, armcpu.path, armcpu.commit)
         report["references"] = {

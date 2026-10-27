@@ -103,6 +103,11 @@ macOS CI 将构建真实 XNU/ArmCpu，并要求最终 Mach-O 定义观测数组�
 核对数组在文件内恰好一处、8 字节对齐、ABI/长度和初始零状态。
 当前本轮完整内核编译尚待 CI；上述主机样本不构成 IRQ、驱动匹配或设备启动证据。
 
+首次 CI 的观测器与导出主机检查通过；完整构建在编译前被新增 pin 门槛拒绝：
+上游 in-tree submodule 的 `Module.commit` 为 `None`，只有 feed-fetch 路径填写该字段。
+现改核对实际组件 Git HEAD，并增加实际 ArmDTPlatform pin 校验；源码字节门槛保留。
+修复后的完整构建等待 CI 结果。
+
 后续顺序：P22 独立实机完成 VM 返回验证；完成新源码候选的 ABI/预链接和可采集通道审查，
 再验证 ArmDTPlatform 匹配 → ArmCpu 注册 → GIC → counter → 真实 IRQ/rtclock/EOI。
 调度、SMP、UFS 和根卷仍在更后面。

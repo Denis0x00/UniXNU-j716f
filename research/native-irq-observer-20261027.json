@@ -79,7 +79,14 @@
       "j716f_armcpu_trace",
       "j716f_armcpu_timer_checkpoint"
     ],
-    "linked_initial_abi_and_zero_state_gate_added": true
+    "linked_initial_abi_and_zero_state_gate_added": true,
+    "initial_run": {
+      "id": 40445157808,
+      "source_commit": "c79763725167d396c078e64125e3991f49172df5",
+      "source_step": "failed before compile at added pin gate: in-tree Module.commit is None",
+      "observer_host_step": "success",
+      "repair": "Read actual component Git HEAD and retain byte-hash gate; also verify actual ArmDTPlatform pin"
+    }
   },
   "hardware_validated": false,
   "prelink_performed": false,
@@ -91,7 +98,7 @@
     "review prelink ABI and frozen live-memory reader or native persistent mapping/transport before IRQ hardware test"
   ],
   "source_sha256": {
-    "scripts/build-j716f-source.py": "ed98d5d9d2e12a77149c6f8a0cebd4fd24b338fbf14cf2cbd3f4807ec1207d23",
+    "scripts/build-j716f-source.py": "8ba749367ff31f067fabdce9b435d489a3461eb0261c8eb86aa49a9ed113e0b5",
     "scripts/prepare-native-platform.py": "5081ce275128f3a405a50f8c9c37e45d5e480f9e19bd66d9e3d21c7d3ad609a3",
     "scripts/prepare-native-observer.py": "5603d5cdcd348c44cf968aa57ecb8da03000ca1f322ed773e83405f2f7ab84d7",
     "scripts/check-native-irq-trace.py": "e3a0b9c8e1a82880e184fa703b04ce32007c901d840ae35b4e534a6f80088723",
