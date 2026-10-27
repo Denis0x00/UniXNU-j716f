@@ -2,29 +2,26 @@
 
 ## Current baseline
 
-Read `docs/V23P17_CHOSEN_TOPOLOGY.md` and
-`research/v23p17-chosen-topology.json` first. P17M reached original chosen/stall,
-CPU topology and boot CPU number returns; actual terminal SCTLR0x3454593d/M1.
-Nine CRCs bind fresh ID1/ARM6303C7DA; full logical next=size0x380 and all records
-survived one video-observed reboot. This deliberately stops at0xfffffff0079e1a98,
-before boot CPU publication/max-CPU check. Reset source remains independent.
+Read `docs/V23P18_BOOTSTRAP_CLOCK.md` and `research/v23p18-bootstrap-clock.json`.
+P18M is the latest device milestone: original boot CPU publication/validation,
+current-thread setter and rtclock_early_init return. Actual terminal
+SCTLR0x3454593d/M1 at0xfffffff0079e1b18; all9 CRCs match fresh ID1/ARM209C5114,
+header0x380 logical/raw14/14 retained over one video-observed reboot.
+cpu_bootstrap is a RET stub; reset source independently unresolved.
 
-P13–P18 are bounded diagnostics on a frozen source-built/prelinked kernel.
+P19M is built/host verified, unflashed. Read `docs/V23P19_STARTUP_INIT.md` and
+`research/v23p19-startup-init.json`. Original debug/startup (849 callbacks in host
+model), timer_call_init/cpu_init/processor_bootstrap return group; terminal
+0xfffffff0079e1b34 before later arm_init/arm_vm_init. 57 kernel +6 dependency
++31 linked-reader checks. MIDR/cache/debug/DAIF/counter, SP banks, MMU aliases,
+barriers, SMC and UEFI are modeled; no P19 hardware claim. Next boot_b menu/reader
+FIRST, fresh Query/ARM photo, single recorded P19M.
+
+P13–P19 are bounded diagnostics on a frozen source-built/prelinked kernel.
 Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.
-Native platform candidate is separate/single-core; actual configuration/component/
-archive and ADT input checks pass; source compile/export CI passed at816e3c55, runtime pending. Read
-`docs/NATIVE_PLATFORM_SOURCE_CANDIDATE.md`.
-
-P18M now verified on boot_b: all six witnesses reach boot CPU publication/max-CPU
-validation, current-thread setter and original early-clock return. Entry0xc00808/M0,
-terminal0x3454593d/M1 at0xfffffff0079e1b18; all9 CRCs independently match fresh
-ID1/ARM209C5114, header0x380 logical/raw14/14 retained over one video-observed
-reboot. New reader ID2/query0/armed0, read-only. Read
-`docs/V23P18_BOOTSTRAP_CLOCK.md` and `research/v23p18-bootstrap-clock.json`.
-Preserve P17 and P18 media/source hashes. cpu_bootstrap is a RET stub, no full
-cpu_init/timer IRQ claim; reset source independently unresolved. Next review
-original kernel_debug_string_early/timer_call_init/cpu_init/processor_bootstrap
-boundaries and stack/mapping lifetimes; no successor built/flashed.
+Separate native platform source candidate compiled/exported in CI at816e3c55;
+it is not the diagnostic kernel and has no hardware IRQ qualification. Read
+`docs/NATIVE_PLATFORM_SOURCE_CANDIDATE.md`. Preserve all earlier version results.
 
 ## Rules
 

@@ -1,0 +1,119 @@
+{
+  "version": "V23P19 STARTUP TRACE r1",
+  "host_checks_passed": true,
+  "automatic_start": false,
+  "kernel_entry_requires_manual_arm": true,
+  "variants": {
+    "m": {
+      "version": "V23P19M",
+      "image": "j716f-mu-zui13-kernel-trace-v23p19m-boot.img",
+      "image_bytes": 8355840,
+      "image_sha256": "7a68766b1f8c05a6bf373d93811c7d1eac30fa84604c4b324e0f9f81afebf7d8",
+      "fd_sha256": "704167b9613e2dbb6143cd65530f1be3f0528011a1eff16abaf087c2fcfa9ffb",
+      "payload_sha256": "e04b71a6e270c94689b243da95777b1313c008554747908f75ea4512098c398a",
+      "kernel_sha256": "4f15410b6de2620c35672c118efdd394d5fcfb02c201a1dd8e7083dc0e0ceec7",
+      "app_sha256": "2952e65e99cf32a90882206dcbde7649a83ed9962febb258868b40628c8c5a37",
+      "power_app_sha256": "5af712b62fd62f0cdd6702bafdfe149df68547a1a1c056948a3d5c5ffbfb833d",
+      "nonpayload_changes_vs_p8": [],
+      "compact_sec_matches_p8": true,
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "device_writes_performed": false
+    }
+  },
+  "kernel_logic_cases": 57,
+  "reader_logic_cases": 31,
+  "dependency_logic_cases": 6,
+  "power_logic_cases_reused_for_identical_app": 22,
+  "hardware_verified": false,
+  "device_writes_performed": false,
+  "source_native_arch_timer_kernel": false,
+  "native_timer_driver_integrated": false,
+  "proposed_partition": "boot_b",
+  "next_variant": "m",
+  "status": "P19M built and host verified; unflashed",
+  "source_checkout_base": "f8cf6d2b480a0c26b36c3ece9eedd6116af0ff50",
+  "source_state": "P19 additions on recorded base; exact source and artifact hashes in this manifest",
+  "prior_hardware_baseline": "P18 original boot CPU publication/validation, current-thread setter and rtclock_early_init return; nine CRCs retained over one video-observed reboot",
+  "arm_cookie": "0x5031394b45524e4c",
+  "slot_tag": "0x5031395300000000",
+  "slot_phases": {
+    "16": "BCM_ROUTE_SKIPPED",
+    "17": "M1_READBACK",
+    "18": "STARTUP_RETURN",
+    "19": "TIMER_CALL_RETURN",
+    "20": "CPU_INIT_RETURN",
+    "21": "PROCESSOR_RETURN"
+  },
+  "terminal": "Phase12 actual SCTLR_EL1/M1 after processor_bootstrap return at 0xfffffff0079e1b34; before subsequent arm_init and arm_vm_init",
+  "dependency_case_count": 6,
+  "original_high_data_pages_checked_in_model": 191,
+  "original_path_review": {
+    "preserved_calls": [
+      "kernel_debug_string_early",
+      "kernel_startup_bootstrap",
+      "timer_call_init",
+      "cpu_init",
+      "processor_bootstrap"
+    ],
+    "startup_table_item_bytes": 24,
+    "startup_callback_count_in_model": 849,
+    "startup_callback_distinct_functions": 27,
+    "startup_initialize_upto": 3,
+    "startup_sort_and_callbacks_execute_original_code": true,
+    "original_bl_lr_preserved": true,
+    "returning_probe_gpr_sp_nzcv_preserved": true,
+    "hooks": {
+      "timer_entry": "0xfffffff0072e5724",
+      "cpu_entry": "0xfffffff0073f1014",
+      "processor_entry": "0xfffffff0072aa9b8",
+      "terminal": "0xfffffff0079e1b34"
+    },
+    "prologues_replayed": [
+      "SUB SP,SP,#0x50",
+      "STP X20,X19,[SP,#-0x20]!",
+      "STP X20,X19,[SP,#-0x20]!"
+    ],
+    "cpu_init_checks_spsel1_stack_nonzero": true,
+    "cpu_init_restores_spsel0_before_continuing": true,
+    "original_cpuid_normalizes_architecture_field_to_12": true,
+    "probe_does_not_spoof_cpu_registers": true,
+    "original_debug_path_reads_cntvct_el0": true,
+    "probe_reads_counter": false,
+    "original_boot_cpu_cache_path_skips_secondary_cpu_wait": true,
+    "original_boot_processor_path_skips_secondary_scheduler_callbacks": true,
+    "no_observed_model_ttbr_replacement_in_new_group": true,
+    "original_startup_assertion_cpu_architecture_panic_and_stack_failure_preserved": true,
+    "data_page_translation_check_scope": "191 distinct high virtual data pages touched in successful host execution, checked against original emitted TTBR1 tables; not real silicon translation"
+  },
+  "host_model": {
+    "system_registers": "MIDR, CLIDR, CCSIDR, CSSELR, debug ID, DAIF and CNTVCT are explicit synthetic fixtures; no device register evidence",
+    "midr": "0x510f8050",
+    "clidr": "0x0a200023",
+    "ccsidr": "0x701fe01a",
+    "debug_id": "0x10305006",
+    "counter": "constant 19200000; not a counter advancement test",
+    "mocked": [
+      "privileged registers",
+      "SP selector banks",
+      "physical/high aliases",
+      "barriers",
+      "SMC",
+      "UEFI/input"
+    ]
+  },
+  "next_action": "boot_b menu only after fastboot/recording readiness; P19 reader FIRST; fresh Query/ARM then exactly one P19M; first read-only reader after reboot",
+  "limitations": [
+    "P19 is host verified only; P18 remains latest device milestone.",
+    "Original debug/startup now reads CNTVCT; reaching this group is not an advancing-counter or IRQ qualification.",
+    "cpu_init identity/cache data and processor structures in a host model do not prove correct hardware ID decoding or active scheduling.",
+    "Terminal requests SYSTEM_RESET deliberately; a reboot alone does not establish a crash or independent reset cause.",
+    "This is the frozen diagnostic baseline, separate from source-native ArmCpu/ArmDTPlatform candidate.",
+    "No arm_vm_init, full VM lifetime, timer IRQ, GIC, scheduler, storage or userspace result."
+  ],
+  "source_files": {
+    "scripts/build-v23p19-kernel.py": "b377b78dff0c2f0e7e8e58050ecc0e589c76ddfb6b38982bee4e90868e9ca22d",
+    "scripts/v23p19-init.S": "0ffc2ed33ef080e5b4521f495df36762fc1ef9f181435f3a7a0527ee494fc0aa",
+    "scripts/decode-j716f-v23p19.py": "f4bb0712623de78466a90e96bdc8b9ae30cfd7b9d958459e16d10a3b5341d3ed"
+  }
+}

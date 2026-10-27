@@ -23,6 +23,13 @@ P18 在rtclock_early_init返回后主动结束；cpu_bootstrap在该基线中只
 不能视为原生定时器平台集成已经完成。BCM 路由整体排除遵循上游方向，
 原始 BCM 故障机理仍未证明。
 
+## P19M 待实机测试
+
+[startup/timer/CPU/processor分组诊断](docs/V23P19_STARTUP_INIT.md)已构建，
+57项内核机器码、6项依赖和31项链接reader主机检查通过，尚未刷入。
+保留原始startup回调及后续调用；processor_bootstrap返回后有意请求重启。
+P18仍是最新实机进度，timer IRQ/调度尚未验证。
+
 ## 当前文档与证据
 
 - [P16 后的实际进度及上游/sheng 对照](docs/PROGRESS_AFTER_V23P16_20261026.md)
