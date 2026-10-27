@@ -18,7 +18,7 @@
 | MMU | P13 已直接读回 SCTLR_EL1 的 M=1 | 只证明该有界执行范围 |
 | 早期 CPU/平台 | P14～P19 推进原始 CPU、平台、拓扑、早期时钟与处理器初始化函数返回 | 尚未证明 IOKit 平台匹配、真实 IRQ 和调度 |
 | 虚拟内存 | P20/P21 推进早期 VM 准备、原始 TTBR1/TTBR0 切换及 TLB 同步 | 完整 arm_vm_init 返回尚待实机验证 |
-| P22 | 已通过主机校验，现已仅刷入 boot_b，B 槽激活/可启动核对及重启命令成功 | 初始 reader 已确认：VALID 满环形、ID1/query0/armed0；须先新建线性会话，尚无内核结果 |
+| P22 | 已通过主机校验，现已仅刷入 boot_b，B 槽激活/可启动核对及重启命令成功 | 线性会话已建立，INIT CRC核对一致；ID1/query0/armed0，待 Query/ARM 及内核测试 |
 | 原生平台候选 | 独立 ArmDTPlatform/ArmCpu/native timer 源码方案已有编译、链接门槛和导出 CI 成功记录 | 尚未预链接成设备验证候选，未验证平台匹配或 timer IRQ |
 
 按上游流程，当前仍在**阶段 5：内核入口与平台接入**；阶段 6 存储/根卷、阶段 7 用户态尚未完成。
@@ -30,7 +30,7 @@
 virtual timer INTID27。Linux 双编译器及 AArch64 汇编门槛通过；
 [完整内核编译与链接门槛 CI](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40445461837)
 已通过（受测源码 `9ae5d75`），
-尚无预链接、持久化采集通道或实机 IRQ 结果。P22 已刷入 boot_b，初始 reader 已确认，等待新建线性会话及单次启动测试。
+尚无预链接、持久化采集通道或实机 IRQ 结果。P22 已刷入 boot_b，线性会话已建立且 INIT CRC 核对一致，等待 Query/ARM 及单次启动测试。
 
 ### P21：最新实机里程碑
 
@@ -89,7 +89,7 @@ BCM 路由整体排除遵循上游 native timer 入口方向，原始 BCM 故障
 
 ## 接下来的验收顺序
 
-1. P22 已刷入并确认初始 reader；先新建线性会话并核对，再以 fresh Query→ARM 完成一次内核测试，验证剩余 VM 流程与原始返回。
+1. P22 已刷入并确认初始 reader；线性会话及 INIT CRC 已核对，再以 fresh Query→ARM 完成一次内核测试，验证剩余 VM 流程与原始返回。
 2. 审查独立原生平台候选的预链接 ABI、单核 ADT、内存与日志生命周期。
 3. 实机记录 ArmDTPlatform 匹配、CPU 注册、timebase 前进和 timer IRQ 计数持续增长。
 4. 验证单核调度和超时，再评估多核/IPI；核对 UFS 时钟、PHY、SMMU、DMA 后先做受控读取。
@@ -148,7 +148,7 @@ python3 scripts/build-j716f-source.py --unixnu /path/to/pinned-UniXNU   --device
 - 每轮先核对版本和镜像哈希，进入菜单后先保存该版本 reader 初始页。
 - 每次内核启动都要重新执行该版本 `Query → ARM`，核对照片后仅启动一次。
 - 重启后先只读 reader 并保存页面，再进行后续操作；已消耗的 ARM 不能复用。
-- P22 已恢复测试并刷入 boot_b，初始 reader 已确认，满环形日志需先新建线性会话，本轮内核结果待采集；构建通过不等于设备验证通过。
+- P22 已恢复测试并刷入 boot_b，线性会话及 INIT CRC 已核对，Query/ARM 与本轮内核结果待采集；构建通过不等于设备验证通过。
 
 公开仓库提供源码、配置、哈希和脱敏摘要；完整复现仍需匹配的本地厂商/系统输入。
 Apple/Lenovo 二进制、完整 DTB/ADT、生成镜像、照片视频、原始日志、设备标识、随机种子和凭据不公开。

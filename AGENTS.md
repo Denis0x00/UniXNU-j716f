@@ -23,8 +23,11 @@ Never rerun build-only recorders over results or reuse consumed ARM.
 
 P22M built/host qualified; first boot_b flash, B active/bootable checks and reboot command succeeded; initial reader confirmed VM RETURN TRACE r1 at EL1,
 VALID next0x2a871/size0x3fff4 FULL circular, logical/raw0, ID1/query0/armed0.
-Parent menu not pictured. New linear session REQUIRED before Query/ARM;
-select twice without moving selection; photograph success/NOW for review first. Read `docs/V23P22_VM_RETURN.md` and
+Parent menu not pictured. Explicit new session now confirmed: NOW VALID
+next=size0x40, logical/raw1/1, ID1/query0/armed0; INIT CRC5FF8AFC6
+independently matches reconstructed record, not a direct RAM dump.
+Do not repeat New session. Next Query once, after Query OK ARM once in SAME reader;
+review full success/ID/CRC photo before returning to menu or launching. Read `docs/V23P22_VM_RETURN.md` and
 `research/v23p22-vm-return.json`: 26 kernel +8 dependency +31 reader checks.
 Retains bridge phase18, adds pmap return after disable_preemption at0xfffffff0073f61d0,
 VM-final after original canary check0xfffffff0073f64e0, and original RET caller0xfffffff0079e1bbc.
@@ -34,8 +37,8 @@ physmap model checks all post-switch writes, allocator bounds and eight lifetime
 Borrowed L2/L3 qualified ONLY through immediate caller stop, not later arm_init/recycle/user maps.
 Original TTBR0-empty policy is temporarily relaxed for console diagnostics, not production.
 P22 boot_b command evidence recorded; no P22 kernel attempt/result observed.
-P21 remains latest kernel hardware milestone. No repeat flash needed; first explicit new linear session and reviewed photo,
-then fresh Query/ARM photo, one P22M,
+P21 remains latest kernel hardware milestone. No repeat flash needed; explicit session already confirmed;
+next fresh Query/ARM photo, one P22M,
 reader FIRST after reset. Never rerun build-only recorders over device results.
 
 P13–P22 are bounded diagnostics on a frozen source-built/prelinked kernel.

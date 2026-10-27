@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-P22M已构建并通过主机校验，现已仅刷入boot_b；B槽激活/可启动核对及重启命令成功，初始reader已确认，VALID满环形日志需先新建线性会话。P21实机结果、旧源码及镜像完整保留。
+P22M已构建并通过主机校验，现已仅刷入boot_b；B槽激活/可启动核对及重启命令成功，初始reader与显式线性会话成功已确认，INIT CRC重建核对一致，Query/ARM和内核测试待进行。P21实机结果、旧源码及镜像完整保留。
 本轮执行原始pmap_bootstrap、后续动态/复制窗口页表分配、静态区域记录补丁、
 enable_preemption及栈保护检查，保留原始RET，停在调用方0xfffffff0079e1bbc。
 目标是验证arm_vm_init整体返回；**内核目前只有主机结果，尚无P22内核实机结论。**
@@ -86,3 +86,13 @@ PSCI 与 FEATURES 显示0是尚未查询的状态，不代表不支持。
 出现 New session OK 后先拍完整页，核对 NOW 和 INIT 记录后再安排 Query/ARM。
 原始照片仅私有保存；完整 console 字节未取得，照片显示的 console CRC 未独立重算。
 本轮尚未观察到内核启动、VM 返回或重启后保留，P21仍为最新内核实机里程碑。
+
+## 显式线性会话成功（2026-10-27）
+
+下一张完整照片显示 New session OK；NOW VALID、next=size=0x40、logical/raw=1/1，
+THIS RUN 仍为 ID1/query0/armed0/EL1。冻结 ENTRY 保留旧 next0x2a871/size0x3fff4/CRC BE70D923，属预期。
+最后记录 CRC=5FF8AFC6；按与镜像清单哈希一致的 reader 源码重建 INIT 前48字节，独立重算一致。
+INIT 携带丢弃的旧 next/size，记录自身头来自重置后的空日志；此为重建核对，未直接读取 RAM 字节。
+剩余线性空间262068字节，足够 Query/ARM；冻结检查点及终点/failure 行仍为零。
+下一步在同一 reader 内 Query 一次，确认 Query OK 后 ARM 一次，拍完整成功状态、ID/CRC 复核。
+尚未观察到 P22 内核启动、VM 返回或重启保留；不要重复新建会话或提前启动。
