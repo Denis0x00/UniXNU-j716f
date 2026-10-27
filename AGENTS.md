@@ -13,13 +13,14 @@ Host849 callbacks/27 functions are not device callback measurements.
 No arm_vm_init yet. Next audit remaining arm_init and VM mapping/stack lifetime.
 P18 evidence remains in its version-specific document/manifest. No repeat P19 test.
 
-P20M built/host qualified and unflashed. Read `docs/V23P20_VM_INIT.md` and
+P20M built/host qualified; flashed only to boot_b, B active/bootable verified,
+reboot command succeeded; menu identity and initial read-only reader photo pending. Read `docs/V23P20_VM_INIT.md` and
 `research/v23p20-vm-init.json`. 27 kernel +5 dependency +31 linked-reader cases.
 Original arm_vm_init early allocation/layout/protection returns to stop0xfffffff0073f5c04,
 before TCR/TTBR replacement. Full-segment DarwinBoot placement and AT/PAR table walks
 are modeled; candidate roots lack console and complete probe/stack mappings here.
 No full VM or new hardware claim. Next P20 reader FIRST, fresh Query/ARM and one
-recorded boot_b attempt when ready. Never rerun P19 recorders or repurpose its ARM.
+recorded P20M kernel attempt after reviewed initial/ARM photos. Never rerun P19 recorders or repurpose its ARM.
 
 P13–P20 are bounded diagnostics on a frozen source-built/prelinked kernel.
 Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.

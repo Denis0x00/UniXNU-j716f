@@ -18,7 +18,20 @@
       "compact_sec_matches_p8": true,
       "host_checks_passed": true,
       "hardware_verified": false,
-      "device_writes_performed": false
+      "device_writes_performed": true,
+      "device_launch": {
+        "partition_images_flashed": [
+          "boot_b"
+        ],
+        "current_slot_before_reboot": "b",
+        "slot_unbootable_b_before_reboot": false,
+        "reboot_command_succeeded": true,
+        "image_sha256": "d464f16c6dd23b4ac6abdd5ab3981197ec8cc3720b6dd475956607649a01d9c4",
+        "menu_identity_observed": false,
+        "manual_kernel_start_required": true,
+        "recording_ready_user_confirmed": true,
+        "hardware_verified": false
+      }
     }
   },
   "kernel_logic_cases": 27,
@@ -26,12 +39,12 @@
   "dependency_logic_cases": 5,
   "power_logic_cases_reused_for_identical_app": 22,
   "hardware_verified": false,
-  "device_writes_performed": false,
+  "device_writes_performed": true,
   "source_native_arch_timer_kernel": false,
   "native_timer_driver_integrated": false,
   "proposed_partition": "boot_b",
   "next_variant": "m",
-  "status": "P20M built and host verified, unflashed; P19 remains latest device milestone",
+  "status": "P20M flashed only to boot_b and reboot command succeeded; reader/ARM/kernel observations pending",
   "source_checkout_base": "db99c4675ca90844ad094416b6117414d420fd04",
   "source_state": "Independent P20 sources on recorded base; exact source/artifact hashes below",
   "prior_hardware_baseline": "P19 original debug/startup, timer_call_init, cpu_init, processor_bootstrap returns; nine CRCs retained over one video-observed reboot",
@@ -119,7 +132,7 @@
     ],
     "counter": "constant 19200000; neither entropy quality nor counter advancement proof"
   },
-  "next_action": "When fastboot and recording ready: boot_b only, P20 reader FIRST, fresh Query then ARM once each and photograph before one P20M launch; first read-only reader after reboot. Later TTBR switch requires completed probe/stack/logger mappings.",
+  "next_action": "User opens P20 reader and photographs the full initial read-only page before Query/ARM; menu identity and kernel attempt not yet observed.",
   "limitations": [
     "P20 is host qualification only; P19 remains the latest bounded hardware milestone.",
     "P20 stops inside arm_vm_init, after arm_vm_prot_init return; arm_vm_init itself does not return and new TCR/TTBR roots are not activated.",
@@ -133,5 +146,7 @@
     "scripts/build-v23p20-kernel.py": "eeb03b1d45b044e477b62c247b6858b11083b72f0cfed49bec2e695b4ddde187",
     "scripts/v23p20-vm.S": "4d5d2f210aaa703acaf366d6e858189a436a34a447ab0dd4520b334230c3c50c",
     "scripts/decode-j716f-v23p20.py": "98fd3fdc846c15854d13e125b62f77e263eb4746b0ea2b22ea88767ca5106402"
-  }
+  },
+  "menu_launch_recorded": true,
+  "published_source_revision_at_launch": "e63d221b263dba3a904b76a6ce69f8b1804ab5ba"
 }

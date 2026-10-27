@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-已构建并通过主机校验，尚未刷入。P19仍是最新实机里程碑；其原始startup、
+已构建并通过主机校验，现已仅刷入boot_b，重启命令成功；初始画面待确认。P19仍是最新实机里程碑；其原始startup、
 timer_call_init、cpu_init、processor_bootstrap返回及一次重启保留证据保持不变。
 本轮继续原始arm_init调用arm_vm_init，停在arm_vm_prot_init返回后的
 0xfffffff0073f5c04，记录实际SCTLR_EL1/M1并有意请求SYSTEM_RESET。
@@ -61,7 +61,7 @@ AT/PAR由实际初始页表walk生成。219个高地址数据页的初始映射�
 5. 重启后首先打开P20 reader拍完整页，再进行其他操作；若停住先保留画面。
 
 每次重新启动都必须fresh Query/ARM。终点有意请求复位，不能仅凭自动重启判崩溃。
-目前尚未刷入；源构建pin、固定内核/ADT和原生平台候选均未改变。
+目前已仅刷入boot_b，尚无P20内核实机结果；源构建pin、固定内核/ADT和原生平台候选均未改变。
 
 ## 上游方向
 
@@ -69,3 +69,12 @@ AT/PAR由实际初始页表walk生成。219个高地址数据页的初始映射�
 [设备记录要求](https://unixnu.com/zh/porting/device-repository/)及
 [现有上游/sheng对照](PROGRESS_AFTER_V23P16_20261026.md)推进阶段5早期内核。
 保留BCM整段排除；不复制SM8550/sheng物理地址，也不把主机结果写成实机结论。
+
+## boot_b 刷入与重启命令（2026-10-27）
+
+用户确认本轮fastboot和录像就绪，镜像哈希、设备模式、解锁、槽数及容量核对通过。
+仅刷入boot_b，激活B槽并核对可启动，重启命令成功。镜像SHA256：
+`d464f16c6dd23b4ac6abdd5ab3981197ec8cc3720b6dd475956607649a01d9c4`。
+
+菜单及reader画面尚待照片确认，未观察到本轮Query/ARM、内核启动或VM结果。
+下一步首先打开P20 reader拍完整初始页，先不Query/ARM。P19仍为最新实机里程碑。
