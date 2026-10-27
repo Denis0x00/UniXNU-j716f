@@ -10,14 +10,27 @@ All six slots L1/R1; terminal SCTLR0x3454593d/M1. Nine CRCs independently match
 fresh ID1/ARM8DD10BB5; VALID header0x2c45f logical/raw13/13 retained over one
 continuous-video-observed reboot; first reader ID2/query0/armed0.
 Terminal intentionally requests SYSTEM_RESET; reset source independently unresolved.
-Candidate console/probe/stack gaps are host-model findings, not device table dumps.
+Console gap is a host-model finding, not a device table dump; the historical
+high probe/stack gap was a root-index walker bug, corrected in the P21 review.
 Next audit original continuation, completed candidate mappings/permissions and
 TCR/TTBR order, including executable probe, live stack and retained console lifetime.
 No repeat P20 needed; preserve P19 and all earlier version-specific evidence.
 27 kernel +5 dependency +31 linked-reader host cases remain bounded mocked checks.
 Never rerun build-only recorders over results or reuse consumed ARM.
 
-P13–P20 are bounded diagnostics on a frozen source-built/prelinked kernel.
+P21M built/host qualified, UNFLASHED. Read `docs/V23P21_VM_SWITCH.md` and
+`research/v23p21-vm-switch.json`. 26 kernel +5 dependency +31 linked-reader cases.
+Original TTBR1/TTBR0 BL/LR preserved; console bridge changes only empty root0 L1 slot2,
+borrowing console-only bootstrap L2/L3 until immediate stop0xfffffff0073f5e0c after
+TLBI/DSB/ISB. No pmap_bootstrap or full arm_vm_init return. Guard and readback failures
+halt before later witness/root replacement. Shared CRC leaves probe within2800 bytes.
+TCR-aware walker correction: T1SZ26 =>38-bit VA, eight-bit L1 index; high probe/stack
+already mapped in P20. Console mapping was absent; legacy high-gap report superseded.
+No real TLB/cache/register/IRQ claim. P20 hardware result remains latest.
+Next boot_b only with current fastboot/recording readiness, P21 reader FIRST,
+fresh Query/ARM photo, one P21M; reader FIRST after reboot. Never rerun old recorders.
+
+P13–P21 are bounded diagnostics on a frozen source-built/prelinked kernel.
 Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.
 Separate native platform source candidate compiled/exported in CI at816e3c55;
 it is not the diagnostic kernel and has no hardware IRQ qualification. Read

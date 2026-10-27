@@ -116,8 +116,14 @@
       {
         "root": "0xd41b9000",
         "console_mapping_absent": true,
-        "cave": null,
-        "stack": null
+        "cave": [
+          3542074624,
+          "0x500000d31fc683"
+        ],
+        "stack": [
+          3550375376,
+          "0x600000d39e6603"
+        ]
       }
     ],
     "candidate_tables_not_complete_at_stop": true,
@@ -132,13 +138,34 @@
       "SMC",
       "UEFI/input"
     ],
-    "counter": "constant 19200000; neither entropy quality nor counter advancement proof"
+    "counter": "constant 19200000; neither entropy quality nor counter advancement proof",
+    "historical_unmasked_candidate_tables": [
+      {
+        "root": "0xd41b8000",
+        "console_mapping_absent": true,
+        "cave": null,
+        "stack": null
+      },
+      {
+        "root": "0xd41b9000",
+        "console_mapping_absent": true,
+        "cave": null,
+        "stack": null
+      }
+    ],
+    "walker_correction": {
+      "date": "2026-10-27",
+      "issue": "Legacy candidate walker used bit38 in a nine-bit root index despite T0SZ/T1SZ=26 (38-bit VA, eight-bit root index). This falsely reported missing high probe/stack mappings.",
+      "correction": "Mask VA to 38 bits before the L1 index; select TTBR0 for low and TTBR1 for high VAs. Corrected high root maps probe RX and stack RW/NX; low console remains absent.",
+      "scope": "Host-model correction only; P20 code/image/CRC/device evidence unchanged. Historical build-only validation snapshot and private checks preserved.",
+      "review_sha256": "90c1c15db202be0a55c755641c7dc5be0f87e59d90229193655a019148286a56"
+    }
   },
   "next_action": "Preserve P20 result; audit original continuation after0xfffffff0073f5c04, completion of new tables, TCR/TTBR switch order and probe/stack/retained-console mappings and permissions across that switch; design next grouped checkpoints only after these lifetimes are qualified. No repeat P20 launch needed.",
   "limitations": [
     "P20 device qualification is limited to this bounded original VM preparation path and one observed reboot retention; full VM and new translation roots are not qualified.",
     "P20 stops inside arm_vm_init, after arm_vm_prot_init return; arm_vm_init itself does not return and new TCR/TTBR roots are not activated.",
-    "At this host stop both newly allocated candidate roots lack the retained console mapping; candidate probe/stack translations are also incomplete. No safety assumption about later root activation.",
+    "Corrected TCR-aware host walk finds high probe/stack mappings in the new high root; the low root still lacks console mapping. Legacy missing-high-mapping report is superseded, not a device table dump.",
     "Original early_random and crypto code execute with synthetic clock and fixed private ADT inputs; this does not qualify real entropy or advancing counters.",
     "Only bounded execution under the bootstrap mapping and terminal SCTLR M1 are established; no new-root/cache-coherence, full VM lifetime, timer IRQ, GIC, scheduling, storage or userspace result.",
     "The frozen diagnostic and independent source-native platform candidate are separate builds.",

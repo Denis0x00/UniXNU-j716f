@@ -76,3 +76,5 @@ Latest P11 result: A retained published stage5; B and D each retained matching r
 - [P19 startup/timer/CPU/processor](v23p19-startup-init.json): bounded original four-group returns device verified; all nine CRCs match, terminal SCTLR M1 and records retained over one continuous-video-observed reboot. Next audit arm_init remainder and arm_vm_init mapping/stack lifetime.
 
 - [P20 VM preparation](v23p20-vm-init.json): bounded original early allocation/layout and arm_vm_prot_init return device verified before TCR/TTBR activation; all nine CRCs match and retained over one video-observed reboot. Full arm_vm_init remains incomplete; next audit completed mappings and switch lifetimes.
+
+- [P21 translation switch](v23p21-vm-switch.json): built/host verified, unflashed; console-only bridge and original TTBR1/TTBR0/TLB sync; TCR-aware P20 walker correction, hardware result preserved.

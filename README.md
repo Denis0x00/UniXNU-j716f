@@ -41,6 +41,13 @@ timer IRQ、GIC、调度及用户态尚未验证。
 终点在新TCR/TTBR切换之前主动请求重启，尚未完成arm_vm_init整体初始化。
 下一步审查新表完成与切换顺序，以及探针、栈和日志跨切换的映射/权限。
 
+## P21M 待实机测试
+
+[原始TTBR切换诊断](docs/V23P21_VM_SWITCH.md)已构建，通过26项内核、5项依赖和31项reader主机检查，尚未刷入。
+以console专用子表桥接日志，继续原始TTBR1→TTBR0→TLBI/DSB/ISB后终止。
+主机walker已修正T1SZ=26的根索引；P20高地址探针/栈缺失误报已更正，原实机结果不变。
+原始媒体/二进制仅私有保存；下一轮仍仅boot_b、reader FIRST、fresh Query/ARM。
+
 ## 当前文档与证据
 
 - [P16 后的实际进度及上游/sheng 对照](docs/PROGRESS_AFTER_V23P16_20261026.md)
