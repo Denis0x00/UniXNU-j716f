@@ -43,7 +43,7 @@ timer IRQ、GIC、调度及用户态尚未验证。
 
 ## P21M 待实机测试
 
-[原始TTBR切换诊断](docs/V23P21_VM_SWITCH.md)已构建，通过26项内核、5项依赖和31项reader主机检查；已仅刷入boot_b，重启命令成功，初始reader待确认。
+[原始TTBR切换诊断](docs/V23P21_VM_SWITCH.md)已构建，通过26项内核、5项依赖和31项reader主机检查；已仅刷入boot_b，重启命令成功，初始reader已确认，满环形日志需先新建线性会话，Query/ARM及内核测试待进行。
 以console专用子表桥接日志，继续原始TTBR1→TTBR0→TLBI/DSB/ISB后终止。
 主机walker已修正T1SZ=26的根索引；P20高地址探针/栈缺失误报已更正，原实机结果不变。
 原始媒体/二进制仅私有保存；下一轮仍仅boot_b、reader FIRST、fresh Query/ARM。

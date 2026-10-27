@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-P21M已构建并通过主机校验，现已仅刷入boot_b，重启命令成功；初始画面待确认。P20实机结果及旧镜像完整保留。
+P21M已构建并通过主机校验，现已仅刷入boot_b，重启命令成功；初始reader已确认，满环形日志需先新建线性会话。P20实机结果及旧镜像完整保留。
 继续原始VM准备、physmap/protection与qsort，执行原始TTBR1、TTBR0设置函数，
 完成原始TLBI/DSB/ISB后停在0xfffffff0073f5e0c，记录实际SCTLR_EL1并请求SYSTEM_RESET。
 **这仍不是arm_vm_init整体返回，不进入后续pmap_bootstrap。**
@@ -64,3 +64,17 @@ P21在两个新根安装之前检查TCR、MAIR、旧根关系、精确console子
 
 菜单及reader画面尚待照片确认；尚无本轮Query/ARM、内核启动或根切换实机结果。
 下一步首先打开P21 reader拍完整初始页，先不Query/ARM。P20仍为最新内核实机里程碑。
+
+## 初始只读 reader（2026-10-27）
+
+完整照片确认 J716F V23P21 VM SWITCH TRACE r1、EL1；父菜单未在照片中出现。
+ENTRY/NOW VALID，next=0x125fb、size=0x3fff4（满环形日志），
+reader显示console CRC32=633B24C3，logical/raw均0，冻结checkpoint ID0。
+八个检查点及四个终点/failure行均无命中；THIS RUN ID1/query0/armed0/CRC0。
+PSCI与FEATURES显示0为未查询状态，不是功能不支持的结论。
+
+有效满环形日志不满足探针所需的线性尾部条件，不能把容量减next当作可用空间。
+需要先在当前reader选择New linear session两次，确认后丢弃旧逻辑历史，
+旧数据仍可能被raw扫描视作陈旧记录；ENTRY冻结显示继续保留原始满环形状态。
+先拍New session OK和NOW新日志头，再核对后执行Query/ARM；尚无P21内核或根切换结果。
+原始照片仅私有保存，console CRC为照片显示值，未独立重算完整console。

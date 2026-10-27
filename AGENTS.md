@@ -19,7 +19,10 @@ No repeat P20 needed; preserve P19 and all earlier version-specific evidence.
 Never rerun build-only recorders over results or reuse consumed ARM.
 
 P21M built/host qualified; flashed only to boot_b, B active/bootable verified,
-reboot command succeeded; menu identity and initial read-only reader pending. Read `docs/V23P21_VM_SWITCH.md` and
+reboot command succeeded; initial reader confirmed VM SWITCH TRACE r1 at EL1,
+VALID next0x125fb/size0x3fff4 FULL circular, logical/raw0, ID1/query0/armed0.
+Parent menu not pictured. New linear session REQUIRED before Query/ARM;
+select twice, photograph success/NOW first. No P21 kernel attempt observed. Read `docs/V23P21_VM_SWITCH.md` and
 `research/v23p21-vm-switch.json`. 26 kernel +5 dependency +31 linked-reader cases.
 Original TTBR1/TTBR0 BL/LR preserved; console bridge changes only empty root0 L1 slot2,
 borrowing console-only bootstrap L2/L3 until immediate stop0xfffffff0073f5e0c after
@@ -28,8 +31,8 @@ halt before later witness/root replacement. Shared CRC leaves probe within2800 b
 TCR-aware walker correction: T1SZ26 =>38-bit VA, eight-bit L1 index; high probe/stack
 already mapped in P20. Console mapping was absent; legacy high-gap report superseded.
 No real TLB/cache/register/IRQ claim. P20 hardware result remains latest.
-Next P21 reader FIRST before Query/ARM; no repeat flash required,
-fresh Query/ARM photo, one P21M; reader FIRST after reboot. Never rerun old recorders.
+Next explicit new linear session, review photo, then fresh Query/ARM photo
+before one P21M; reader FIRST after reboot. No repeat flash required. Never rerun old recorders.
 
 P13–P21 are bounded diagnostics on a frozen source-built/prelinked kernel.
 Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.

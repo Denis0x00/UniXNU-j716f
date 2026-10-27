@@ -266,7 +266,7 @@
   "next_variant": "m",
   "source_checkout_base": "47dacd6fb374463d7eab5a0124f3ef044c47ad3a",
   "source_state": "Independent P21 additions on recorded base; exact source/artifact hashes bind this build",
-  "status": "P21M flashed only to boot_b and reboot command succeeded; reader/ARM/kernel observations pending",
+  "status": "P21 initial reader confirmed: valid full circular console, ID1/query0/armed0; explicit new linear session required before Query/ARM; no kernel attempt observed",
   "prior_hardware_baseline": "P20 original VM allocation/layout/protection return before TCR/TTBR; nine CRCs retained over one video-observed reboot",
   "arm_cookie": "0x5032314b45524e4c",
   "slot_tag": "0x5032315300000000",
@@ -334,7 +334,7 @@
     ],
     "counter": "constant19200000; no entropy or advancement qualification"
   },
-  "next_action": "Open P21 reader and photograph the full initial read-only page before Query/ARM; menu identity and kernel attempt not yet observed.",
+  "next_action": "Before Query/ARM, select New linear session twice in the current reader; photograph successful session status and NOW header before further actions.",
   "limitations": [
     "Host qualification only; P20 remains latest device result.",
     "Stop follows original TTBR1/TTBR0 setters and TLB sync, but arm_vm_init has not fully returned.",
@@ -349,5 +349,39 @@
     "scripts/decode-j716f-v23p21.py": "a1bf022c39920dba28d199acbbb0f197ab2e438b547a41767f2a8fbcf1990f78"
   },
   "menu_launch_recorded": true,
-  "published_source_revision_at_launch": "cac6434346472c840ed8a55add0b6cd265523338"
+  "published_source_revision_at_launch": "cac6434346472c840ed8a55add0b6cd265523338",
+  "initial_reader_observation": {
+    "date": "2026-10-27",
+    "photo_sha256": "49c2f3afc2332d3e5b8debec308cef2b2468208fb3fc9b633cc004c9b4579bb1",
+    "identity": "J716F V23P21 VM SWITCH TRACE r1",
+    "parent_menu_identity_pictured": false,
+    "entry_signature": "0x43474244",
+    "entry_next": "0x125fb",
+    "entry_size": "0x3fff4",
+    "entry_console_crc32": "0x633b24c3",
+    "console_crc_source": "Photographed reader display only; full console bytes unavailable for independent recomputation",
+    "entry_logical_count": 0,
+    "entry_raw_count": 0,
+    "frozen_checkpoint_id": 0,
+    "now_valid": true,
+    "now_next": "0x125fb",
+    "now_size": "0x3fff4",
+    "now_logical_count": 0,
+    "now_raw_count": 0,
+    "all_checkpoint_rows_logical_raw_zero": true,
+    "terminal_map_failure_reset_return_raw_hits_zero": true,
+    "this_run_id": 1,
+    "query_complete": false,
+    "armed": false,
+    "arm_crc32": "0x00000000",
+    "current_el": 1,
+    "psci_version_display": "0x00000000",
+    "psci_features_display": "0x0000000000000000",
+    "console_is_full_circular": true,
+    "unused_linear_tail_bytes": 0,
+    "query_tail_requirement_bytes": 896,
+    "new_session_required": true,
+    "p21_kernel_launch_observed": false,
+    "next_required_action": "Before Query/ARM, select New linear session twice in the current reader; photograph successful session status and NOW header before further actions."
+  }
 }
