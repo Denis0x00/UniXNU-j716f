@@ -9,13 +9,13 @@ SCTLR0x3454593d/M1 at0xfffffff0079e1b18; all9 CRCs match fresh ID1/ARM209C5114,
 header0x380 logical/raw14/14 retained over one video-observed reboot.
 cpu_bootstrap is a RET stub; reset source independently unresolved.
 
-P19M is built/host verified, unflashed. Read `docs/V23P19_STARTUP_INIT.md` and
+P19M is built/host verified, flashed only to boot_b; reboot command succeeded. Read `docs/V23P19_STARTUP_INIT.md` and
 `research/v23p19-startup-init.json`. Original debug/startup (849 callbacks in host
 model), timer_call_init/cpu_init/processor_bootstrap return group; terminal
 0xfffffff0079e1b34 before later arm_init/arm_vm_init. 57 kernel +6 dependency
 +31 linked-reader checks. MIDR/cache/debug/DAIF/counter, SP banks, MMU aliases,
-barriers, SMC and UEFI are modeled; no P19 hardware claim. Next boot_b menu/reader
-FIRST, fresh Query/ARM photo, single recorded P19M.
+barriers, SMC and UEFI are modeled; no P19 kernel result. Next user photo of
+P19 initial read-only reader FIRST, then reviewed fresh Query/ARM and single attempt.
 
 P13–P19 are bounded diagnostics on a frozen source-built/prelinked kernel.
 Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.

@@ -73,4 +73,4 @@ Latest P11 result: A retained published stage5; B and D each retained matching r
 
 - [P18 bootstrap/early clock](v23p18-bootstrap-clock.json): built/host verified, unflashed; original boot CPU validation/current-thread/early clock continuation; P17 hardware baseline preserved.
 
-- [P19 startup/timer/CPU/processor](v23p19-startup-init.json)：已构建并通过主机检查，未刷入；P18实机基线保留。
+- [P19 startup/timer/CPU/processor](v23p19-startup-init.json)：已构建并通过主机检查，仅刷入boot_b并发出重启命令；P19 reader/内核结果待确认，P18实机基线保留。

@@ -18,7 +18,20 @@
       "compact_sec_matches_p8": true,
       "host_checks_passed": true,
       "hardware_verified": false,
-      "device_writes_performed": false
+      "device_writes_performed": true,
+      "device_launch": {
+        "partition_images_flashed": [
+          "boot_b"
+        ],
+        "current_slot_before_reboot": "b",
+        "slot_unbootable_b_before_reboot": false,
+        "reboot_command_succeeded": true,
+        "image_sha256": "7a68766b1f8c05a6bf373d93811c7d1eac30fa84604c4b324e0f9f81afebf7d8",
+        "menu_identity_observed": false,
+        "manual_kernel_start_required": true,
+        "recording_ready_user_confirmed": true,
+        "hardware_verified": false
+      }
     }
   },
   "kernel_logic_cases": 57,
@@ -26,12 +39,12 @@
   "dependency_logic_cases": 6,
   "power_logic_cases_reused_for_identical_app": 22,
   "hardware_verified": false,
-  "device_writes_performed": false,
+  "device_writes_performed": true,
   "source_native_arch_timer_kernel": false,
   "native_timer_driver_integrated": false,
   "proposed_partition": "boot_b",
   "next_variant": "m",
-  "status": "P19M built and host verified; unflashed",
+  "status": "P19M flashed only to boot_b and reboot command succeeded; reader/ARM/kernel observations pending",
   "source_checkout_base": "f8cf6d2b480a0c26b36c3ece9eedd6116af0ff50",
   "source_state": "P19 additions on recorded base; exact source and artifact hashes in this manifest",
   "prior_hardware_baseline": "P18 original boot CPU publication/validation, current-thread setter and rtclock_early_init return; nine CRCs retained over one video-observed reboot",
@@ -102,7 +115,7 @@
       "UEFI/input"
     ]
   },
-  "next_action": "boot_b menu only after fastboot/recording readiness; P19 reader FIRST; fresh Query/ARM then exactly one P19M; first read-only reader after reboot",
+  "next_action": "User opens P19 reader and photographs full initial frozen/now page before Query/ARM; no kernel attempt observed",
   "limitations": [
     "P19 is host verified only; P18 remains latest device milestone.",
     "Original debug/startup now reads CNTVCT; reaching this group is not an advancing-counter or IRQ qualification.",
@@ -115,5 +128,6 @@
     "scripts/build-v23p19-kernel.py": "b377b78dff0c2f0e7e8e58050ecc0e589c76ddfb6b38982bee4e90868e9ca22d",
     "scripts/v23p19-init.S": "0ffc2ed33ef080e5b4521f495df36762fc1ef9f181435f3a7a0527ee494fc0aa",
     "scripts/decode-j716f-v23p19.py": "f4bb0712623de78466a90e96bdc8b9ae30cfd7b9d958459e16d10a3b5341d3ed"
-  }
+  },
+  "menu_launch_recorded": true
 }
