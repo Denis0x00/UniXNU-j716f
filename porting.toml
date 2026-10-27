@@ -1555,6 +1555,11 @@ findings = ["The current V15 payload is a diagnostic FAT volume and does not pro
 completion = ["Controller reads, GPT windows, OS/SystemOS ranges and root persistence pass on the device."]
 limits = ["No storage ABI, trust cache or userdata seed is public or verified."]
 next_action = ["Record UFS register, LUN and userdata geometry before adding a storage component."]
+
+[[area.evidence]]
+kind = "source"
+reference = "dts/j716f.dts"
+result = "2026-10-27 native logging adds only the existing reserved boot-log range and architectural timer interrupts. No UFS nodes, geometry, storage driver selection or device result changed. Storage work remains gated behind native IRQ/scheduler evidence."
 evidence = []
 
 [[area]]
@@ -1671,6 +1676,11 @@ findings = ["The current screen result comes from inherited GOP and does not est
 completion = ["GPU submissions, mapping, fences, known rendering and the selected Metal client all pass."]
 limits = ["No GPU firmware or device-side submission evidence is available."]
 next_action = ["Inventory Adreno 650/SM8250 resources and firmware ownership before selecting a component."]
+
+[[area.evidence]]
+kind = "source"
+reference = "dts/j716f.dts"
+result = "2026-10-27 DTS changes describe the existing boot-log reservation and native timer, not GPU resources. No GPU driver, firmware or qualification change."
 evidence = []
 
 [[area]]
@@ -1685,6 +1695,11 @@ findings = ["No network path has been exercised by the diagnostic images."]
 completion = ["Scanning, association, address configuration and sustained traffic pass with the selected firmware."]
 limits = ["Wireless hardware and OS ABI inputs are missing."]
 next_action = ["Extract the wireless controller identity and firmware source from the stock system."]
+
+[[area.evidence]]
+kind = "source"
+reference = "dts/j716f.dts"
+result = "2026-10-27 native log/timer DTS changes leave network nodes and qualification unchanged; no wireless driver or firmware enabled."
 evidence = []
 
 [[area]]
@@ -1699,6 +1714,11 @@ findings = ["The current bring-up stops before userspace audio and has no audio 
 completion = ["Declared routes carry the selected format through playback and capture with correct start/stop behavior."]
 limits = ["Audio inputs and firmware are unavailable."]
 next_action = ["Capture the codec/DSP graph and firmware interfaces from the stock device."]
+
+[[area.evidence]]
+kind = "source"
+reference = "dts/j716f.dts"
+result = "2026-10-27 native log/timer DTS changes leave audio/DSP nodes and qualification unchanged; no audio driver or firmware enabled."
 evidence = []
 
 [[area]]
