@@ -2,7 +2,9 @@
 
 2026-10-27 新增独立 [IRQ 观测候选](NATIVE_IRQ_OBSERVER.md)：保留固定组件原始路径，
 增加 CPU/GIC/timebase 和真实 IRQ enter/rtclock 返回/EOI 的有界快照。
-Linux 双编译器和 AArch64 观测封装检查通过，本轮完整内核编译等待 CI；无新实机结论。
+Linux 双编译器和 AArch64 观测封装检查通过，本轮完整内核编译及新增链接门槛已在
+[CI 40445461837](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40445461837)
+通过（受测源码 `9ae5d75`）；无预链接或新实机结论。
 
 此候选与 P16/P17 的冻结内核诊断分别构建。上游构建脚本明确要求
 `XNU_NATIVE_ARCH_TIMER=1` 同时具有真实 `ArmCpu` 中断提供者。

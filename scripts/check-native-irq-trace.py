@@ -53,6 +53,13 @@ def check(data, evidence):
         samples.append({'irq': count, 'stages': group})
     need(t[9] == t[53] and t[10] == t[149], 'header counters disagree with snapshots')
     return {'trace_consistent': not reasons, 'reasons': reasons, 'samples': samples,
+            'write_sequence': t[3], 'startup_phase_bitmap': t[4], 'last_startup_phase': t[5],
+            'sticky_errors': t[12], 'boot_logical_id': t[13], 'boot_mpidr': t[14],
+            'snapshot_bitmap': t[15], 'last_irq_phase': t[34],
+            'last_startup_registers': dict(zip(
+                ('frequency', 'counter', 'deadline', 'control', 'daif', 'detail',
+                 'upstream_irq_phase', 'global_timer_interrupts', 'registered', 'gic_ready'), t[24:34])),
+            'quiesce_calls': t[35], 'halt_calls': t[36],
             'entered': t[6], 'rtclock_returned': t[7], 'eoi_completed': t[8],
             'gic_readbacks': list(t[16:24]), 'hardware_validated': False,
             'scope': 'structural consistency only; requires independently captured live-device provenance; '

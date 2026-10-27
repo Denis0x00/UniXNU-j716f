@@ -27,7 +27,9 @@
 
 本轮参照同 SM8250 的 pipa/umi 新增[原生 IRQ 观测候选](docs/NATIVE_IRQ_OBSERVER.md)：
 已接入真实 IRQ 进入、rtclock 返回、EOI 后的九个有界快照，确认原厂/Recovery 输入均描述
-virtual timer INTID27。Linux 双编译器及 AArch64 汇编门槛通过；完整内核编译待 CI，
+virtual timer INTID27。Linux 双编译器及 AArch64 汇编门槛通过；
+[完整内核编译与链接门槛 CI](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40445461837)
+已通过（受测源码 `9ae5d75`），
 尚无预链接、持久化采集通道或实机 IRQ 结果。P22 继续待测。
 
 ### P21：最新实机里程碑

@@ -39,6 +39,11 @@ def main():
             result = checker.check(path.read_bytes(), evidence)
             assert result['trace_consistent'] == (path.stem == 'complete'), (path.name, result)
             assert not result['hardware_validated']
+            if path.stem == 'complete':
+                assert result['last_startup_phase'] == 7
+                assert result['last_startup_registers']['frequency'] == 19200000
+            elif path.stem == 'setup_missing':
+                assert not result['startup_phase_bitmap'] & (1 << 4)
         complete = (out/'complete.bin').read_bytes()
         mutations = {'torn_sequence': (3, 1), 'missing_slot': (15, 0xff),
                      'missing_checkpoint': (11, 0), 'wrong_frequency': (52, 24000000),
