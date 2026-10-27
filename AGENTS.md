@@ -13,7 +13,15 @@ Host849 callbacks/27 functions are not device callback measurements.
 No arm_vm_init yet. Next audit remaining arm_init and VM mapping/stack lifetime.
 P18 evidence remains in its version-specific document/manifest. No repeat P19 test.
 
-P13–P19 are bounded diagnostics on a frozen source-built/prelinked kernel.
+P20M built/host qualified and unflashed. Read `docs/V23P20_VM_INIT.md` and
+`research/v23p20-vm-init.json`. 27 kernel +5 dependency +31 linked-reader cases.
+Original arm_vm_init early allocation/layout/protection returns to stop0xfffffff0073f5c04,
+before TCR/TTBR replacement. Full-segment DarwinBoot placement and AT/PAR table walks
+are modeled; candidate roots lack console and complete probe/stack mappings here.
+No full VM or new hardware claim. Next P20 reader FIRST, fresh Query/ARM and one
+recorded boot_b attempt when ready. Never rerun P19 recorders or repurpose its ARM.
+
+P13–P20 are bounded diagnostics on a frozen source-built/prelinked kernel.
 Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.
 Separate native platform source candidate compiled/exported in CI at816e3c55;
 it is not the diagnostic kernel and has no hardware IRQ qualification. Read

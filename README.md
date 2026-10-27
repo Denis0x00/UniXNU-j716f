@@ -32,6 +32,12 @@ P18 在rtclock_early_init返回后主动结束；cpu_bootstrap在该基线中只
 终点预设请求重启，复位来源未独立证明。下一步审查arm_init剩余流程及arm_vm_init的映射/栈生命周期；
 timer IRQ、GIC、调度及用户态尚未验证。
 
+## P20M 待实机测试
+
+[arm_vm_init早期VM诊断](docs/V23P20_VM_INIT.md)已构建，通过27项内核、5项依赖及31项链接reader主机检查，尚未刷入。
+继续原始VM入口、初始表分配、内核段处理和arm_vm_prot_init返回；在TCR/TTBR切换前主动终止。
+下一次切换需要完成日志、探针及栈在新表中的映射。P19实机结果保留。
+
 ## 当前文档与证据
 
 - [P16 后的实际进度及上游/sheng 对照](docs/PROGRESS_AFTER_V23P16_20261026.md)

@@ -1,0 +1,137 @@
+{
+  "version": "V23P20 VM TRACE r1",
+  "host_checks_passed": true,
+  "automatic_start": false,
+  "kernel_entry_requires_manual_arm": true,
+  "variants": {
+    "m": {
+      "version": "V23P20M",
+      "image": "j716f-mu-zui13-kernel-trace-v23p20m-boot.img",
+      "image_bytes": 8347648,
+      "image_sha256": "d464f16c6dd23b4ac6abdd5ab3981197ec8cc3720b6dd475956607649a01d9c4",
+      "fd_sha256": "854a06b687d5f6ee09f26a7134034b3c5e9261367b9d8a88d140db204da088c1",
+      "payload_sha256": "79740760673542d276e4db21d35889e1298651d8203dd8325b703dac4dc93be9",
+      "kernel_sha256": "e41c49e3c4c53d7bfa3c1de7a3ca4fe8440afa1ee6a8ada81aee0878bac2e2d1",
+      "app_sha256": "7656f0f11deb7d71d8ef04e695703c412243a6e1e6d6985fbd7a524ceccd4d8d",
+      "power_app_sha256": "5af712b62fd62f0cdd6702bafdfe149df68547a1a1c056948a3d5c5ffbfb833d",
+      "nonpayload_changes_vs_p8": [],
+      "compact_sec_matches_p8": true,
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "device_writes_performed": false
+    }
+  },
+  "kernel_logic_cases": 27,
+  "reader_logic_cases": 31,
+  "dependency_logic_cases": 5,
+  "power_logic_cases_reused_for_identical_app": 22,
+  "hardware_verified": false,
+  "device_writes_performed": false,
+  "source_native_arch_timer_kernel": false,
+  "native_timer_driver_integrated": false,
+  "proposed_partition": "boot_b",
+  "next_variant": "m",
+  "status": "P20M built and host verified, unflashed; P19 remains latest device milestone",
+  "source_checkout_base": "db99c4675ca90844ad094416b6117414d420fd04",
+  "source_state": "Independent P20 sources on recorded base; exact source/artifact hashes below",
+  "prior_hardware_baseline": "P19 original debug/startup, timer_call_init, cpu_init, processor_bootstrap returns; nine CRCs retained over one video-observed reboot",
+  "arm_cookie": "0x5032304b45524e4c",
+  "slot_tag": "0x5032305300000000",
+  "slot_phases": {
+    "16": "BCM_ROUTE_SKIPPED",
+    "17": "M1_READBACK",
+    "18": "VM_ENTRY",
+    "19": "VM_TABLES_READY",
+    "20": "VM_LAYOUT_READY",
+    "21": "VM_PROT_RETURN"
+  },
+  "dependency_case_count": 5,
+  "terminal": "Actual SCTLR_EL1/M1 at0xfffffff0073f5c04 after original arm_vm_prot_init return within arm_vm_init; before TCR and TTBR replacement; then deliberate SYSTEM_RESET request",
+  "original_path_review": {
+    "hooks": {
+      "vm_entry": "0xfffffff0073f5298",
+      "vm_tables": "0xfffffff0073f55b8",
+      "vm_layout": "0xfffffff0073f5b28",
+      "terminal": "0xfffffff0073f5c04"
+    },
+    "original_bl_lr_preserved": true,
+    "returning_probe_gpr_sp_nzcv_preserved": true,
+    "prologues_replayed": [
+      "SUB SP,SP,#0x160",
+      "STR X27,[SP,#0x20]",
+      "ADRP X8,0xfffffff007178000"
+    ],
+    "new_original_calls": [
+      "PE_parse_boot_argn",
+      "PE_get_default",
+      "nanoseconds_to_absolutetime",
+      "arm_vm_init early portion",
+      "early_random",
+      "phystokv",
+      "kvtophys",
+      "bzero",
+      "getsegdatafromheader",
+      "getsectdatafromheader",
+      "PE_get_kc_header",
+      "getlastkerneladdr",
+      "vm_set_page_size",
+      "arm_vm_prot_init"
+    ],
+    "old_original_startup_timer_cpu_processor_path_preserved": true,
+    "original_failure_branches_preserved": true,
+    "no_original_vm_function_return_mocked": true,
+    "counter_entropy_crypto_results_not_hardware_qualified": true,
+    "original_vm_function_fully_returns": false,
+    "new_tcr_ttbr_not_activated": true
+  },
+  "host_model": {
+    "full_macho_segments_loaded": true,
+    "virtual_base_from_minimum_segment": "0xfffffff00427c000",
+    "boot_args_and_adt_after_maximum_segment": true,
+    "top_of_kernel_data_after_aligned_loader_payload": true,
+    "owned_window_bytes": 268435456,
+    "active_high_data_pages_checked": 219,
+    "candidate_tables": [
+      {
+        "root": "0xd41b8000",
+        "console_mapping_absent": true,
+        "cave": null,
+        "stack": null
+      },
+      {
+        "root": "0xd41b9000",
+        "console_mapping_absent": true,
+        "cave": null,
+        "stack": null
+      }
+    ],
+    "candidate_tables_not_complete_at_stop": true,
+    "at_par_derived_by_walking_original_active_table": true,
+    "active_bootstrap_tables_not_modified_by_new_vm_group": true,
+    "mocked": [
+      "system register fixtures",
+      "SP banks",
+      "physical/high aliases",
+      "AT/PAR translation",
+      "barriers",
+      "SMC",
+      "UEFI/input"
+    ],
+    "counter": "constant 19200000; neither entropy quality nor counter advancement proof"
+  },
+  "next_action": "When fastboot and recording ready: boot_b only, P20 reader FIRST, fresh Query then ARM once each and photograph before one P20M launch; first read-only reader after reboot. Later TTBR switch requires completed probe/stack/logger mappings.",
+  "limitations": [
+    "P20 is host qualification only; P19 remains the latest bounded hardware milestone.",
+    "P20 stops inside arm_vm_init, after arm_vm_prot_init return; arm_vm_init itself does not return and new TCR/TTBR roots are not activated.",
+    "At this host stop both newly allocated candidate roots lack the retained console mapping; candidate probe/stack translations are also incomplete. No safety assumption about later root activation.",
+    "Original early_random and crypto code execute with synthetic clock and fixed private ADT inputs; this does not qualify real entropy or advancing counters.",
+    "No real MMU/cache coherence, full VM lifetime, timer IRQ, GIC, scheduling, storage or userspace result.",
+    "The frozen diagnostic and independent source-native platform candidate are separate builds.",
+    "Terminal requests SYSTEM_RESET deliberately; a reboot alone is not crash evidence or independent reset-source proof."
+  ],
+  "source_files": {
+    "scripts/build-v23p20-kernel.py": "eeb03b1d45b044e477b62c247b6858b11083b72f0cfed49bec2e695b4ddde187",
+    "scripts/v23p20-vm.S": "4d5d2f210aaa703acaf366d6e858189a436a34a447ab0dd4520b334230c3c50c",
+    "scripts/decode-j716f-v23p20.py": "98fd3fdc846c15854d13e125b62f77e263eb4746b0ea2b22ea88767ca5106402"
+  }
+}
