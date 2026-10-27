@@ -17,7 +17,7 @@
       "nonpayload_changes_vs_p8": [],
       "compact_sec_matches_p8": true,
       "host_checks_passed": true,
-      "hardware_verified": false,
+      "hardware_verified": true,
       "device_writes_performed": true,
       "device_launch": {
         "partition_images_flashed": [
@@ -27,24 +27,26 @@
         "slot_unbootable_b_before_reboot": false,
         "reboot_command_succeeded": true,
         "image_sha256": "d464f16c6dd23b4ac6abdd5ab3981197ec8cc3720b6dd475956607649a01d9c4",
-        "menu_identity_observed": false,
+        "menu_identity_observed": true,
         "manual_kernel_start_required": true,
         "recording_ready_user_confirmed": true,
-        "hardware_verified": false
-      }
+        "hardware_verified": true,
+        "hardware_verification_scope": "Bounded original arm_vm_init entry, early_random and initial root/upper-table allocation return, segment/section layout and vm_set_page_size return, and arm_vm_prot_init return to0xfffffff0073f5c04; terminal SCTLR M1; nine records retained over one continuous-video-observed reboot. No full arm_vm_init return, new TCR/TTBR activation, complete candidate mappings, timer IRQ or scheduler qualification."
+      },
+      "hardware_verification_scope": "Bounded original arm_vm_init entry, early_random and initial root/upper-table allocation return, segment/section layout and vm_set_page_size return, and arm_vm_prot_init return to0xfffffff0073f5c04; terminal SCTLR M1; nine records retained over one continuous-video-observed reboot. No full arm_vm_init return, new TCR/TTBR activation, complete candidate mappings, timer IRQ or scheduler qualification."
     }
   },
   "kernel_logic_cases": 27,
   "reader_logic_cases": 31,
   "dependency_logic_cases": 5,
   "power_logic_cases_reused_for_identical_app": 22,
-  "hardware_verified": false,
+  "hardware_verified": true,
   "device_writes_performed": true,
   "source_native_arch_timer_kernel": false,
   "native_timer_driver_integrated": false,
   "proposed_partition": "boot_b",
   "next_variant": "m",
-  "status": "Fresh P20 ID1 Query/ARM confirmed; reconstructed ARM CRC8DD10BB5 matches; single kernel attempt pending",
+  "status": "P20M bounded original VM allocation/layout/protection return device verified before TCR/TTBR switch; nine CRCs match and records retained over one video-observed reboot",
   "source_checkout_base": "db99c4675ca90844ad094416b6117414d420fd04",
   "source_state": "Independent P20 sources on recorded base; exact source/artifact hashes below",
   "prior_hardware_baseline": "P19 original debug/startup, timer_call_init, cpu_init, processor_bootstrap returns; nine CRCs retained over one video-observed reboot",
@@ -132,13 +134,13 @@
     ],
     "counter": "constant 19200000; neither entropy quality nor counter advancement proof"
   },
-  "next_action": "Return to menu, continuously record exactly one P20M launch; first open reader and photograph full frozen page after reboot, before further Query/ARM",
+  "next_action": "Preserve P20 result; audit original continuation after0xfffffff0073f5c04, completion of new tables, TCR/TTBR switch order and probe/stack/retained-console mappings and permissions across that switch; design next grouped checkpoints only after these lifetimes are qualified. No repeat P20 launch needed.",
   "limitations": [
-    "P20 is host qualification only; P19 remains the latest bounded hardware milestone.",
+    "P20 device qualification is limited to this bounded original VM preparation path and one observed reboot retention; full VM and new translation roots are not qualified.",
     "P20 stops inside arm_vm_init, after arm_vm_prot_init return; arm_vm_init itself does not return and new TCR/TTBR roots are not activated.",
     "At this host stop both newly allocated candidate roots lack the retained console mapping; candidate probe/stack translations are also incomplete. No safety assumption about later root activation.",
     "Original early_random and crypto code execute with synthetic clock and fixed private ADT inputs; this does not qualify real entropy or advancing counters.",
-    "No real MMU/cache coherence, full VM lifetime, timer IRQ, GIC, scheduling, storage or userspace result.",
+    "Only bounded execution under the bootstrap mapping and terminal SCTLR M1 are established; no new-root/cache-coherence, full VM lifetime, timer IRQ, GIC, scheduling, storage or userspace result.",
     "The frozen diagnostic and independent source-native platform candidate are separate builds.",
     "Terminal requests SYSTEM_RESET deliberately; a reboot alone is not crash evidence or independent reset-source proof."
   ],
@@ -219,5 +221,213 @@
     "derived_complete_terminal_header": "0x2c45f",
     "derived_header_is_observed": false,
     "next_required_action": "Return to menu, continuously record exactly one P20M launch; first open reader and photograph full frozen page after reboot, before further Query/ARM"
-  }
+  },
+  "post_reboot_observation": {
+    "date": "2026-10-27",
+    "photo_sha256": "e1175ebef43c10c2be08c6f20f074bbea1854a59f7b7075182de072cfaa55a4f",
+    "video_sha256": "2a0e7dc47d5b6599b0a40412132228372fc7ea4ca6f81295c3c661d3b6ca8c89",
+    "video_duration_seconds": 11.931662011173184,
+    "video_frames": 358,
+    "all_video_frames_decoded": true,
+    "video_observations": [
+      {
+        "frame": 0,
+        "seconds": 0,
+        "observation": "P20M menu, kernel item selected"
+      },
+      {
+        "frame": 60,
+        "seconds": 2,
+        "observation": "Same P20M kernel item before launch"
+      },
+      {
+        "frame": 90,
+        "seconds": 3,
+        "observation": "Dark display after selected launch"
+      },
+      {
+        "frame": 151,
+        "seconds": 5.032,
+        "observation": "Lenovo/Android splash"
+      },
+      {
+        "frame": 211,
+        "seconds": 7.032,
+        "observation": "Same P20M menu returns, reader selected"
+      },
+      {
+        "frame": 331,
+        "seconds": 11.032,
+        "observation": "First read-only P20 reader, no intervening Query/ARM"
+      },
+      {
+        "frame": 357,
+        "seconds": 11.898,
+        "observation": "Unchanged read-only result agrees with full photograph"
+      }
+    ],
+    "kernel_launches_observed": 1,
+    "reboots_observed": 1,
+    "reader_first_after_reboot": true,
+    "identity": "J716F V23P20 VM TRACE r1",
+    "current_el": 1,
+    "entry_valid": true,
+    "now_valid": true,
+    "entry_next": "0x2c45f",
+    "entry_size": "0x2c45f",
+    "now_next": "0x2c45f",
+    "now_size": "0x2c45f",
+    "displayed_console_crc32": "0xA16B2337",
+    "console_crc_independently_recomputed": false,
+    "console_crc_scope": "Photographed display only; full console bytes unavailable",
+    "logical_count": 13,
+    "raw_count": 13,
+    "frozen_checkpoint_id": 1,
+    "latest_phase": 12,
+    "latest_crc32": "9BD55B1B",
+    "six_slots_logical_raw_hits": [
+      {
+        "phase": 16,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 17,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 18,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 19,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 20,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 21,
+        "logical_hits": 1,
+        "raw_hits": 1
+      }
+    ],
+    "terminal_raw_hits": 1,
+    "terminal_pc": "0xfffffff0073f5c04",
+    "terminal_actual_sctlr": "0x3454593d",
+    "terminal_mmu_enabled": true,
+    "unused_pre_hits": 0,
+    "map_failure_hits": 0,
+    "reset_return_hits": 0,
+    "this_run_id": 2,
+    "query_complete": false,
+    "armed": false,
+    "this_run_crc32": "00000000",
+    "header_growth_since_arm_bytes": 512,
+    "independent_record_crc_checks": [
+      {
+        "phase": 9,
+        "name": "ARM",
+        "id": 1,
+        "value": "0x5032304b45524e4c",
+        "prior_next": "0x2c21f",
+        "prior_size": "0x2c21f",
+        "crc32": "8DD10BB5",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 10,
+        "name": "KERNEL_ENTRY",
+        "id": 1,
+        "value": "0x8dd10bb500c00808",
+        "prior_next": "0x2c25f",
+        "prior_size": "0x2c25f",
+        "crc32": "E35A9F74",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 16,
+        "name": "BCM_ROUTE_SKIPPED",
+        "id": 1,
+        "value": "0x503230538dd10bb5",
+        "prior_next": "0x2c29f",
+        "prior_size": "0x2c29f",
+        "crc32": "6655E8E0",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 17,
+        "name": "M1_READBACK",
+        "id": 1,
+        "value": "0x503230538dd10bb5",
+        "prior_next": "0x2c2df",
+        "prior_size": "0x2c2df",
+        "crc32": "7E1E60E0",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 18,
+        "name": "VM_ENTRY",
+        "id": 1,
+        "value": "0x503230538dd10bb5",
+        "prior_next": "0x2c31f",
+        "prior_size": "0x2c31f",
+        "crc32": "313B2C94",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 19,
+        "name": "VM_TABLES_READY",
+        "id": 1,
+        "value": "0x503230538dd10bb5",
+        "prior_next": "0x2c35f",
+        "prior_size": "0x2c35f",
+        "crc32": "2970A494",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 20,
+        "name": "VM_LAYOUT_READY",
+        "id": 1,
+        "value": "0x503230538dd10bb5",
+        "prior_next": "0x2c39f",
+        "prior_size": "0x2c39f",
+        "crc32": "077BC8E0",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 21,
+        "name": "VM_PROT_RETURN",
+        "id": 1,
+        "value": "0x503230538dd10bb5",
+        "prior_next": "0x2c3df",
+        "prior_size": "0x2c3df",
+        "crc32": "1F3040E0",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 12,
+        "name": "VM_STOP_SCTLR",
+        "id": 1,
+        "value": "0x000000003454593d",
+        "prior_next": "0x2c41f",
+        "prior_size": "0x2c41f",
+        "crc32": "9BD55B1B",
+        "independent_crc_matches": true
+      }
+    ],
+    "all_nine_record_crcs_match": true,
+    "observed_reboot_retention": true,
+    "reset_requested_by_diagnostic": true,
+    "reset_source_independently_proven": false,
+    "hardware_verification_scope": "Bounded original arm_vm_init entry, early_random and initial root/upper-table allocation return, segment/section layout and vm_set_page_size return, and arm_vm_prot_init return to0xfffffff0073f5c04; terminal SCTLR M1; nine records retained over one continuous-video-observed reboot. No full arm_vm_init return, new TCR/TTBR activation, complete candidate mappings, timer IRQ or scheduler qualification.",
+    "full_arm_vm_init_return_observed": false,
+    "new_tcr_ttbr_activated": false
+  },
+  "hardware_verification_scope": "Bounded original arm_vm_init entry, early_random and initial root/upper-table allocation return, segment/section layout and vm_set_page_size return, and arm_vm_prot_init return to0xfffffff0073f5c04; terminal SCTLR M1; nine records retained over one continuous-video-observed reboot. No full arm_vm_init return, new TCR/TTBR activation, complete candidate mappings, timer IRQ or scheduler qualification."
 }

@@ -2,28 +2,20 @@
 
 ## Current baseline
 
-Read `docs/V23P19_STARTUP_INIT.md` and `research/v23p19-startup-init.json`.
-P19M is the latest bounded device milestone: original debug/startup,
-timer_call_init, cpu_init and processor_bootstrap return. All six slots L1/R1,
-actual terminal SCTLR0x3454593d/M1 at0xfffffff0079e1b34. Nine CRCs independently
-match fresh ID1/ARM17BBA853; header0x2cef8 logical/raw13/13 retained over one
+Read `docs/V23P20_VM_INIT.md` and `research/v23p20-vm-init.json`.
+P20M is the latest bounded device milestone: original arm_vm_init entry, early
+root/upper-table allocation, segment/page-size layout and arm_vm_prot_init return.
+Stop0xfffffff0073f5c04 precedes new TCR/TTBR activation; full arm_vm_init not returned.
+All six slots L1/R1; terminal SCTLR0x3454593d/M1. Nine CRCs independently match
+fresh ID1/ARM8DD10BB5; VALID header0x2c45f logical/raw13/13 retained over one
 continuous-video-observed reboot; first reader ID2/query0/armed0.
 Terminal intentionally requests SYSTEM_RESET; reset source independently unresolved.
-Host849 callbacks/27 functions are not device callback measurements.
-No arm_vm_init yet. Next audit remaining arm_init and VM mapping/stack lifetime.
-P18 evidence remains in its version-specific document/manifest. No repeat P19 test.
-
-P20M built/host qualified; flashed only to boot_b, B active/bootable verified,
-reboot command succeeded. P20 initial reader confirmed EL1/VALID next=size0x2c11f, logical/raw0,
-ID1/query0/armed0; 81621-byte tail needs no new session. Fresh Query/ARM confirmed ID1/query1/armed1, CRC8DD10BB5 independently matches,
-next=size0x2c25f logical/raw5/5, six templates OK. Next continuous video of one
-P20M launch; first read-only reader after reboot before Query/ARM. No kernel result. Read `docs/V23P20_VM_INIT.md` and
-`research/v23p20-vm-init.json`. 27 kernel +5 dependency +31 linked-reader cases.
-Original arm_vm_init early allocation/layout/protection returns to stop0xfffffff0073f5c04,
-before TCR/TTBR replacement. Full-segment DarwinBoot placement and AT/PAR table walks
-are modeled; candidate roots lack console and complete probe/stack mappings here.
-No full VM or new hardware claim. Next P20 reader FIRST, fresh Query/ARM and one
-recorded P20M kernel attempt after reviewed initial/ARM photos. Never rerun P19 recorders or repurpose its ARM.
+Candidate console/probe/stack gaps are host-model findings, not device table dumps.
+Next audit original continuation, completed candidate mappings/permissions and
+TCR/TTBR order, including executable probe, live stack and retained console lifetime.
+No repeat P20 needed; preserve P19 and all earlier version-specific evidence.
+27 kernel +5 dependency +31 linked-reader host cases remain bounded mocked checks.
+Never rerun build-only recorders over results or reuse consumed ARM.
 
 P13–P20 are bounded diagnostics on a frozen source-built/prelinked kernel.
 Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.

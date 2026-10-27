@@ -2,8 +2,9 @@
 
 ## 当前状态
 
-已构建并通过主机校验，现已仅刷入boot_b，重启命令成功；初始画面待确认。P19仍是最新实机里程碑；其原始startup、
-timer_call_init、cpu_init、processor_bootstrap返回及一次重启保留证据保持不变。
+P20M已仅在boot_b完成有界实机测试：原始VM早期分配、布局与保护初始化返回均到达，
+9条CRC匹配并经一次录像观察到的重启后保留。P19及更早证据保持不变。
+以下初始/ARM章节保留当时观察；最终结果见文末。
 本轮继续原始arm_init调用arm_vm_init，停在arm_vm_prot_init返回后的
 0xfffffff0073f5c04，记录实际SCTLR_EL1/M1并有意请求SYSTEM_RESET。
 **本版不会让arm_vm_init整体返回，也不会启用它新建的TCR/TTBR配置。**
@@ -61,7 +62,7 @@ AT/PAR由实际初始页表walk生成。219个高地址数据页的初始映射�
 5. 重启后首先打开P20 reader拍完整页，再进行其他操作；若停住先保留画面。
 
 每次重新启动都必须fresh Query/ARM。终点有意请求复位，不能仅凭自动重启判崩溃。
-目前已仅刷入boot_b，尚无P20内核实机结果；源构建pin、固定内核/ADT和原生平台候选均未改变。
+P20本轮有界实机结果见文末；源构建pin、固定内核/ADT和原生平台候选均未改变。
 
 ## 上游方向
 
@@ -101,3 +102,37 @@ prior0x2c21f/0x2c21f独立重算匹配。相对初始头增长320字节，符合
 
 接下来返回菜单，连续录像，仅启动一次P20M；重启后首先打开reader拍完整页，
 不先Query/ARM。尚无内核或重启保留结果；完整终点header0x2c45f只是推导值。
+
+## 实机结果（2026-10-27，取代以上待测状态）
+
+连续录像11.932秒，358帧全部解码：一次P20M启动、黑屏、Lenovo/Android画面、
+回到同版菜单，随后首次打开只读reader。录像末帧与完整照片一致。
+ENTRY/NOW VALID next=size0x2c45f，logical/raw13/13，冻结ID1、最新phase12；
+新reader ID2/query0/armed0，未重新Query/ARM。相对fresh ARM头增长512字节，
+符合ENTRY、六槽与终点记录；六槽全部L1/R1。
+
+| 记录 | 独立重算并匹配的CRC32 |
+| --- | --- |
+| ARM | 8DD10BB5 |
+| KERNEL_ENTRY | E35A9F74 |
+| BCM_ROUTE_SKIPPED | 6655E8E0 |
+| M1_READBACK | 7E1E60E0 |
+| VM_ENTRY | 313B2C94 |
+| VM_TABLES_READY | 2970A494 |
+| VM_LAYOUT_READY | 077BC8E0 |
+| VM_PROT_RETURN | 1F3040E0 |
+| VM_STOP_SCTLR | 9BD55B1B |
+
+原始arm_vm_init入口、early_random与初始根/上层表分配、内核段/section布局、
+vm_set_page_size以及arm_vm_prot_init返回均已到达。终点0xfffffff0073f5c04，
+实际SCTLR_EL1=0x3454593d（M1）。9条记录绑定fresh ID1/ARM8DD10BB5，
+在录像观察到的一次重启后完整保留；MAP_FAILURE与RESET_RETURN均无命中。
+终点有意请求SYSTEM_RESET，重启符合设计，复位来源仍未独立证明。
+整console CRC显示A16B2337，仅记显示值，未取得全部字节独立重算。
+
+**本轮尚未让arm_vm_init整体返回，未激活它新建的TCR/TTBR。**
+候选表的日志/探针/栈缺口来自有界主机模型，不能当成实机页表转储。
+下一步审查此终点之后原始建表与切换顺序，核对新表对探针执行、栈读写和
+retained console记录的映射/权限，再设计跨切换的下一组检查点。
+不用重复P20。尚未验证完整VM、真实timer IRQ/GIC、调度、存储和用户态。
+原始照片/视频仅私有保存，公开媒体SHA256与脱敏观察。
