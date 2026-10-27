@@ -12,6 +12,11 @@
 日志审计和加密导出成功；同提交 Porting record CI40458123525 通过。
 后续 host/reader/打包源码的 CI 是回归，不自动替换此已固定内核。
 
+已发布实现提交 `36e1bd8a2c4482ca55386d005112501d305c37bc`：
+[完整回归 CI40464005127](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40464005127)
+与 [Porting record CI40464005454](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40464005454)
+均成功。回归产物未重新选入本轮镜像；候选身份仍为下表所列身份。
+
 | 对象 | SHA256 / 字节 |
 | --- | --- |
 | 已认证 artifact ZIP | `d0af0cd3ad4ec3b4d57b5ba1c9f9aec257b1c799af3e92183dc5cfc7a8880adb` / 7,140,809 |
@@ -109,6 +114,8 @@ Read 和 ARM 是两个独立 EFI 应用。Read 只冻结复制并校验整块 co
 `board.toml` 属于当前内核日志身份输入，未为修注释而追改或冒充同一候选。
 
 接收/预链接/专用 staging 均拒绝覆盖已有目录。以下路径均为私有工作目录占位符：
+主机使用 Python 3.11+、cryptography；实际内核审计需要 LLVM objdump 或 Capstone。
+Linux 固件构建另需 clang/lld、EDK II BaseTools、dtc 与 mtools。
 
 ```sh
 python3 scripts/receive-native-candidate.py --selection configs/native-log-candidate-40458123294.json \
@@ -187,7 +194,7 @@ python3 scripts/package-native-image.py --stage /private/stage --prelinked /priv
 | 原生日志 | 真实源码 writer、独立只读 reader/ARM、解码器与主机测试完成；实机长期映射/恢复未完成 |
 | 最终镜像 | 已反解 boot/FD/FAT，实际内核/ADT/菜单/读取器逐字节一致；没有实机结论 |
 | 通用构建入口 | 普通 firmware preflight 明确拒绝，专用脚本可审计；仍需整合标准构建及干净固件依赖闭包 |
-| 发布 | 用户已授权本设备仓库脱敏源码推送/CI；不变更中央设备记录，不公开私有二进制，不操作设备 |
+| 发布 | 已推送脱敏源码并运行 CI；只读仓库 API 核查 topics 为空，尚缺上游要求的 unixnu topic，目录发布未确认；未改仓库设置/中央设备记录，未公开私有二进制 |
 
 ## 准入门槛
 

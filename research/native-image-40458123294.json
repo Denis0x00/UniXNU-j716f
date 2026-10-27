@@ -3,6 +3,15 @@
   "date": "2026-10-27",
   "scope": "Sanitized native final-image HOST audit; NOT hardware qualification",
   "candidate": "NATIVE-LOG-40458123294",
+  "published_implementation_commit": "36e1bd8a2c4482ca55386d005112501d305c37bc",
+  "published_regression": {
+    "source_workflow_run": 40464005127,
+    "source_workflow_result": "success",
+    "porting_record_run": 40464005454,
+    "porting_record_result": "success",
+    "candidate_reselected_from_regression": false,
+    "selected_logger_identity_unchanged": true
+  },
   "source_ci": {
     "run_id": 40458123294,
     "attempt": 1,
@@ -96,6 +105,7 @@
     "Same candidate: platform match -> CPU registration -> GIC -> real timer IRQ/rtclock/EOI -> single-core scheduling",
     "Standard initrd transport, Advanced Logger/QR and ordinary firmware CLI integration",
     "Clean pinned shared firmware dependency closure",
+    "Repository topics were empty at read-only API review; unixnu topic and upstream directory publication are not completed or modified here",
     "UFS/root/userspace only after platform/timer/scheduler evidence"
   ],
   "generic_firmware_preflight": "Fails closed before vendor input checks; historical TzDxe preflight archived",

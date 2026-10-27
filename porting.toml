@@ -25,6 +25,13 @@ next_action = ["Selected CI40458123294 is received, prelinked and packaged with 
 [[area.evidence]]
 kind = "host"
 reference = "research/native-image-40458123294.json"
+result = "Published 36e1bd8 implementation passed full macOS XNU/logger/transfer regression CI40464005127 and Porting record CI40464005454. Selected logger identity is unchanged; the final image remains bound to original CI40458123294, not the regression output. Read-only repository review found topics empty; unixnu topic/directory publication remain open. No device operation or hardware qualification."
+command = "Review GitHub Actions runs 40464005127 and 40464005454 against head SHA 36e1bd8; recheck selected local logger identity and prelinked kernel; read repository topics via public API."
+revision = "36e1bd8a2c4482ca55386d005112501d305c37bc"
+
+[[area.evidence]]
+kind = "host"
+reference = "research/native-image-40458123294.json"
 result = "Current 2026-10-27: selected logger CI40458123294 and porting CI40458123525 succeeded; dedicated native image 801ddb86 is host-audited. Public DTS fixes DRAM MMIO export and timer bindings; single-CPU PSCI adapter is explicit. Standard firmware CLI/initrd/Advanced Logger and clean shared-dependency closure remain open. No hardware operation."
 command = "Receive/prelink selected CI40458123294; dedicated prepare/build/package reverse-audit; test-native-candidate.py; test-native-log.py on GCC and Clang; test-native-image-formats.py; actual linked reader/ARM simulation. Host tools/reader/DTS changes based on 474c8a6, bound to the source/build hashes in the referenced report."
 revision = "474c8a65b731d293987afdf550112f7b02f9ea32"
@@ -1109,6 +1116,13 @@ next_action = ["Validate retained-console ownership, permanent Device mapping an
 [[area.evidence]]
 kind = "host"
 reference = "research/native-image-40458123294.json"
+result = "Published 36e1bd8 implementation passed full macOS XNU/logger/transfer regression CI40464005127 and Porting record CI40464005454. Selected logger identity is unchanged; the final image remains bound to original CI40458123294, not the regression output. Read-only repository review found topics empty; unixnu topic/directory publication remain open. No device operation or hardware qualification."
+command = "Review GitHub Actions runs 40464005127 and 40464005454 against head SHA 36e1bd8; recheck selected local logger identity and prelinked kernel; read repository topics via public API."
+revision = "36e1bd8a2c4482ca55386d005112501d305c37bc"
+
+[[area.evidence]]
+kind = "host"
+reference = "research/native-image-40458123294.json"
 result = "Native DATA log window and pre-MMU call graph checked in actual source/prelinked kernel; final SEC/DXE reservation descriptors verified. DTS no longer exports all DRAM as MMIO. Reader/ARM tests include frozen copy, tail bounds, append recovery and stale-session refusal; physical retention and long-lived mappings remain unverified."
 command = "Receive/prelink selected CI40458123294; dedicated prepare/build/package reverse-audit; test-native-candidate.py; test-native-log.py on GCC and Clang; test-native-image-formats.py; actual linked reader/ARM simulation. Host tools/reader/DTS changes based on 474c8a6, bound to the source/build hashes in the referenced report."
 revision = "474c8a65b731d293987afdf550112f7b02f9ea32"
@@ -1932,6 +1946,13 @@ next_action = ["Freeze selected CI40458123294 image 801ddb86 (8359936 bytes), co
 [[area.evidence]]
 kind = "host"
 reference = "research/native-image-40458123294.json"
+result = "Published 36e1bd8 implementation passed full macOS XNU/logger/transfer regression CI40464005127 and Porting record CI40464005454. Selected logger identity is unchanged; the final image remains bound to original CI40458123294, not the regression output. Read-only repository review found topics empty; unixnu topic/directory publication remain open. No device operation or hardware qualification."
+command = "Review GitHub Actions runs 40464005127 and 40464005454 against head SHA 36e1bd8; recheck selected local logger identity and prelinked kernel; read repository topics via public API."
+revision = "36e1bd8a2c4482ca55386d005112501d305c37bc"
+
+[[area.evidence]]
+kind = "host"
+reference = "research/native-image-40458123294.json"
 result = "Final Android v2 -> FD -> LZMA FV -> FAT -> five files roundtrip passed with exact selected logger kernel/ADT/Read/ARM/menu. FD remains 0xce000000+0x700000, new FAT GUID, no old trace menu/cave patch/stage reset. Artifact-lock legacy ADT reference was not used. Host-only; nothing flashed."
 command = "Receive/prelink selected CI40458123294; dedicated prepare/build/package reverse-audit; test-native-candidate.py; test-native-log.py on GCC and Clang; test-native-image-formats.py; actual linked reader/ARM simulation. Host tools/reader/DTS changes based on 474c8a6, bound to the source/build hashes in the referenced report."
 revision = "474c8a65b731d293987afdf550112f7b02f9ea32"
@@ -2310,6 +2331,13 @@ findings = ["2026-10-27 P22显式线性会话成功照片确认：NOW VALID next
 completion = ["Each claimed milestone has a reproducible command, matching source/image revision and an accessible result."]
 limits = ["No UART capture is available. Bounded MMU-on and P16 early-init records survive an observed reboot; sustained execution, platform drivers, UFS/root and userspace remain unverified."]
 next_action = ["P22 stays closed. Preserve all 51 frozen files and new native host artifacts; obtain separate reader-only boot_b authorization, then review fresh ARM/native launch and hang-recovery plan. No unattended loops."]
+
+[[area.evidence]]
+kind = "host"
+reference = "research/native-image-40458123294.json"
+result = "Published 36e1bd8 implementation passed full macOS XNU/logger/transfer regression CI40464005127 and Porting record CI40464005454. Selected logger identity is unchanged; the final image remains bound to original CI40458123294, not the regression output. Read-only repository review found topics empty; unixnu topic/directory publication remain open. No device operation or hardware qualification."
+command = "Review GitHub Actions runs 40464005127 and 40464005454 against head SHA 36e1bd8; recheck selected local logger identity and prelinked kernel; read repository topics via public API."
+revision = "36e1bd8a2c4482ca55386d005112501d305c37bc"
 
 [[area.evidence]]
 kind = "host"
