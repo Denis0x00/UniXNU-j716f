@@ -2,10 +2,10 @@
 
 ## 当前状态
 
-P22M已构建并通过主机校验，尚未刷入。P21实机结果、旧源码及镜像完整保留。
+P22M已构建并通过主机校验，现已仅刷入boot_b；B槽激活/可启动核对及重启命令成功，初始reader已确认，VALID满环形日志需先新建线性会话。P21实机结果、旧源码及镜像完整保留。
 本轮执行原始pmap_bootstrap、后续动态/复制窗口页表分配、静态区域记录补丁、
 enable_preemption及栈保护检查，保留原始RET，停在调用方0xfffffff0079e1bbc。
-目标是验证arm_vm_init整体返回；**现在只有主机结果，尚无P22实机结论。**
+目标是验证arm_vm_init整体返回；**内核目前只有主机结果，尚无P22内核实机结论。**
 
 ## 日志子表生命周期审查
 
@@ -51,7 +51,7 @@ phase12记录实际SCTLR_EL1并请求SYSTEM_RESET。cookie=P22KERNL，slot tag=P
 
 所有寄存器、初始boot参数、AT/PAR、TLB/缓存/屏障效果、SMC与UEFI交互仍为模型。
 共享后备内存只保证主机别名一致，不证明真实缓存一致性。
-尚无P22设备记录，不证明完整系统VM、timer IRQ、GIC、调度、存储或用户态。
+尚无P22内核启动记录，不证明完整系统VM、timer IRQ、GIC、调度、存储或用户态。
 结构化记录：research/v23p22-vm-return.json；固件docs/v23p22-validation.json为构建快照。
 
 ## 实机顺序
@@ -60,3 +60,29 @@ phase12记录实际SCTLR_EL1并请求SYSTEM_RESET。cookie=P22KERNL，slot tag=P
 2. P22 reader FIRST，先拍完整初始页；若日志满，按显式新会话步骤拍照核对。
 3. 同一reader内Query→ARM各一次，拍ID/CRC/模板状态，核对后仅启动一次P22M。
 4. 连续录像；重启后首先打开P22 reader拍完整页，先不Query/ARM或再次启动；若停住先保存画面。
+
+## 首次 boot_b 刷写命令记录（2026-10-27）
+
+用户已确认本轮 fastboot 与录像就绪。固定镜像大小8,347,648字节、SHA256与主机合格清单一致。
+唯一设备、型号、fastboot模式、解锁、槽数和boot_b容量门槛通过；仅刷入boot_b。
+B槽已激活，current-slot=b、slot-unbootable:b=no核对通过；reboot命令成功。
+镜像SHA256：`c49fb7542528ca3a8aca005a2f0f4fb304e6a43f379da65555a6525519e3ced2`。
+
+首次刷写时以上仅为命令证据；随后初始reader照片见下节，父菜单与内核启动尚未由照片/录像确认。
+首次刷写后的初始页已采集；满环形日志需先显式新建线性会话，具体步骤见下节。
+本轮尚无P22 VM返回、日志保留或原生IRQ结论，P21仍为最新内核实机里程碑。
+
+## 初始只读 reader（2026-10-27）
+
+完整照片确认 J716F V23P22 VM RETURN TRACE r1、EL1；父菜单未在照片中出现。
+ENTRY/NOW VALID，next=0x2a871、size=0x3fff4（满环形日志）；
+reader 显示 console CRC32=BE70D923，logical/raw 均0，冻结 checkpoint ID0。
+八个检查点及四个终点/failure 行的命中、CRC和值均0；THIS RUN ID1/query0/armed0/CRC0。
+PSCI 与 FEATURES 显示0是尚未查询的状态，不代表不支持。
+
+满环形日志的可用线性尾部为0，不满足 Query 所需896字节；不能把容量减 next 当成可用尾部。
+下一步在当前 reader 的 New linear session 项连续确认两次，中间不要移动选择。
+这会丢弃旧逻辑历史，旧数据字节仍可能作为 raw/stale 被扫描，冻结 ENTRY 保留原状。
+出现 New session OK 后先拍完整页，核对 NOW 和 INIT 记录后再安排 Query/ARM。
+原始照片仅私有保存；完整 console 字节未取得，照片显示的 console CRC 未独立重算。
+本轮尚未观察到内核启动、VM 返回或重启后保留，P21仍为最新内核实机里程碑。

@@ -3,7 +3,7 @@
 ## 当前入口（2026-10-27）
 
 - 最新实机：[P21 VM 切换](v23p21-vm-switch.json)。
-- 已构建待测：[P22 VM 返回](v23p22-vm-return.json)，尚未刷入。
+- 已刷 boot_b：[P22 VM 返回](v23p22-vm-return.json)，初始 reader 已确认：VALID 满环形，需先新建线性会话；单次内核启动结果待采集。
 - [最新上游与 sheng 对照](upstream-progress-review-20261027-p22.json)及[进度说明](../docs/PROGRESS_AFTER_V23P22_20261027.md)。
 - [权威移植记录](../porting.toml)。下文保留各时间点的历史记录，“最新准备”等措辞仅适用于当时。
 - [原生 IRQ 观测实现/主机摘要](native-irq-observer-20261027.json)：同 SM8250 pipa/umi 对照，
@@ -90,4 +90,4 @@ Latest P11 result: A retained published stage5; B and D each retained matching r
 
 - [P21 translation switch](v23p21-vm-switch.json): bounded original TTBR1/TTBR0 setter returns and TLBI/DSB/ISB device verified; six slots L1/R1, nine CRCs match and retained over one reboot. Full arm_vm_init return and later borrowed-console lifetime remain unqualified.
 
-- [P22 VM return](v23p22-vm-return.json): built/host qualified, unflashed; static console subtree reviewed through original pmap_bootstrap/VM RET caller; P21 remains latest device result.
+- [P22 VM return](v23p22-vm-return.json): built/host qualified, boot_b flashed; initial VALID full-ring reader ID1/query0/armed0 confirmed; explicit new session required; static console subtree reviewed through original pmap_bootstrap/VM RET caller; P21 remains latest device result.

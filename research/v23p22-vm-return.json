@@ -334,7 +334,20 @@
       },
       "host_checks_passed": true,
       "hardware_verified": false,
-      "device_writes_performed": false
+      "device_writes_performed": true,
+      "device_launch": {
+        "partition_images_flashed": [
+          "boot_b"
+        ],
+        "current_slot_before_reboot": "b",
+        "slot_unbootable_b_before_reboot": false,
+        "reboot_command_succeeded": true,
+        "image_sha256": "c49fb7542528ca3a8aca005a2f0f4fb304e6a43f379da65555a6525519e3ced2",
+        "menu_identity_observed": false,
+        "manual_kernel_start_required": true,
+        "recording_ready_user_confirmed": true,
+        "hardware_verified": false
+      }
     }
   },
   "kernel_logic_cases": 26,
@@ -342,14 +355,14 @@
   "dependency_logic_cases": 8,
   "power_logic_cases_reused_for_identical_app": 22,
   "hardware_verified": false,
-  "device_writes_performed": false,
+  "device_writes_performed": true,
   "source_native_arch_timer_kernel": false,
   "native_timer_driver_integrated": false,
   "proposed_partition": "boot_b",
   "next_variant": "m",
   "source_checkout_base": "c35197e51c6f9c67bfb08b9532c91c159832082f",
   "source_state": "Independent P22 source additions; exact builder/assembly/app/artifact hashes bind this build",
-  "status": "P22M built and host qualified, unflashed; P21 remains latest bounded hardware milestone",
+  "status": "P22 initial reader confirmed: VALID full circular console, ID1/query0/armed0; explicit new linear session required before Query/ARM; no kernel attempt observed",
   "previous_device_record_sha256": "97b50a4908e0c5a92d55696bad2277506eb3e1409fba3b4b1db929edee0988de",
   "arm_cookie": "0x5032324b45524e4c",
   "slot_tag": "0x5032325300000000",
@@ -436,9 +449,9 @@
     "policy": "Preserve frozen source pin and hardware values; separate source, host and device evidence; still early-kernel bring-up"
   },
   "terminal": "Original arm_vm_init RET completed, caller0xfffffff0079e1bbc before following arm_init instruction; actual SCTLR_EL1/M1 then deliberate SYSTEM_RESET",
-  "next_action": "When fresh fastboot and recording readiness are confirmed, flash boot_b only, activate B and boot manual menu. P22 reader FIRST: photograph initial header before any writes; if full use explicit new-session confirmation and review photo. Fresh Query then ARM once each and review ID/CRC/template photo; one P22M launch with continuous video; reader FIRST after reboot before Query/ARM.",
+  "next_action": "Before Query/ARM, select New linear session twice in the current reader without moving the selection between confirmations; photograph successful session status and NOW header for review before further actions.",
   "limitations": [
-    "Build and host qualification only; P21 remains latest device milestone.",
+    "P22 kernel qualification remains host-only; boot_b flash/active-slot/reboot command evidence and initial reader photo recorded. Initial console VALID but full; new linear session, Query/ARM and kernel results pending. P21 remains latest kernel device milestone.",
     "Original full VM function executes in a synthetic boot model; this is not a P22 hardware result.",
     "Static bootstrap subtree lifetime reviewed only through the immediate arm_vm_init caller stop, not later recycling or process/user mappings.",
     "Registers, translation/TLB/cache/barrier silicon effects and SMC are modeled; shared host backing is not a hardware coherence test.",
@@ -449,5 +462,50 @@
     "scripts/build-v23p22-kernel.py": "595612183a919e03e9f5d330ea60c40cb4a02cbb4c2559de8b2935d5caeb722a",
     "scripts/v23p22-vm-return.S": "fe46e5bb1a32a13987689a06d3ca57ff4b0f2376776e90c0255e5fcd06b2f137",
     "scripts/decode-j716f-v23p22.py": "806abdfc7ac95425ab5f45b051af029fb69951b657e2820e47759e0981de4489"
+  },
+  "flash_command_evidence_recorded": true,
+  "repository_revisions_at_flash": {
+    "UniXNU-j716f": "fac3c2582c9abcd9902605a66ab4640839383d12",
+    "uefi-j716f": "e10cb87e156ebd2e359d2d53edb40090225d7ff8"
+  },
+  "initial_reader_observation": {
+    "date": "2026-10-27",
+    "photo_sha256": "03ebfd98d143abff7c81d80ba6f10cd2df8cf8fb15091c8d4c4ceb1e64c125aa",
+    "identity": "J716F V23P22 VM RETURN TRACE r1",
+    "parent_menu_identity_pictured": false,
+    "entry_signature": "0x43474244",
+    "entry_next": "0x2a871",
+    "entry_size": "0x3fff4",
+    "entry_console_crc32": "0xbe70d923",
+    "console_crc_source": "Photographed reader display only; full console bytes unavailable for independent recomputation",
+    "entry_logical_count": 0,
+    "entry_raw_count": 0,
+    "entry_logical_id": 0,
+    "entry_raw_id": 0,
+    "entry_logical_phase": 0,
+    "entry_raw_phase": 0,
+    "entry_logical_crc32": "0x00000000",
+    "entry_raw_crc32": "0x00000000",
+    "frozen_checkpoint_id": 0,
+    "now_valid": true,
+    "now_next": "0x2a871",
+    "now_size": "0x3fff4",
+    "now_logical_count": 0,
+    "now_raw_count": 0,
+    "all_checkpoint_rows_logical_raw_crc_value_zero": true,
+    "unused_pre_vm_return_sctlr_map_failure_reset_return_raw_hits_crc_value_zero": true,
+    "this_run_id": 1,
+    "query_complete": false,
+    "armed": false,
+    "arm_crc32": "0x00000000",
+    "current_el": 1,
+    "psci_version_display": "0x00000000",
+    "psci_features_display": "0x0000000000000000",
+    "console_is_full_circular": true,
+    "unused_linear_tail_bytes": 0,
+    "query_tail_requirement_bytes": 896,
+    "new_session_required": true,
+    "p22_kernel_launch_observed": false,
+    "next_required_action": "Before Query/ARM, select New linear session twice in the current reader without moving the selection between confirmations; photograph successful session status and NOW header for review before further actions."
   }
 }
