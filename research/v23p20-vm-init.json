@@ -44,7 +44,7 @@
   "native_timer_driver_integrated": false,
   "proposed_partition": "boot_b",
   "next_variant": "m",
-  "status": "P20 initial read-only reader observed; valid linear header and sufficient tail; fresh Query/ARM and kernel attempt pending",
+  "status": "Fresh P20 ID1 Query/ARM confirmed; reconstructed ARM CRC8DD10BB5 matches; single kernel attempt pending",
   "source_checkout_base": "db99c4675ca90844ad094416b6117414d420fd04",
   "source_state": "Independent P20 sources on recorded base; exact source/artifact hashes below",
   "prior_hardware_baseline": "P19 original debug/startup, timer_call_init, cpu_init, processor_bootstrap returns; nine CRCs retained over one video-observed reboot",
@@ -132,7 +132,7 @@
     ],
     "counter": "constant 19200000; neither entropy quality nor counter advancement proof"
   },
-  "next_action": "In current reader, Query then ARM once each; photograph ID/ARM CRC/template status before single kernel launch",
+  "next_action": "Return to menu, continuously record exactly one P20M launch; first open reader and photograph full frozen page after reboot, before further Query/ARM",
   "limitations": [
     "P20 is host qualification only; P19 remains the latest bounded hardware milestone.",
     "P20 stops inside arm_vm_init, after arm_vm_prot_init return; arm_vm_init itself does not return and new TCR/TTBR roots are not activated.",
@@ -181,5 +181,43 @@
     "p20_kernel_launch_observed": false,
     "next_required_action": "In current reader, Query then ARM once each; photograph ID/ARM CRC/template status before single kernel launch"
   },
-  "published_diagnostic_source_revision": "e63d221b263dba3a904b76a6ce69f8b1804ab5ba"
+  "published_diagnostic_source_revision": "e63d221b263dba3a904b76a6ce69f8b1804ab5ba",
+  "fresh_query_arm_observation": {
+    "date": "2026-10-27",
+    "photo_sha256": "66eaa03983d779ad93272e3bb69a8a6ebe528e7fa1339a762a57a8b5bcfe789f",
+    "identity": "J716F V23P20 VM TRACE r1",
+    "frozen_entry_unchanged": true,
+    "frozen_entry_next": "0x2c11f",
+    "frozen_entry_size": "0x2c11f",
+    "frozen_entry_console_crc32": "0x5171ff83",
+    "frozen_checkpoint_id": 0,
+    "frozen_checkpoint_and_terminal_rows_zero": true,
+    "now_valid": true,
+    "now_next": "0x2c25f",
+    "now_size": "0x2c25f",
+    "logical_count": 5,
+    "raw_count": 5,
+    "this_run_id": 1,
+    "query_complete": true,
+    "armed": true,
+    "arm_crc32": "0x8dd10bb5",
+    "current_el": 1,
+    "psci_version": "0x00010001",
+    "system_reset_features": "0x0000000000000000",
+    "status": "ARM + six invalid templates OK",
+    "reconstructed_arm": {
+      "id": 1,
+      "phase": 9,
+      "cookie": "0x5032304b45524e4c",
+      "prior_next": "0x2c21f",
+      "prior_size": "0x2c21f",
+      "crc32": "8DD10BB5",
+      "independent_crc_matches": true
+    },
+    "header_growth_bytes": 320,
+    "p20_kernel_launch_observed": false,
+    "derived_complete_terminal_header": "0x2c45f",
+    "derived_header_is_observed": false,
+    "next_required_action": "Return to menu, continuously record exactly one P20M launch; first open reader and photograph full frozen page after reboot, before further Query/ARM"
+  }
 }

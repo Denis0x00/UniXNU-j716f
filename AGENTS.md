@@ -15,8 +15,9 @@ P18 evidence remains in its version-specific document/manifest. No repeat P19 te
 
 P20M built/host qualified; flashed only to boot_b, B active/bootable verified,
 reboot command succeeded. P20 initial reader confirmed EL1/VALID next=size0x2c11f, logical/raw0,
-ID1/query0/armed0; 81621-byte tail needs no new session. Next Query/ARM once each
-and photograph ID/CRC/templates before single P20M. No P20 kernel result. Read `docs/V23P20_VM_INIT.md` and
+ID1/query0/armed0; 81621-byte tail needs no new session. Fresh Query/ARM confirmed ID1/query1/armed1, CRC8DD10BB5 independently matches,
+next=size0x2c25f logical/raw5/5, six templates OK. Next continuous video of one
+P20M launch; first read-only reader after reboot before Query/ARM. No kernel result. Read `docs/V23P20_VM_INIT.md` and
 `research/v23p20-vm-init.json`. 27 kernel +5 dependency +31 linked-reader cases.
 Original arm_vm_init early allocation/layout/protection returns to stop0xfffffff0073f5c04,
 before TCR/TTBR replacement. Full-segment DarwinBoot placement and AT/PAR table walks
