@@ -1,0 +1,105 @@
+{
+  "date": "2026-10-27",
+  "device_source_base": "b9ee390a33024283993653fb69e5cb84c8c4ce64",
+  "scope": "Uncommitted board-owned native observer changes on recorded source base; exact hashes below. Host fixtures only; no prelink, firmware build, flash, new device result or persistent RAM writer.",
+  "unixnu_build_pin": "42bffe8a56823dad2e448c776b4f94862f3e290a",
+  "armcpu_pin": "9066b53bbc82e92a98ec44a11dd50fd13eaf1a1b",
+  "armcpu_original_sha256": "3c87b3bd617be5582a6a24ff797c359497ee9feaa702ee883ecee4270db21c9f",
+  "references": [
+    {
+      "repository": "reAAAq/UniXNU-umi",
+      "commit": "3eb72578597d2ca16471b172d45eddc096a34a04",
+      "paths": [
+        "package/UmiArmCpuTrace.inc",
+        "patches/umi-armcpu/gic-observer.patch"
+      ],
+      "adopted": "Concept of actual dispatch enter, rtclock return and post-EOI observations; new J716F implementation/ABI"
+    },
+    {
+      "repository": "xVanTuring/UniXNU-pipa",
+      "commit": "cdb3d62771e31d48d832853ee0c90964346d78da",
+      "gitlink": "drivers/ArmCpu",
+      "component_repository": "xVanTuring/ArmCpu",
+      "component_commit": "a9c4585dbb1b75b8594dd0ae54962cc59969d98f",
+      "source_sha256": "e19d4cc6abc3297e489b34572a22c43b563a8c3e993089018b434a003dcbe7b7",
+      "reviewed": [
+        "configurable timer PPI",
+        "registration completion/cluster wiring",
+        "post-rtclock deadline margin"
+      ],
+      "adopted": "Deadline/control snapshots only; no wholesale component/SMP/IPI migration"
+    }
+  ],
+  "observer": {
+    "abi": 1,
+    "bytes": 1536,
+    "words": 192,
+    "sample_irqs": [
+      1,
+      2,
+      8
+    ],
+    "phases": [
+      "entry_before_rtclock",
+      "rtclock_return",
+      "after_eoir_isb"
+    ],
+    "storage": "kernel-owned live static data; no absolute PA or borrowed diagnostic page tables",
+    "single_cpu_only": true,
+    "persistent": false,
+    "checkpoint_condition": "eighth actual rtclock return and EOI; ordered events; counter advance; provider/startup readiness",
+    "manual_checkpoint_invocation_is_evidence": false
+  },
+  "timer_route": {
+    "reference": "scripts/j716f-native-timer-route.json",
+    "stock_recovery_input_agree": true,
+    "virtual_ppi": 11,
+    "intid": 27,
+    "live_irq_delivery_verified": false
+  },
+  "host_verification": {
+    "compilers": [
+      "Linux GCC",
+      "Linux Clang"
+    ],
+    "actual_state_writer_executed": true,
+    "writer_fixtures": 10,
+    "decoder_mutations": 10,
+    "aarch64_production_sysreg_wrapper_assembled": true,
+    "original_source_reverse_audit": true,
+    "original_rtclock_and_eoi_order_preserved": true,
+    "isolated_install_and_refusal_checks": true,
+    "command": "python3 scripts/test-native-irq-observer.py --cxx g++; repeat --cxx clang++",
+    "hardware_validated": false
+  },
+  "ci": {
+    "new_observer_kernel_build": "pending",
+    "linked_macho_gate_added": true,
+    "required_symbols": [
+      "j716f_armcpu_trace",
+      "j716f_armcpu_timer_checkpoint"
+    ],
+    "linked_initial_abi_and_zero_state_gate_added": true
+  },
+  "hardware_validated": false,
+  "prelink_performed": false,
+  "device_writes_performed": false,
+  "p22_unflashed_preserved": true,
+  "next": [
+    "qualify full native source build in macOS CI",
+    "P22 original VM return hardware test remains deferred by user",
+    "review prelink ABI and frozen live-memory reader or native persistent mapping/transport before IRQ hardware test"
+  ],
+  "source_sha256": {
+    "scripts/build-j716f-source.py": "ed98d5d9d2e12a77149c6f8a0cebd4fd24b338fbf14cf2cbd3f4807ec1207d23",
+    "scripts/prepare-native-platform.py": "5081ce275128f3a405a50f8c9c37e45d5e480f9e19bd66d9e3d21c7d3ad609a3",
+    "scripts/prepare-native-observer.py": "5603d5cdcd348c44cf968aa57ecb8da03000ca1f322ed773e83405f2f7ab84d7",
+    "scripts/check-native-irq-trace.py": "e3a0b9c8e1a82880e184fa703b04ce32007c901d840ae35b4e534a6f80088723",
+    "scripts/test-native-irq-observer.py": "af02ffc6a15b3f3e30bf5e30679e074cdcc6c294fdac1e24793eaee31b92cb65",
+    "scripts/j716f-native-timer-route.json": "cbaa819c5eec0e287fb75e54cf6922e8a047a36f685e7bb209600dafb6dbd886",
+    "package/native-observer/J716fArmCpuState.h": "ef565126da38c84d288fb925cc48db53a464b56f6b23a451e29590715b949c06",
+    "package/native-observer/J716fArmCpuObserver.inc": "d8bc7c14416bd0ff94015e14d7a1000c740707e2a2dfba69b23c5f8830dcdfec",
+    "package/native-observer/StateTests.cpp": "f0ee5d5d68acc75f71f5c6c86ac6ec2c8f268af42952bf7d8a289a413a57fc4d",
+    ".github/workflows/xnu-source-macos.yml": "80555e50a0821d9415e2b75deb542ee09bcf680fe5758c9c5b33278e13029199"
+  }
+}

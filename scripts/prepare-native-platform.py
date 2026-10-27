@@ -35,6 +35,9 @@ def prepare(device, output):
         shutil.copytree(device/name, output/name)
     for name in ['feeds.toml', 'unixnu.lock']:
         shutil.copyfile(device/name, output/name)
+    # Only this board-owned observation package enters the source candidate.
+    # Historical diagnostic packages and payloads are intentionally not staged.
+    shutil.copytree(device/'package/native-observer', output/'package/native-observer')
     (output/'board.toml').write_text(board, encoding='utf-8')
     manifest = {
         'phase': 'source-platform-integration-candidate',

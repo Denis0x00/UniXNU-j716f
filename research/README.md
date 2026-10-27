@@ -6,6 +6,8 @@
 - 已构建待测：[P22 VM 返回](v23p22-vm-return.json)，尚未刷入。
 - [最新上游与 sheng 对照](upstream-progress-review-20261027-p22.json)及[进度说明](../docs/PROGRESS_AFTER_V23P22_20261027.md)。
 - [权威移植记录](../porting.toml)。下文保留各时间点的历史记录，“最新准备”等措辞仅适用于当时。
+- [原生 IRQ 观测实现/主机摘要](native-irq-observer-20261027.json)：同 SM8250 pipa/umi 对照，
+  保留原始 rtclock/EOI，尚未预链接或实机验证。
 
 ## 历史记录（按原时间顺序保留）
 

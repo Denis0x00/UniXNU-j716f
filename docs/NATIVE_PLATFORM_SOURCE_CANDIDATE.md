@@ -1,5 +1,9 @@
 # 原生定时器平台源码候选
 
+2026-10-27 新增独立 [IRQ 观测候选](NATIVE_IRQ_OBSERVER.md)：保留固定组件原始路径，
+增加 CPU/GIC/timebase 和真实 IRQ enter/rtclock 返回/EOI 的有界快照。
+Linux 双编译器和 AArch64 观测封装检查通过，本轮完整内核编译等待 CI；无新实机结论。
+
 此候选与 P16/P17 的冻结内核诊断分别构建。上游构建脚本明确要求
 `XNU_NATIVE_ARCH_TIMER=1` 同时具有真实 `ArmCpu` 中断提供者。
 此前 native timer=y、ArmCpu=n 的方案仅解析过配置，不能通过该上游构建门槛。

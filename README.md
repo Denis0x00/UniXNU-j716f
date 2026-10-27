@@ -25,6 +25,11 @@
 当前最深的已验证实机边界是 P21；P22 的主机结果单独记录。
 完整说明见[最新进度与上游/sheng 对照](docs/PROGRESS_AFTER_V23P22_20261027.md)。
 
+本轮参照同 SM8250 的 pipa/umi 新增[原生 IRQ 观测候选](docs/NATIVE_IRQ_OBSERVER.md)：
+已接入真实 IRQ 进入、rtclock 返回、EOI 后的九个有界快照，确认原厂/Recovery 输入均描述
+virtual timer INTID27。Linux 双编译器及 AArch64 汇编门槛通过；完整内核编译待 CI，
+尚无预链接、持久化采集通道或实机 IRQ 结果。P22 继续待测。
+
 ### P21：最新实机里程碑
 
 原始 TTBR1/TTBR0 设置函数均已返回，执行到原始 TLBI/DSB/ISB 之后。

@@ -15,6 +15,11 @@ on:
       - 'configs/j716f_arch_timer_source_defconfig'
       - 'scripts/build-j716f-source.py'
       - 'scripts/prepare-native-platform.py'
+      - 'scripts/prepare-native-observer.py'
+      - 'scripts/check-native-irq-trace.py'
+      - 'scripts/test-native-irq-observer.py'
+      - 'scripts/j716f-native-timer-route.json'
+      - 'package/native-observer/**'
       - 'scripts/source-artifact-transfer.py'
       - 'scripts/test-source-artifact-transfer.py'
       - 'ci/source-artifacts-public.pem'
@@ -61,6 +66,8 @@ jobs:
           set -euo pipefail
           python3 -m pip install --disable-pip-version-check --no-input cryptography==46.0.6
           python3 scripts/test-source-artifact-transfer.py -v
+      - name: Check native IRQ observer writer and refusal cases
+        run: python3 scripts/test-native-irq-observer.py
 
   source:
     needs: transfer-checks

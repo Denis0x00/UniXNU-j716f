@@ -144,6 +144,14 @@ def main():
     report_path.write_text(json.dumps(report, indent=2) + "\n")
     try:
         modules = prepare(ctx, ["kernel"])
+        if args.native_arch_timer:
+            spec = importlib.util.spec_from_file_location(
+                'native_observer', original_device/'scripts/prepare-native-observer.py')
+            observer = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(observer)
+            armcpu = modules[('driver', 'ArmCpu')]
+            report['native_irq_observer'] = observer.install(
+                original_device, ctx.tree, armcpu.path, armcpu.commit)
         report["references"] = {
             name: module.commit for (kind, name), module in modules.items()
             if kind == "refer" and module.commit
@@ -182,6 +190,8 @@ def main():
             # Require defined symbols in the linked Mach-O, not just byte strings
             # or the existence of unreferenced archive files.
             symbols = set()
+            symbol_values = {}
+            segments = []
             command_offset = 32
             for _ in range(struct.unpack_from('<I', data, 16)[0]):
                 command, size = struct.unpack_from('<II', data, command_offset)
@@ -191,13 +201,30 @@ def main():
                         string, kind, section, _, value = struct.unpack_from('<IBBHQ', data, symoff+16*index)
                         if kind & 0xe == 0xe and section and value:
                             end = data.index(b'\0', stroff+string)
-                            symbols.add(data[stroff+string:end].decode('utf-8'))
+                            name = data[stroff+string:end].decode('utf-8')
+                            symbols.add(name)
+                            symbol_values[name] = value
+                elif command == 0x19:
+                    segments.append(struct.unpack_from('<4Q', data, command_offset+24))
                 command_offset += size
             required = {'_armcpu_timer_interrupts', '_armcpu_registered',
-                        '_armdt_platform_configured', '_rtclock_intr'}
+                        '_armdt_platform_configured', '_rtclock_intr',
+                        '_j716f_armcpu_trace', '_j716f_armcpu_timer_checkpoint'}
             if not required <= symbols:
                 raise RuntimeError('Missing linked platform providers: '+str(sorted(required-symbols)))
             report['linked_platform_symbols'] = sorted(required)
+            trace_va = symbol_values['_j716f_armcpu_trace']
+            candidates = [fileoff+trace_va-vmaddr for vmaddr, _, fileoff, filesize in segments
+                          if vmaddr <= trace_va and trace_va+1536 <= vmaddr+filesize]
+            if len(candidates) != 1 or trace_va & 7:
+                raise RuntimeError('Observer snapshot must be aligned and file-backed exactly once')
+            trace_data = data[candidates[0]:candidates[0]+1536]
+            if (struct.unpack_from('<3Q', trace_data) != (0x315152494636314a, 1, 192)
+                    or any(trace_data[24:])):
+                raise RuntimeError('Linked observer initial ABI/data differs from reviewed state')
+            report['linked_native_irq_observer_abi'] = {
+                'version': 1, 'bytes': 1536, 'initial_state_verified': True,
+                'hardware_validated': False}
             report['armcpu_driver_linked'] = True
             report['armdt_platform_driver_linked'] = True
             paths += [ctx.tree/'build/armcpu/libArmCpu.a',

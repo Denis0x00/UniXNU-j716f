@@ -1,0 +1,46 @@
+{
+  "board": "j716f",
+  "source_node": "/soc/timer",
+  "compatible": "arm,armv8-timer",
+  "stock_dtb_sha256": "2c0d57deb7f99a081fe4994535c51ca0362bf44b6ad5422a7300f01496f6b3ec",
+  "recovery_fdt_sha256": "68a47ee572da795077a692e7944c393c272197c66a69f43ba8d9a8ec03b39db2",
+  "stock_recovery_interrupts_agree": true,
+  "interrupt_specifiers": [
+    [
+      1,
+      13,
+      65288
+    ],
+    [
+      1,
+      14,
+      65288
+    ],
+    [
+      1,
+      11,
+      65288
+    ],
+    [
+      1,
+      12,
+      65288
+    ]
+  ],
+  "binding_order": [
+    "secure physical",
+    "nonsecure physical",
+    "virtual",
+    "hypervisor physical"
+  ],
+  "virtual_timer_index": 2,
+  "virtual_timer_ppi": 11,
+  "virtual_timer_intid": 27,
+  "timer_hz": 19200000,
+  "bindings": [
+    "https://github.com/torvalds/linux/blob/v6.12/Documentation/devicetree/bindings/timer/arm%2Carch_timer.yaml",
+    "https://github.com/torvalds/linux/blob/v6.12/Documentation/devicetree/bindings/interrupt-controller/arm%2Cgic-v3.yaml"
+  ],
+  "scope": "Offline stock/recovery input description agrees with pinned ArmCpu INTID27; no live IRQ observation",
+  "hardware_irq_validated": false
+}
