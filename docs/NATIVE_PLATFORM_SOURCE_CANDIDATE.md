@@ -1,5 +1,9 @@
 # 原生定时器平台源码候选
 
+当前状态：P22 已完成并封存，默认 board 已统一为此原生主线。
+CI40448429664 已独立接收并预链接，但不含可恢复日志，仍禁止上机。
+新日志源码接入及待验证项见 [原生主线](NATIVE_MAINLINE.md)。以下早期 CI 结果按当时范围保留。
+
 2026-10-27 新增独立 [IRQ 观测候选](NATIVE_IRQ_OBSERVER.md)：保留固定组件原始路径，
 增加 CPU/GIC/timebase 和真实 IRQ enter/rtclock 返回/EOI 的有界快照。
 Linux 双编译器和 AArch64 观测封装检查通过，本轮完整内核编译及新增链接门槛已在
@@ -15,7 +19,7 @@ Linux 双编译器和 AArch64 观测封装检查通过，本轮完整内核编�
 - `scripts/prepare-native-platform.py` 在原设备仓库之外建立源码配置副本。
 - 副本选择 `ArmDTPlatform`、`ArmCpu`，加入两者 archive recipe。
 - `j716f_arch_timer_source_defconfig` 同时启用 native timer、ArmCpu、ArmDTPlatform。
-- 普通源码构建与诊断 `board.toml` 保持各自入口。上游版本仍固定
+- 默认 `board.toml` 与源码候选已统一；旧诊断配置仅归档。上游版本仍固定
   `42bffe8a56823dad2e448c776b4f94862f3e290a`。
 - 组件由该版本 catalog 固定：ArmCpu `9066b53bbc82e92a98ec44a11dd50fd13eaf1a1b`、
   ArmDTPlatform `417ff95d6a6e8607ddea9309ec45c3bfd4a67c60`。
@@ -25,8 +29,8 @@ python3 scripts/build-j716f-source.py --unixnu /path/to/pinned-unixnu \
   --device /path/to/UniXNU-j716f --native-arch-timer --jobs 3
 ```
 
-需要 macOS/Xcode 构建机；GitHub Actions 的 push 默认构建该候选，手动工作流
-可通过 `native_arch_timer` 选择。生成目录已存在时拒绝覆盖。
+需要 macOS/Xcode 构建机；GitHub Actions 的 push 和手动工作流均构建原生候选，
+不再提供旧基线作为默认选项。生成目录已存在时拒绝覆盖。
 构建结束必须检查真实链接 Mach-O 的已定义符号：`armcpu_registered`、
 `armcpu_timer_interrupts`、`armdt_platform_configured`、`rtclock_intr`，
 并核对两份 archive、原生入口中 BCM 段消失及输出哈希。

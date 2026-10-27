@@ -2,11 +2,6 @@ name: J716F XNU source build
 
 on:
   workflow_dispatch:
-    inputs:
-      native_arch_timer:
-        description: 'Build native timer with ArmCpu/ArmDTPlatform (no prelink/device boot)'
-        type: boolean
-        default: false
   push:
     branches: [main]
     paths:
@@ -20,8 +15,18 @@ on:
       - 'scripts/test-native-irq-observer.py'
       - 'scripts/j716f-native-timer-route.json'
       - 'package/native-observer/**'
+      - 'package/native-log/**'
+      - 'scripts/prepare-native-logger.py'
+      - 'scripts/check-native-logger.py'
+      - 'scripts/decode-native-log.py'
+      - 'scripts/test-native-log.py'
       - 'scripts/source-artifact-transfer.py'
       - 'scripts/test-source-artifact-transfer.py'
+      - 'scripts/native_candidate.py'
+      - 'scripts/receive-native-candidate.py'
+      - 'scripts/prelink-native-candidate.py'
+      - 'scripts/test-native-candidate.py'
+      - 'configs/native-candidate-lock.json'
       - 'ci/source-artifacts-public.pem'
       - 'patches/build-driver/0002-guard-optional-legacy-display-probe.patch'
       - 'patches/build-driver/0003-allow-boot-progress-without-sheng-pmgr.patch'
@@ -30,7 +35,6 @@ on:
       - 'feeds.toml'
       - 'dts/**'
       - 'socs/**'
-      - 'porting.toml'
       - 'unixnu.lock'
 
 permissions:
@@ -68,6 +72,10 @@ jobs:
           python3 scripts/test-source-artifact-transfer.py -v
       - name: Check native IRQ observer writer and refusal cases
         run: python3 scripts/test-native-irq-observer.py
+      - name: Check native provenance, prelink preservation and packaging policy
+        run: python3 scripts/test-native-candidate.py -v
+      - name: Check production retained-log ABI, page mapper and AArch64 assembly
+        run: python3 scripts/test-native-log.py --cc gcc
 
   source:
     needs: transfer-checks
@@ -126,7 +134,7 @@ jobs:
       - name: Build source XNU, pthread and corecrypto
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          J716F_NATIVE_TIMER: ${{ github.event_name == 'push' || inputs.native_arch_timer }}
+          J716F_NATIVE_TIMER: 'true'
         run: |
           set -euo pipefail
           timer_args=()

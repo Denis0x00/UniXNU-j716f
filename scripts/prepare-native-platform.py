@@ -16,19 +16,32 @@ def prepare(device, output):
         raise ValueError('Candidate must be outside the original device repository')
     board = (device/'board.toml').read_text(encoding='utf-8')
     original = tomllib.loads(board)
-    if original['components']['include'] != ['XnuPrelink', 'DarwinBoot']:
-        raise ValueError('Unexpected diagnostic component baseline')
-    for old, new in [
+    native_components = ['XnuPrelink', 'DarwinBoot', 'ArmDTPlatform', 'ArmCpu']
+    legacy = original['components']['include'] == ['XnuPrelink', 'DarwinBoot']
+    if not legacy and original['components']['include'] != native_components:
+        raise ValueError('Unexpected native component selection')
+    edits = [
         ('include = ["XnuPrelink", "DarwinBoot"]',
          'include = ["XnuPrelink", "DarwinBoot", "ArmDTPlatform", "ArmCpu"]'),
         ('defconfig = "j716f_source_defconfig"',
          'defconfig = "j716f_arch_timer_source_defconfig"'),
         ('archives = [\n',
          'archives = [\n  "component:ArmDTPlatform",\n  "component:ArmCpu",\n'),
-    ]:
+    ] if legacy else []
+    for old, new in edits:
         if board.count(old) != 1:
             raise ValueError('Board transformation must match exactly once: '+old)
         board = board.replace(old, new)
+    # Historical source candidates silently inherited the V17 post-MMU reset.
+    # Fail closed on old packaging policy, even when the caller only compiles.
+    native = tomllib.loads(board)
+    payload = native['payload']
+    if (native['kernel']['defconfig'] != 'j716f_arch_timer_source_defconfig'
+            or payload.get('panic_screen') is not False
+            or any(k.startswith('entry_probe_') for k in payload)
+            or 'V17' in payload.get('title', '')
+            or not {'component:ArmCpu', 'component:ArmDTPlatform'} <= set(native['kernel']['archives'])):
+        raise ValueError('Native mainline must use native archives and explicitly disable legacy binary/reset patching')
     # Only source configuration is copied; no private local configuration,
     # evidence media, source outputs, Apple inputs or firmware is staged.
     for name in ['configs', 'dts', 'socs', 'patches']:
@@ -38,6 +51,7 @@ def prepare(device, output):
     # Only this board-owned observation package enters the source candidate.
     # Historical diagnostic packages and payloads are intentionally not staged.
     shutil.copytree(device/'package/native-observer', output/'package/native-observer')
+    shutil.copytree(device/'package/native-log', output/'package/native-log')
     (output/'board.toml').write_text(board, encoding='utf-8')
     manifest = {
         'phase': 'source-platform-integration-candidate',
@@ -48,6 +62,8 @@ def prepare(device, output):
         'hardware_validated': False,
         'prelink_performed': False,
         'device_writes_performed': False,
+        'legacy_entry_reset_enabled': False,
+        'hardware_launch_admitted': False,
     }
     (output/'candidate.json').write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
     return manifest

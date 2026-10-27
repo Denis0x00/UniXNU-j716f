@@ -10,10 +10,8 @@ os_profile = "ipados-17.7.11-21H461"
 description = "Lenovo Xiaoxin Pad Pro 2021 TB-J716F UniXNU bring-up"
 
 [components]
-# Keep only components with a checked-in source/build path. ArmCpu,
-# ArmDTPlatform and board peripherals remain planned until their SM8250 ABI
-# inputs are separately reviewed.
-include = ["XnuPrelink", "DarwinBoot"]
+# Native platform is the mainline. Selection/linking is not hardware qualification.
+include = ["XnuPrelink", "DarwinBoot", "ArmDTPlatform", "ArmCpu"]
 
 [ipsw]
 # Candidate source identity copied from the UniXNU sheng reference. This does
@@ -27,7 +25,7 @@ board_id = 12
 fetch = ["KernelCache", "DeviceTree", "StaticTrustCache", "Cryptex1,SystemTrustCache"]
 
 [kernel]
-defconfig = "j716f_source_defconfig"
+defconfig = "j716f_arch_timer_source_defconfig"
 config_fragments = [
   "arch:configs/common.config",
   "soc:configs/sm8250.config",
@@ -40,6 +38,8 @@ patch_series = [
   "device:patches/xnu/series",
 ]
 archives = [
+  "component:ArmDTPlatform",
+  "component:ArmCpu",
   "build-libpthread-kernel.py",
   "build-corecrypto-14.py",
   "build-corecrypto-14.py --namespace",
@@ -71,20 +71,19 @@ packages = [
 ENABLE_SECUREBOOT = 0
 
 [payload]
-# This describes the current V15 diagnostic payload layout. It is not an
-# assertion that the payload is a bootable iPadOS system.
-volume = "J716F17"
+# Native bring-up only. Final admission requires candidate provenance and
+# a recoverable early logger; the selected source-only CI artifact lacks it.
+volume = "J716FNATIVE"
 size_mib = 64
 loader = "firmware"
-title = "J716F V17 post-MMU entry diagnostic"
+title = "J716F native platform (not hardware-qualified)"
 dram_size = "0x140000000"
-timeout = 0
+timeout = -1
 kernel_args = ["-v", "serial=0", "debug=0x14e", "cpus=1", "-no_slto_panic"]
-# V17 keeps the green/blue/magenta entry bars and adds the official timed
-# post-MMU reset probe. A reset after the delay is the hardware signal that
-# execution continued past MMU enable; no userspace or root claim is made.
-panic_screen = true
-entry_probe_reset_delay = 6
+# Do not invoke the legacy binary entry/panic patcher for this mainline.
+# Early logging is source-owned; absence of a logger is a launch blocker.
+panic_screen = false
+tools = true
 
 [payload.adt]
 owned_memory_size = "0x10000000"

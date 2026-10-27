@@ -2,8 +2,8 @@
 
 ## 当前入口（2026-10-27）
 
-- 最新实机：[P21 VM 切换](v23p21-vm-switch.json)。
-- 已刷 boot_b：[P22 VM 返回](v23p22-vm-return.json)，线性会话成功，INIT CRC重建核对一致；Query/ARM及单次内核启动结果待采集。
+- 最新实机：[P22 原始 VM 返回并封存](p22-closed-20261027.json)，六槽、九 CRC、M=1 与一次重启保留；不重复测试。
+- 当前主线：[原生候选与可恢复日志](../docs/NATIVE_MAINLINE.md)；[P22 历史构建/会话](v23p22-vm-return.json)仅保留历史状态。
 - [最新上游与 sheng 对照](upstream-progress-review-20261027-p22.json)及[进度说明](../docs/PROGRESS_AFTER_V23P22_20261027.md)。
 - [权威移植记录](../porting.toml)。下文保留各时间点的历史记录，“最新准备”等措辞仅适用于当时。
 - [原生 IRQ 观测实现/主机摘要](native-irq-observer-20261027.json)：同 SM8250 pipa/umi 对照，

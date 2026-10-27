@@ -27,6 +27,9 @@
     timer {
         compatible = "arm,armv8-timer";
         clock-frequency = <19200000>;
+        // Binding order and flags independently agree in stock/recovery FDT.
+        // Virtual timer: PPI11 -> INTID27 (scripts/j716f-native-timer-route.json).
+        interrupts = <1 13 0xff08>, <1 14 0xff08>, <1 11 0xff08>, <1 12 0xff08>;
         status = "okay";
     };
 

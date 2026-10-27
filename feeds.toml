@@ -5,7 +5,7 @@ kind = "refer"
 git = "https://github.com/microsoft/mu_basecore.git"
 commit = "3c9c7b2e211e62d2a954ad760a36fe05adc43aa3"
 
-# There is no published UniXNU-sm8250-common repository yet. This local source
+# Public SM8250 scaffolds exist but are not yet qualified for this device. This local source
 # is a temporary, board-local evidence snapshot and must be split into a
 # reviewed shared repository before publishing a production port.
 [[source]]

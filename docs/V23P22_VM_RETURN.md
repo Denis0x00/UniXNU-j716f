@@ -1,5 +1,10 @@
 # V23P22M：arm_vm_init 剩余流程与原始返回诊断
 
+> 2026-10-27 收尾更新：P22M 已完成有界原始 arm_vm_init 返回并封存，无需再 Query/ARM/启动。
+> 六槽 L1/R1、fresh ID1/ARM B70F9702、九 CRC、终点 M=1 及一次重启保留已核对。
+> 见配套设备仓库 docs/P22_CLOSED_NATIVE_MAINLINE.md 与 research/p22-closed-20261027.json。
+> 下文保留历史过程；“待测”“下一步”不是当前指令。当前主线为原生候选与可恢复日志。
+
 ## 当前状态
 
 P22M已构建并通过主机校验，现已仅刷入boot_b；B槽激活/可启动核对及重启命令成功，初始reader与显式线性会话成功已确认，INIT CRC重建核对一致，Query/ARM和内核测试待进行。P21实机结果、旧源码及镜像完整保留。

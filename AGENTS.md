@@ -1,51 +1,36 @@
 # J716F device repository guide
 
-## Current baseline
+## Current mainline (2026-10-27)
 
-Read `docs/V23P21_VM_SWITCH.md` and `research/v23p21-vm-switch.json`.
-P21M is the latest bounded device milestone: guarded console bridge, original
-TTBR1/TTBR0 setter returns, and original TLBI/DSB/ISB stop0xfffffff0073f5e0c.
-Full arm_vm_init has NOT returned; borrowed bootstrap console L2/L3 lifetime is
-qualified only through this immediate stop, not later allocation/reuse/pmap.
-All six slots L1/R1; nine CRCs independently match fresh ID1/ARM145911AB.
-ENTRY/NOW VALID next=size0x380 logical/raw14/14 retained over one video-observed
-reboot; first reader ID2/query0/armed0. Terminal SCTLR0x3454593d/M1.
-Terminal requests SYSTEM_RESET; reset source independently unresolved. No direct
-TTBR/TCR/table dump, complete mapping/cache-coherence, IRQ or scheduler claim.
-Next audit original continuation and remaining arm_vm_init return, preserving
-probe/stack/console mappings and especially borrowed-subtable lifetime before
-adding grouped checkpoints. No repeat P21 needed; preserve P20 and older evidence.
-P21 host checks26 kernel +5 dependency +31 reader remain bounded mocked checks.
-TCR-aware P20 walker correction preserved: T1SZ26 =>38-bit VA/eight-bit L1 index;
-historical high probe/stack gap was a host bug; console bridge added only empty
-new low-root L1 slot2, borrowing bootstrap console-only L2/L3.
-Never rerun build-only recorders over results or reuse consumed ARM.
+P22M is CLOSED, not waiting for Query/ARM. Read
+`docs/P22_CLOSED_NATIVE_MAINLINE.md`, `research/p22-closed-20261027.json`
+and `docs/NATIVE_MAINLINE.md` first. Preserve the 51-file private freeze manifest
+and every historical artifact; do not rerun result/build/session recorders.
 
-P22M built/host qualified; first boot_b flash, B active/bootable checks and reboot command succeeded; initial reader confirmed VM RETURN TRACE r1 at EL1,
-VALID next0x2a871/size0x3fff4 FULL circular, logical/raw0, ID1/query0/armed0.
-Parent menu not pictured. Explicit new session now confirmed: NOW VALID
-next=size0x40, logical/raw1/1, ID1/query0/armed0; INIT CRC5FF8AFC6
-independently matches reconstructed record, not a direct RAM dump.
-Do not repeat New session. Next Query once, after Query OK ARM once in SAME reader;
-review full success/ID/CRC photo before returning to menu or launching. Read `docs/V23P22_VM_RETURN.md` and
-`research/v23p22-vm-return.json`: 26 kernel +8 dependency +31 reader checks.
-Retains bridge phase18, adds pmap return after disable_preemption at0xfffffff0073f61d0,
-VM-final after original canary check0xfffffff0073f64e0, and original RET caller0xfffffff0079e1bbc.
-All152 original BLs and RET preserved; no original VM function mocked to return.
-Static bootstrap array in __DATA_CONST precedes dynamic allocator; shared PA/KVA/
-physmap model checks all post-switch writes, allocator bounds and eight lifetime boundaries.
-Borrowed L2/L3 qualified ONLY through immediate caller stop, not later arm_init/recycle/user maps.
-Original TTBR0-empty policy is temporarily relaxed for console diagnostics, not production.
-P22 boot_b command evidence recorded; no P22 kernel attempt/result observed.
-P21 remains latest kernel hardware milestone. No repeat flash needed; explicit session already confirmed;
-next fresh Query/ARM photo, one P22M,
-reader FIRST after reset. Never rerun build-only recorders over device results.
+P22 proves the bounded original arm_vm_init RET reached caller
+0xfffffff0079e1bbc, six slots L1/R1, nine independently reconstructed CRCs,
+fresh ID1/ARM B70F9702, SCTLR 0x3454593d/M1, and retention over one observed
+reboot. It does not prove native drivers, IRQ, scheduling, long-lived mappings
+or the reset source. No repeat P22 or default P23 function/reset probe.
 
-P13–P22 are bounded diagnostics on a frozen source-built/prelinked kernel.
-Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.
-Separate native platform source candidate compiled/exported in CI at816e3c55;
-it is not the diagnostic kernel and has no hardware IRQ qualification. Read
-`docs/NATIVE_PLATFORM_SOURCE_CANDIDATE.md`. Preserve all earlier version results.
+The main board now selects ArmDTPlatform + ArmCpu + native timer. Legacy V17
+payload settings are archived in docs/archive/board-v17.toml; P22 is a different
+historical packaging path. Native packaging must never inherit timed entry
+reset or binary cave patches. Keep the UniXNU source pin unchanged.
+
+Selected receive-only baseline: run40448429664/attempt1 at fcf79e5624c2ab2b0d3c090a3f522fe494a89bdc,
+locked in configs/native-candidate-lock.json. This artifact contains the
+volatile IRQ observer, NOT the new recoverable early logger. Do not describe
+it as hardware-ready after prelink alone. A logger rebuild needs its own lock.
+
+Next outcome: exact native provenance through prelink/payload/final image plus
+recoverable entry/VM/platform/exception/IRQ evidence. Then verify platform
+matching -> CPU registration -> GIC -> real timer IRQ/rtclock/EOI -> single-core
+scheduling on the SAME candidate. UFS/root/userspace follow that gate.
+No device write/reboot is authorized by a host build or checker.
+
+Previous agent instructions are archived verbatim in
+docs/archive/AGENTS-before-native-mainline.md as historical context, not actions.
 
 ## Rules
 
@@ -76,7 +61,7 @@ payload recipe and independent diagnostic profiles are different build paths.
 From a reviewed UniXNU checkout:
 
 ```sh
-./unixnu defconfig j716f_source_defconfig -D ../UniXNU-j716f
+./unixnu defconfig j716f_arch_timer_source_defconfig -D ../UniXNU-j716f
 ./unixnu status --json -D ../UniXNU-j716f
 ./unixnu tree -D ../UniXNU-j716f
 python3 scripts/porting-record.py check --device ../UniXNU-j716f

@@ -74,7 +74,7 @@ def main():
     parser.add_argument("--device", type=Path, required=True)
     parser.add_argument("--jobs", type=int, default=3)
     parser.add_argument("--check-source-fix-only", action="store_true")
-    parser.add_argument("--native-arch-timer", action="store_true",
+    parser.add_argument("--native-arch-timer", action="store_true", default=True,
                         help="Build/link native timer with ArmDTPlatform and ArmCpu; no prelink or hardware claim")
     args = parser.parse_args()
     base, device = args.unixnu.resolve(), args.device.resolve()
@@ -91,7 +91,7 @@ def main():
     sys.path.insert(0, str(base / "scripts"))
     from unixnu.cli import cmd_defconfig, parser as cli_parser, prepare
     from unixnu.config import Context
-    from unixnu import kernel
+    from unixnu import kernel, patches
 
     original_device = device
     if args.native_arch_timer:
@@ -139,6 +139,8 @@ def main():
         "prelink_performed": False,
         "hardware_boot_validated": False,
         "ipsw_required": False,
+        "recoverable_logger_requested": True,
+        "hardware_launch_admitted": False,
         "artifacts": [],
     }
     report_path.write_text(json.dumps(report, indent=2) + "\n")
@@ -159,6 +161,18 @@ def main():
                 raise RuntimeError('Unexpected ArmDTPlatform commit')
             report['native_irq_observer'] = observer.install(
                 original_device, ctx.tree, armcpu.path, armcpu.commit)
+            spec = importlib.util.spec_from_file_location(
+                'native_logger', original_device/'scripts/prepare-native-logger.py')
+            logger = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(logger)
+            # Generate from the exact result of the official ordered patches.
+            # kernel.build invokes prepare again, rebuilding a clean XNU with
+            # the additional device patch. No mutation of fetched XNU sources.
+            patches.prepare(ctx, modules)
+            report['native_early_log'] = logger.install_xnu(
+                device, original_device, ctx.tree/'.cache/xnu-work')
+            report['native_early_log']['driver_bridge'] = logger.install_drivers(
+                original_device, ctx.tree, armdt.path)
         report["references"] = {
             name: module.commit for (kind, name), module in modules.items()
             if kind == "refer" and module.commit
@@ -180,6 +194,12 @@ def main():
             "mach.development.bcm2837.unstripped.noctf"
         )
         data = native.read_bytes()
+        spec = importlib.util.spec_from_file_location(
+            'logger_link_check', original_device/'scripts/check-native-logger.py')
+        linked = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(linked)
+        report['native_early_log']['linked'] = linked.check(
+            native, report['native_early_log']['candidate_sha256'])
         if struct.unpack_from("<4I", data) != (0xFEEDFACF, 0x100000C, 0, 2):
             raise RuntimeError("Expected ordinary ARM64 Mach-O executable")
         bcm_route = bytes.fromhex(

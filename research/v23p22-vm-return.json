@@ -1,5 +1,7 @@
 {
   "version": "V23P22 VM RETURN TRACE r1",
+  "record_scope": "Historical build/launch snapshot; all variant observations below retain their original scope. Superseded for current state by p22-closed-20261027.json.",
+  "closure_reference": "research/p22-closed-20261027.json",
   "host_checks_passed": true,
   "automatic_start": false,
   "kernel_entry_requires_manual_arm": true,
@@ -362,7 +364,7 @@
   "next_variant": "m",
   "source_checkout_base": "c35197e51c6f9c67bfb08b9532c91c159832082f",
   "source_state": "Independent P22 source additions; exact builder/assembly/app/artifact hashes bind this build",
-  "status": "P22 explicit linear session successful; INIT CRC independently matches; ID1/query0/armed0, fresh Query/ARM and kernel attempt pending",
+  "status": "CLOSED: P22 hardware result is recorded in research/p22-closed-20261027.json; preserve this earlier snapshot and variants, do not repeat Query/ARM",
   "previous_device_record_sha256": "97b50a4908e0c5a92d55696bad2277506eb3e1409fba3b4b1db929edee0988de",
   "arm_cookie": "0x5032324b45524e4c",
   "slot_tag": "0x5032325300000000",
@@ -449,7 +451,7 @@
     "policy": "Preserve frozen source pin and hardware values; separate source, host and device evidence; still early-kernel bring-up"
   },
   "terminal": "Original arm_vm_init RET completed, caller0xfffffff0079e1bbc before following arm_init instruction; actual SCTLR_EL1/M1 then deliberate SYSTEM_RESET",
-  "next_action": "In this same reader, Query PSCI + record once; after Query OK, ARM next kernel attempt once. Photograph the full page including Query/ARM/template success and ID/CRC before returning to menu or launching P22M.",
+  "next_action": "Do not relaunch P22. Preserve frozen evidence and follow docs/NATIVE_MAINLINE.md for the native candidate/logging/final-image gates.",
   "limitations": [
     "P22 kernel qualification remains host-only; boot_b command evidence, initial full-ring reader and explicit linear-session success photographed. INIT CRC matches reconstruction; fresh Query/ARM and kernel results pending. P21 remains latest kernel device milestone.",
     "Original full VM function executes in a synthetic boot model; this is not a P22 hardware result.",
