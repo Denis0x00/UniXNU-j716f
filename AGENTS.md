@@ -21,7 +21,20 @@ historical high probe/stack gap was a host bug; console bridge added only empty
 new low-root L1 slot2, borrowing bootstrap console-only L2/L3.
 Never rerun build-only recorders over results or reuse consumed ARM.
 
-P13–P21 are bounded diagnostics on a frozen source-built/prelinked kernel.
+P22M built/host qualified, UNFLASHED. Read `docs/V23P22_VM_RETURN.md` and
+`research/v23p22-vm-return.json`: 26 kernel +8 dependency +31 reader checks.
+Retains bridge phase18, adds pmap return after disable_preemption at0xfffffff0073f61d0,
+VM-final after original canary check0xfffffff0073f64e0, and original RET caller0xfffffff0079e1bbc.
+All152 original BLs and RET preserved; no original VM function mocked to return.
+Static bootstrap array in __DATA_CONST precedes dynamic allocator; shared PA/KVA/
+physmap model checks all post-switch writes, allocator bounds and eight lifetime boundaries.
+Borrowed L2/L3 qualified ONLY through immediate caller stop, not later arm_init/recycle/user maps.
+Original TTBR0-empty policy is temporarily relaxed for console diagnostics, not production.
+No P22 device write/result. P21 remains latest hardware milestone. Next boot_b only after
+fresh fastboot/recording readiness; P22 reader FIRST, fresh Query/ARM photo, one P22M,
+reader FIRST after reset. Never rerun build-only recorders over device results.
+
+P13–P22 are bounded diagnostics on a frozen source-built/prelinked kernel.
 Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.
 Separate native platform source candidate compiled/exported in CI at816e3c55;
 it is not the diagnostic kernel and has no hardware IRQ qualification. Read

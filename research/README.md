@@ -78,3 +78,5 @@ Latest P11 result: A retained published stage5; B and D each retained matching r
 - [P20 VM preparation](v23p20-vm-init.json): bounded original early allocation/layout and arm_vm_prot_init return device verified before TCR/TTBR activation; all nine CRCs match and retained over one video-observed reboot. Full arm_vm_init remains incomplete; next audit completed mappings and switch lifetimes.
 
 - [P21 translation switch](v23p21-vm-switch.json): bounded original TTBR1/TTBR0 setter returns and TLBI/DSB/ISB device verified; six slots L1/R1, nine CRCs match and retained over one reboot. Full arm_vm_init return and later borrowed-console lifetime remain unqualified.
+
+- [P22 VM return](v23p22-vm-return.json): built/host qualified, unflashed; static console subtree reviewed through original pmap_bootstrap/VM RET caller; P21 remains latest device result.

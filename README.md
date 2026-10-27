@@ -49,6 +49,12 @@ timer IRQ、GIC、调度及用户态尚未验证。
 六槽L1/R1，九条CRC独立匹配，SCTLR=0x3454593d（M1），记录经一次录像观察到的重启后保留。
 终点按设计请求重启，尚未让arm_vm_init整体返回；下一步审查剩余VM流程与日志子表生命周期。
 
+## P22M 待实机测试
+
+[arm_vm_init原始返回诊断](docs/V23P22_VM_RETURN.md)已构建，通过26项内核、8项依赖和31项reader检查，尚未刷入。
+静态bootstrap日志子表生命周期已审查至调用方终点；原始pmap_bootstrap、VM收尾及RET均在主机模型执行。
+新增pmap返回、VM收尾与调用方返回独立检查点；本轮设备结果待测，P21仍为最新实机里程碑。
+
 ## 当前文档与证据
 
 - [P16 后的实际进度及上游/sheng 对照](docs/PROGRESS_AFTER_V23P16_20261026.md)
