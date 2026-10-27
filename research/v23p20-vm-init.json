@@ -44,7 +44,7 @@
   "native_timer_driver_integrated": false,
   "proposed_partition": "boot_b",
   "next_variant": "m",
-  "status": "P20M flashed only to boot_b and reboot command succeeded; reader/ARM/kernel observations pending",
+  "status": "P20 initial read-only reader observed; valid linear header and sufficient tail; fresh Query/ARM and kernel attempt pending",
   "source_checkout_base": "db99c4675ca90844ad094416b6117414d420fd04",
   "source_state": "Independent P20 sources on recorded base; exact source/artifact hashes below",
   "prior_hardware_baseline": "P19 original debug/startup, timer_call_init, cpu_init, processor_bootstrap returns; nine CRCs retained over one video-observed reboot",
@@ -132,7 +132,7 @@
     ],
     "counter": "constant 19200000; neither entropy quality nor counter advancement proof"
   },
-  "next_action": "User opens P20 reader and photographs the full initial read-only page before Query/ARM; menu identity and kernel attempt not yet observed.",
+  "next_action": "In current reader, Query then ARM once each; photograph ID/ARM CRC/template status before single kernel launch",
   "limitations": [
     "P20 is host qualification only; P19 remains the latest bounded hardware milestone.",
     "P20 stops inside arm_vm_init, after arm_vm_prot_init return; arm_vm_init itself does not return and new TCR/TTBR roots are not activated.",
@@ -148,5 +148,38 @@
     "scripts/decode-j716f-v23p20.py": "98fd3fdc846c15854d13e125b62f77e263eb4746b0ea2b22ea88767ca5106402"
   },
   "menu_launch_recorded": true,
-  "published_source_revision_at_launch": "e63d221b263dba3a904b76a6ce69f8b1804ab5ba"
+  "published_source_revision_at_launch": "e63d221b263dba3a904b76a6ce69f8b1804ab5ba",
+  "initial_reader_observation": {
+    "date": "2026-10-27",
+    "photo_sha256": "129e8f2bbfe5b846cbc7785619c7790bb62aff30881036aba632bd558876d0bb",
+    "identity": "J716F V23P20 VM TRACE r1",
+    "parent_menu_identity_pictured": false,
+    "entry_signature": "0x43474244",
+    "entry_next": "0x2c11f",
+    "entry_size": "0x2c11f",
+    "entry_console_crc32": "0x5171ff83",
+    "console_crc_source": "Photographed reader display only, full console bytes unavailable for independent recomputation",
+    "entry_logical_count": 0,
+    "entry_raw_count": 0,
+    "frozen_checkpoint_id": 0,
+    "now_valid": true,
+    "now_next": "0x2c11f",
+    "now_size": "0x2c11f",
+    "now_logical_count": 0,
+    "now_raw_count": 0,
+    "all_checkpoint_rows_logical_raw_zero": true,
+    "terminal_map_failure_reset_return_raw_hits_zero": true,
+    "this_run_id": 1,
+    "query_complete": false,
+    "armed": false,
+    "arm_crc32": "0x00000000",
+    "current_el": 1,
+    "console_is_full_circular": false,
+    "unused_linear_tail_bytes": 81621,
+    "query_tail_requirement_bytes": 896,
+    "new_session_required": false,
+    "p20_kernel_launch_observed": false,
+    "next_required_action": "In current reader, Query then ARM once each; photograph ID/ARM CRC/template status before single kernel launch"
+  },
+  "published_diagnostic_source_revision": "e63d221b263dba3a904b76a6ce69f8b1804ab5ba"
 }

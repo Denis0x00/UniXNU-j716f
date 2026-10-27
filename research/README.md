@@ -75,4 +75,4 @@ Latest P11 result: A retained published stage5; B and D each retained matching r
 
 - [P19 startup/timer/CPU/processor](v23p19-startup-init.json): bounded original four-group returns device verified; all nine CRCs match, terminal SCTLR M1 and records retained over one continuous-video-observed reboot. Next audit arm_init remainder and arm_vm_init mapping/stack lifetime.
 
-- [P20 VM preparation](v23p20-vm-init.json): built/host verified, flashed only to boot_b; reboot command succeeded, initial reader pending; original early arm_vm_init allocation/layout and arm_vm_prot_init return; stop before TCR/TTBR. P19 hardware evidence preserved.
+- [P20 VM preparation](v23p20-vm-init.json): built/host verified, flashed only to boot_b; reboot command succeeded, initial VALID read-only reader confirmed at ID1/query0/armed0; original early arm_vm_init allocation/layout and arm_vm_prot_init return; stop before TCR/TTBR. P19 hardware evidence preserved.

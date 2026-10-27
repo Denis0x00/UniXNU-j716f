@@ -78,3 +78,15 @@ AT/PAR由实际初始页表walk生成。219个高地址数据页的初始映射�
 
 菜单及reader画面尚待照片确认，未观察到本轮Query/ARM、内核启动或VM结果。
 下一步首先打开P20 reader拍完整初始页，先不Query/ARM。P19仍为最新实机里程碑。
+
+## 初始只读 reader（2026-10-27）
+
+完整照片确认 J716F V23P20 VM TRACE r1、EL1。ENTRY/NOW VALID，
+next=size=0x2c11f，reader显示console CRC32=5171FF83；logical/raw均0，
+冻结checkpoint ID0、八行及四个终点/failure行全部无命中。
+THIS RUN ID1/query0/armed0/CRC0，处于只读初始状态。父菜单未在照片中出现。
+
+剩余线性空间81621字节，超过Query所需896字节，不需要新建线性会话。
+下一步在当前reader内Query→ARM各一次，拍下ID/ARM CRC及模板结果，
+核对后才启动一次P20M。尚无本轮Query/ARM、内核检查点或重启保留结果。
+console CRC仅为照片显示值，没有完整console字节进行独立重算。
