@@ -18,6 +18,7 @@
 | P18 | boot CPU发布/校验、当前线程设置及rtclock_early_init返回；六槽和终点到达，9条CRC匹配并经一次录像观察到的重启后保留 |
 | P19 | 原始debug/startup、timer_call_init、cpu_init和processor_bootstrap返回；9条CRC匹配并经一次录像观察到的重启后保留 |
 | P20 | 原始arm_vm_init早期分配、段布局与arm_vm_prot_init返回；切换新TCR/TTBR前终止，9条CRC匹配并经一次录像观察到的重启后保留 |
+| P21 | 原始TTBR1/TTBR0设置返回及TLBI/DSB/ISB后检查点；六槽命中、九CRC匹配并经一次重启后保留，尚未完整返回arm_vm_init |
 
 P18 在rtclock_early_init返回后主动结束；cpu_bootstrap在该基线中只是RET。
 真实定时器中断、GIC/ArmCpu 驱动匹配、
@@ -33,7 +34,7 @@ P18 在rtclock_early_init返回后主动结束；cpu_bootstrap在该基线中只
 终点预设请求重启，复位来源未独立证明。P20已进一步验证原始arm_vm_init早期准备，见最新结果；
 timer IRQ、GIC、调度及用户态尚未验证。
 
-## P20M 最新实机结果
+## P20M 历史实机结果
 
 [arm_vm_init早期VM诊断](docs/V23P20_VM_INIT.md)已仅在boot_b完成测试：
 原始VM入口、早期根/上层表分配、内核段布局与vm_set_page_size、arm_vm_prot_init返回均到达。
@@ -41,12 +42,12 @@ timer IRQ、GIC、调度及用户态尚未验证。
 终点在新TCR/TTBR切换之前主动请求重启，尚未完成arm_vm_init整体初始化。
 下一步审查新表完成与切换顺序，以及探针、栈和日志跨切换的映射/权限。
 
-## P21M 待实机测试
+## P21M 最新实机结果
 
-[原始TTBR切换诊断](docs/V23P21_VM_SWITCH.md)已构建，通过26项内核、5项依赖和31项reader主机检查；已仅刷入boot_b，重启命令成功，初始reader、新会话及fresh ID1 Query/ARM已确认，ARM CRC145911AB重算匹配；单次内核测试待进行。
-以console专用子表桥接日志，继续原始TTBR1→TTBR0→TLBI/DSB/ISB后终止。
-主机walker已修正T1SZ=26的根索引；P20高地址探针/栈缺失误报已更正，原实机结果不变。
-原始媒体/二进制仅私有保存；下一轮仍仅boot_b、reader FIRST、fresh Query/ARM。
+[原始TTBR切换诊断](docs/V23P21_VM_SWITCH.md)已仅在boot_b完成有界测试：
+日志桥接、原始TTBR1/TTBR0设置返回及TLBI/DSB/ISB之后检查点均到达。
+六槽L1/R1，九条CRC独立匹配，SCTLR=0x3454593d（M1），记录经一次录像观察到的重启后保留。
+终点按设计请求重启，尚未让arm_vm_init整体返回；下一步审查剩余VM流程与日志子表生命周期。
 
 ## 当前文档与证据
 
@@ -63,7 +64,7 @@ timer IRQ、GIC、调度及用户态尚未验证。
 `board.toml`/`feeds.toml`/`unixnu.lock` 保存设备格式、依赖与构建方案；
 `dts/` 和 `socs/sm8250/` 保存经固件证据交叉核对的板级事实。
 SoC 目录仍是本地过渡快照；板级驱动 ABI 和集成未完成。
-`board.toml` 中的历史 payload 配方不是最新 P20 的构建入口；
+`board.toml` 中的历史 payload 配方不是最新 P21 的构建入口；
 各版本请按独立说明及 `scripts/build-v23p*-kernel.py` 使用。
 
 [原生平台源码候选](docs/NATIVE_PLATFORM_SOURCE_CANDIDATE.md)现已接入独立配置副本：

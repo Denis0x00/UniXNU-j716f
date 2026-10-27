@@ -77,4 +77,4 @@ Latest P11 result: A retained published stage5; B and D each retained matching r
 
 - [P20 VM preparation](v23p20-vm-init.json): bounded original early allocation/layout and arm_vm_prot_init return device verified before TCR/TTBR activation; all nine CRCs match and retained over one video-observed reboot. Full arm_vm_init remains incomplete; next audit completed mappings and switch lifetimes.
 
-- [P21 translation switch](v23p21-vm-switch.json): built/host verified, flashed only to boot_b; reboot command succeeded, initial VALID full-ring reader ID1/query0/armed0 observed; explicit new session now confirmed at next=size0x40, ID1/query0/armed0; INIT CRC independently matched; fresh ID1 Query/ARM confirmed, ARM CRC145911AB independently matched; one kernel attempt pending; console-only bridge and original TTBR1/TTBR0/TLB sync; TCR-aware P20 walker correction, hardware result preserved.
+- [P21 translation switch](v23p21-vm-switch.json): bounded original TTBR1/TTBR0 setter returns and TLBI/DSB/ISB device verified; six slots L1/R1, nine CRCs match and retained over one reboot. Full arm_vm_init return and later borrowed-console lifetime remain unqualified.

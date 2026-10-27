@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-P21M已构建并通过主机校验，现已仅刷入boot_b，重启命令成功；初始reader、线性会话及fresh Query/ARM已确认，单次内核测试待进行。P20实机结果及旧镜像完整保留。
+P21M已仅在boot_b完成有界实机测试：原始TTBR1/TTBR0设置返回及TLBI/DSB/ISB后检查点均到达，九条CRC匹配并经一次录像观察到的重启后保留。P20及更早结果完整保留。以下准备章节为历史状态，最终结果见文末。
 继续原始VM准备、physmap/protection与qsort，执行原始TTBR1、TTBR0设置函数，
 完成原始TLBI/DSB/ISB后停在0xfffffff0073f5e0c，记录实际SCTLR_EL1并请求SYSTEM_RESET。
 **这仍不是arm_vm_init整体返回，不进入后续pmap_bootstrap。**
@@ -42,7 +42,7 @@ P21在两个新根安装之前检查TCR、MAIR、旧根关系、精确console子
 主机按38位VA/8位根索引选当前TTBR0或TTBR1，检查切换后实际访问页的PA与AF/AP/PXN，
 并独立核对层级属性。完整Mach-O与DarwinBoot参数/ADT/尾部放置采用模型。
 系统寄存器、物理/高地址别名、AT/PAR、TLB/缓存/屏障、SMC和UEFI仍为模拟。
-不证明真实根切换、缓存一致性、完整VM、timer IRQ、GIC、调度或用户态。
+以上主机检查本身不证明真实根切换、缓存一致性、完整VM、timer IRQ、GIC、调度或用户态；本轮有界实机证据另见文末。
 
 ## 实机顺序
 
@@ -99,3 +99,35 @@ ENTRY冻结旧满环形头、ID0和零检查点行为预期，不代表ARM失败
 
 下一步返回菜单并连续录像，只启动一次P21M；重启后首先打开P21 reader拍完整页，
 先不Query/ARM。若停住先保留画面和等待时长。当前尚无内核、TTBR切换或重启保留结果。
+
+## 实机结果（2026-10-27，取代以上待测状态）
+
+连续录像10.632秒、319帧全部解码；抽查关键帧确认一次P21M启动、黑屏、
+Lenovo/Android、同版菜单返回、首次只读reader，末帧与完整照片一致。
+ENTRY/NOW VALID next=size0x380，logical/raw14/14；冻结ID1，最新phase12。
+新reader ID2/query0/armed0，未再次Query/ARM。六槽全部L1/R1。
+相对ARM日志头0x180增长512字节，与ENTRY、六槽及终点一致。
+
+| 记录 | 独立重算并匹配CRC32 |
+| --- | --- |
+| ARM | 145911AB |
+| KERNEL_ENTRY | 7CF4B1F1 |
+| BCM_ROUTE_SKIPPED | 3B0A97C6 |
+| M1_READBACK | B8B78960 |
+| LOG_BRIDGE_READY | A397FB5A |
+| TTBR1_RETURN | 88209960 |
+| TTBR0_RETURN | 95D71F2E |
+| VM_TLB_SYNCED | D999A960 |
+| SWITCH_STOP_SCTLR | 912996CC |
+
+日志桥接守卫与读回完成、原始TTBR1设置返回、原始TTBR0设置返回、
+原始TLBI/DSB/ISB之后检查点均到达；终点0xfffffff0073f5e0c实际SCTLR=0x3454593d（M1）。
+九条记录绑定fresh ID1/ARM145911AB，经录像观察到的一次重启后完整保留。
+MAP_FAILURE和RESET_RETURN均零。终点按设计请求SYSTEM_RESET，复位来源未独立证明。
+整console CRC显示64B4FA57，未取得完整console独立重算；记录CRC按格式和照片字段独立重建。
+
+**本轮打通原始翻译根切换后的有界执行与日志保留，尚非arm_vm_init整体返回。**
+未直接转储TTBR/TCR或页表，不能扩展为全部映射和缓存一致性验证。
+下一步审查0xfffffff0073f5e0c之后原始VM剩余流程与返回边界，
+先核对借用bootstrap日志子表的分配、保留和复用生命周期，再布置下一组检查点。
+无需重复P21；timer IRQ、GIC、调度、存储及用户态尚未验证。原始媒体仅私有保存。

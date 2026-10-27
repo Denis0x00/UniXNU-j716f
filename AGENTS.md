@@ -2,40 +2,24 @@
 
 ## Current baseline
 
-Read `docs/V23P20_VM_INIT.md` and `research/v23p20-vm-init.json`.
-P20M is the latest bounded device milestone: original arm_vm_init entry, early
-root/upper-table allocation, segment/page-size layout and arm_vm_prot_init return.
-Stop0xfffffff0073f5c04 precedes new TCR/TTBR activation; full arm_vm_init not returned.
-All six slots L1/R1; terminal SCTLR0x3454593d/M1. Nine CRCs independently match
-fresh ID1/ARM8DD10BB5; VALID header0x2c45f logical/raw13/13 retained over one
-continuous-video-observed reboot; first reader ID2/query0/armed0.
-Terminal intentionally requests SYSTEM_RESET; reset source independently unresolved.
-Console gap is a host-model finding, not a device table dump; the historical
-high probe/stack gap was a root-index walker bug, corrected in the P21 review.
-Next audit original continuation, completed candidate mappings/permissions and
-TCR/TTBR order, including executable probe, live stack and retained console lifetime.
-No repeat P20 needed; preserve P19 and all earlier version-specific evidence.
-27 kernel +5 dependency +31 linked-reader host cases remain bounded mocked checks.
+Read `docs/V23P21_VM_SWITCH.md` and `research/v23p21-vm-switch.json`.
+P21M is the latest bounded device milestone: guarded console bridge, original
+TTBR1/TTBR0 setter returns, and original TLBI/DSB/ISB stop0xfffffff0073f5e0c.
+Full arm_vm_init has NOT returned; borrowed bootstrap console L2/L3 lifetime is
+qualified only through this immediate stop, not later allocation/reuse/pmap.
+All six slots L1/R1; nine CRCs independently match fresh ID1/ARM145911AB.
+ENTRY/NOW VALID next=size0x380 logical/raw14/14 retained over one video-observed
+reboot; first reader ID2/query0/armed0. Terminal SCTLR0x3454593d/M1.
+Terminal requests SYSTEM_RESET; reset source independently unresolved. No direct
+TTBR/TCR/table dump, complete mapping/cache-coherence, IRQ or scheduler claim.
+Next audit original continuation and remaining arm_vm_init return, preserving
+probe/stack/console mappings and especially borrowed-subtable lifetime before
+adding grouped checkpoints. No repeat P21 needed; preserve P20 and older evidence.
+P21 host checks26 kernel +5 dependency +31 reader remain bounded mocked checks.
+TCR-aware P20 walker correction preserved: T1SZ26 =>38-bit VA/eight-bit L1 index;
+historical high probe/stack gap was a host bug; console bridge added only empty
+new low-root L1 slot2, borrowing bootstrap console-only L2/L3.
 Never rerun build-only recorders over results or reuse consumed ARM.
-
-P21M built/host qualified; flashed only to boot_b, B active/bootable verified,
-reboot command succeeded; initial reader confirmed VM SWITCH TRACE r1 at EL1,
-VALID next0x125fb/size0x3fff4 FULL circular, logical/raw0, ID1/query0/armed0.
-Parent menu not pictured. New linear session REQUIRED before Query/ARM;
-select twice, photograph success/NOW first. No P21 kernel attempt observed. Read `docs/V23P21_VM_SWITCH.md` and
-`research/v23p21-vm-switch.json`. 26 kernel +5 dependency +31 linked-reader cases.
-Original TTBR1/TTBR0 BL/LR preserved; console bridge changes only empty root0 L1 slot2,
-borrowing console-only bootstrap L2/L3 until immediate stop0xfffffff0073f5e0c after
-TLBI/DSB/ISB. No pmap_bootstrap or full arm_vm_init return. Guard and readback failures
-halt before later witness/root replacement. Shared CRC leaves probe within2800 bytes.
-TCR-aware walker correction: T1SZ26 =>38-bit VA, eight-bit L1 index; high probe/stack
-already mapped in P20. Console mapping was absent; legacy high-gap report superseded.
-No real TLB/cache/register/IRQ claim. P20 hardware result remains latest.
-Explicit session now confirmed: NOW VALID next=size0x40 logical/raw1, ID1/query0/armed0;
-INIT CRC B00D3D5C independently matches reconstructed record. ENTRY stays frozen.
-Fresh Query/ARM confirmed ID1/query1/armed1, ARM CRC145911AB independently matches;
-NOW next=size0x180 logical/raw6/6, PSCI1.1/FEATURES0, six templates OK.
-Next one continuously recorded P21M launch; reader FIRST after reboot. No repeat flash required. Never rerun old recorders.
 
 P13–P21 are bounded diagnostics on a frozen source-built/prelinked kernel.
 Timer IRQ, real WFE wait, ArmCpu/GIC, scheduler/storage/userspace remain unverified.

@@ -237,7 +237,7 @@
         "sealer_sha256": "27e003877bfa68054998392d879aadb19ea19adf04240e84bfaa3856edfcf2fa"
       },
       "host_checks_passed": true,
-      "hardware_verified": false,
+      "hardware_verified": true,
       "device_writes_performed": true,
       "device_launch": {
         "partition_images_flashed": [
@@ -247,18 +247,20 @@
         "slot_unbootable_b_before_reboot": false,
         "reboot_command_succeeded": true,
         "image_sha256": "77f3a49bff49f9bf842cb4715649f3c862c0084b81564e31d1e997e92f180131",
-        "menu_identity_observed": false,
+        "menu_identity_observed": true,
         "manual_kernel_start_required": true,
         "recording_ready_user_confirmed": true,
-        "hardware_verified": false
-      }
+        "hardware_verified": true,
+        "hardware_verification_scope": "Bounded original arm_vm_init continuation through guarded console bridge, original TTBR1 setter return, original TTBR0 setter return and original TLBI/DSB/ISB at0xfffffff0073f5e0c; six slots L1/R1, terminal actual SCTLR M1 and nine bound record CRCs retained over one video-observed reboot. No direct translation-table/TTBR register dump, complete mapping/cache qualification, full arm_vm_init return, timer IRQ or scheduler result."
+      },
+      "hardware_verification_scope": "Bounded original arm_vm_init continuation through guarded console bridge, original TTBR1 setter return, original TTBR0 setter return and original TLBI/DSB/ISB at0xfffffff0073f5e0c; six slots L1/R1, terminal actual SCTLR M1 and nine bound record CRCs retained over one video-observed reboot. No direct translation-table/TTBR register dump, complete mapping/cache qualification, full arm_vm_init return, timer IRQ or scheduler result."
     }
   },
   "kernel_logic_cases": 26,
   "reader_logic_cases": 31,
   "dependency_logic_cases": 5,
   "power_logic_cases_reused_for_identical_app": 22,
-  "hardware_verified": false,
+  "hardware_verified": true,
   "device_writes_performed": true,
   "source_native_arch_timer_kernel": false,
   "native_timer_driver_integrated": false,
@@ -266,7 +268,7 @@
   "next_variant": "m",
   "source_checkout_base": "47dacd6fb374463d7eab5a0124f3ef044c47ad3a",
   "source_state": "Independent P21 additions on recorded base; exact source/artifact hashes bind this build",
-  "status": "Fresh P21 ID1 Query/ARM confirmed; ARM CRC145911AB independently matches; one kernel attempt pending",
+  "status": "P21M bounded original TTBR1/TTBR0 setter returns and TLBI/DSB/ISB device verified; six slots L1/R1, nine CRCs match and retained over one observed reboot",
   "prior_hardware_baseline": "P20 original VM allocation/layout/protection return before TCR/TTBR; nine CRCs retained over one video-observed reboot",
   "arm_cookie": "0x5032314b45524e4c",
   "slot_tag": "0x5032315300000000",
@@ -334,14 +336,14 @@
     ],
     "counter": "constant19200000; no entropy or advancement qualification"
   },
-  "next_action": "Return to menu and continuously record exactly one P21M launch; after reboot open P21 reader FIRST and photograph full page before Query/ARM. If stalled, preserve screen and report wait duration.",
+  "next_action": "Preserve P21 result without repeat launch. Audit original continuation after0xfffffff0073f5e0c through remaining arm_vm_init work and its return; review bootstrap console-subtable allocation/reservation/reuse lifetime before extending the borrowed bridge. Add grouped checkpoints only after code/stack/log mapping and lifetime review.",
   "limitations": [
-    "Host qualification only; P20 remains latest device result.",
-    "Stop follows original TTBR1/TTBR0 setters and TLB sync, but arm_vm_init has not fully returned.",
-    "Borrowed bootstrap console tables are qualified only through the immediate P21 stop; later pmap/allocator lifetime requires separate review.",
-    "No actual hardware root switch, TLB/cache coherence, advancing counter, timer IRQ, GIC, scheduling, storage or userspace claim.",
-    "Frozen diagnostic baseline remains separate from the independently compiled native platform source candidate.",
-    "Terminal deliberately requests SYSTEM_RESET; automatic reboot alone does not prove a crash or reset source."
+    "Device qualification is limited to the guarded P21 path and immediate stop0xfffffff0073f5e0c; arm_vm_init has not fully returned.",
+    "Borrowed bootstrap console L2/L3 lifetime is established only through this immediate terminal; later allocations, reuse or pmap require separate review.",
+    "Bound checkpoints establish execution through original setters and TLB-sync instructions, not an independent TTBR/TCR/table dump or complete mapping/cache-coherence test.",
+    "Record CRCs reconstructed independently from photographed fields; full console CRC is display-only without original console bytes.",
+    "No advancing counter, timer IRQ, GIC, scheduling, storage or userspace qualification; native platform source candidate remains separate.",
+    "Terminal deliberately requests SYSTEM_RESET; reset source is not independently proven."
   ],
   "source_files": {
     "scripts/build-v23p21-kernel.py": "d60b378a241c6f1eaba6791f6c2c2a3a7525415112a271448398cd3265f8314e",
@@ -450,5 +452,222 @@
     "header_growth_since_session_bytes": 320,
     "p21_kernel_launch_observed": false,
     "next_required_action": "Return to menu and continuously record exactly one P21M launch; after reboot open P21 reader FIRST and photograph full page before Query/ARM. If stalled, preserve screen and report wait duration."
-  }
+  },
+  "post_reboot_observation": {
+    "date": "2026-10-27",
+    "photo_sha256": "9a79357285d54ca4654463b5743166a520bf8da48c86f9dffc80bc9e5fe7d6fc",
+    "video_sha256": "dbd55c7721e7f42f9cad4e73f78481c85309761748648e2f973ac7cfd810e3c5",
+    "video_duration_seconds": 10.631661442006271,
+    "video_frames": 319,
+    "all_video_frames_decoded": true,
+    "video_observations": [
+      {
+        "frame": 0,
+        "seconds": 0,
+        "observation": "P21M menu, kernel selected"
+      },
+      {
+        "frame": 60,
+        "seconds": 2,
+        "observation": "Same P21M kernel selected before launch"
+      },
+      {
+        "frame": 90,
+        "seconds": 3,
+        "observation": "Dark screen after launch"
+      },
+      {
+        "frame": 150,
+        "seconds": 5,
+        "observation": "Lenovo/Android splash"
+      },
+      {
+        "frame": 211,
+        "seconds": 7.032,
+        "observation": "Same P21M menu returns, reader selected"
+      },
+      {
+        "frame": 271,
+        "seconds": 9.032,
+        "observation": "Reader begins opening over menu"
+      },
+      {
+        "frame": 301,
+        "seconds": 10.032,
+        "observation": "Read-only P21 reader, result records visible"
+      },
+      {
+        "frame": 318,
+        "seconds": 10.598,
+        "observation": "Unchanged read-only reader agrees with separate full photo"
+      }
+    ],
+    "kernel_launches_observed": 1,
+    "reboots_observed": 1,
+    "reader_first_after_reboot": true,
+    "identity": "J716F V23P21 VM SWITCH TRACE r1",
+    "current_el": 1,
+    "entry_valid": true,
+    "now_valid": true,
+    "entry_next": "0x380",
+    "entry_size": "0x380",
+    "now_next": "0x380",
+    "now_size": "0x380",
+    "displayed_console_crc32": "0x64b4fa57",
+    "console_crc_independently_recomputed": false,
+    "console_crc_scope": "Photographed display only; full console bytes unavailable",
+    "logical_count": 14,
+    "raw_count": 14,
+    "frozen_checkpoint_id": 1,
+    "latest_phase": 12,
+    "latest_crc32": "912996CC",
+    "six_slots_logical_raw_hits": [
+      {
+        "phase": 16,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 17,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 18,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 19,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 20,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 21,
+        "logical_hits": 1,
+        "raw_hits": 1
+      }
+    ],
+    "terminal_raw_hits": 1,
+    "terminal_pc": "0xfffffff0073f5e0c",
+    "terminal_actual_sctlr": "0x3454593d",
+    "terminal_mmu_enabled": true,
+    "unused_pre_hits": 0,
+    "map_failure_hits": 0,
+    "reset_return_hits": 0,
+    "this_run_id": 2,
+    "query_complete": false,
+    "armed": false,
+    "this_run_crc32": "00000000",
+    "header_growth_since_arm_bytes": 512,
+    "independent_record_crc_checks": [
+      {
+        "phase": 9,
+        "name": "ARM",
+        "id": 1,
+        "value": "0x5032314b45524e4c",
+        "prior_next": "0x140",
+        "prior_size": "0x140",
+        "crc32": "145911AB",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 10,
+        "name": "KERNEL_ENTRY",
+        "id": 1,
+        "value": "0x145911ab00c00808",
+        "prior_next": "0x180",
+        "prior_size": "0x180",
+        "crc32": "7CF4B1F1",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 16,
+        "name": "BCM_ROUTE_SKIPPED",
+        "id": 1,
+        "value": "0x50323153145911ab",
+        "prior_next": "0x1c0",
+        "prior_size": "0x1c0",
+        "crc32": "3B0A97C6",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 17,
+        "name": "M1_READBACK",
+        "id": 1,
+        "value": "0x50323153145911ab",
+        "prior_next": "0x200",
+        "prior_size": "0x200",
+        "crc32": "B8B78960",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 18,
+        "name": "LOG_BRIDGE_READY",
+        "id": 1,
+        "value": "0x50323153145911ab",
+        "prior_next": "0x240",
+        "prior_size": "0x240",
+        "crc32": "A397FB5A",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 19,
+        "name": "TTBR1_RETURN",
+        "id": 1,
+        "value": "0x50323153145911ab",
+        "prior_next": "0x280",
+        "prior_size": "0x280",
+        "crc32": "88209960",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 20,
+        "name": "TTBR0_RETURN",
+        "id": 1,
+        "value": "0x50323153145911ab",
+        "prior_next": "0x2c0",
+        "prior_size": "0x2c0",
+        "crc32": "95D71F2E",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 21,
+        "name": "VM_TLB_SYNCED",
+        "id": 1,
+        "value": "0x50323153145911ab",
+        "prior_next": "0x300",
+        "prior_size": "0x300",
+        "crc32": "D999A960",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 12,
+        "name": "SWITCH_STOP_SCTLR",
+        "id": 1,
+        "value": "0x000000003454593d",
+        "prior_next": "0x340",
+        "prior_size": "0x340",
+        "crc32": "912996CC",
+        "independent_crc_matches": true
+      }
+    ],
+    "all_nine_record_crcs_match": true,
+    "crc_scope": "Independently reconstructed record prefixes bound to photographed fresh ID1/ARM; no raw RAM dump",
+    "observed_reboot_retention": true,
+    "reset_requested_by_diagnostic": true,
+    "reset_source_independently_proven": false,
+    "hardware_verification_scope": "Bounded original arm_vm_init continuation through guarded console bridge, original TTBR1 setter return, original TTBR0 setter return and original TLBI/DSB/ISB at0xfffffff0073f5e0c; six slots L1/R1, terminal actual SCTLR M1 and nine bound record CRCs retained over one video-observed reboot. No direct translation-table/TTBR register dump, complete mapping/cache qualification, full arm_vm_init return, timer IRQ or scheduler result.",
+    "full_arm_vm_init_return_observed": false,
+    "original_ttbr_setters_and_tlb_sequence_reached": true,
+    "translation_register_readback_available": false,
+    "console_bridge_guard_and_readback_completion_inferred_from_bound_checkpoint": true,
+    "later_console_subtable_lifetime_qualified": false
+  },
+  "hardware_verification_scope": "Bounded original arm_vm_init continuation through guarded console bridge, original TTBR1 setter return, original TTBR0 setter return and original TLBI/DSB/ISB at0xfffffff0073f5e0c; six slots L1/R1, terminal actual SCTLR M1 and nine bound record CRCs retained over one video-observed reboot. No direct translation-table/TTBR register dump, complete mapping/cache qualification, full arm_vm_init return, timer IRQ or scheduler result."
 }
