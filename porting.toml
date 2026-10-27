@@ -525,6 +525,13 @@ reference = "research/v23p19-startup-init.json"
 revision = "7b6f57f39e752de887106201e1d7284168829fc7"
 command = "Flash audited P19M only to boot_b; verify active/bootable B; reboot to manual menu"
 result = "P19M image SHA2567a68766b1f8c05a6bf373d93811c7d1eac30fa84604c4b324e0f9f81afebf7d8 rechecked; user confirmed fastboot/recording readiness. Only boot_b flashed, B activated and bootable verified, reboot command succeeded. Initial menu/reader photo pending; no fresh Query/ARM or kernel attempt observed. P18 remains latest kernel hardware milestone."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p19-startup-init.json"
+revision = "186c15b3693466dc84d15b38642c7d9e91e5d568"
+command = "Review P19 initial read-only reader photograph before Query/ARM"
+result = "P19 initial reader photo confirms STARTUP TRACE r1 at EL1, ENTRY/NOW VALID next=size0x2cbb8, displayed consoleCRC22FC408C, logical/raw0, frozenID0 and all checkpoint/terminal rows zero; THIS RUN ID1/query0/armed0. Linear tail78908 exceeds Query896 requirement; no new session needed. Parent menu not pictured, whole console CRC not independently recomputed. No fresh Query/ARM, kernel attempt or retention result; next photograph fresh Query/ARM before one P19M launch."
 [[area]]
 id = "cpu"
 status = "planned"
@@ -739,6 +746,13 @@ reference = "research/v23p19-startup-init.json"
 revision = "7b6f57f39e752de887106201e1d7284168829fc7"
 command = "Review shared P19 boot_b launch status; preserve CPU/memory validation as pending until photographed reader results"
 result = "P19 build manifest now records boot_b flash/activation and successful reboot command after user recording readiness. Initial read-only reader, fresh Query/ARM and kernel execution remain unobserved. This launch adds no CPU or memory/retention qualification; P18 remains the latest hardware kernel baseline."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p19-startup-init.json"
+revision = "186c15b3693466dc84d15b38642c7d9e91e5d568"
+command = "Review P19 initial read-only reader photograph before Query/ARM"
+result = "P19 initial reader photo confirms STARTUP TRACE r1 at EL1, ENTRY/NOW VALID next=size0x2cbb8, displayed consoleCRC22FC408C, logical/raw0, frozenID0 and all checkpoint/terminal rows zero; THIS RUN ID1/query0/armed0. Linear tail78908 exceeds Query896 requirement; no new session needed. Parent menu not pictured, whole console CRC not independently recomputed. No fresh Query/ARM, kernel attempt or retention result; next photograph fresh Query/ARM before one P19M launch."
 [[area]]
 id = "memory"
 status = "device-verified"
@@ -1058,6 +1072,13 @@ reference = "research/v23p19-startup-init.json"
 revision = "7b6f57f39e752de887106201e1d7284168829fc7"
 command = "Review shared P19 boot_b launch status; preserve CPU/memory validation as pending until photographed reader results"
 result = "P19 build manifest now records boot_b flash/activation and successful reboot command after user recording readiness. Initial read-only reader, fresh Query/ARM and kernel execution remain unobserved. This launch adds no CPU or memory/retention qualification; P18 remains the latest hardware kernel baseline."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p19-startup-init.json"
+revision = "186c15b3693466dc84d15b38642c7d9e91e5d568"
+command = "Review P19 initial read-only reader photograph before Query/ARM"
+result = "P19 initial reader photo confirms STARTUP TRACE r1 at EL1, ENTRY/NOW VALID next=size0x2cbb8, displayed consoleCRC22FC408C, logical/raw0, frozenID0 and all checkpoint/terminal rows zero; THIS RUN ID1/query0/armed0. Linear tail78908 exceeds Query896 requirement; no new session needed. Parent menu not pictured, whole console CRC not independently recomputed. No fresh Query/ARM, kernel attempt or retention result; next photograph fresh Query/ARM before one P19M launch."
 [[area]]
 id = "storage"
 status = "planned"
@@ -1535,6 +1556,13 @@ reference = "research/v23p19-startup-init.json"
 revision = "7b6f57f39e752de887106201e1d7284168829fc7"
 command = "Flash audited P19M only to boot_b; verify active/bootable B; reboot to manual menu"
 result = "P19M image SHA2567a68766b1f8c05a6bf373d93811c7d1eac30fa84604c4b324e0f9f81afebf7d8 rechecked; user confirmed fastboot/recording readiness. Only boot_b flashed, B activated and bootable verified, reboot command succeeded. Initial menu/reader photo pending; no fresh Query/ARM or kernel attempt observed. P18 remains latest kernel hardware milestone."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p19-startup-init.json"
+revision = "186c15b3693466dc84d15b38642c7d9e91e5d568"
+command = "Review P19 initial read-only reader photograph before Query/ARM"
+result = "P19 initial reader photo confirms STARTUP TRACE r1 at EL1, ENTRY/NOW VALID next=size0x2cbb8, displayed consoleCRC22FC408C, logical/raw0, frozenID0 and all checkpoint/terminal rows zero; THIS RUN ID1/query0/armed0. Linear tail78908 exceeds Query896 requirement; no new session needed. Parent menu not pictured, whole console CRC not independently recomputed. No fresh Query/ARM, kernel attempt or retention result; next photograph fresh Query/ARM before one P19M launch."
 [[area]]
 id = "diagnostics"
 status = "device-verified"
@@ -2056,3 +2084,10 @@ reference = "research/v23p19-startup-init.json"
 revision = "7b6f57f39e752de887106201e1d7284168829fc7"
 command = "Flash audited P19M only to boot_b; verify active/bootable B; reboot to manual menu"
 result = "P19M image SHA2567a68766b1f8c05a6bf373d93811c7d1eac30fa84604c4b324e0f9f81afebf7d8 rechecked; user confirmed fastboot/recording readiness. Only boot_b flashed, B activated and bootable verified, reboot command succeeded. Initial menu/reader photo pending; no fresh Query/ARM or kernel attempt observed. P18 remains latest kernel hardware milestone."
+
+[[area.evidence]]
+kind = "device"
+reference = "research/v23p19-startup-init.json"
+revision = "186c15b3693466dc84d15b38642c7d9e91e5d568"
+command = "Review P19 initial read-only reader photograph before Query/ARM"
+result = "P19 initial reader photo confirms STARTUP TRACE r1 at EL1, ENTRY/NOW VALID next=size0x2cbb8, displayed consoleCRC22FC408C, logical/raw0, frozenID0 and all checkpoint/terminal rows zero; THIS RUN ID1/query0/armed0. Linear tail78908 exceeds Query896 requirement; no new session needed. Parent menu not pictured, whole console CRC not independently recomputed. No fresh Query/ARM, kernel attempt or retention result; next photograph fresh Query/ARM before one P19M launch."

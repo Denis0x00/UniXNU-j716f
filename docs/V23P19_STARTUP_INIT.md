@@ -87,3 +87,15 @@ BCM整段排除方向保留；SM8550/sheng地址和驱动常数不搬到SM8250�
 父菜单/reader页面尚待照片确认，尚未观察到本轮Query/ARM或内核启动。
 下一步首先打开P19 reader拍完整初始页，再决定本轮准备操作。
 刷入与重启命令成功不代表四组原始初始化已在平板通过。
+
+## 初始只读 reader（2026-10-27）
+
+完整照片确认 J716F V23P19 STARTUP TRACE r1、EL1。ENTRY/NOW VALID，
+next=size=0x2cbb8，reader显示console CRC32=22FC408C；logical/raw均0，
+冻结checkpoint ID0、八行及四个终点/failure行全部无命中。
+THIS RUN ID1/query0/armed0/CRC0，处于只读初始状态。父菜单未在照片中出现。
+
+剩余线性空间78908字节，超过Query所需896字节，不需要新建线性会话。
+下一步在当前reader内Query→ARM各一次，拍下ID/ARM CRC及模板结果，
+核对后才启动一次P19M。尚无本轮Query/ARM、内核检查点或重启保留结果。
+console CRC仅为照片显示值，没有完整console字节进行独立重算。

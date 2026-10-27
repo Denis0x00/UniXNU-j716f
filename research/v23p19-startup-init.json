@@ -44,7 +44,7 @@
   "native_timer_driver_integrated": false,
   "proposed_partition": "boot_b",
   "next_variant": "m",
-  "status": "P19M flashed only to boot_b and reboot command succeeded; reader/ARM/kernel observations pending",
+  "status": "P19 initial read-only reader observed; valid linear header and sufficient tail; fresh Query/ARM and kernel attempt pending",
   "source_checkout_base": "f8cf6d2b480a0c26b36c3ece9eedd6116af0ff50",
   "source_state": "P19 additions on recorded base; exact source and artifact hashes in this manifest",
   "prior_hardware_baseline": "P18 original boot CPU publication/validation, current-thread setter and rtclock_early_init return; nine CRCs retained over one video-observed reboot",
@@ -115,7 +115,7 @@
       "UEFI/input"
     ]
   },
-  "next_action": "User opens P19 reader and photographs full initial frozen/now page before Query/ARM; no kernel attempt observed",
+  "next_action": "In current reader, Query then ARM once each; photograph ID/ARM CRC/template status before single kernel launch",
   "limitations": [
     "P19 is host verified only; P18 remains latest device milestone.",
     "Original debug/startup now reads CNTVCT; reaching this group is not an advancing-counter or IRQ qualification.",
@@ -129,5 +129,38 @@
     "scripts/v23p19-init.S": "0ffc2ed33ef080e5b4521f495df36762fc1ef9f181435f3a7a0527ee494fc0aa",
     "scripts/decode-j716f-v23p19.py": "f4bb0712623de78466a90e96bdc8b9ae30cfd7b9d958459e16d10a3b5341d3ed"
   },
-  "menu_launch_recorded": true
+  "menu_launch_recorded": true,
+  "initial_reader_observation": {
+    "date": "2026-10-27",
+    "photo_sha256": "df6af8833e068db2acd00dbc01078712985e100adf9eca44187db286d3310c75",
+    "identity": "J716F V23P19 STARTUP TRACE r1",
+    "parent_menu_identity_pictured": false,
+    "entry_signature": "0x43474244",
+    "entry_next": "0x2cbb8",
+    "entry_size": "0x2cbb8",
+    "entry_console_crc32": "0x22fc408c",
+    "console_crc_source": "Photographed reader display only, full console bytes unavailable for independent recomputation",
+    "entry_logical_count": 0,
+    "entry_raw_count": 0,
+    "frozen_checkpoint_id": 0,
+    "now_valid": true,
+    "now_next": "0x2cbb8",
+    "now_size": "0x2cbb8",
+    "now_logical_count": 0,
+    "now_raw_count": 0,
+    "all_checkpoint_rows_logical_raw_zero": true,
+    "terminal_map_failure_reset_return_raw_hits_zero": true,
+    "this_run_id": 1,
+    "query_complete": false,
+    "armed": false,
+    "arm_crc32": "0x00000000",
+    "current_el": 1,
+    "console_is_full_circular": false,
+    "unused_linear_tail_bytes": 78908,
+    "query_tail_requirement_bytes": 896,
+    "new_session_required": false,
+    "p19_kernel_launch_observed": false,
+    "next_required_action": "In current reader, Query then ARM once each; photograph ID/ARM CRC/template status before single kernel launch"
+  },
+  "published_diagnostic_source_revision": "7b6f57f39e752de887106201e1d7284168829fc7"
 }
