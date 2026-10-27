@@ -2,8 +2,9 @@
 
 ## 状态与范围
 
-P19M 已构建、通过主机校验，现已仅刷入boot_b并成功发出重启命令；画面待确认。P18 仍是最新实机里程碑：boot CPU
-发布/校验、当前线程 setter、早期时钟返回，9条 CRC 经一次录像观察到的重启后保留。
+P19M 已仅在boot_b完成受控实机测试：原始startup、timer_call_init、cpu_init、
+processor_bootstrap返回，9条CRC匹配并经一次录像观察到的重启后保留。
+本节为当前状态，以下刷入/初始/ARM章节保留当时观察；最终结果见文末。
 本轮保留冻结内核、固定 ADT、BCM 整段排除、日志映射和一次性 Query→ARM。
 
 原始 arm_init 的顺序经反汇编核对为：
@@ -75,7 +76,7 @@ BCM整段排除方向保留；SM8550/sheng地址和驱动常数不搬到SM8250�
 与本版冻结诊断及将来的timer IRQ实机验收分别记录。
 
 以 `research/v23p19-startup-init.json`（设备仓库）与
-`docs/v23p19-validation.json`（固件仓库）为本轮构建结果；无P19实机结果。
+`docs/v23p19-validation.json`（固件仓库）为构建快照；设备仓库结构化记录另含本轮实机结果。
 
 ## boot_b 刷入与重启命令（2026-10-27）
 
@@ -110,3 +111,34 @@ prior0x2ccb8/0x2ccb8独立重算匹配。相对初始头增长320字节，符合
 
 接下来返回菜单，连续录像，仅启动一次P19M；重启后首先打开reader拍完整页，
 不先Query/ARM。尚无内核或重启保留结果；完整终点header0x2cef8只是推导值。
+
+## 实机结果（2026-10-27，取代以上待测状态）
+
+连续录像11.365秒，341帧全部解码：一次P19M启动、交接条、黑屏、Lenovo/Android
+启动画面、回同版菜单，随后首次进入只读reader。独立完整照片与录像尾段一致。
+ENTRY/NOW VALID next=size0x2cef8，logical/raw13/13；冻结ID1，最新phase12。
+新reader为ID2/query0/armed0，未重新Query/ARM。相对fresh ARM头增长512字节，
+符合ENTRY、六槽和终点；六槽全部L1/R1。
+
+| 记录 | 独立重算并匹配的CRC32 |
+| --- | --- |
+| ARM | 17BBA853 |
+| KERNEL_ENTRY | F85FF937 |
+| BCM_ROUTE_SKIPPED | AC7FE282 |
+| M1_READBACK | B4346A82 |
+| STARTUP_RETURN | 9CE8F282 |
+| TIMER_CALL_RETURN | 84A37A82 |
+| CPU_INIT_RETURN | 02A26A6A |
+| PROCESSOR_RETURN | 1AE9E26A |
+| INIT_STOP_SCTLR | 71ECEFD3 |
+
+终点实际SCTLR_EL1=0x3454593d（M1），位于0xfffffff0079e1b34。
+原始debug/string与kernel_startup_bootstrap、timer_call_init、cpu_init、
+processor_bootstrap均返回。这是本轮新增的有界实机进展；849次/27类回调是主机
+执行统计，未在实机单独计数。记录在录像观察到的一次重启后完整保留。
+终点预设请求SYSTEM_RESET，自动重启符合设计；复位来源未独立证明。
+整console CRC显示AB0560BF，仅记录显示值，未取得全部字节重算。
+
+尚未执行arm_vm_init，不证明counter持续前进、timer IRQ、GIC、调度或用户态。
+下一步审查剩余arm_init及arm_vm_init的映射/栈生命周期，再设计下一组诊断；
+无需重复本轮P19启动。原始媒体仅私有保存，公开结构化记录保留媒体SHA256。

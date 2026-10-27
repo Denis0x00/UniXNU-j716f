@@ -17,7 +17,7 @@
       "nonpayload_changes_vs_p8": [],
       "compact_sec_matches_p8": true,
       "host_checks_passed": true,
-      "hardware_verified": false,
+      "hardware_verified": true,
       "device_writes_performed": true,
       "device_launch": {
         "partition_images_flashed": [
@@ -27,24 +27,26 @@
         "slot_unbootable_b_before_reboot": false,
         "reboot_command_succeeded": true,
         "image_sha256": "7a68766b1f8c05a6bf373d93811c7d1eac30fa84604c4b324e0f9f81afebf7d8",
-        "menu_identity_observed": false,
+        "menu_identity_observed": true,
         "manual_kernel_start_required": true,
         "recording_ready_user_confirmed": true,
-        "hardware_verified": false
-      }
+        "hardware_verified": true,
+        "hardware_verification_scope": "Bounded original debug/string and kernel_startup_bootstrap return, timer_call_init return, cpu_init return, processor_bootstrap return; terminal SCTLR M1; records retained over one continuous-video-observed reboot. Not timer IRQ, active scheduling or full VM qualification."
+      },
+      "hardware_verification_scope": "Bounded original debug/string and kernel_startup_bootstrap return, timer_call_init return, cpu_init return, processor_bootstrap return; terminal SCTLR M1; records retained over one continuous-video-observed reboot. Not timer IRQ, active scheduling or full VM qualification."
     }
   },
   "kernel_logic_cases": 57,
   "reader_logic_cases": 31,
   "dependency_logic_cases": 6,
   "power_logic_cases_reused_for_identical_app": 22,
-  "hardware_verified": false,
+  "hardware_verified": true,
   "device_writes_performed": true,
   "source_native_arch_timer_kernel": false,
   "native_timer_driver_integrated": false,
   "proposed_partition": "boot_b",
   "next_variant": "m",
-  "status": "Fresh P19 ID1 Query/ARM confirmed; reconstructed ARM CRC17BBA853 matches; single kernel attempt pending",
+  "status": "P19M bounded original startup/timer/CPU/processor returns device verified; nine CRCs match and records survive one video-observed reboot",
   "source_checkout_base": "f8cf6d2b480a0c26b36c3ece9eedd6116af0ff50",
   "source_state": "P19 additions on recorded base; exact source and artifact hashes in this manifest",
   "prior_hardware_baseline": "P18 original boot CPU publication/validation, current-thread setter and rtclock_early_init return; nine CRCs retained over one video-observed reboot",
@@ -115,9 +117,9 @@
       "UEFI/input"
     ]
   },
-  "next_action": "Return to menu, continuously record exactly one P19M launch; first open reader and photograph full frozen page after reboot, before further Query/ARM",
+  "next_action": "Preserve P19 evidence; audit remaining arm_init calls before arm_vm_init and logger mapping/stack lifetime across VM initialization, then design the next grouped diagnostic. No repeat P19 launch required.",
   "limitations": [
-    "P19 is host verified only; P18 remains latest device milestone.",
+    "P19 hardware qualification is limited to the recorded bounded path and one observed reboot retention; host callback counts and register fixtures are not silicon measurements.",
     "Original debug/startup now reads CNTVCT; reaching this group is not an advancing-counter or IRQ qualification.",
     "cpu_init identity/cache data and processor structures in a host model do not prove correct hardware ID decoding or active scheduling.",
     "Terminal requests SYSTEM_RESET deliberately; a reboot alone does not establish a crash or independent reset cause.",
@@ -200,5 +202,211 @@
     "derived_complete_terminal_header": "0x2cef8",
     "derived_header_is_observed": false,
     "next_required_action": "Return to menu, continuously record exactly one P19M launch; first open reader and photograph full frozen page after reboot, before further Query/ARM"
-  }
+  },
+  "post_reboot_observation": {
+    "date": "2026-10-27",
+    "photo_sha256": "ef9d8f63bd748914eff7c620980ed604b2aff66368dee0f3eed4577e50856265",
+    "video_sha256": "30b88e616178966c2d7283137884f32ce3b5ca1d287372ddd8a86c4f9170c4b0",
+    "video_duration_seconds": 11.364995112414467,
+    "video_frames": 341,
+    "all_video_frames_decoded": true,
+    "video_observations": [
+      {
+        "frame": 0,
+        "seconds": 0,
+        "observation": "P19M menu, kernel item selected"
+      },
+      {
+        "frame": 60,
+        "seconds": 2,
+        "observation": "Green handoff bar"
+      },
+      {
+        "frame": 90,
+        "seconds": 3,
+        "observation": "Black display"
+      },
+      {
+        "frame": 120,
+        "seconds": 4,
+        "observation": "Lenovo/Android splash"
+      },
+      {
+        "frame": 181,
+        "seconds": 6.032,
+        "observation": "Same P19M menu returns"
+      },
+      {
+        "frame": 301,
+        "seconds": 10.032,
+        "observation": "First read-only P19 reader matches separate full photograph"
+      },
+      {
+        "frame": 340,
+        "seconds": 11.332,
+        "observation": "Same unchanged read-only result"
+      }
+    ],
+    "kernel_launches_observed": 1,
+    "reboots_observed": 1,
+    "reader_first_after_reboot": true,
+    "identity": "J716F V23P19 STARTUP TRACE r1",
+    "current_el": 1,
+    "entry_valid": true,
+    "now_valid": true,
+    "entry_next": "0x2cef8",
+    "entry_size": "0x2cef8",
+    "now_next": "0x2cef8",
+    "now_size": "0x2cef8",
+    "displayed_console_crc32": "0xAB0560BF",
+    "console_crc_independently_recomputed": false,
+    "console_crc_scope": "Photographed display only; full console bytes unavailable",
+    "logical_count": 13,
+    "raw_count": 13,
+    "frozen_checkpoint_id": 1,
+    "latest_phase": 12,
+    "latest_crc32": "71ECEFD3",
+    "six_slots_logical_raw_hits": [
+      {
+        "phase": 16,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 17,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 18,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 19,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 20,
+        "logical_hits": 1,
+        "raw_hits": 1
+      },
+      {
+        "phase": 21,
+        "logical_hits": 1,
+        "raw_hits": 1
+      }
+    ],
+    "terminal_raw_hits": 1,
+    "terminal_pc": "0xfffffff0079e1b34",
+    "terminal_actual_sctlr": "0x3454593d",
+    "terminal_mmu_enabled": true,
+    "unused_pre_hits": 0,
+    "map_failure_hits": 0,
+    "reset_return_hits": 0,
+    "this_run_id": 2,
+    "query_complete": false,
+    "armed": false,
+    "this_run_crc32": "00000000",
+    "header_growth_since_arm_bytes": 512,
+    "independent_record_crc_checks": [
+      {
+        "phase": 9,
+        "name": "ARM",
+        "id": 1,
+        "value": "0x5031394b45524e4c",
+        "prior_next": "0x2ccb8",
+        "prior_size": "0x2ccb8",
+        "crc32": "17BBA853",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 10,
+        "name": "KERNEL_ENTRY",
+        "id": 1,
+        "value": "0x17bba85300c00808",
+        "prior_next": "0x2ccf8",
+        "prior_size": "0x2ccf8",
+        "crc32": "F85FF937",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 16,
+        "name": "BCM_ROUTE_SKIPPED",
+        "id": 1,
+        "value": "0x5031395317bba853",
+        "prior_next": "0x2cd38",
+        "prior_size": "0x2cd38",
+        "crc32": "AC7FE282",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 17,
+        "name": "M1_READBACK",
+        "id": 1,
+        "value": "0x5031395317bba853",
+        "prior_next": "0x2cd78",
+        "prior_size": "0x2cd78",
+        "crc32": "B4346A82",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 18,
+        "name": "STARTUP_RETURN",
+        "id": 1,
+        "value": "0x5031395317bba853",
+        "prior_next": "0x2cdb8",
+        "prior_size": "0x2cdb8",
+        "crc32": "9CE8F282",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 19,
+        "name": "TIMER_CALL_RETURN",
+        "id": 1,
+        "value": "0x5031395317bba853",
+        "prior_next": "0x2cdf8",
+        "prior_size": "0x2cdf8",
+        "crc32": "84A37A82",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 20,
+        "name": "CPU_INIT_RETURN",
+        "id": 1,
+        "value": "0x5031395317bba853",
+        "prior_next": "0x2ce38",
+        "prior_size": "0x2ce38",
+        "crc32": "02A26A6A",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 21,
+        "name": "PROCESSOR_RETURN",
+        "id": 1,
+        "value": "0x5031395317bba853",
+        "prior_next": "0x2ce78",
+        "prior_size": "0x2ce78",
+        "crc32": "1AE9E26A",
+        "independent_crc_matches": true
+      },
+      {
+        "phase": 12,
+        "name": "INIT_STOP_SCTLR",
+        "id": 1,
+        "value": "0x000000003454593d",
+        "prior_next": "0x2ceb8",
+        "prior_size": "0x2ceb8",
+        "crc32": "71ECEFD3",
+        "independent_crc_matches": true
+      }
+    ],
+    "all_nine_record_crcs_match": true,
+    "observed_reboot_retention": true,
+    "reset_requested_by_diagnostic": true,
+    "reset_source_independently_proven": false,
+    "hardware_verification_scope": "Bounded original debug/string and kernel_startup_bootstrap return, timer_call_init return, cpu_init return, processor_bootstrap return; terminal SCTLR M1; records retained over one continuous-video-observed reboot. Not timer IRQ, active scheduling or full VM qualification."
+  },
+  "hardware_verification_scope": "Bounded original debug/string and kernel_startup_bootstrap return, timer_call_init return, cpu_init return, processor_bootstrap return; terminal SCTLR M1; records retained over one continuous-video-observed reboot. Not timer IRQ, active scheduling or full VM qualification."
 }

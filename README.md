@@ -16,6 +16,7 @@
 | P16 | 原始 WFE configure/init、misc 返回；CNTKCTL_EL1=0x4f，记录经录像观察到的重启后保留 |
 | P17 | 原始 chosen/stall/CPU拓扑与boot CPU编号读取返回；终点SCTLR M1，9条CRC匹配并经录像观察到的重启后保留 |
 | P18 | boot CPU发布/校验、当前线程设置及rtclock_early_init返回；六槽和终点到达，9条CRC匹配并经一次录像观察到的重启后保留 |
+| P19 | 原始debug/startup、timer_call_init、cpu_init和processor_bootstrap返回；9条CRC匹配并经一次录像观察到的重启后保留 |
 
 P18 在rtclock_early_init返回后主动结束；cpu_bootstrap在该基线中只是RET。
 真实定时器中断、GIC/ArmCpu 驱动匹配、
@@ -23,17 +24,18 @@ P18 在rtclock_early_init返回后主动结束；cpu_bootstrap在该基线中只
 不能视为原生定时器平台集成已经完成。BCM 路由整体排除遵循上游方向，
 原始 BCM 故障机理仍未证明。
 
-## P19M 待实机测试
+## P19M 最新实机结果
 
-[startup/timer/CPU/processor分组诊断](docs/V23P19_STARTUP_INIT.md)已构建，
-57项内核机器码、6项依赖和31项链接reader主机检查通过；现已仅刷入boot_b并成功发出重启命令，初始reader与fresh ID1 Query/ARM已确认，ARM CRC17BBA853重算匹配；内核测试待进行。
-保留原始startup回调及后续调用；processor_bootstrap返回后有意请求重启。
-P18仍是最新实机进度，timer IRQ/调度尚未验证。
+[startup/timer/CPU/processor分组诊断](docs/V23P19_STARTUP_INIT.md)已仅在boot_b完成测试：
+原始debug/startup、timer_call_init、cpu_init和processor_bootstrap返回，六槽及终点均到达。
+9条记录CRC独立匹配，终点SCTLR=0x3454593d（M1），日志经一次连续录像观察到的重启后保留。
+终点预设请求重启，复位来源未独立证明。下一步审查arm_init剩余流程及arm_vm_init的映射/栈生命周期；
+timer IRQ、GIC、调度及用户态尚未验证。
 
 ## 当前文档与证据
 
 - [P16 后的实际进度及上游/sheng 对照](docs/PROGRESS_AFTER_V23P16_20261026.md)
-- [P18 最新实机结果](docs/V23P18_BOOTSTRAP_CLOCK.md) · [结构化结果](research/v23p18-bootstrap-clock.json)
+- [P18 历史实机结果](docs/V23P18_BOOTSTRAP_CLOCK.md) · [结构化结果](research/v23p18-bootstrap-clock.json)
 - [P16 测试说明](docs/V23P16_TIMER_WFE.md) · [结构化结果](research/v23p16-timer-wfe.json)
 - [移植记录](porting.toml) · [证据索引](research/README.md)
 - [P13 MMU](docs/V23P13_MMU_CONTINUATION.md) · [P14 early init](docs/V23P14_EARLY_INIT.md)
@@ -45,7 +47,7 @@ P18仍是最新实机进度，timer IRQ/调度尚未验证。
 `board.toml`/`feeds.toml`/`unixnu.lock` 保存设备格式、依赖与构建方案；
 `dts/` 和 `socs/sm8250/` 保存经固件证据交叉核对的板级事实。
 SoC 目录仍是本地过渡快照；板级驱动 ABI 和集成未完成。
-`board.toml` 中的历史 payload 配方不是最新 P18 的构建入口；
+`board.toml` 中的历史 payload 配方不是最新 P19 的构建入口；
 各版本请按独立说明及 `scripts/build-v23p*-kernel.py` 使用。
 
 [原生平台源码候选](docs/NATIVE_PLATFORM_SOURCE_CANDIDATE.md)现已接入独立配置副本：
@@ -67,12 +69,11 @@ ARM/ENTRY/六槽/终点共9条CRC重算匹配，完整日志在连续录像观�
 P17终点主动请求重启，未继续boot CPU发布/校验、cpu_bootstrap或rtclock_early_init；
 这些后续边界由下面的P18单独验证，保留各版原始证据。
 
-## P18M 当前实机结果
+## P18M 历史实机结果
 
 [boot CPU / 当前线程 / 早期时钟分组诊断](docs/V23P18_BOOTSTRAP_CLOCK.md)已构建，
 通过50项内核机器码、31项链接reader主机检查及最终镜像审计，并已仅在boot_b测试。
 六槽及终点全部到达；新鲜ID1/ARM209C5114绑定的9条CRC独立重算一致，
 完整日志在14.277秒连续录像观察到的重启后保留，实际终点SCTLR=0x3454593d（M1）。
-P18是当前有界内核实机里程碑；在rtclock_early_init返回后主动请求重启，复位来源未独立验证。
-后续完整cpu_init、timer IRQ和调度尚未验证。下一步审查原始debug/timer_call/
-cpu_init/processor_bootstrap边界后设计后继诊断，无需重复P18。
+P18历史有界结果：在rtclock_early_init返回后主动请求重启，复位来源未独立验证。
+P19已推进上述后续函数返回，见当前结果；timer IRQ和调度仍未验证。

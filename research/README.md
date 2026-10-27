@@ -71,6 +71,6 @@ Latest P11 result: A retained published stage5; B and D each retained matching r
 
 - [P17 grouped continuation](v23p17-chosen-topology.json): boot_b hardware reaches original chosen/stall/topology and boot CPU number returns, terminal SCTLR M1. All nine CRCs match fresh ARM and survive one video-observed reboot; stops before boot CPU publication/max-CPU validation.
 
-- [P18 bootstrap/early clock](v23p18-bootstrap-clock.json): built/host verified, unflashed; original boot CPU validation/current-thread/early clock continuation; P17 hardware baseline preserved.
+- [P18 bootstrap/early clock](v23p18-bootstrap-clock.json): historical device result, original boot CPU validation/current-thread/early-clock returns; nine CRCs matched and records retained over one video-observed reboot.
 
-- [P19 startup/timer/CPU/processor](v23p19-startup-init.json)：已构建并通过主机检查，仅刷入boot_b并发出重启命令；P19 reader/内核结果待确认，P18实机基线保留。
+- [P19 startup/timer/CPU/processor](v23p19-startup-init.json): bounded original four-group returns device verified; all nine CRCs match, terminal SCTLR M1 and records retained over one continuous-video-observed reboot. Next audit arm_init remainder and arm_vm_init mapping/stack lifetime.
