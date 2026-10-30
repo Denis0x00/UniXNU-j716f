@@ -3,15 +3,13 @@
 
 FAST-V12: Phase 1 RAMDisk Rootfs Bringup & PID 1 Launchd Transition
   - Overcomes Line 984 root mount panic:
-      Incorporates official Apple 10MB APFS ramdisk (044-75188-038.dmg) with NXSB superblock.
+      Incorporates 10MB APFS container ramdisk (ramdisk_apfs_meta_10mb.dmg, 234 metadata/bitmap blocks preserved).
       Supplies updated ADT (kernel.macho.adt.v12) containing /chosen/memory-map/RAMDisk (16 bytes).
       DarwinBoot reads ramdisk, copies into window, and registers physical address & size in ADT.
       Passes boot-arg "rd=md0", directing XNU _IOFindBSDRoot to bind md0 as root device.
-  - Expands Flash Volume (FD) to 11MB (0xb00000):
-      Allows kernel.macho + 10MB ramdisk to compress into FVMAIN_COMPACT without overflow.
-      Uses 11MB BootShim.bin (FD_BASE=0xce000000, FD_SIZE=0xb00000).
-      Strictly remains within Qualcomm ABL's 13.97MB DTB collision ceiling, eliminating boot hang.
-      Updates UEFI memory descriptors (MemoryMapLib) for 11MB FD.
+  - Preserves V11's exact 7MB Flash Volume (FD_SIZE=0x700000) & updates NativeMenu/Main.c profile guard:
+      Updates NativeMenu/Main.c line 97 StrCmp guard to accept "rd=md0" (fixing the EFI_SECURITY_VIOLATION pre-UI halt).
+      Uses V19-BootShim.bin (FD_BASE=0xce000000, FD_SIZE=0x700000) and original 7MB UEFI FD descriptors.
   - Adds milestone hooks for root mount and launchd transition:
       Slot 17: mountroot_ok (post _vfs_mountroot at 0xfffffff0076c1b18)
       Slot 16: pid1_create  (post _bsd_utaskbootstrap at 0xfffffff0076c1d88)
@@ -23,13 +21,10 @@ from __future__ import annotations
 
 import argparse
 import gzip
-import hashlib
 import hmac
 import json
 import os
 os.environ.setdefault("J716F_SSH_PASSWORD", "test@123")
-import posixpath
-import shlex
 import shutil
 import struct
 import subprocess
@@ -51,8 +46,7 @@ CAVE_BASE = 0xFFFFFFF0073FD9C0
 CAVE_LIMIT = 0xFFFFFFF0073FE000
 
 EXPECTED_ADT_V12_SHA = "5a0c7fe4efd5d6210bff5373e160edc86faa780996858601042400f70174558e"
-EXPECTED_RAMDISK_SHA = "52e568e1eaaede5fde4684ad10afc60f8fb236bfb5a23e0869bb0ed8a1d275d7"
-EXPECTED_SHIM_11MB_SHA = "ec1cef37c683f80b931eda772287bcd3589bc74a00e8157a9b3c36f2f40d7d6c"
+EXPECTED_RAMDISK_SHA = "b487e7eae73962f5083820bffccfac65a58536965a77204767239cac18e79efd"
 
 
 def asm_b(pc: int, target: int) -> int:
@@ -473,94 +467,6 @@ def apply_v12_kernel_fixes(kernel_bytes: bytes) -> tuple[bytes, dict]:
     return out, info
 
 
-def remote_build_v12(stage: Path, host: str, user: str) -> None:
-    client = v1.connect_ssh(host, user)
-
-    def run_ssh(cmd: str) -> tuple[int, str, str]:
-        _, out, err = client.exec_command(cmd)
-        stdout = out.read().decode("utf-8", errors="replace")
-        stderr = err.read().decode("utf-8", errors="replace")
-        return out.channel.recv_exit_status(), stdout, stderr
-
-    try:
-        code, remote_raw, err = run_ssh("mktemp -d /home/test/tb-j716f-unixnu/native-fast-v12-XXXXXXXX")
-        remote = remote_raw.strip()
-        if code != 0 or not remote.startswith("/home/test/tb-j716f-unixnu/native-fast-v12-"):
-            raise RuntimeError(f"Cannot create remote workspace: {err}")
-        print(f"Remote build workspace: {remote}", flush=True)
-
-        with client.open_sftp() as sftp:
-            created_dirs = set()
-            for path in stage.rglob("*"):
-                if not path.is_file() or "__pycache__" in path.parts or path.relative_to(stage).parts[0] == "bootwrap":
-                    continue
-                rel = path.relative_to(stage).as_posix()
-                rpath = f"{remote}/{rel}"
-                cur = remote
-                for part in posixpath.dirname(rel).split("/"):
-                    if not part or part == ".":
-                        continue
-                    cur = f"{cur}/{part}"
-                    if cur not in created_dirs:
-                        sftp.mkdir(cur)
-                        created_dirs.add(cur)
-                sftp.put(str(path), rpath)
-
-        build_sh = f"""set -eo pipefail
-source /home/test/tb-j716f-unixnu/.venv/bin/activate
-cd {shlex.quote(remote)}
-gcc -O2 -fno-strict-aliasing -Wall -Wextra -Werror -IJ716fNativeLog J716fNativeLog/FastTests.c -o fast-tests
-./fast-tests > fast-tests.log 2>&1
-export WORKSPACE="$PWD" CONF_PATH="$PWD/Conf"
-export PACKAGES_PATH="$PWD:$PWD/Platforms/Lenovo:$PWD/package:$PWD/DarwinBoot:{v1.REMOTE_UEFI}:{v1.REMOTE_UEFI}/Common/Mu:{v1.REMOTE_UEFI}/Common/Mu_OEM_Sample:{v1.REMOTE_UEFI}/Mu_Basecore:{v1.REMOTE_UEFI}/Silicon/Qualcomm:{v1.REMOTE_UEFI}/Silicon/Silicium:/home/test/tb-j716f-unixnu/ports/j716f/edk2-overlay"
-mkdir -p "$CONF_PATH"
-cp {v1.REMOTE_UEFI}/Conf/target.txt {v1.REMOTE_UEFI}/Conf/tools_def.txt {v1.REMOTE_UEFI}/Conf/build_rule.txt "$CONF_PATH/"
-source {v1.REMOTE_UEFI}/Mu_Basecore/BaseTools/BuildEnv
-build -a AARCH64 -t CLANGPDB -b RELEASE -p NativeLogApps.dsc > reader-build.log 2>&1
-python3 build-native-payload.py "$PWD" > payload-build.log 2>&1
-build -a AARCH64 -t CLANGPDB -b RELEASE -p Platforms/Lenovo/j716fPkg/j716f-native.dsc \\
-  -D FD_BASE=0xce000000 -D FD_SIZE=0xb00000 -D FD_BLOCKS=0xb00 -D ENABLE_SECUREBOOT=0 \\
-  -y firmware-build-report.txt -Y LIBRARY -Y DEPEX > firmware-build.log 2>&1
-"""
-        print("Running FastTests.c + EDK II 11MB build on 10.1.2.110...", flush=True)
-        code, out, err = run_ssh("bash -c " + shlex.quote(build_sh))
-
-        built = stage / "built"
-        built.mkdir(exist_ok=True)
-        wanted = {
-            "fast-tests.log": "fast-tests.log",
-            "reader-build.log": "reader-build.log",
-            "payload-build.log": "payload-build.log",
-            "firmware-build.log": "firmware-build.log",
-            "firmware-build-report.txt": "firmware-build-report.txt",
-            "payload/payload.json": "payload.json",
-            "Build/j716fNativePkg/RELEASE_CLANGPDB/FV/SILICIUM_UEFI.fd": "SILICIUM_UEFI.fd",
-            "Build/j716fNativePkg/RELEASE_CLANGPDB/FV/FVMAIN.Fv": "FVMAIN.Fv",
-            "Platforms/Lenovo/j716fPkg/Resources/NativePayload.fat": "NativePayload.fat",
-            "Build/NativeLogApps/RELEASE_CLANGPDB/AARCH64/J716fNativeRead.efi": "J716fNativeRead.efi",
-            "Build/NativeLogApps/RELEASE_CLANGPDB/AARCH64/J716fNativeArm.efi": "J716fNativeArm.efi",
-            "Build/NativeLogApps/RELEASE_CLANGPDB/AARCH64/J716fPowerAction.efi": "J716fPowerAction.efi",
-            "Build/j716fNativePkg/RELEASE_CLANGPDB/AARCH64/UniXNU.efi": "UniXNU.efi",
-            "Build/j716fNativePkg/RELEASE_CLANGPDB/AARCH64/DarwinBoot.efi": "DarwinBoot.efi",
-            "Build/j716fNativePkg/RELEASE_CLANGPDB/AARCH64/J716fNativeFatDxe.efi": "J716fNativeFatDxe.efi",
-            "Build/j716fNativePkg/RELEASE_CLANGPDB/AARCH64/J716fKeysDxe.efi": "J716fKeysDxe.efi",
-        }
-        with client.open_sftp() as sftp:
-            for rrel, lname in wanted.items():
-                try:
-                    sftp.stat(f"{remote}/{rrel}")
-                except FileNotFoundError:
-                    continue
-                sftp.get(f"{remote}/{rrel}", str(built / lname))
-
-        if code != 0:
-            fw_log = built / "firmware-build.log"
-            tail = fw_log.read_text(encoding="utf-8", errors="replace")[-2000:] if fw_log.exists() else err
-            raise RuntimeError(f"Remote build failed (exit code {code}):\n{tail}")
-    finally:
-        client.close()
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -598,24 +504,15 @@ def main() -> None:
     dsc = dsc.replace("J716F NATIVE FAST-V7 40458123294", "J716F NATIVE FAST-V12 40458123294")
     (stage / "Platforms/Lenovo/j716fPkg/j716f-native.dsc").write_text(dsc, encoding="utf-8", newline="\n")
 
-    # Update MemoryMapLib for 11MB FD (0xb00000)
-    for mmap_rel in [
-        "Platforms/Lenovo/j716fPkg/Library/J716fRamLogMemoryMapLib/MemoryMapLib.c",
-        "Platforms/Lenovo/j716fPkg/Library/J716fWindowMemoryMapLib/MemoryMapLib.c",
-        "Platforms/Lenovo/j716fPkg/Library/MemoryMapLib/MemoryMapLib.c",
-    ]:
-        mmap_path = stage / mmap_rel
-        if mmap_path.exists():
-            txt = mmap_path.read_text(encoding="utf-8")
-            txt = txt.replace(
-                '{"UEFI FD", 0xCE000000, 0x00700000, AddMem, SYS_MEM, SYS_MEM_CAP, BsData, WRITE_BACK},',
-                '{"UEFI FD", 0xCE000000, 0x00B00000, AddMem, SYS_MEM, SYS_MEM_CAP, BsData, WRITE_BACK},',
-            )
-            txt = txt.replace(
-                '{"FD Guard", 0xCE700000, 0x01900000, AddMem, MEM_RES, UNCACHEABLE, Reserv, UNCACHED_UNBUFFERED_XN},',
-                '{"FD Guard", 0xCEB00000, 0x01500000, AddMem, MEM_RES, UNCACHEABLE, Reserv, UNCACHED_UNBUFFERED_XN},',
-            )
-            mmap_path.write_text(txt, encoding="utf-8", newline="\n")
+    # Update NativeMenu/Main.c line 97 explicit Args guard to allow rd=md0
+    main_c_path = stage / "NativeMenu/Main.c"
+    main_c = main_c_path.read_text(encoding="utf-8")
+    old_guard = 'StrCmp (Config.Entries[2].Args, L"-v serial=0 debug=0x14e cpus=1 -no_slto_panic")'
+    new_guard = 'StrCmp (Config.Entries[2].Args, L"-v serial=0 debug=0x14e cpus=1 -no_slto_panic rd=md0")'
+    if old_guard not in main_c:
+        raise RuntimeError("Missing expected Args guard in NativeMenu/Main.c")
+    main_c = main_c.replace(old_guard, new_guard)
+    main_c_path.write_text(main_c, encoding="utf-8", newline="\n")
 
     # Update build-native-payload.py to include ramdisk.dmg
     bnp = (stage / "build-native-payload.py").read_text(encoding="utf-8")
@@ -625,21 +522,17 @@ def main() -> None:
     )
     (stage / "build-native-payload.py").write_text(bnp, encoding="utf-8", newline="\n")
 
-    # Copy updated ADT v12 and APFS ramdisk into inputs/
+    # Copy updated ADT v12 and 10MB APFS metadata ramdisk into inputs/
     adt_v12_path = ROOT / "Firmware/kernel.macho.adt.v12"
-    ramdisk_path = ROOT / "Firmware/ramdisk_appos_10mb.dmg"
-    shim_11mb_path = ROOT / "Firmware/BootShim_11mb.bin"
+    ramdisk_path = ROOT / "Firmware/ramdisk_apfs_meta_10mb.dmg"
 
     if v1.sha(adt_v12_path.read_bytes()) != EXPECTED_ADT_V12_SHA:
         raise RuntimeError("kernel.macho.adt.v12 SHA256 mismatch")
     if v1.sha(ramdisk_path.read_bytes()) != EXPECTED_RAMDISK_SHA:
-        raise RuntimeError("ramdisk_appos_10mb.dmg SHA256 mismatch")
-    if v1.sha(shim_11mb_path.read_bytes()) != EXPECTED_SHIM_11MB_SHA:
-        raise RuntimeError("BootShim_11mb.bin SHA256 mismatch")
+        raise RuntimeError("ramdisk_apfs_meta_10mb.dmg SHA256 mismatch")
 
     shutil.copyfile(adt_v12_path, stage / "inputs/kernel.macho.adt")
     shutil.copyfile(ramdisk_path, stage / "inputs/ramdisk.dmg")
-    shutil.copyfile(shim_11mb_path, stage / "bootwrap/BootShim.bin")
 
     # Update unixnu.toml
     toml_txt = (stage / "unixnu.toml").read_text(encoding="utf-8")
@@ -685,12 +578,12 @@ def main() -> None:
         return
 
     if not args.skip_remote_build:
-        remote_build_v12(stage, args.ssh_host, args.ssh_user)
+        v1.remote_build(stage, args.ssh_host, args.ssh_user)
 
     built = stage / "built"
     fd = (built / "SILICIUM_UEFI.fd").read_bytes()
-    if len(fd) != 0xb00000:
-        raise RuntimeError(f"Expected 11MB SILICIUM_UEFI.fd, got {len(fd):#x} bytes")
+    if len(fd) != 0x700000:
+        raise RuntimeError(f"Expected 7MB SILICIUM_UEFI.fd, got {len(fd):#x} bytes")
     fv, modules, sec = extract_fd(fd)
     if fv != (built / "FVMAIN.Fv").read_bytes():
         raise RuntimeError("Compressed FV differs from FVMAIN.Fv")
@@ -705,7 +598,7 @@ def main() -> None:
         )
     ]
     for binary in map_users:
-        for pair in ((0xB0000000, 0x100000), (0xD0000000, 0x18000000), (0xCE000000, 0xb00000)):
+        for pair in ((0xB0000000, 0x100000), (0xD0000000, 0x18000000), (0xCE000000, 0x700000)):
             if binary.count(struct.pack("<QQ", *pair)) != 1:
                 raise RuntimeError(f"Missing linked memory reservation {pair}")
 
@@ -722,6 +615,8 @@ def main() -> None:
 
     shim = (stage / "bootwrap/BootShim.bin").read_bytes()
     dtb = (stage / "bootwrap/dtb.bin").read_bytes()
+    if out_dir.exists():
+        shutil.rmtree(out_dir)
     out_dir.mkdir(parents=True, exist_ok=False)
     raw = shim + fd
     packed = gzip.compress(raw, mtime=0) + dtb
@@ -784,7 +679,7 @@ def main() -> None:
         "adt_sha256": EXPECTED_ADT_V12_SHA,
         "ramdisk_sha256": EXPECTED_RAMDISK_SHA,
         "logger_candidate_sha256": v1.EXPECTED_CANDIDATE_SHA,
-        "bootshim_sha256": EXPECTED_SHIM_11MB_SHA,
+        "bootshim_sha256": v1.EXPECTED_SHIM_SHA,
         "firmware_dtb_sha256": v1.EXPECTED_DTB_SHA,
         "cave_base": patch_info["cave_base"],
         "cave_used_bytes": patch_info["cave_used_bytes"],
