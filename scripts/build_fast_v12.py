@@ -7,10 +7,11 @@ FAST-V12: Phase 1 RAMDisk Rootfs Bringup & PID 1 Launchd Transition
       Supplies updated ADT (kernel.macho.adt.v12) containing /chosen/memory-map/RAMDisk (16 bytes).
       DarwinBoot reads ramdisk, copies into window, and registers physical address & size in ADT.
       Passes boot-arg "rd=md0", directing XNU _IOFindBSDRoot to bind md0 as root device.
-  - Expands Flash Volume (FD) to 16MB (0x1000000):
+  - Expands Flash Volume (FD) to 11MB (0xb00000):
       Allows kernel.macho + 10MB ramdisk to compress into FVMAIN_COMPACT without overflow.
-      Uses 16MB BootShim.bin (FD_BASE=0xce000000, FD_SIZE=0x1000000).
-      Updates UEFI memory descriptors (MemoryMapLib) for 16MB FD.
+      Uses 11MB BootShim.bin (FD_BASE=0xce000000, FD_SIZE=0xb00000).
+      Strictly remains within Qualcomm ABL's 13.97MB DTB collision ceiling, eliminating boot hang.
+      Updates UEFI memory descriptors (MemoryMapLib) for 11MB FD.
   - Adds milestone hooks for root mount and launchd transition:
       Slot 17: mountroot_ok (post _vfs_mountroot at 0xfffffff0076c1b18)
       Slot 16: pid1_create  (post _bsd_utaskbootstrap at 0xfffffff0076c1d88)
@@ -51,7 +52,7 @@ CAVE_LIMIT = 0xFFFFFFF0073FE000
 
 EXPECTED_ADT_V12_SHA = "5a0c7fe4efd5d6210bff5373e160edc86faa780996858601042400f70174558e"
 EXPECTED_RAMDISK_SHA = "52e568e1eaaede5fde4684ad10afc60f8fb236bfb5a23e0869bb0ed8a1d275d7"
-EXPECTED_SHIM_16MB_SHA = "582ea045ae4c416b8d7facd98660d2fa3a17df85ab325682122f61bd710e3a64"
+EXPECTED_SHIM_11MB_SHA = "ec1cef37c683f80b931eda772287bcd3589bc74a00e8157a9b3c36f2f40d7d6c"
 
 
 def asm_b(pc: int, target: int) -> int:
@@ -518,10 +519,10 @@ source {v1.REMOTE_UEFI}/Mu_Basecore/BaseTools/BuildEnv
 build -a AARCH64 -t CLANGPDB -b RELEASE -p NativeLogApps.dsc > reader-build.log 2>&1
 python3 build-native-payload.py "$PWD" > payload-build.log 2>&1
 build -a AARCH64 -t CLANGPDB -b RELEASE -p Platforms/Lenovo/j716fPkg/j716f-native.dsc \\
-  -D FD_BASE=0xce000000 -D FD_SIZE=0x1000000 -D FD_BLOCKS=0x1000 -D ENABLE_SECUREBOOT=0 \\
+  -D FD_BASE=0xce000000 -D FD_SIZE=0xb00000 -D FD_BLOCKS=0xb00 -D ENABLE_SECUREBOOT=0 \\
   -y firmware-build-report.txt -Y LIBRARY -Y DEPEX > firmware-build.log 2>&1
 """
-        print("Running FastTests.c + EDK II 16MB build on 10.1.2.110...", flush=True)
+        print("Running FastTests.c + EDK II 11MB build on 10.1.2.110...", flush=True)
         code, out, err = run_ssh("bash -c " + shlex.quote(build_sh))
 
         built = stage / "built"
@@ -597,7 +598,7 @@ def main() -> None:
     dsc = dsc.replace("J716F NATIVE FAST-V7 40458123294", "J716F NATIVE FAST-V12 40458123294")
     (stage / "Platforms/Lenovo/j716fPkg/j716f-native.dsc").write_text(dsc, encoding="utf-8", newline="\n")
 
-    # Update MemoryMapLib for 16MB FD (0x1000000)
+    # Update MemoryMapLib for 11MB FD (0xb00000)
     for mmap_rel in [
         "Platforms/Lenovo/j716fPkg/Library/J716fRamLogMemoryMapLib/MemoryMapLib.c",
         "Platforms/Lenovo/j716fPkg/Library/J716fWindowMemoryMapLib/MemoryMapLib.c",
@@ -608,11 +609,11 @@ def main() -> None:
             txt = mmap_path.read_text(encoding="utf-8")
             txt = txt.replace(
                 '{"UEFI FD", 0xCE000000, 0x00700000, AddMem, SYS_MEM, SYS_MEM_CAP, BsData, WRITE_BACK},',
-                '{"UEFI FD", 0xCE000000, 0x01000000, AddMem, SYS_MEM, SYS_MEM_CAP, BsData, WRITE_BACK},',
+                '{"UEFI FD", 0xCE000000, 0x00B00000, AddMem, SYS_MEM, SYS_MEM_CAP, BsData, WRITE_BACK},',
             )
             txt = txt.replace(
                 '{"FD Guard", 0xCE700000, 0x01900000, AddMem, MEM_RES, UNCACHEABLE, Reserv, UNCACHED_UNBUFFERED_XN},',
-                '{"FD Guard", 0xCF000000, 0x01000000, AddMem, MEM_RES, UNCACHEABLE, Reserv, UNCACHED_UNBUFFERED_XN},',
+                '{"FD Guard", 0xCEB00000, 0x01500000, AddMem, MEM_RES, UNCACHEABLE, Reserv, UNCACHED_UNBUFFERED_XN},',
             )
             mmap_path.write_text(txt, encoding="utf-8", newline="\n")
 
@@ -627,18 +628,18 @@ def main() -> None:
     # Copy updated ADT v12 and APFS ramdisk into inputs/
     adt_v12_path = ROOT / "Firmware/kernel.macho.adt.v12"
     ramdisk_path = ROOT / "Firmware/ramdisk_appos_10mb.dmg"
-    shim_16mb_path = ROOT / "Firmware/BootShim_16mb.bin"
+    shim_11mb_path = ROOT / "Firmware/BootShim_11mb.bin"
 
     if v1.sha(adt_v12_path.read_bytes()) != EXPECTED_ADT_V12_SHA:
         raise RuntimeError("kernel.macho.adt.v12 SHA256 mismatch")
     if v1.sha(ramdisk_path.read_bytes()) != EXPECTED_RAMDISK_SHA:
         raise RuntimeError("ramdisk_appos_10mb.dmg SHA256 mismatch")
-    if v1.sha(shim_16mb_path.read_bytes()) != EXPECTED_SHIM_16MB_SHA:
-        raise RuntimeError("BootShim_16mb.bin SHA256 mismatch")
+    if v1.sha(shim_11mb_path.read_bytes()) != EXPECTED_SHIM_11MB_SHA:
+        raise RuntimeError("BootShim_11mb.bin SHA256 mismatch")
 
     shutil.copyfile(adt_v12_path, stage / "inputs/kernel.macho.adt")
     shutil.copyfile(ramdisk_path, stage / "inputs/ramdisk.dmg")
-    shutil.copyfile(shim_16mb_path, stage / "bootwrap/BootShim.bin")
+    shutil.copyfile(shim_11mb_path, stage / "bootwrap/BootShim.bin")
 
     # Update unixnu.toml
     toml_txt = (stage / "unixnu.toml").read_text(encoding="utf-8")
@@ -688,8 +689,8 @@ def main() -> None:
 
     built = stage / "built"
     fd = (built / "SILICIUM_UEFI.fd").read_bytes()
-    if len(fd) != 0x1000000:
-        raise RuntimeError(f"Expected 16MB SILICIUM_UEFI.fd, got {len(fd):#x} bytes")
+    if len(fd) != 0xb00000:
+        raise RuntimeError(f"Expected 11MB SILICIUM_UEFI.fd, got {len(fd):#x} bytes")
     fv, modules, sec = extract_fd(fd)
     if fv != (built / "FVMAIN.Fv").read_bytes():
         raise RuntimeError("Compressed FV differs from FVMAIN.Fv")
@@ -704,7 +705,7 @@ def main() -> None:
         )
     ]
     for binary in map_users:
-        for pair in ((0xB0000000, 0x100000), (0xD0000000, 0x18000000), (0xCE000000, 0x1000000)):
+        for pair in ((0xB0000000, 0x100000), (0xD0000000, 0x18000000), (0xCE000000, 0xb00000)):
             if binary.count(struct.pack("<QQ", *pair)) != 1:
                 raise RuntimeError(f"Missing linked memory reservation {pair}")
 
@@ -783,7 +784,7 @@ def main() -> None:
         "adt_sha256": EXPECTED_ADT_V12_SHA,
         "ramdisk_sha256": EXPECTED_RAMDISK_SHA,
         "logger_candidate_sha256": v1.EXPECTED_CANDIDATE_SHA,
-        "bootshim_sha256": EXPECTED_SHIM_16MB_SHA,
+        "bootshim_sha256": EXPECTED_SHIM_11MB_SHA,
         "firmware_dtb_sha256": v1.EXPECTED_DTB_SHA,
         "cave_base": patch_info["cave_base"],
         "cave_used_bytes": patch_info["cave_used_bytes"],
