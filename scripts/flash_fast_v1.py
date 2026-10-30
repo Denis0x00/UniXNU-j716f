@@ -24,6 +24,7 @@ DEFAULT_DIR = ROOT / "Firmware/NATIVE-40458123294-FAST-V1"
 FASTBOOT = Path("D:/platform-tools/fastboot.exe")
 EXPECTED_KERNEL_SHA = "150c5c5f13a4337eb05218232f3a157429f0974ba49f71b4627789497132d074"
 EXPECTED_ADT_SHA = "806ad48c85881b51f6acbeeea7ff4ec065f9edbe32d90f4aa304b5046faa64a3"
+EXPECTED_ADT_V12_SHA = "5a0c7fe4efd5d6210bff5373e160edc86faa780996858601042400f70174558e"
 EXPECTED_CANDIDATE_SHA = "1c19ee51d5388dcfbbaefd41dcf361a54ccee3d08d889f6f0e4bb6f69a08d892"
 TZ = timezone(timedelta(hours=8))
 
@@ -54,11 +55,12 @@ def verify_audited_image(fw_dir: Path) -> tuple[Path, dict]:
             "native-fast-v9-host-audited",
             "native-fast-v10-host-audited",
             "native-fast-v11-host-audited",
+            "native-fast-v12-host-audited",
         ),
         "Unexpected audit stage",
     )
     require(len(audit.get("kernel_sha256", "")) == 64, "Missing kernel SHA256 in audit")
-    require(audit.get("adt_sha256") == EXPECTED_ADT_SHA, "ADT SHA256 mismatch in audit")
+    require(audit.get("adt_sha256") in (EXPECTED_ADT_SHA, EXPECTED_ADT_V12_SHA), "ADT SHA256 mismatch in audit")
     require(audit.get("logger_candidate_sha256") == EXPECTED_CANDIDATE_SHA, "Candidate SHA256 mismatch in audit")
     require(audit.get("automatic_start") is False, "automatic_start must be False")
     img_path = fw_dir / audit["image"]

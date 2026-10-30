@@ -49,7 +49,7 @@ def efi_sections(data):
 
 
 def extract_fd(fd):
-    if len(fd)!=0x700000:raise ValueError('FD exceeds the fixed board window')
+    if len(fd) not in (0x700000, 0x1000000):raise ValueError('FD exceeds the fixed board window')
     outer=fv_files(fd)
     inner=[body for parts in outer.values() for kind,body in parts if kind==0x17]
     sec=[body for parts in outer.values() for kind,body in parts if kind in (0x10,0x12)]
