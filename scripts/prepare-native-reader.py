@@ -44,7 +44,15 @@ DSC='''[Defines]
   J716fNativeLog/Arm.inf
 '''
 
-def prepare(uefi,output,candidate):
+QR_INPUTS = {
+    'Library/QrEncoderLib/QrEncoderLib.c': '7b1781aba7728d31965c6da15eb16b920b9c98f610360f6608755fac88967d30',
+    'Library/QrEncoderLib/QrEncoderTables.c': 'f341049e054b1a6ff2c8b17025f4d752ec26ab3a3915404df559f6135cb931b8',
+    'Library/QrEncoderLib/QrEncoderTables.h': '348e12d952d169d8122b03b5bb301218a048ed892599d729e210ac70f9ec051b',
+    'Library/QrEncoderLib/QrEncoderLib.inf': '9edb2316a28fa31608d37f8f759c4b27304e8f78fcc149a9b502d6d6eb07e97e',
+    'Include/Library/QrEncoderLib.h': '86a14aa523088a35ebd3d145c2fed959275c32f5c51d8abd10e2edca7803be81',
+}
+
+def prepare(uefi,output,candidate,export_init=False):
     spec=importlib.util.spec_from_file_location('logger',ROOT/'scripts/prepare-native-logger.py')
     logger=importlib.util.module_from_spec(spec);spec.loader.exec_module(logger)
     actual,_,header=logger.identity(ROOT)
@@ -59,12 +67,35 @@ def prepare(uefi,output,candidate):
             raise ValueError('Unreviewed historical firmware helper: '+n)
     target=output/'J716fNativeLog'
     shutil.copytree(ROOT/'package/native-log/reader',target)
-    for n in ('NativeLog.h','NativeFirmware.h'):
+    for n in ('NativeLog.h','NativeFirmware.h','NativeExport.h','NativeSha256.h','NativeMaintenance.h'):
         shutil.copyfile(ROOT/'package/native-log'/n,target/n)
     for n,raw in assets.items():(target/n).write_bytes(raw)
     (target/'NativeCandidate.h').write_text(header,encoding='utf-8',newline='\n')
-    (output/'NativeLogApps.dsc').write_text(DSC,encoding='utf-8',newline='\n')
-    report={'candidate_sha256':candidate,'scope':'two apps only; no FD or boot image',
+    dsc=DSC
+    if export_init:
+        dsc=dsc.replace('[LibraryClasses]\n','[LibraryClasses]\n  QrEncoderLib|MsGraphicsPkg/Library/QrEncoderLib/QrEncoderLib.inf\n')
+        dsc+='  J716fNativeLog/Export.inf\n  J716fNativeLog/Init.inf\n'
+    # Independent firmware maintenance identity; never changes logger identity.
+    profile_inputs={
+        'format':'J716F2-single-invocation', 'candidate':candidate,
+        'kernel_sha256':'150c5c5f13a4337eb05218232f3a157429f0974ba49f71b4627789497132d074',
+        'adt_sha256':'806ad48c85881b51f6acbeeea7ff4ec065f9edbe32d90f4aa304b5046faa64a3',
+        'sources':{p.name:hashlib.sha256(p.read_bytes().replace(b'\r\n',b'\n')).hexdigest()
+                   for p in sorted(target.iterdir()) if p.is_file()},
+        'host_sources':{n:hashlib.sha256((ROOT/'scripts'/n).read_bytes().replace(b'\r\n',b'\n')).hexdigest()
+                        for n in ('native_maintenance.py','receive-native-console.py','build-native-payload.py')},
+        'qr_inputs':QR_INPUTS,'dsc_sha256':hashlib.sha256(dsc.encode()).hexdigest()}
+    profile=hashlib.sha256(json.dumps(profile_inputs,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+    (target/'NativeMaintenanceProfile.h').write_text(
+        '#define JL_MAINTENANCE_PROFILE {'+','.join('0x'+profile[i:i+2] for i in range(0,64,2))+'}\n',
+        encoding='ascii',newline='\n')
+    (output/'NativeLogApps.dsc').write_text(dsc,encoding='utf-8',newline='\n')
+    report={'candidate_sha256':candidate,'scope':'standalone apps only; no FD or boot image',
+            'export_init':export_init,'apps':['Read','Arm']+(['Export','Init'] if export_init else []),
+            'maintenance_profile':profile if export_init else None,
+            'maintenance_profile_inputs':profile_inputs if export_init else None,
+            'qr_inputs':QR_INPUTS if export_init else {},
+            'qr_mu_commit':'b8d46c71610318e36a661819e1e3c0b8bdda413a' if export_init else None,
             'reused_source_sha256':REUSED,'hardware_validated':False,
             'sources':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in target.iterdir() if p.is_file()}}
     (output/'reader-source.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
@@ -73,4 +104,5 @@ def prepare(uefi,output,candidate):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--uefi',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True);p.add_argument('--candidate',required=True)
-    a=p.parse_args();print(json.dumps(prepare(a.uefi,a.output,a.candidate),indent=2))
+    p.add_argument('--export-init',action='store_true',help='Explicitly add RAW exporter and receipt-gated initializer')
+    a=p.parse_args();print(json.dumps(prepare(a.uefi,a.output,a.candidate,a.export_init),indent=2))

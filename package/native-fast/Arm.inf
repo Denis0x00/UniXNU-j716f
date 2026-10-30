@@ -1,0 +1,24 @@
+[Defines]
+  INF_VERSION = 0x00010005
+  BASE_NAME = J716fNativeArm
+  FILE_GUID = 06e5d5ef-c9a6-4786-82eb-8cf370793b21
+  MODULE_TYPE = UEFI_APPLICATION
+  VERSION_STRING = 1.0
+  ENTRY_POINT = UefiMain
+[Sources]
+  FastArm.c
+  Font.c
+  Smc.S
+[Packages]
+  MdePkg/MdePkg.dec
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiBootServicesTableLib
+  UefiLib
+  MemoryAllocationLib
+  BaseMemoryLib
+  BaseLib
+  PrintLib
+  ArmLib
+[Protocols]
+  gEfiGraphicsOutputProtocolGuid

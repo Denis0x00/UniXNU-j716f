@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "date": "2026-10-27",
+  "status": "init-v1-refused-changed-nonfull-linear-snapshot-no-write",
+  "scope": "First photographed Init homepage after a user-reported reboot and fastboot visit; not an initialization success or native kernel test",
+  "record_source_base": "48fbbf5a03241fe8c83f4bc4808da31975381fbc",
+  "references": [
+    "research/native-console-complete-20261027.json",
+    "research/native-console-analysis-init-20261027.json",
+    "package/native-log/reader/Init.c",
+    "package/native-log/NativeExport.h",
+    "package/native-log/NativeFirmware.h"
+  ],
+  "private_photo": {
+    "original_bytes": 174221,
+    "original_sha256": "38b43bb7ee2dd1c997558f3ecfa0668ff2da7272fab377014f66a8fd9e0fead0",
+    "unchanged_private_copy_verified": true,
+    "inspection_derivative": "Separate 270-degree rotation for legibility; original retained unchanged",
+    "inspection_derivative_sha256": "ba4dca2875c36c316b3b9420a2ae45aea9e23f6008596330fd44a1393bfb974e",
+    "published": false
+  },
+  "screen_observation": {
+    "title": "NATIVE INIT v1",
+    "dbgc_signature": "43474244",
+    "next": "0003F56E",
+    "size": "0003F56E",
+    "displayed_candidate_words": ["CF8D38D551EE191C", "A561F3DC41FDAEBB", "6F9F888DD0E3CE4C", "92D8089AF6B64B0E"],
+    "compiled_candidate_matches_selected_logger": true,
+    "candidate_words_are_a_recovered_session": false,
+    "displayed_snapshot_sha256": "a6c467c40c658875ae17f5689c62e243f5ea515d374f0df534ad1e3983d3e567",
+    "snapshot_sha_scope": "Visual transcription from screen only; no current raw dump available to recompute it",
+    "typed_receipt": "0000000000000000",
+    "digit_position": 1,
+    "selected_hex_digit": 0,
+    "confirmations": 0,
+    "ready": 0,
+    "used": 0,
+    "message": "BLOCKED: unstable/non-full/non-wrapped/corrupt header or pending ARM. No writes."
+  },
+  "source_based_diagnosis": {
+    "header_is_structurally_valid_nonfull_linear": true,
+    "console_capacity_bytes": 262132,
+    "unused_data_bytes_before_alignment": 2694,
+    "aligned_native_session_offset": "0003F580",
+    "aligned_native_bytes_available": 2688,
+    "required_native_session_bytes": 8192,
+    "init_v1_full_wrapped_condition_satisfied": false,
+    "native_arm_capacity_condition_satisfied": false,
+    "init_refusal_sufficient_cause": "size0x3f56e is less than JL_CAPACITY0x3fff4; Init v1 only accepts a full wrapped ring. This alone rejects before pending-ARM scanning.",
+    "other_gate_conditions_proven": false,
+    "no_init_commit_path": "jl_init_prepare refusal sets mFinished; receipt and confirmation paths are ignored. Photo shows no receipt entry and no confirmations.",
+    "current_initialization_succeeded": false,
+    "reexport_alone_can_make_this_unchanged_header_eligible": false
+  },
+  "intervening_events": {
+    "user_reports_reboot": true,
+    "user_reports_fastboot_visit": true,
+    "continuous_sequence_observed": false,
+    "specific_component_that_replaced_header_proven": false,
+    "interpretation": "Reboot/fastboot intervened, so same-session snapshot continuity is not established. Do not reuse the earlier receipt or attribute the changed bytes to Init."
+  },
+  "evidence_boundary": {
+    "previous_complete_dump_sha256": "0ebb2cdca1c32957283eeffc1cdff9cdc19f8b035cd71b10f0f08146725382fa",
+    "both_previous_complete_dump_copies_rechecked_unchanged": true,
+    "current_screen_sha_matches_previous_dump": false,
+    "current_complete_snapshot_saved": false,
+    "new_receipt_generated": false,
+    "init_write_observed": false,
+    "query_arm_or_native_launch_observed": false,
+    "new_device_command_executed_by_agent": false
+  },
+  "next_action": "Leave blocked Init without entering a receipt; photograph Read and export the new full snapshot read-only into a separate transfer/evidence directory. Keep Export open and paused afterwards; no intervening reboot or fastboot. Do not mix old/new frames, reuse the old receipt, fill the ring deliberately or bypass Init/ARM gates. Supporting a backed-up capacity-exhausted linear log requires a separately reviewed implementation and separately authorized new firmware deployment; this photo is diagnosis, not permission to change admission."
+}

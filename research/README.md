@@ -1,10 +1,32 @@
 # 研究与证据索引
 
-## 当前入口（2026-10-27）
+## 当前入口（2026-10-29）
 
-- 最新实机：[P22 原始 VM 返回并封存](p22-closed-20261027.json)，六槽、九 CRC、M=1 与一次重启保留；不重复测试。
+- 最新实机突破：[`NATIVE FAST-V1..V3` 实机 100% 完成 `arm_vm_init` / `TTBR1_EL1` 切换与 `pmap_bootstrap`](native-fast-vm-done-20261029.json)，详见 [`docs/NATIVE_FAST_VM_BRINGUP_20261029.md`](../docs/NATIVE_FAST_VM_BRINGUP_20261029.md)。通过 `package/native-fast/`（3 秒冷/脏启动 ARM + 4 秒 8 帧 QR 会话导出 + 物理全区扫描）连续完成三轮 `boot_b` 实机测试：
+  1. Run 1（`FAST-V1`，`eca22352`）：捕获 `0:start_begin -> 43:BOOT_MAP_ERR`，定位并修复 `TCR_EL1.T1SZ=26`（38-bit VA，256 项 L1 根表）索引掩码缺陷（[`NativeMapFixed.h`](../package/native-fast/NativeMapFixed.h)）；
+  2. Run 2（`FAST-V2`，`28463fde`）：捕获 `0..3 -> 44:PERM_MAP_ERR -> 41:EL1_SYNC_FLT`，定位并修复 `TTBR1_EL1` 切换前 `_phystokv` 返回永久表 KVA 的缺陷（[`NativeVmMapFixed.h`](../package/native-fast/NativeVmMapFixed.h)）；
+  3. Run 3（`FAST-V3`，`d367d4ee`）：实机恢复会话 `0x000000004a9650ec`（8/8 槽位 CRC 全过，**`Faults: none`**），完整跑通 `0:start_begin -> 1:boot_pt_map -> 2:arm_init -> 3:vm_entry -> 4:vm_perm_map -> 5:vm_ttbr_sw (TTBR1_EL1=0xd4229000) -> 6:pmap_boot (dynamic_memory_begin=0xfffffff029400000) -> 7:vm_done (first_avail=0xd4320000)`。
+
+- 下一轮就绪镜像：[`NATIVE FAST-V4` 主机审计构建清单](native-fast-v4-build-20261029.json)（镜像 `8ac33597`，内核 `2a45d7d0`）。在 `FAST-V3` 基础上利用 `__TEXT_EXEC` 末尾 988 字节空闲区新增 21 个槽位（`33..39`、`45..49`、`54..62`），覆盖 `_arm_init` 尾声、全部 55 处 `_kernel_debug_string_early`（首次 + 槽位 47 滚动末次）、`_kernel_bootstrap`、`_load_context`、`_kernel_bootstrap_thread` / `_PE_init_iokit` 及 `_ml_panic_trap_to_debugger`。
+
+- 前一现场：[MAINT v2 完整录像导出](native-maint-complete-20261029.json)。视频独立恢复256/256帧、262144字节；整区 SHA5583ff6e/CRC B6D19E53重算通过，落盘读回及同盘第二目录副本已核对。不需再补录这份快照。头仍INVALID_HEADER，全区无当前原生日志精确标记；没有Init令牌/原生启动结果。保持暂停，下一步审查冷启动会话建立与区域所有权，不自动修复/放宽门槛/重刷。
+
+- 前一首帧：[MAINT v2 首帧解码与私有保存](native-maint-first-frame-20261029.json)。保留当时仅1/256帧、整区SHA/CRC未验证的事实及头字段转录更正；后续录像首帧文本逐字匹配，未改写旧记录。
+
+- 前一现场：[完全关机后 Read v3 / 无效 DBGC 头](native-read-coldboot-20261029.json)。照片和用户冷启动说明已核对；STABLE=1 不等于格式有效或跨重启保留。MAINT-v2/ARM 会拒绝当前头，只允许原样导出；不进入 Init/ARM/Native，不重刷。尚无新原生内核运行证据。
+
+- [sheng/pipa/umi 分层复用与已有镜像只读复核](upstream-mainline-reference-20261029.json)，[具体缺项和下一步](../docs/UPSTREAM_REFERENCE_20261029.md)。实际最终镜像、原生符号、ADT、日志身份复核通过；确认标准 initrd/AdvancedLogDxe 未集成，实际专用菜单无 Tools。没有新构建或设备命令；用户报告已开机进入 Read，待当前照片，不提升硬件等级。
+
+- 最新实施：[MAINT v2 主机验证及 boot_b 部署](native-maintenance-v2-20261027.json)，[操作流程](../docs/NATIVE_MAINTENANCE_V2.md)。固定内核/ADT；同一应用新Export→Init，实际C/EFI验证及最终镜像反解通过。刷写/B槽确认/重启命令成功；新照片、完整导出、物理Init/ARM/XNU均未取得。旧方案/实机检查点保留。
+- 最新方案：[RAW/Init v2 设计审查](native-console-v2-plan-20261027.json)与[执行方案](../docs/NATIVE_CONSOLE_V2_PLAN.md)。7组纯主机设计测试覆盖524265个合法线性/满环头状态；不等于生产实现、固件或硬件验证。现有v1未改。
+- 最新实机：[Init v1 拒绝变化后的线性快照](native-init-blocked-20261027.json)。用户确认中途重启/fastboot；新头next=size0x3f56e、SHA变化，ready0/used0且未写入。旧备份保持不变；需新快照只读导出，不能复用回执或绕过策略。
+- 前一分析与授权：[Android 遗留日志分类 / Init-only](native-console-analysis-init-20261027.json)。满环主要是 Keymaster 重试、电池和 fastbootd 日志；保留当时已授权 Init、尚待现场核对的检查点，不扩大为复位或启动授权。
+- 最新实机：[RAW-v1 完整光学导出](native-console-complete-20261027.json)，视频独立恢复 256/256 帧、完整 262144 字节；整区 SHA256/CRC 重算及落盘读回通过，另存私有目录副本。保留该检查点当时 Init 未授权的事实。
+- 前一光学门槛：[首帧验证](native-console-optical-20261027.json)，保留当时 1/256 帧的事实，不改写为完整备份；视频属于另一 transfer，未与照片混用。
+- 前次原生观察：[首次菜单/只读 reader](native-reader-40458123294-20261027.json)，STABLE=1；满环形阻塞 ARM，作为历史现场完整保留。
+- 历史内核边界：[P22 原始 VM 返回并封存](p22-closed-20261027.json)，六槽、九 CRC、M=1 与一次重启保留；不重复测试。
 - 当前主线：[原生候选与可恢复日志](../docs/NATIVE_MAINLINE.md)；[P22 历史构建/会话](v23p22-vm-return.json)仅保留历史状态。
-- 当前原生主机里程碑：[CI40458123294 → 预链接 → reader/ARM → 最终镜像反解](native-image-40458123294.json)。没有新实机操作；旧无日志 CI40448429664 不是当前候选。
+- 当前原生主机里程碑：[CI40458123294 → 预链接 → reader/ARM → 最终镜像反解](native-image-40458123294.json)。保留当时 host-only 报告，后续硬件观察另记；旧无日志 CI40448429664 不是当前候选。
 - [最新上游与 sheng 对照](upstream-progress-review-20261027-p22.json)及[进度说明](../docs/PROGRESS_AFTER_V23P22_20261027.md)。
 - [权威移植记录](../porting.toml)。下文保留各时间点的历史记录，“最新准备”等措辞仅适用于当时。
 - [原生 IRQ 观测实现/主机摘要](native-irq-observer-20261027.json)：同 SM8250 pipa/umi 对照，

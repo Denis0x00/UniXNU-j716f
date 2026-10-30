@@ -12,12 +12,39 @@ from pathlib import Path
 import shutil
 import subprocess
 import tarfile
+import tomllib
 from native_candidate import load_module, sha, save_new
 
 ROOT=Path(__file__).resolve().parents[1]
 UEFI_PIN='21ac8e3477daf001ea6046283698165cbf3fd1d8'
 PKG='Platforms/Lenovo/j716fPkg'
 FAT_GUID='90F40472-1975-40E2-8028-C76D530D15A7'
+
+def menu_guard(export_init=False):
+    entries=tomllib.loads(load_module('build-native-payload').config(export_init))['entry']
+    types={'efi':'UniXNUEntryEfi','xnu':'UniXNUEntryXnu','action':'UniXNUEntryAction'}
+    conditions=[f'Config.Entries[{i}].Type != {types[e["type"]]}' for i,e in enumerate(entries)]
+    for i,entry in enumerate(entries):
+        for key,field in [('path','Path'),('args','Args')]:
+            if key in entry:
+                value=json.dumps(entry[key])
+                conditions.append(f'!Config.Entries[{i}].{field} || StrCmp (Config.Entries[{i}].{field}, L{value})')
+        if entry['type']=='action':conditions.append(f'Config.Entries[{i}].Action != UniXNUActionExit')
+    ids=', '.join(json.dumps(e['id']) for e in entries)
+    return f'''  UniXNUConfigLoad (ImageHandle, &Config);
+  // Exact explicit profile; no fallback, injected drivers or automatic launch.
+  if (Config.Error[0] || Config.EntryCount != {len(entries)} || Config.DefaultIndex != 0 ||
+      Config.Timeout != -1 || Config.DriverCount || Config.PatchCount || Config.AcpiCount ||
+      Config.SliceCount || Config.KitsLoaded) {{ return EFI_SECURITY_VIOLATION; }}
+  {{
+    STATIC CONST CHAR8 *Ids[] = {{{ids}}};
+    for (Index = 0; Index < {len(entries)}; Index++) {{
+      if (!Config.Entries[Index].Id || AsciiStrCmp (Config.Entries[Index].Id, Ids[Index])) {{
+        return EFI_SECURITY_VIOLATION;
+      }}
+    }}
+    if ({' || '.join(conditions)}) {{ return EFI_SECURITY_VIOLATION; }}
+  }}'''
 
 def archive(repo,pin,out,paths=()):
     if subprocess.check_output(['git','-C',str(repo),'rev-parse','HEAD'],text=True).strip()!=pin:
@@ -48,7 +75,8 @@ def prepare(a):
     archive(a.uefi,UEFI_PIN,a.output,(PKG,))
     archive(a.unixnu,lock['unixnu_commit'],a.output,('package',))
     archive(a.unixnu/'drivers/DarwinBoot',lock['components']['DarwinBoot'],a.output/'DarwinBoot')
-    reader=load_module('prepare-native-reader').prepare(a.uefi,a.output/'reader-stage',lock['logger_candidate_sha256'])
+    export_init=getattr(a,'export_init',False)
+    reader=load_module('prepare-native-reader').prepare(a.uefi,a.output/'reader-stage',lock['logger_candidate_sha256'],export_init)
     shutil.copytree(a.output/'reader-stage/J716fNativeLog',a.output/'J716fNativeLog')
     shutil.copyfile(a.output/'reader-stage/NativeLogApps.dsc',a.output/'NativeLogApps.dsc')
     menu=a.output/'NativeMenu'
@@ -59,32 +87,7 @@ def prepare(a):
     text=text.replace('Menu loop: input, countdown and idle rotation.','Pinned upstream menu with J716F manual-only loop.')
     (menu/'Menu.c').write_text(text,encoding='utf-8',newline='\n')
     rewrite(menu/'UniXNULib.inf','BASE_NAME      = UniXNULib','BASE_NAME      = J716fNativeUniXNULib')
-    guard=r'''  UniXNUConfigLoad (ImageHandle, &Config);
-  // Fail closed before injection or boot if the dedicated payload is absent.
-  if (Config.Error[0] || Config.EntryCount != 4 || Config.DefaultIndex != 0 ||
-      Config.Timeout != -1 || Config.DriverCount || Config.PatchCount || Config.AcpiCount ||
-      Config.SliceCount || Config.KitsLoaded) { return EFI_SECURITY_VIOLATION; }
-  {
-    STATIC CONST CHAR8 *Ids[] = {"reader", "arm", "native", "exit"};
-    for (Index = 0; Index < 4; Index++) {
-      if (!Config.Entries[Index].Id || AsciiStrCmp (Config.Entries[Index].Id, Ids[Index])) {
-        return EFI_SECURITY_VIOLATION;
-      }
-    }
-    if (Config.Entries[0].Type != UniXNUEntryEfi || Config.Entries[1].Type != UniXNUEntryEfi ||
-        Config.Entries[2].Type != UniXNUEntryXnu || Config.Entries[3].Type != UniXNUEntryAction ||
-        Config.Entries[3].Action != UniXNUActionExit ||
-        !Config.Entries[0].Path || StrCmp (Config.Entries[0].Path, L"\EFI\Tools\J716fNativeRead.efi") ||
-        !Config.Entries[1].Path || StrCmp (Config.Entries[1].Path, L"\EFI\Tools\J716fNativeArm.efi") ||
-        !Config.Entries[2].Path || StrCmp (Config.Entries[2].Path, L"\Payloads\kernel.macho") ||
-        !Config.Entries[2].Args || StrCmp (Config.Entries[2].Args, L"-v serial=0 debug=0x14e cpus=1 -no_slto_panic")) {
-      return EFI_SECURITY_VIOLATION;
-    }
-  }'''
-    # Raw Python strings above contain C escaped directory separators.
-    guard=guard.replace('L"\\EFI','L"\\\\EFI').replace('\\Tools','\\\\Tools').replace('\\J716f','\\\\J716f')
-    guard=guard.replace('L"\\Payloads','L"\\\\Payloads').replace('\\kernel','\\\\kernel')
-    rewrite(menu/'Main.c','  UniXNUConfigLoad (ImageHandle, &Config);',guard)
+    rewrite(menu/'Main.c','  UniXNUConfigLoad (ImageHandle, &Config);',menu_guard(export_init))
     board=a.output/PKG
     dsc=(board/'j716f-vm-return-trace-v23p22.dsc').read_text()
     dsc=dsc.replace('Build/j716fMmuTraceV23P22Pkg','Build/j716fNativePkg')
@@ -119,7 +122,9 @@ def prepare(a):
     for name in ('dts/j716f.dts','socs/sm8250/dts/sm8250.dtsi'):
         shutil.copyfile(ROOT/name,inputs/Path(name).name)
     shutil.copyfile(ROOT/'scripts/build-native-payload.py',a.output/'build-native-payload.py')
+    shutil.copyfile(ROOT/'scripts/check-native-qr-inputs.py',a.output/'check-native-qr-inputs.py')
     report={'schema':1,'selection':lock,'uefi_commit':UEFI_PIN,'reader':reader,
+            'export_init':export_init,
             'prelinked_kernel_sha256':sha(kernel),'prelink_manifest_sha256':sha((a.prelinked/'native-prelink.json').read_bytes()),
             'transport':'read-only embedded FAT; NOT standard initrd',
             'fd_base':'0xce000000','fd_bytes':0x700000,'fat_guid':FAT_GUID.lower(),
@@ -132,4 +137,5 @@ def prepare(a):
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__)
     for n in ('selection','prelinked','uefi','unixnu','output'):p.add_argument('--'+n,type=Path,required=True)
+    p.add_argument('--export-init',action='store_true',help='Explicit RAW export / receipt initialization profile, new image only')
     prepare(p.parse_args())

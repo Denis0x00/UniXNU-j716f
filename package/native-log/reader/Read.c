@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BSD-2-Clause-Patent
 // No ARM action, SMC, ResetSystem, file write or retained-memory store.
 #include "Common.h"
+#include "NativeMaintenance.h"
 STATIC JL64 mFrozen[JL_CONSOLE_BYTES/8];
 STATIC UINT32 mPresent[JL_SLOTS],mCount,mPage,mConsoleCrc,mSessionCrc;
 STATIC volatile JLHeader *mHeader;
@@ -22,11 +23,22 @@ STATIC VOID SelectSession(VOID) {
 STATIC VOID Render(VOID) {
   CHAR16 text[160];UINTN i;CONST JL64 *raw;UINT32 slot=0;
   CONST JL32 *ring=(CONST JL32 *)mFrozen;
-  Clear();Line(0,L"J716F NATIVE READ v2 - FROZEN / READ ONLY / NO RESET");
+  Clear();Line(0,L"J716F NATIVE READ v3 - FROZEN / READ ONLY / NO RESET");
   UnicodeSPrint(text,sizeof(text),L"DBGC %08x next=%08x size=%08x consoleCRC=%08x STABLE=%u",ring[0],ring[1],ring[2],mConsoleCrc,mStable);Line(1,text);
   UnicodeSPrint(text,sizeof(text),L"Expected candidate words %016lx %016lx",mCandidate[0],mCandidate[1]);Line(2,text);
   UnicodeSPrint(text,sizeof(text),L"                         %016lx %016lx",mCandidate[2],mCandidate[3]);Line(3,text);
   if(!mHeader) {
+    if(mStable && jl2_record_valid(mFrozen,mCandidate)) {
+      CONST JL2InitRecord *init=(CONST JL2InitRecord *)((CONST JL8 *)mFrozen+16);
+      CHAR8 digest[65];jl_hex_bytes(digest,init->backup_sha256,32);digest[64]=0;
+      Line(5,L"INIT v2 VALID / NOT ARMED. No native kernel result.");
+      UnicodeSPrint(text,sizeof(text),L"Transfer %016lx initCRC=%08x class=%u",init->transfer,init->crc,init->classification);Line(6,text);
+      UnicodeSPrint(text,sizeof(text),L"Backup SHA256 %a",digest);Line(8,text);
+      jl_hex_bytes(digest,init->profile,32);digest[64]=0;
+      UnicodeSPrint(text,sizeof(text),L"Maintenance profile %a",digest);Line(10,text);
+      Line(12,L"Photograph before separately reviewing fresh Query/ARM. This reader never writes.");
+      Line(14,L"Esc / Return: menu. Initialization does not prove retention or kernel execution.");return;
+    }
     Line(5,L"NO VALID MATCHING SESSION. No boot result can be inferred.");
     Line(6,L"Photograph this page. Do not ARM, clear the ring, or launch a kernel.");
     Line(7,L"Esc / Return: return to menu. This app never changes the console.");return;

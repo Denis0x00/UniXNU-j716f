@@ -20,6 +20,13 @@ on:
       - 'scripts/check-native-logger.py'
       - 'scripts/decode-native-log.py'
       - 'scripts/test-native-log.py'
+      - 'scripts/native_export.py'
+      - 'scripts/native_maintenance.py'
+      - 'scripts/test-native-maintenance.py'
+      - 'scripts/receive-native-console.py'
+      - 'scripts/test-native-export.py'
+      - 'scripts/check-native-qr-inputs.py'
+      - 'scripts/test-native-console-profile.py'
       - 'scripts/decode-native-pages.py'
       - 'scripts/native_image_formats.py'
       - 'scripts/test-native-image-formats.py'
@@ -87,6 +94,14 @@ jobs:
         run: python3 scripts/test-native-log.py --cc gcc
       - name: Check firmware container corruption refusal with synthetic inputs
         run: python3 scripts/test-native-image-formats.py -v
+      - name: Check raw export, durable receipt and isolated initialization gates
+        run: |
+          python3 scripts/test-native-export.py --cc gcc
+          python3 scripts/test-native-export.py --cc clang
+          python3 scripts/test-native-maintenance.py --cc gcc
+          python3 scripts/test-native-maintenance.py --cc clang
+          python3 scripts/test-native-console-profile.py --cc gcc
+          python3 scripts/test-native-console-profile.py --cc clang
 
   source:
     needs: transfer-checks

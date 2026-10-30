@@ -1,0 +1,26 @@
+[Defines]
+  INF_VERSION = 0x00010005
+  BASE_NAME = J716fNativeInit
+  FILE_GUID = fba1c5df-8f97-405e-8d72-0f6739f1a239
+  MODULE_TYPE = UEFI_APPLICATION
+  VERSION_STRING = 2.0
+  ENTRY_POINT = UefiMain
+[Sources]
+  Maintenance.c
+  Font.c
+[Packages]
+  MdePkg/MdePkg.dec
+  ArmPkg/ArmPkg.dec
+  MsGraphicsPkg/MsGraphicsPkg.dec
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiBootServicesTableLib
+  UefiLib
+  BaseLib
+  BaseMemoryLib
+  MemoryAllocationLib
+  PrintLib
+  ArmLib
+  QrEncoderLib
+[Protocols]
+  gEfiGraphicsOutputProtocolGuid

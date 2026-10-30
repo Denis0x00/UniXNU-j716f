@@ -44,13 +44,35 @@ type = "action"
 action = "exit"
 '''
 
+def config(export_init=False):
+    if not export_init:return CONFIG
+    extra=r'''[[entry]]
+id = "export"
+title = "2. Export ALL raw RAM as offline QR (read only)"
+type = "efi"
+path = "\\EFI\\Tools\\J716fNativeExport.efi"
+[[entry]]
+id = "init"
+title = "3. MAINT v2: new Export then Init in SAME app"
+type = "efi"
+path = "\\EFI\\Tools\\J716fNativeInit.efi"
+'''
+    return CONFIG.replace('manual only / no stage reset','MAINT v2 / manual only').replace(
+        '[[entry]]\nid = "arm"',extra+'[[entry]]\nid = "arm"').replace(
+        '2. Query then','4. Query then').replace('3. Native platform','5. Native platform')
+
 def build(stage):
     stage=Path(stage);out=stage/'payload';out.mkdir(exist_ok=False)
+    spec=json.loads((stage/'firmware-source.json').read_text())
+    export_init=spec.get('export_init',False)
+    if type(export_init) is not bool:raise ValueError('Invalid explicit export/init profile')
     tree=out/'tree'
     (tree/'EFI/UniXNU').mkdir(parents=True);(tree/'EFI/Tools').mkdir();(tree/'Payloads').mkdir()
-    (tree/'EFI/UniXNU/unixnu.toml').write_text(CONFIG,newline='\n')
+    (tree/'EFI/UniXNU/unixnu.toml').write_text(config(export_init),newline='\n')
     for name in ('kernel.macho','kernel.macho.adt'):shutil.copyfile(stage/'inputs'/name,tree/'Payloads'/name)
-    for name in ('J716fNativeRead.efi','J716fNativeArm.efi'):
+    names=['J716fNativeRead.efi','J716fNativeArm.efi']
+    if export_init:names+=['J716fNativeExport.efi','J716fNativeInit.efi']
+    for name in names:
         shutil.copyfile(stage/'Build/NativeLogApps/RELEASE_CLANGPDB/AARCH64'/name,tree/'EFI/Tools'/name)
     for path in (tree,*tree.rglob('*')):os.utime(path,(315532800,315532800))
     fat=stage/'Platforms/Lenovo/j716fPkg/Resources/NativePayload.fat'
@@ -60,7 +82,7 @@ def build(stage):
     for folder in ('EFI','Payloads'):
         subprocess.run(['mcopy','-i',str(fat),'-s','-Q','-m',str(tree/folder),'::/'],check=True,env=env)
     digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
-    report={'payload_sha256':digest(fat),'payload_bytes':fat.stat().st_size,'automatic_start':False,
+    report={'payload_sha256':digest(fat),'payload_bytes':fat.stat().st_size,'automatic_start':False,'export_init':export_init,
             'files':{p.relative_to(tree).as_posix():{'sha256':digest(p),'bytes':p.stat().st_size}
                      for p in tree.rglob('*') if p.is_file()},'hardware_validated':False}
     with (out/'payload.json').open('x') as stream:stream.write(json.dumps(report,indent=2)+'\n')

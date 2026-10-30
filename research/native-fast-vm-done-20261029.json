@@ -1,0 +1,134 @@
+{
+  "date": "2026-10-29",
+  "status": "native-candidate-40458123294-arm-vm-init-ttbr1-switch-and-pmap-bootstrap-device-verified",
+  "source_base_revision": "48fbbf5a03241fe8c83f4bc4808da31975381fbc",
+  "logger_candidate_sha256": "1c19ee51d5388dcfbbaefd41dcf361a54ccee3d08d889f6f0e4bb6f69a08d892",
+  "adt_sha256": "806ad48c85881b51f6acbeeea7ff4ec065f9edbe32d90f4aa304b5046faa64a3",
+  "bootshim_sha256": "72bfc9e9137a0e3ab9f7264162968c546ba63533b94d6813814fe84c831d03b4",
+  "firmware_dtb_sha256": "2c0d57deb7f99a081fe4994535c51ca0362bf44b6ad5422a7300f01496f6b3ec",
+  "fast_bringup_workflow": {
+    "package_dir": "package/native-fast",
+    "arm_time_seconds": 3,
+    "session_qr_frames": 8,
+    "session_qr_export_seconds": 4,
+    "session_bytes": 8192,
+    "raw_scan_survives_fastbootd_dbgc_wrap": true,
+    "boot_b_only_deployment": true,
+    "boot_a_vbmeta_userdata_tzdxe_untouched": true
+  },
+  "runs": [
+    {
+      "run": "FAST-V1 (Run 1)",
+      "image": "j716f-native-log-40458123294-fast-v1-boot.img",
+      "image_bytes": 8384512,
+      "image_sha256": "eca22352580ea417b3e7b8a4fe66ebdb7292ba7abbbf6a7727aa6cd1fae09b73",
+      "kernel_sha256": "150c5c5f13a4337eb05218232f3a157429f0974ba49f71b4627789497132d074",
+      "session_id": "0x000000010d60aff7",
+      "offset": 169296,
+      "session_sha256": "1d8d0be97dff163dcb6d1d2079a5637cd21af99ac2b4c190468086bac0d061bc",
+      "session_crc32": "0x477b55a9",
+      "valid_slots": 2,
+      "stage_progression": [
+        "0:start_begin",
+        "43:BOOT_MAP_ERR"
+      ],
+      "root_cause": "XNU ARM64 uses TCR_EL1.T1SZ = 26 (38-bit VA space, 256-entry L1 root table at 0xd2f7e000). NativeMap.h computed L1 index as (at >> 30) & 511 = 448 (out of bounds into L2 table at 0xd2f7f000) instead of (at >> 30) & 255 = 192 (0xc0).",
+      "fix_reference": "package/native-fast/NativeMapFixed.h"
+    },
+    {
+      "run": "FAST-V2 (Run 2)",
+      "image": "j716f-native-log-40458123294-fast-v2-boot.img",
+      "image_bytes": 8372224,
+      "image_sha256": "28463fde65f6459009849b41fb29dac205235ea13dc1de9b749dafc06680084f",
+      "kernel_sha256": "1d6867619ad5b280fc5bbda45c6f4e54234547b54fd91fc98ae443d5aa252c16",
+      "session_id": "0x000000001c2b070d",
+      "offset": 163064,
+      "session_sha256": "5cdfa8de47ad7df587f69cad6b4d9fd1e799f5e033371027782e6f4120321928",
+      "session_crc32": "0x9e132e37",
+      "valid_slots": 6,
+      "stage_progression": [
+        "0:start_begin",
+        "1:boot_pt_map",
+        "2:arm_init",
+        "3:vm_entry",
+        "41:EL1_SYNC_FLT",
+        "44:PERM_MAP_ERR"
+      ],
+      "root_cause": "j716f_native_vm_map runs inside arm_vm_init after arm_vm_physmap_init(args) populates _ptov_table with post-switch KVAs (0xfffffff018629000 for cpu_ttep=0xd4229000), but BEFORE set_mmu_ttb_alternate(cpu_ttep) switches TTBR1_EL1 off bootstrap_pagetables (0xd2f7e000). Calling _phystokv(l2_pa) returned an unmapped post-switch KVA.",
+      "fix_reference": "package/native-fast/NativeVmMapFixed.h"
+    },
+    {
+      "run": "FAST-V3 (Run 3)",
+      "image": "j716f-native-log-40458123294-fast-v3-boot.img",
+      "image_bytes": 8376320,
+      "image_sha256": "d367d4ee3fa10c04b84a2837b1d33d301d9b2d39763cd806eaf0abf0c3cf55e8",
+      "kernel_sha256": "a0b548d0f89c264e3d9c5ba81069a8792434e7791e59d5057ed725ed24bd7242",
+      "session_id": "0x000000004a9650ec",
+      "offset": 166664,
+      "session_sha256": "020ca14f001e36b78acb0a35a8220676271c46ffbce739678d50a37995b28fa1",
+      "session_crc32": "0x6613d3dc",
+      "valid_slots": 8,
+      "faults": [],
+      "stage_progression": [
+        "0:start_begin",
+        "1:boot_pt_map",
+        "2:arm_init",
+        "3:vm_entry",
+        "4:vm_perm_map",
+        "5:vm_ttbr_sw",
+        "6:pmap_boot",
+        "7:vm_done"
+      ],
+      "verified_hardware_registers": {
+        "slot_0_start_begin": {
+          "boot_args_pa": "0x00000000d4224000",
+          "sctlr_el1": "0x0000000000c00808",
+          "sp_pa": "0x00000000d3a3ff40",
+          "cntfrq_el0": 19200000,
+          "mpidr_el1": "0x0000000081000000",
+          "window_pa": "0x00000000d38ac000"
+        },
+        "slot_1_boot_pt_map": {
+          "bootstrap_pagetables_pa": "0x00000000d2f7e000",
+          "window_va": "0xfffffff007aac000",
+          "pte_template": "0x006000000000060f"
+        },
+        "slot_2_arm_init": {
+          "boot_args_kva": "0xfffffff008424000",
+          "sctlr_el1": "0x000000003454593d",
+          "ttbr1_el1": "0x00000000d2f7e000",
+          "sp_kva": "0xfffffff007c3fe90",
+          "window_va": "0xfffffff007aac000"
+        },
+        "slot_3_vm_entry": {
+          "gVirtBase": "0xfffffff00427c000",
+          "gPhysBase": "0x00000000d007c000",
+          "mem_size": "0x0000000010000000"
+        },
+        "slot_4_vm_perm_map": {
+          "window_va": "0xfffffff007aac000",
+          "cpu_ttep": "0x00000000d4229000",
+          "pte_template": "0x006000000000060f"
+        },
+        "slot_5_vm_ttbr_sw": {
+          "cpu_tte_kva": "0xfffffff018629000",
+          "cpu_ttep_pa": "0x00000000d4229000",
+          "invalid_ttep_pa": "0x00000000d4228000",
+          "ttbr1_el1": "0x00000000d4229000"
+        },
+        "slot_6_pmap_boot": {
+          "dynamic_memory_begin": "0xfffffff029400000",
+          "ttbr1_el1": "0x00000000d4229000"
+        },
+        "slot_7_vm_done": {
+          "first_avail_pa": "0x00000000d4320000",
+          "window_va": "0xfffffff007aac000",
+          "sctlr_el1": "0x000000003454593d",
+          "ttbr1_el1": "0x00000000d4229000"
+        }
+      }
+    }
+  ],
+  "milestone": "Prelinked native XNU candidate 40458123294 (with ArmDTPlatform + ArmCpu + native timer) completed 100% of _start, MMU activation, arm_vm_init, permanent TTBR1_EL1 switch (0xd2f7e000 -> 0xd4229000), and pmap_bootstrap through 7:vm_done on TB-J716F hardware with zero faults, retaining all 8 CRC-verified records across reset.",
+  "next_action": "Test FAST-V4 (research/native-fast-v4-build-20261029.json) on boot_b to observe post-vm_done _arm_init tail (33..38), _kernel_debug_string_early (39 + rolling 47), _kernel_bootstrap milestones (57..62), _load_context (49), _kernel_bootstrap_thread / _PE_init_iokit (54..56), and _ml_panic_trap_to_debugger (45..46)."
+}

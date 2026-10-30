@@ -25,6 +25,8 @@ def package(a):
     if sys.flags.optimize:raise ValueError('Do not disable binary parser assertions')
     stage=a.stage;built=stage/'built'
     spec=json.loads((stage/'firmware-source.json').read_text())
+    export_init=spec.get('export_init',False)
+    if type(export_init) is not bool:raise ValueError('Invalid explicit export/init profile')
     build=json.loads((built/'build-result.json').read_text())
     pre=json.loads((a.prelinked/'native-prelink.json').read_text())
     if build['exit_code'] or pre['selection']!=spec['selection']:raise ValueError('Not a successful selected build')
@@ -66,6 +68,7 @@ def package(a):
     content=read_fat32(fat);payload=json.loads((built/'payload.json').read_text())
     wanted={'/EFI/UniXNU/unixnu.toml','/EFI/Tools/J716fNativeRead.efi','/EFI/Tools/J716fNativeArm.efi',
             '/Payloads/kernel.macho','/Payloads/kernel.macho.adt'}
+    if export_init:wanted|={'/EFI/Tools/J716fNativeExport.efi','/EFI/Tools/J716fNativeInit.efi'}
     if set(content)!=wanted or set(payload['files'])!={p[1:] for p in wanted}:raise ValueError('Unexpected FAT contents')
     for path,raw in content.items():
         if payload['files'][path[1:]]!={'sha256':sha(raw),'bytes':len(raw)}:raise ValueError('FAT manifest mismatch')
@@ -76,15 +79,20 @@ def package(a):
     if adt!=(stage/'inputs/kernel.macho.adt').read_bytes():raise ValueError('Wrong generated ADT')
     adt_checks=json.loads((stage/'inputs/kernel.macho.json').read_text())
     if sha(adt)!=adt_checks['adt_sha256']:raise ValueError('ADT provenance mismatch')
-    for name in ('J716fNativeRead','J716fNativeArm'):
+    apps=['J716fNativeRead','J716fNativeArm']+(['J716fNativeExport','J716fNativeInit'] if export_init else [])
+    for name in apps:
         if content['/EFI/Tools/'+name+'.efi']!=(built/(name+'.efi')).read_bytes():raise ValueError('Wrong reader/ARM')
+    maintenance=spec['reader'].get('maintenance_profile') if export_init else None
+    if export_init:
+        if not maintenance or len(maintenance)!=64:raise ValueError('Missing maintenance source profile')
+        if bytes.fromhex(maintenance) not in content['/EFI/Tools/J716fNativeInit.efi']:
+            raise ValueError('Maintenance identity not in linked initializer')
+        if b'Maintenance.c' not in (stage/'J716fNativeLog/Init.inf').read_bytes():
+            raise ValueError('Old standalone initializer selected')
+        if sha(kernel)!='150c5c5f13a4337eb05218232f3a157429f0974ba49f71b4627789497132d074' or sha(adt)!='806ad48c85881b51f6acbeeea7ff4ec065f9edbe32d90f4aa304b5046faa64a3':
+            raise ValueError('Maintenance must preserve exact previously selected kernel and ADT')
     menu=tomllib.loads(content['/EFI/UniXNU/unixnu.toml'].decode())
-    if (menu['boot']!={'timeout':-1,'fallback_timeout':-1,'rotate':0,'connect_all':False,'default':'reader'} or
-        menu['kits']['autoload'] is not False or [e['id'] for e in menu['entry']]!=['reader','arm','native','exit'] or
-        [e['type'] for e in menu['entry']]!=['efi','efi','xnu','action'] or
-        menu['entry'][2]['path']!='\\Payloads\\kernel.macho' or
-        menu['entry'][2]['args']!='-v serial=0 debug=0x14e cpus=1 -no_slto_panic' or
-        menu['entry'][3]['action']!='exit' or any(e.get('action') in ('reset','shutdown') for e in menu['entry'])):
+    if menu!=tomllib.loads(load_module('build-native-payload').config(export_init)):
         raise ValueError('Unexpected native manual policy')
     if 'Native manual-only:'.encode('utf-16le') not in (built/'UniXNU.efi').read_bytes():
         raise ValueError('Manual-only loop not linked')
@@ -102,7 +110,7 @@ def package(a):
     mk=a.uefi/'Resources/Scripts/mkbootimg.py'
     source=subprocess.check_output(['git','-C',str(a.uefi),'show',spec['uefi_commit']+':Resources/Scripts/mkbootimg.py'])
     if mk.read_bytes().replace(b'\r\n',b'\n')!=source.replace(b'\r\n',b'\n'):raise ValueError('Changed image wrapper')
-    target=a.output/'j716f-native-log-40458123294-boot.img'
+    target=a.output/('j716f-native-log-40458123294'+('-maint-v2' if export_init else '')+'-boot.img')
     subprocess.run([sys.executable,str(mk),'--kernel',str(a.output/'Image.gz-dtb'),
        '--ramdisk',str(a.output/'empty-ramdisk'),'--dtb',str(a.dtb),'--output',str(target),
        '--header_version','2','--base','0','--kernel_offset','32768','--tags_offset','256',
@@ -122,6 +130,8 @@ def package(a):
     for part in (packed,b'',b'',b'',dtb):digest.update(part);digest.update(struct.pack('<I',len(part)))
     if final[576:608]!=digest.digest()+bytes(12):raise ValueError('Android v2 image ID mismatch')
     report={'schema':1,'stage':'native-final-image-host-audited','selection':spec['selection'],
+      'export_init':export_init,
+      'maintenance_profile':maintenance,
       'image':target.name,'image_bytes':len(final),'image_sha256':sha(final),'fd_sha256':sha(fd),
       'fd_bytes':len(fd),'fv_sha256':sha(fv),'payload_sha256':sha(fat),'kernel_sha256':sha(kernel),
       'kernel_bytes':len(kernel),'source_kernel_sha256':pre['source_kernel_sha256'],

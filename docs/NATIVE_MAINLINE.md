@@ -3,9 +3,54 @@
 本轮目标是让一个可追溯的原生内核进入最终镜像，并能带回失败或成功证据。
 仅新增观测数组、源码编译成功或预链接成功，均不足以准许上机。
 
-## 当前结果与固定对象（2026-10-27）
+最新现场：[10-29 MAINT v2 完整导出](../research/native-maint-complete-20261029.json)已完成。
+录像独立恢复 **256/256 帧、262144 字节**，所有帧 CRC 和整区 SHA5583ff6e/CRC B6D19E53
+重算一致；原图首帧文本与录像相同，固定 profile/candidate/transfer 未变。
+原视频及 raw/frames/report 已私有保存、读回核对，快照另存同盘第二目录副本，不需再补录。
+当前头仍无效，全区未找到当前原生会话/事件/Init 精确标记；没有 Init 令牌或内核运行证据。
+下一步是审查显式冷启动会话建立及区域所有权；保持暂停，不 Init/ARM/native/退出/重启/重刷。
+本轮仅完成这份快照的只读导出，不代表原生启动后的失败恢复、保留 RAM 或 IRQ/调度已验证。
 
-**原生带日志候选已进入最终镜像，并通过主机反解审计；尚未上机。**
+前一现场：[10-29 冷启动后 Read v3](../research/native-read-coldboot-20261029.json)已拍到。
+用户确认完全关机后开机；DBGC 头非法，STABLE=1 仅说明本次采样一致。
+当前转为 **MAINT-v2 原样导出限定操作**；不执行 Init/ARM/native，不复位或重刷。
+有效满环/空间不足的旧准入说明不适用于这份快照。原生内核未获得新的运行证据。
+
+2026-10-29：[sheng/pipa/umi 分层复用核对](UPSTREAM_REFERENCE_20261029.md)与已有最终镜像
+只读复核完成；原生内核/ADT/日志身份未变。标准 initrd、Advanced Logger 和实际 Tools 菜单
+差距已定位，未借此另造维护版本。用户报告已开机进入 Read，待当前照片；本次无设备命令。
+
+最新：[MAINT v2 实施与操作](NATIVE_MAINTENANCE_V2.md)已完成实际C/EFI验证、专用构建及反解，
+镜像627dc31c（8380416字节）仅boot_b刷写/B槽确认/重启命令成功，仍待新菜单/Read照片。
+固定原生内核/ADT不变；第3项同一应用内Export→Init替代原设计的跨应用ticket。
+新完整导出、物理Init、Query/ARM和原生启动均未发生。下文v1状态为历史检查点，不是当前操作。
+
+## 最新增量：RAW-v1 完整实机光学导出（2026-10-27）
+
+在同一固定内核/ADT 上，显式加入只读 Export 与独立 Init 的新镜像 SHA256 为
+`63399ed5260c5291c25a9a5b55c5214aa0099799b6cc040d9b7ceef20eb5addc`，8,372,224 字节。
+boot_b-only 刷写/选槽/重启命令成功，用户照片确认新菜单、Read 和暂停的 Export 首帧。
+原始照片通过独立 ZXing 解码，生产解析器核对 candidate、规范帧格式及 CRC，恢复首个 1024 字节；
+DBGC next=`0x3cbd2`、size=`0x3fff4` 与 reader 照片一致。
+随后提供的视频属于另一 transfer `00000001AD5A00BB`，接收器拒绝混入旧照片帧；
+独立接收得到 250 帧，再从同一视频密集采样补齐 6 帧，完成 **256/256 帧、262144 字节**。
+整区 SHA256 `0ebb2cdca1c32957283eeffc1cdff9cdc19f8b035cd71b10f0f08146725382fa`
+和 CRC `1CC58AC7` 均已独立重算。dump/frames/私有回执落盘读回通过，并保存第二份目录副本。
+
+用户随后已给予 Init-only 授权，但首次 Init 照片显示 BLOCKED、ready0/used0，无回执/确认。
+用户确认中途重启并进入 fastboot；当前 `next=size=0x3f56e`、SHAa6c467c4... 已不同于旧备份。
+该有效未满线性头不满足 Init v1 的满环条件，且对齐后只余2688字节，不够8192字节会话。
+下一步仅 Read 与新快照独立导出；重新导出不会自动解除 Init v1 的策略限制。
+见[Init 拒绝检查点](../research/native-init-blocked-20261027.json)；没有初始化写入、Query/ARM 或 XNU 启动。
+日志按满环游标展开后主要是 Android Recovery/fastbootd 的 Keymaster 重试、电池及重启记录，
+不是原生 XNU 崩溃现场；详见[新分析检查点](../research/native-console-analysis-init-20261027.json)。
+见[操作与限制](NATIVE_CONSOLE_EXPORT.md)、[首帧记录](../research/native-console-optical-20261027.json)
+及[完整导出验收](../research/native-console-complete-20261027.json)。
+旧镜像、旧照片、主机报告与设备操作记录全部保留；下述基线阶段叙述不替代这一最新状态。
+
+## 原生基线结果与固定对象（2026-10-27）
+
+**原生带日志候选已进入最终镜像；专用固件菜单与只读 reader 已上机，XNU 尚未启动。**
 选定 [CI40458123294 / attempt1](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/40458123294)，
 设备源码 `474c8a65b731d293987afdf550112f7b02f9ea32`，独立锁为
 `configs/native-log-candidate-40458123294.json`。该 CI 的完整 XNU/原生驱动编译、实际链接
@@ -44,7 +89,32 @@
 - 新 FAT GUID `90f40472-1975-40e2-8028-c76d530d15a7`；无旧 trace menu、代码洞补丁或逐函数复位。
   菜单仅 reader/ARM/native/exit；仅按 Enter 选择，没有倒计时、输入失败回退或自动重试。
 
-上述结果均为 host-only。`hardware_launch_admitted=false`；完整保留 RAM 日志闭环仍未完成。
+上述构建/反解结果均为 host-only，原报告保留不变。`hardware_launch_admitted=false`；
+后续 reader-only 硬件观察如下，完整保留 RAM 日志闭环仍未完成。
+
+### 首次菜单与只读 reader：通过显示门槛，阻塞于满环形（2026-10-27）
+
+另行授权后，仅写入上述固定镜像到 `boot_b`，激活 B 并重启；fastboot 返回成功，
+重核 B 槽可启动。没有分区读回，未写 boot_a/vbmeta/userdata。
+两张用户照片确认本候选手动菜单和 `J716F NATIVE READ v2` 页面；原图已复制到私有证据目录，
+脱敏字段和哈希见 [reader 实机观察](../research/native-reader-40458123294-20261027.json)。
+
+reader 显示 `DBGC=43474244`、`next=0002A354`、`size=0003FFF4`、
+`consoleCRC=CA89D8BC`、`STABLE=1`，没有有效匹配会话。
+四个 Expected candidate words 与固定日志身份的小端表示一致；它们来自 reader 编译常量，
+**不是从一个已建立会话读出的身份**。`STABLE=1` 仅为本次 live-before/frozen/live-after
+CRC 一致，不是主机重算完整 console CRC，也不是跨复位保留证明。
+
+`size` 等于 `JL_CAPACITY=0x3fff4` 且 `next!=size`，当前是满的非线性环；
+`jl_arm_query`/`jl_reserve` 要求线性头与 8192 字节未用尾部，因此按照片状态必然拒绝。
+这是源码准入判断，没有为了观察拒绝而运行 Query/ARM。reader 恢复器也只接受已提交线性区，
+所以“无匹配会话”不能推断整个物理区中完全没有旧可恢复内容。哪个阶段写满了环仍未知。
+
+本次没有 Query、ARM、清环、初始化或 XNU 启动；不能判作原生内核失败。
+菜单到 reader 的两张静态照片不等于全部按键/分页或完整启动连续录像验证。
+当前停在只读页，下一步先审查完整 console 的只读导出，以及不丢证据的显式会话建立方案，
+或另经所有权审计的日志区。**照片不是完整 RAM 备份；不得直接移用 P22 初始化、放宽准入、
+清环、刷写或复位来绕过门槛。** 新设备操作和原生启动仍需单独授权，挂死恢复问题仍待解决。
 
 ## 历史接收基线（保留，不再默认选用）
 
@@ -191,8 +261,8 @@ python3 scripts/package-native-image.py --stage /private/stage --prelinked /priv
 | 硬件树 | 公共 DTS→ADT 已实际编译核对；单 CPU PSCI 补充明确记录；真实匹配与 IRQ 待测 |
 | 固件链 | 现有嵌入 FAT 诊断链与标准 initrd 链不同；不得仅改声明就称已迁移 |
 | 固件日志 | Advanced Logger/二维码尚未完成本板集成，列为缺口；不阻塞保留 RAM 早期采集的独立实现 |
-| 原生日志 | 真实源码 writer、独立只读 reader/ARM、解码器与主机测试完成；实机长期映射/恢复未完成 |
-| 最终镜像 | 已反解 boot/FD/FAT，实际内核/ADT/菜单/读取器逐字节一致；没有实机结论 |
+| 原生日志 | 真实源码 writer、独立 reader/ARM、解码器与主机测试完成；旧完整导出已保存；重启/fastboot 后新线性区空间不足，Init v1 安全拒绝；需新快照备份及单独审查支持方案，尚无原生会话/恢复结果 |
+| 最终镜像 | 已反解 boot/FD/FAT，实际内核/ADT/菜单/读取器逐字节一致；固定镜像仅 boot_b 写入及菜单/reader 已观察，尚无分区读回或 XNU 启动结论 |
 | 通用构建入口 | 普通 firmware preflight 明确拒绝，专用脚本可审计；仍需整合标准构建及干净固件依赖闭包 |
 | 发布 | 已推送脱敏源码并运行 CI；只读仓库 API 核查 topics 为空，尚缺上游要求的 unixnu topic，目录发布未确认；未改仓库设置/中央设备记录，未公开私有二进制 |
 
@@ -209,6 +279,7 @@ python3 scripts/package-native-image.py --stage /private/stage --prelinked /priv
    CRC/commit 撕裂、越界、陈旧记录必须拒绝；不得把“日志缺失”解释成“函数通过”。
 5. 硬件：先交付候选哈希和读取/恢复步骤并取得单独授权；仍仅限 boot_b，保留 boot_a/vbmeta/userdata。
    第一门槛仅为新菜单/只读 reader，拍照确认身份、稳定冻结和当前保留区，不进入 ARM/native。
+   满环形完整快照已保存；Init-only 已授权，但中途重启后现场变化且首次 Init 拒绝。先保存新快照，不能复用旧回执或绕过线性区容量门槛。
    随后依据现场审查一次原生启动及挂死恢复方案；未经验证不能宣称无条件可恢复。
 
 ## 同一候选的观测顺序
