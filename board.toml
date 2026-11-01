@@ -116,6 +116,9 @@ packages = [
 ENABLE_SECUREBOOT = 0
 DEVICE_MODEL = "j716f"
 
+[adt.defaults.u32]
+vmm-present = 1
+
 [payload]
 volume = "J716FNATIVE"
 size_mib = 64
