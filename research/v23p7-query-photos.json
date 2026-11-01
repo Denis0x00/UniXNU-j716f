@@ -1,0 +1,61 @@
+{
+  "version": "V23P7 RESET r1",
+  "image_sha256": "919cd695ac28b4eada47b663ee3724575aaefaa5a8778a71f0c2c4581527f23e",
+  "evidence_sha256": {
+    "menu_photo": "27f20462c183eac2976f66303178c6a3e819b655e34a0cb9498383db82efe55f",
+    "inventory_photo": "2d22bed645a856cfd5e7ce1dd0bff360230f9db51721f9ac1752142b3a6f3fd7",
+    "query_photo": "1cdb9de552d93a9aa8ac62a1f63cf3e2d266def3530ca690830228dc6eb3ee4f"
+  },
+  "observed": {
+    "correct_menu_and_app": true,
+    "current_el": 1,
+    "reset_arch": true,
+    "reset_notify": true,
+    "owner_found": true,
+    "expected_driver_guid_rva_prefix_match": true,
+    "reset_rva": "0x10540",
+    "initial": {
+      "valid": true,
+      "next": "0x2923f",
+      "size": "0x2923f",
+      "p6_records": 0,
+      "p7_entry": 0,
+      "p7_now": 0
+    },
+    "query_complete": true,
+    "psci_version_x0": "0x0000000000010001",
+    "psci_version_decoded": "1.1",
+    "features_system_reset_x0": "0x0000000000000000",
+    "features_reset2_a64_x0": "0x0000000000000000",
+    "last_fid": "0x8400000a",
+    "last_x0_through_x3": [
+      "0x0",
+      "0x0",
+      "0x0",
+      "0x0"
+    ],
+    "after": {
+      "valid": true,
+      "next": "0x2958a",
+      "size": "0x2958a",
+      "p7_entry": 0,
+      "p7_now": 6
+    },
+    "bytes_appended": 843,
+    "status": "Queries returned and recorded"
+  },
+  "device_query_returns_verified": true,
+  "same_invocation_record_readback_verified": true,
+  "reset_verified": false,
+  "retention_verified": false,
+  "recovery_readback_verified": false,
+  "claims_xnu_progress": false,
+  "limits": [
+    "FEATURES=0 reports interface support; no actual reset is observed in these photos.",
+    "Six records are app-displayed counts, not independently captured Recovery console data.",
+    "P6 count zero does not identify a loss stage across intervening operations.",
+    "Old driver uninitialized inputs remain an unproven cause."
+  ],
+  "next_trial": "Manually select Direct RESET2 + record in the same image; film either actual reboot and initial inventory or returned x0..x3. No other reset path in this trial.",
+  "reference": "https://github.com/torvalds/linux/blob/master/include/uapi/linux/psci.h"
+}

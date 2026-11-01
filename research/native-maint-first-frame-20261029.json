@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-29",
+  "status": "physical-maint-v2-first-frame-verified-partial-export-only",
+  "source_base_revision": "48fbbf5a03241fe8c83f4bc4808da31975381fbc",
+  "build_record": "research/native-maintenance-v2-20261027.json",
+  "prior_read_record": "research/native-read-coldboot-20261029.json",
+  "photo_sha256": "5c3c789c52ba888a768306a3336c9ceba0a6d4fa34d6f6e5a05c814f2ad6d5b5",
+  "photo_bytes": 313297,
+  "private_photo_copy_hash_verified": true,
+  "device_observation": {
+    "title": "NATIVE MAINT v2 - EXPORT FIRST / NO WRITES WHILE EXPORTING",
+    "displayed_frame": "1/256",
+    "displayed_state": "PAUSE",
+    "displayed_interval_ms": 1000,
+    "displayed_console_crc32": "B6D19E53",
+    "displayed_crc_matches_prior_read": true,
+    "scope": "Photographed maintenance application and QR contents, not partition readback, cryptographic image attestation or native kernel execution."
+  },
+  "host_decode": {
+    "decoder": "Offline zxingcpp QR decode, unchanged native_maintenance.Capture validation and publish partial-capture preservation",
+    "decoded_qr_count": 1,
+    "canonical_frame_valid": true,
+    "profile_matches_pinned_build": true,
+    "candidate_matches_pinned_logger": true,
+    "maintenance_profile": "fb6ea084e0ac3c4f9cf8acb37464d2e1e28835141acb099812cc844718946537",
+    "logger_candidate_sha256": "1c19ee51d5388dcfbbaefd41dcf361a54ccee3d08d889f6f0e4bb6f69a08d892",
+    "declared_snapshot_sha256": "5583ff6edf75f5bd2aa7ec2019548a3cebf891fc0c34d4302c810b8197e18811",
+    "transfer_id": "000000039CA7ACD9",
+    "declared_console_crc32": "B6D19E53",
+    "frame_index_zero_based": 0,
+    "frame_count_expected": 256,
+    "unique_frames_received": 1,
+    "chunk_bytes_received": 1024,
+    "snapshot_bytes_expected": 262144,
+    "raw_first_header": ["00B7266B", "8E025595", "2A002821"],
+    "frame_crc32": "2C63A987",
+    "frame_crc_independently_verified": true,
+    "whole_snapshot_sha_crc_independently_verified": false,
+    "complete": false
+  },
+  "transcription_correction": {
+    "previous_visual_transcription": ["00A7266B", "8D025595", "2A002021"],
+    "current_qr_decoded_bytes": ["00B7266B", "8E025595", "2A002821"],
+    "scope": "The prior Read-photo values were visual transcription, not recovered RAM. Use the QR-decoded header for the current snapshot; preserve the earlier record unchanged with this explicit correction. Matching displayed CRC is consistent with unchanged bytes but does not independently establish byte-for-byte equality of the two full snapshots.",
+    "classification_unchanged": "INVALID_HEADER"
+  },
+  "private_preservation": {
+    "frames_sha256": "87d1bce592d39ae196f7063f44952bdd26c9bd1578f8b7debebe9b11bdaa32c8",
+    "frames_bytes": 2296,
+    "frames_fsynced_and_readback_verified": true,
+    "publisher_result": "Incomplete capture 1/256; no initialization receipt",
+    "raw_console_file_created": false,
+    "receipt_file_created": false,
+    "initialization_receipt": null,
+    "scope": "Original photo and raw QR frame text remain outside the public repository. New private directory; no previous evidence overwritten."
+  },
+  "policy": {
+    "expected_magic": "43474244",
+    "maximum_next_or_size": "0003FFF4",
+    "classification": "INVALID_HEADER",
+    "basis": "Recovered first 12 bytes have wrong magic and out-of-range next/size; this alone fails existing Init and ARM header admission. No synthetic tail is presented as recovered RAM.",
+    "initialization_eligible": false,
+    "arm_eligible": false,
+    "complete_export_would_authorize_init": false
+  },
+  "new_native_kernel_execution_evidence": false,
+  "device_commands_issued_by_agent": false,
+  "implementation_changed": false,
+  "next_action": "Record the same still-open MAINT-v2 invocation through one complete 1-to-256-to-1 cycle plus extra frames. Short Power starts/pauses playback. Keep QR and white border clear; upload original video. Preserve all 256 frames and independently verify whole SHA/CRC before separate cold-start session/ownership review. No Init, ARM, Native, exit, reset or reflash."
+}

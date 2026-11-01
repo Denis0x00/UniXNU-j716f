@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "date": "2026-10-27",
+  "status": "hardware-optical-first-frame-verified-complete-export-pending",
+  "scope": "Sanitized RAW-v1 deployment/menu/reader/first-frame evidence; not a complete RAM backup or XNU launch",
+  "record_source_base": "48fbbf5a03241fe8c83f4bc4808da31975381fbc",
+  "implementation_state": "Uncommitted RAW export/init implementation on the recorded base; fixed selected kernel unchanged. No new CI qualification implied.",
+  "candidate_binding": {
+    "source_ci_run": 40458123294,
+    "source_ci_attempt": 1,
+    "kernel_source_commit": "474c8a65b731d293987afdf550112f7b02f9ea32",
+    "logger_identity_sha256": "1c19ee51d5388dcfbbaefd41dcf361a54ccee3d08d889f6f0e4bb6f69a08d892",
+    "prelinked_kernel_sha256": "150c5c5f13a4337eb05218232f3a157429f0974ba49f71b4627789497132d074",
+    "adt_sha256": "806ad48c85881b51f6acbeeea7ff4ec065f9edbe32d90f4aa304b5046faa64a3",
+    "kernel_and_adt_unchanged_from_prior_native_image": true,
+    "boot_image_sha256": "63399ed5260c5291c25a9a5b55c5214aa0099799b6cc040d9b7ceef20eb5addc",
+    "boot_image_bytes": 8372224,
+    "private_host_audit_sha256": "c9edd800089e10396d2cd6ce45f55164fd4094c101bba14f92356a96adc3051c",
+    "reader_efi_sha256": "aa349e240e3a0f817e5d94a2928762fd1b38d57705721cb58b4bfc7e4e9db5d7",
+    "arm_efi_sha256": "92fadff0e7438802f600eec8efb41309161013cac1416470c1760814ec08d969",
+    "export_efi_sha256": "ad7ff23ff2db13cc55523d6edee704ad49a09a9a07f6372f6179d3baa1d343be",
+    "init_efi_sha256": "2ed34c3172da6de62e20dd76273f39154078c04b3ed9d4b683e0080c542487b5"
+  },
+  "deployment": {
+    "private_operation_record_sha256": "37c141c6cd80d5f160d7f4c852f2e89927da252578427fb20f2bd4ddcf67947c",
+    "authorization_scope": "Next test after volatile-snapshot loss warning: boot_b-only RAW-v1 deployment/reboot, then read-only menu/reader/export. No RAM initialization, Query/ARM or XNU launch.",
+    "historical_device_binding_checked": true,
+    "fastbootd": true,
+    "partitions_flashed": ["boot_b"],
+    "flash_command_succeeded": true,
+    "b_active_bootable_rechecked_before_reboot": true,
+    "a_not_unbootable_rechecked": true,
+    "reboot_command_succeeded": true,
+    "partition_readback_performed": false,
+    "boot_a_vbmeta_userdata_written": false,
+    "prior_unexported_ram_snapshot_preserved": "unknown"
+  },
+  "private_photos": {
+    "menu_sha256": "fc5061be9c182ac2037115f7d773731331d1061a3a5187b11df90d78aec0d51b",
+    "reader_sha256": "8040a73f1bb22193844b6eb2c994aff579bf115b34f432154d7d8d88491f6621",
+    "export_sha256": "f053b4be6d06ad85747a6c3b45608819d103e67a53836e71114a95f9727ed678",
+    "original_and_preserved_copy_hashes_match": true,
+    "continuous_video_available_at_this_checkpoint": false,
+    "raw_photos_published": false
+  },
+  "hardware_observation": {
+    "menu_raw_export_v1_title_visible": true,
+    "reader_stable_displayed": true,
+    "reader_valid_matching_native_session": false,
+    "dbgc_header_recovered_from_qr_bytes": ["43474244", "0003CBD2", "0003FFF4"],
+    "recovered_header_matches_reader_photo": true,
+    "console_is_full_wrapped_ring": true,
+    "export_initial_frame": "1/256",
+    "export_paused": true,
+    "export_interval_ms_displayed": 1000
+  },
+  "optical_verification": {
+    "decoder": "ZXing-C++ 3.1.1; original JPEG without preprocessing; production native_export.Capture validation",
+    "production_codec_sha256": "23d03891da58508a30aafa6f91e7e941c7251f932ca8b31e3b07592c7f3fc24e",
+    "unique_frames_received": 1,
+    "total_frames_required": 256,
+    "frame_payload_bytes": 1024,
+    "frame_crc32": "56FF881C",
+    "frame_crc_verified": true,
+    "frame_payload_sha256": "61cb8aaf96d02ad2bef97056996c1c5c0e43f118919f50d11453ddbfd6f32249",
+    "private_frames_file_sha256": "291a8b165736efcf205ef140f7e606e7234980da3e771cb2209be1f637c48c45",
+    "transfer_id": "0000000071E24046",
+    "snapshot_sha256_advertised": "0ebb2cdca1c32957283eeffc1cdff9cdc19f8b035cd71b10f0f08146725382fa",
+    "console_crc32_advertised": "1CC58AC7",
+    "advertised_crc_matches_reader_photo": true,
+    "complete_snapshot_reconstructed": false,
+    "complete_snapshot_sha256_or_crc_independently_recomputed": false,
+    "initialization_receipt_issued": false
+  },
+  "limits": [
+    "Only one physical-screen frame has passed independent optical decoding; no complete backup yet.",
+    "The whole-snapshot SHA256 and CRC are advertised metadata until all 256 frames are reconstructed.",
+    "Transfer identity is not an armed native-kernel session; expected candidate values do not prove kernel execution.",
+    "No Init, Query/ARM, native launch, retention, permanent-map, IRQ or scheduler qualification follows.",
+    "The photographed snapshot differs from the previous native reader observation; preservation of that prior unexported snapshot is not established.",
+    "RAW optical export is not Advanced Logger/OneSend integration; standard initrd and clean dependency closure remain open."
+  ],
+  "history_preserved": {
+    "previous_native_image_and_observation_preserved": true,
+    "host_audit_and_fastboot_record_not_rewritten": true,
+    "p22_remains_closed": true
+  },
+  "next_action": "Keep the SAME Export app/transfer open; record a full QR loop and save the original video privately. Receive and verify all 256 frames, durable raw bytes and readback before reviewing any separately authorized initialization. Do not exit, reset, Init, ARM or launch XNU."
+}

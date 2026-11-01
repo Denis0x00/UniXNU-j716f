@@ -1,0 +1,14 @@
+# Mu-Silicium Basecore is pinned to the dependency used by the firmware repo.
+[[source]]
+name = "edk2"
+kind = "refer"
+git = "https://github.com/microsoft/mu_basecore.git"
+commit = "3c9c7b2e211e62d2a954ad760a36fe05adc43aa3"
+
+# Public SM8250 scaffolds exist but are not yet qualified for this device. This local source
+# is a temporary, board-local evidence snapshot and must be split into a
+# reviewed shared repository before publishing a production port.
+[[source]]
+name = "sm8250"
+kind = "soc"
+local = "socs/sm8250"

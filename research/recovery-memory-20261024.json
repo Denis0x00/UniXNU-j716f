@@ -1,0 +1,62 @@
+{
+  "phase": "recovery-RAM-bank-evidence-and-offline-candidate-audit",
+  "capture_environment": "TWRP 3.7.1_12-0 / Linux 4.19.157-perf+; not the stock ZUI kernel",
+  "recovery_fdt_sha256": "68a47ee572da795077a692e7944c393c272197c66a69f43ba8d9a8ec03b39db2",
+  "stock_dtb_sha256": "2c0d57deb7f99a081fe4994535c51ca0362bf44b6ad5422a7300f01496f6b3ec",
+  "uefi_map_sha256": "0e7879fac72b2a91cf672fd6bda83faa79d21ccfb5914fa2b0c1a60ca2b9cd41",
+  "memory_banks": [
+    {
+      "base": 2147483648,
+      "size": 1019215872,
+      "end_exclusive": 3166699520
+    },
+    {
+      "base": 3221225472,
+      "size": 5368709120,
+      "end_exclusive": 8589934592
+    }
+  ],
+  "dt_declared_bytes": 6387924992,
+  "live_and_flattened_memory_reg_match": true,
+  "live_and_fdt_memory_properties_compared": 60,
+  "live_and_fdt_memory_properties_match": true,
+  "stock_static_memory_placeholder": true,
+  "candidate": {
+    "base": 3489660928,
+    "size": 402653184,
+    "end_exclusive": 3892314112
+  },
+  "candidate_within_reported_bank": true,
+  "candidate_within_recovery_system_ram": true,
+  "candidate_blockers": {
+    "recovery_fixed_reserved": [],
+    "stock_fixed_reserved": [],
+    "recovery_iomem_non_ram": [],
+    "recovery_logged_cma": [],
+    "v13_published_ranges": []
+  },
+  "kernel_base_residue": "0x7c000",
+  "candidate_window_base": "0xd007c000",
+  "candidate_window_end": "0xe007c000",
+  "candidate_window_fits_offline": true,
+  "runtime_qualified": false,
+  "firmware_modified": false,
+  "device_partitions_written": false,
+  "limitations": [
+    "Recovery used DTB index 0 / DTBO index 10; stock ZUI used 0 / 8.",
+    "A bank map is not an SMEM RAM-partition-table dump.",
+    "Dynamic reservation placements belong to the recovery kernel; stock may differ.",
+    "No firmware mapping, AllocatePages or write/read test has run in the candidate range.",
+    "Requires a separate UEFI qualification candidate before real XNU handoff."
+  ],
+  "capture_input_sha256": {
+    "fdt.dtb": "68a47ee572da795077a692e7944c393c272197c66a69f43ba8d9a8ec03b39db2",
+    "device_tree.tar": "94ded05658b2aa5fe27f2620ccf6dc493c48836f1457b14887aa4283f05c7eac",
+    "iomem.txt": "c9633c655a92211452137779c77c718183f4fe259d25cc3354c20bb5eb3578ac",
+    "dmesg.txt": "3cf296e3d30217454781531281a756fec575ecf587f0c718052f75dc8c8404bb"
+  },
+  "source_tools_sha256": {
+    "collect_j716f_recovery_memory.py": "c8187c4b9ed0b89ce282de39c2bb6df573d2eee3cf896b4df072c683f9a857c2",
+    "analyze_j716f_recovery_memory.py": "83edb6e9faa2f385a27d12aac89269591806177e2562bbb798479eafc5817cfb"
+  }
+}

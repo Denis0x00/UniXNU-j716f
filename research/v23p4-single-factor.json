@@ -1,0 +1,315 @@
+{
+  "profile": "J716F V23P4 single-factor legacy MMIO envelope with marker-preserving clear",
+  "updated_at": "2026-10-25",
+  "source_state": "Local uncommitted additions; no V23P4 push.",
+  "variant": {
+    "variant": "V23P4",
+    "mode": 5,
+    "image": "j716f-mu-zui13-entry-v23p4-boot.img",
+    "image_bytes": 8343552,
+    "image_sha256": "2d938ad53f90d74ff4e365528de9dbefd3545b63c914fab106d9413ac396c957",
+    "fd_sha256": "d5a9da76ede77b46db2b5d3a9c29396403debc2d1679eff5d06cb5c49616e09c",
+    "payload_sha256": "4cb19297c86d5c1c2ff628b35d25a8bf704ed54fea3bcd7bc391fd75b683ce9c",
+    "probe": {
+      "variant": "V23P4",
+      "kernel_sha256": "70557ad0961d1df6be51a95f171c71d95d85f7167cbeb21c27bbaf775a06b97b",
+      "baseline_sha256": "cab8f385a44d21fc6f455cb501227452212ba44d34a9fa03d04fcf7e85324214",
+      "changes_confined": true,
+      "probe_bytes": 2108,
+      "probe_capacity": 2800,
+      "exception_vectors": 16,
+      "source_crypto_hmac": {
+        "offset": 1449688,
+        "computed": "708061d0f03289f197a14a5e57bc1825e896e3c144f94e801a861b7f433a3523",
+        "stored": "708061d0f03289f197a14a5e57bc1825e896e3c144f94e801a861b7f433a3523",
+        "matches": true
+      },
+      "counter_loop_bound": null,
+      "psci_function": "0x84000009",
+      "uses_counter": false,
+      "uses_psci": true,
+      "direct_mmu_display_mapping": false,
+      "normal_kernel_continuation": false,
+      "hardware_verified": false,
+      "display_mode": 5,
+      "checkpoints": {
+        "1": "Before title renderer call",
+        "2": "Title stores complete; before original DSB",
+        "3": "After original title DSB; before RET",
+        "4": "Title call returned; before CurrentEL",
+        "5": "CurrentEL read completed",
+        "6": "EL renderer returned; before SCTLR read",
+        "7": "SCTLR read completed",
+        "8": "SCTLR renderer returned",
+        "9": "FUNC renderer returned",
+        "10": "A0 renderer returned; before SMC argument setup",
+        "11": "SMC returned; x0 retained in x21",
+        "12": "Exception entry before register reads"
+      },
+      "raw_checkpoint_geometry": {
+        "x": 1280,
+        "y": 32,
+        "pitch": 104,
+        "width": 96,
+        "height": 96
+      },
+      "checkpoint_limits": "Inline stores without barriers; absence alone does not prove non-execution.",
+      "control_kernel_sha256": "5984888de0c85d8a06e56b3524ce185fa608851ada096b531a23d059edbcf8de",
+      "control_probe_sha256": "f0e9819df126934e1388d0219fd11ac45deeb1d2f19444d66b50ec0c3e544039",
+      "single_factor_verified": true,
+      "diagnostic_mode_unchanged": 5,
+      "diagnostic_revision": "r1",
+      "clear_filter": {
+        "site": "0xfffffff0073fc574",
+        "target": "0xfffffff0073fccd8",
+        "before": "3f7d81a8",
+        "preserves_only_envelope_rectangles": true
+      },
+      "mutation": {
+        "site": "0xfffffff0073fe32c",
+        "before": "010000b9",
+        "after": "3dfaff17",
+        "stub": "0xfffffff0073fcc20",
+        "return": "0xfffffff0073fe330",
+        "before_marker": {
+          "x": 1280,
+          "y": 192,
+          "width": 96,
+          "height": 96
+        },
+        "after_marker": {
+          "x": 1384,
+          "y": 192,
+          "width": 96,
+          "height": 96
+        },
+        "original_store": "str w1, [x0]"
+      },
+      "envelope_interpretation": {
+        "before_only": "legacy MMIO store did not return or later execution failed",
+        "before_and_after": "legacy store returned; failure is later in the path",
+        "neither": "probe did not reach the envelope or display record failed",
+        "limits": "markers are framebuffer stores, not a PC trace or a reset-source proof"
+      }
+    },
+    "boot": {
+      "kernel_sha256": "1e1e0d2b1a3a91f15ce4c52fc55c7ae7a8d7d4ef5d90f78b42c657cd80cec078",
+      "ramdisk_bytes": 0,
+      "header_version": 2,
+      "kernel_address": "0x8000",
+      "tags_address": "0x100",
+      "separate_dtb_bytes": 728300,
+      "separate_dtb_address": "0x1f00000"
+    },
+    "host_checks_passed": true,
+    "hardware_verified": false,
+    "linked_modules": {
+      "UniXNU.efi": {
+        "bytes": 90112,
+        "sha256": "5e219d78170b4b884358783da87d4b84e72eaca20307e3bcdb093d8db6f2e05d"
+      },
+      "DarwinBoot.efi": {
+        "bytes": 19456,
+        "sha256": "e6f42f35fa13efb83d3e3d97121b0c726c0744b25fdb9a821547173b83022f9c"
+      },
+      "J716fKeysDxe.efi": {
+        "bytes": 11264,
+        "sha256": "31356536c324dda7b2161e0efddf207748f2ec8d25d94bf7c1be72a56fb8b904"
+      }
+    },
+    "source_hashes": {
+      "Platforms/Lenovo/j716fPkg/j716f-entry-v23.dsc": "6a295e3d0046205284d52f4931ed2a17bc1f3c7276648e3753299acf357c13b6",
+      "Platforms/Lenovo/j716fPkg/j716f-entry-v23.fdf": "b1a29c9e13560f6ddd34461be450ba11ab56b52d9082576af9df79f03f5a858b",
+      "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_DXE.inc": "85619cde27c7de56466afac05d4a855935136ed6aef00a031d5f3652d84c8736",
+      "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_APRIORI.inc": "005f48c9ba1898b32b329cc53c5a8fd802304c483a915bb6a7d778c2d6ebad2c",
+      "Platforms/Lenovo/j716fPkg/Library/J716fWindowMemoryMapLib/MemoryMapLib.c": "8f2c5c8b8dbece234eb385ae16067e0038215abc3933213a0355c63656a36f88",
+      "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fKeysDxe.c": "8385eecfd7ad43fc5b735306a2812d2cb997bed63388c6ca14d1990689ac0b14",
+      "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fSpmi.c": "d83bdaccba84d58c753edc14ff5af701729b7cd88f96263f4c68f5bb32fa2466",
+      "Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib/FrameBufferSerialPortLib.c": "a5fe54f148bac50931a74ddabb83fc89d0e43b1b1a87d8eb089083ff186be2e7",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Volume.c": "ab9a7b36a258cfb43b8c15fee86393ec9a1978e9b3d3e8d8e2a83b2f36bdbff2",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Ui.c": "241a27392c1e8cc7191ecff38fa3ac023e70ce4938a26ba87dfd805f5053c916",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Toml.c": "4d82a7de6196873df6f0a2cc033c67d337f505c53d235b053b8c6458d7332a2a",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Internal.h": "0587430657f938891fbdf8d03ddc2704a8689cfc94887515a5c952d68f11610e",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/IoResult.h": "09401aa4dd013af81f4634413acd71ea217f3ef5a2c71d56f1161b7c7b7d1054",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Menu.c": "f9e4ffd78c8a6e2551ec81c6de78eeddcd67e34269dfa442e8959d7f79d1bb72",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/source-lock.json": "8c9c6bd5d541641a47e882b60323ccc2571c96684966461df4092fc56c2d2006",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Slice.c": "5cbd409945711c13a9dad18ed6eb5a7c0df49c9b53e7599424c03e23ed2126f8",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Main.c": "252c76c6d11dd7823bf6d6dda28b8d5e7e4a4b56315d42f722478ba0c7d5528b",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Font.c": "391c7dbc8c6eb3cd07230e3dd8d38e4ba8a5a9b603bcaecb4d8e62a4603d2ac6",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Kext.c": "f1869ca42e03faf9bd967619ba70dcd3329fb8839513811306478548f67f9aa4",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/LogoShape.h": "8fe96788c3c1e27df7f4209c31ae1b3818ae99cf858d6dae457cd16643a6a43b",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Inject.c": "a0072e04b6ff233746aec973d38e288bdcc689481f660f043fbf8f3b8a9d4943",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/UniXNULib.inf": "2b556a2e73cdf7e06be818d63ead70e970e46e463394114c92de636c23c96683",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Config.c": "0c7474f912699e80878f6cf816ea48b0b5f798682665a8e7792df29d92a17d9c",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Boot.c": "da03fbfaf44737174af64edf12fd04e6a0537a10b4d4d7a9e57e5fe47fae609d",
+      "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Logo.c": "da9d49c502f42c489742d2abaa8a300db1c265b0fcf807e4d7bd3d8aa8a9e4a1"
+    }
+  },
+  "host_logic_checks": {
+    "variant": "V23P4",
+    "diagnostic_revision": "r1",
+    "probe_bytes": 2108,
+    "stub_bytes": 284,
+    "passed": true,
+    "entry": "actual kernel legacy branch",
+    "original_store_hits": 1,
+    "actual_return_target_verified": true,
+    "before_store_after_marker_black": true,
+    "preserved_registers": [
+      "x0",
+      "x1",
+      "x15",
+      "x16",
+      "x17",
+      "x18",
+      "x19",
+      "x20",
+      "x21",
+      "x22",
+      "x23",
+      "x24",
+      "x25",
+      "x26",
+      "x27",
+      "x28",
+      "x29",
+      "x30",
+      "SP"
+    ],
+    "legacy_to_pre_liveness_checked": true,
+    "full_clear_bytes_checked": 16384000,
+    "marker_pixels_checked": 18432,
+    "clear_kept_only_two_markers": true,
+    "title_dsb_unchanged": true,
+    "scope": "Actual branch, envelope, store, return, pre/setup_fb and full clear/filter in Unicorn. MMIO modeled as RAM. Intervening ISB/TLBI/IC/MSR/TTBR/vector path excluded; no hardware ordering, permission, reset or MMU qualification."
+  },
+  "diagnostic_revision": "r1",
+  "clear_filter": {
+    "site": "0xfffffff0073fc574",
+    "target": "0xfffffff0073fccd8",
+    "before": "3f7d81a8",
+    "preserves_only_envelope_rectangles": true
+  },
+  "supersedes": "Original P4 was not flashed; preflight found the subsequent clear erased its markers. r1 initializes both regions and preserves only the two marker rectangles.",
+  "mutation": {
+    "site": "0xfffffff0073fe32c",
+    "before": "010000b9",
+    "after": "3dfaff17",
+    "stub": "0xfffffff0073fcc20",
+    "return": "0xfffffff0073fe330",
+    "before_marker": {
+      "x": 1280,
+      "y": 192,
+      "width": 96,
+      "height": 96
+    },
+    "after_marker": {
+      "x": 1384,
+      "y": 192,
+      "width": 96,
+      "height": 96
+    },
+    "original_store": "str w1, [x0]"
+  },
+  "single_factor_verified": true,
+  "device_writes_performed": true,
+  "hardware_verified": false,
+  "hardware_trials": {
+    "v23p4r1_flash_and_reboot": 1,
+    "v23p4r1_video_review": 1
+  },
+  "proposed_partition": "boot_b",
+  "limits": [
+    "Envelope markers are framebuffer stores and do not prove a PC trace.",
+    "The host emulator models the MMIO aperture as RAM; real ordering, permissions, barriers and reset remain unverified.",
+    "No counter, sustained MMU-on, ArmCpu, storage, root or userland result is claimed."
+  ],
+  "device_operation": {
+    "finished_at": "2026-10-25T21:08:06.811397+08:00",
+    "partition": "boot_b",
+    "mode": "fastbootd",
+    "flash_succeeded": true,
+    "activate_b_succeeded": true,
+    "current_slot_verified": "b",
+    "unbootable_verified": false,
+    "reboot_command_succeeded": true,
+    "retry_count_query": "unsupported",
+    "result": "Flash/activate/reboot succeeded; video now confirms r1 menu, both early MMIO markers and prefix 1/2, followed by Lenovo/Android splash and return to r1 menu. No PSCI or reset-source proof."
+  },
+  "video_observation": {
+    "variant": "V23P4",
+    "diagnostic_revision": "r1",
+    "review_date": "2026-10-25",
+    "video_sha256": "a038abe30b814b70e8d67dcffe7eca0e714557e899430147c338180f42ccaf52",
+    "frame_count": 678,
+    "duration_seconds": 22.615022123893805,
+    "method": "OpenCV decoded all 678 frames; visual review of one-second overview, every frame of entry 30-60 and loss 510-550, and restart samples. Camera frame timing is not a hardware timer.",
+    "menu_identity": "J716F V23P4 - r1: legacy MMIO envelope; preserve early markers",
+    "title_mode": 5,
+    "prefix_squares_visible": [
+      1,
+      2
+    ],
+    "prefix_square_3_observed": false,
+    "early_mmio_before_marker_visible": true,
+    "early_mmio_after_marker_visible": true,
+    "currentel_sctlr_observed": false,
+    "psci_progress_observed": false,
+    "timeline": {
+      "first_green_frame": {
+        "frame": 41,
+        "pts": 1.3683333333333334
+      },
+      "first_green_blue_frame": {
+        "frame": 42,
+        "pts": 1.4016666666666666
+      },
+      "first_title_and_four_markers": {
+        "frame": 43,
+        "pts": 1.435
+      },
+      "last_diagnostic_frame": {
+        "frame": 518,
+        "pts": 17.278333333333332
+      },
+      "first_frame_without_diagnostics": {
+        "frame": 519,
+        "pts": 17.311666666666667
+      },
+      "lenovo_android_logo_sample": {
+        "frame": 572,
+        "pts": 19.08
+      },
+      "returned_r1_menu_sample": {
+        "frame": 632,
+        "pts": 21.08
+      }
+    },
+    "duration_bounds": {
+      "green_to_screen_loss_seconds_approx": 15.94,
+      "diagnostic_title_to_loss_seconds_approx": 15.88,
+      "precision_note": "Transitions bracketed by adjacent camera frames (~0.033s), plus display scanout/exposure uncertainty; do not compare as a firmware timer measurement."
+    },
+    "pmic_before": "0x02000001",
+    "pmic_after": "0x02000041",
+    "reset_source": "unclassified",
+    "conclusion": "Both initialized envelope markers remain visible with prefix 1/2 after the clear. Execution advanced beyond the original STR to the after-marker stores. External MMIO completion, title DSB completion and later PSCI remain unproven.",
+    "next_diagnostic": "Preserve P4 r1 envelope/clear/geometry and compare original STR with NOP under otherwise matching kernel/firmware conditions. A store can retire before an external transaction completes; P3A lacked this matched visible envelope.",
+    "limits": [
+      "Framebuffer evidence is not a PC trace or proof of MMIO transaction completion.",
+      "Missing square 3 narrows visible progress; it does not prove a DSB stall.",
+      "A later Lenovo/Android splash and return to the menu do not establish PSCI or watchdog cause.",
+      "No counter, MMU-on continuation, ArmCpu, UFS/root or userland milestone."
+    ]
+  },
+  "next_build_menu": {
+    "requested_after": "V23P4 r1 video",
+    "menu_scale_before": 4,
+    "menu_scale_next_build": 3,
+    "source_changed": true,
+    "compiled": false,
+    "flashed": false,
+    "kernel_diagnostic_font_changed": false,
+    "note": "Next build must explicitly audit the changed UniXNU.efi menu module; the old all-non-payload-modules-equal-P2 guard must not be bypassed silently. Current r1 artifact and its exact source snapshot remain private and unchanged."
+  }
+}

@@ -1,0 +1,603 @@
+{
+  "version": "V23P10 KERNEL TRACE r1",
+  "host_checks_passed": true,
+  "automatic_start": false,
+  "kernel_entry_requires_manual_arm": true,
+  "variants": {
+    "a": {
+      "version": "V23P10A",
+      "image": "j716f-mu-zui13-kernel-trace-v23p10a-boot.img",
+      "image_bytes": 8339456,
+      "image_sha256": "6637e8055846c79d64f09a8115d311cc92c4ac8ba91977ec9dd81f4ef9c98e0b",
+      "fd_sha256": "b7cd0ab2c5c1e7aeee64872c6e01b942c71601960369476cacc15d82ad6f42cd",
+      "payload_sha256": "e2591e8e4882d1664754bf57e814a711d8397638101e1c628d95bf30f2af7709",
+      "kernel_sha256": "9afb401ed84f6772efbcc74712502424b64c54fc2d223d1d8dd86d5fad304935",
+      "app_sha256": "a9a646c9f422063e78d2b31a27f8fe9b01e6035419782c34d72eac6d12af7e52",
+      "nonpayload_changes_vs_p8": [],
+      "nonpayload_changes_vs_p9": [],
+      "reader_matches_p9": true,
+      "compact_sec_matches_p8": true,
+      "host_checks_passed": true,
+      "hardware_verified": true,
+      "device_writes_performed": true,
+      "terminal_site": "0xfffffff0073fe32c",
+      "terminal_description": "before BCM STR",
+      "probe_sha256": "24732506c5f945ea08fc2d373658c64d8b7e94b6d11f7658576f436105cfd149",
+      "probe_bytes": 900,
+      "writer_source_matches_p9": true,
+      "mmu_enable_attempted": false,
+      "mapping_setup_used": false,
+      "terminal_record_survived_observed_reset": true,
+      "device_launch": {
+        "partition_images_flashed": [
+          "boot_b"
+        ],
+        "current_slot_before_reboot": "b",
+        "slot_unbootable_b_before_reboot": false,
+        "reboot_command_succeeded": true,
+        "image_sha256": "6637e8055846c79d64f09a8115d311cc92c4ac8ba91977ec9dd81f4ef9c98e0b",
+        "hardware_verified": false
+      },
+      "initial_reader_observation": {
+        "evidence_kind": "user-supplied photo; raw photo private",
+        "photo_sha256": "adddd78bc6b98c579ffa75aaec967669724453cf6b8d13bb0be9db47d9ac5dad",
+        "reader_identity": "J716F V23P9 KERNEL TRACE r1",
+        "parent_menu_variant_visible": false,
+        "expected_variant_from_recorded_flash": "V23P10A",
+        "entry": {
+          "signature": "0x43474244",
+          "next": "0x2e137",
+          "size": "0x2e137",
+          "console_crc32": "0x5104221a",
+          "logical_count": 0,
+          "raw_count": 0,
+          "latest_id": 0,
+          "latest_phase": 0,
+          "latest_record_crc32": 0
+        },
+        "now_valid": true,
+        "now_next": "0x2e137",
+        "now_size": "0x2e137",
+        "frozen_checkpoint_id": 0,
+        "all_six_checkpoint_rows_logical_raw_zero": true,
+        "this_run": {
+          "id": 1,
+          "query": false,
+          "armed": false,
+          "crc32": 0,
+          "current_el": 1,
+          "psci_version_not_queried": true,
+          "features_not_queried": true
+        },
+        "status": "Read only. Photograph ENTRY before Query or ARM.",
+        "kernel_launch_observed": false,
+        "interpretation": "Valid read-only starting baseline with no recognized records. This follows fastboot flashing/reboot; it is not a controlled reset-retention trial. The photo identifies the unchanged common reader, not the parent-menu variant."
+      },
+      "query_arm_observation": {
+        "evidence_kind": "user-supplied ARM photo; raw photo private",
+        "photo_sha256": "5e934fc17a51b79e84c23aa53b5d67e9a0425400080e864dee349d4f62117322",
+        "reader_identity": "J716F V23P9 KERNEL TRACE r1",
+        "frozen_entry_unchanged": true,
+        "now_valid": true,
+        "now_next": "0x2e277",
+        "now_size": "0x2e277",
+        "logical_count": 5,
+        "raw_count": 5,
+        "this_run": {
+          "id": 1,
+          "query": true,
+          "armed": true,
+          "last_record_crc32": "0xde027ae6",
+          "current_el": 1,
+          "psci_version": "0x00010001",
+          "system_reset_features": 0
+        },
+        "status": "ARM readback OK. Photograph ID/CRC; return to menu and start kernel.",
+        "arm_record": {
+          "phase": 9,
+          "value": "0x50394b45524e454c",
+          "before_next": "0x2e237",
+          "before_size": "0x2e237",
+          "reconstructed_crc32": "0xde027ae6",
+          "matches_photo": true
+        },
+        "all_frozen_checkpoint_rows_still_zero": true,
+        "kernel_launch_observed": false,
+        "interpretation": "Same-invocation successful Query and ARM established by displayed query/armed/readback and CRC reconstruction. Frozen rows describe reader entry before these writes. ARM photo does not show kernel launch or reset."
+      },
+      "terminal_trial_observation": {
+        "evidence_kind": "user-supplied continuous video plus previously photographed ARM; raw media private",
+        "video": {
+          "sha256": "4a44c1dc82c0dfa9d8108ced910b718475a1ab4aa30607229c4ddf11c8a0c537",
+          "frames": 322,
+          "fps": 30.00465910855723,
+          "width": 720.0,
+          "height": 1280.0,
+          "duration_seconds": 10.731666666666666
+        },
+        "prelaunch_arm_reference": "query_arm_observation: ID1 CRC DE027AE6; ARM preparation itself precedes video",
+        "menu_identity": "J716F V23P10A - KERNEL TRACE r1",
+        "selected_entry": "V23P10A: STOP before BCM STR; terminal SYSTEM_RESET",
+        "sampled_events": [
+          {
+            "frame": 0,
+            "seconds": 0.0,
+            "observed": "A kernel item selected; reader previously returned Success; PMIC 0x02000001"
+          },
+          {
+            "frame": 36,
+            "seconds": 1.2,
+            "observed": "Green handoff band over A menu"
+          },
+          {
+            "frame": 39,
+            "seconds": 1.3,
+            "observed": "Screen dark"
+          },
+          {
+            "frame": 120,
+            "seconds": 3.999,
+            "observed": "Lenovo / Powered by Android splash"
+          },
+          {
+            "frame": 155,
+            "seconds": 5.166,
+            "observed": "Returned to P10A menu"
+          },
+          {
+            "frame": 180,
+            "seconds": 5.999,
+            "observed": "Reader menu item selected; PMIC 0x02000041"
+          },
+          {
+            "frame": 240,
+            "seconds": 7.999,
+            "observed": "Read-only reader displaying retained ARM/ENTRY/phase11"
+          },
+          {
+            "frame": 300,
+            "seconds": 9.998,
+            "observed": "Same retained read-only reader page"
+          }
+        ],
+        "reader": {
+          "entry_signature": "0x43474244",
+          "entry_next": "0x2e2f7",
+          "entry_size": "0x2e2f7",
+          "entry_console_crc32": "0x4e5c6046",
+          "entry_logical_count": 7,
+          "entry_raw_count": 7,
+          "latest_id": 1,
+          "latest_phase": 11,
+          "latest_crc32": "0xd8f17b33",
+          "now_valid": true,
+          "now_next": "0x2e2f7",
+          "now_size": "0x2e2f7",
+          "this_run_id": 2,
+          "this_run_query": false,
+          "this_run_armed": false,
+          "this_run_crc32": 0,
+          "status": "Read only. Photograph ENTRY before Query or ARM.",
+          "frozen_rows": {
+            "ARM": {
+              "logical_hits": 1,
+              "raw_hits": 1,
+              "crc32": "0xde027ae6",
+              "value": "0x50394b45524e454c"
+            },
+            "KERNEL_ENTRY": {
+              "logical_hits": 1,
+              "raw_hits": 1,
+              "crc32": "0xf3461909",
+              "value": "0xc00808"
+            },
+            "PRE_MMU": {
+              "logical_hits": 1,
+              "raw_hits": 1,
+              "crc32": "0xd8f17b33",
+              "value": "0xc00808",
+              "p10_meaning": "Terminal prefix stop before BCM STR, not map_console or MMU-on"
+            },
+            "POST_MMU": {
+              "logical_hits": 0,
+              "raw_hits": 0
+            },
+            "MAP_FAILURE": {
+              "logical_hits": 0,
+              "raw_hits": 0
+            },
+            "RESET_RETURN": {
+              "logical_hits": 0,
+              "raw_hits": 0
+            }
+          }
+        },
+        "crc_reconstruction": {
+          "9": {
+            "prior_next": "0x2e237",
+            "prior_size": "0x2e237",
+            "reconstructed_crc32": "de027ae6",
+            "matches_video": true
+          },
+          "10": {
+            "prior_next": "0x2e277",
+            "prior_size": "0x2e277",
+            "reconstructed_crc32": "f3461909",
+            "matches_video": true
+          },
+          "11": {
+            "prior_next": "0x2e2b7",
+            "prior_size": "0x2e2b7",
+            "reconstructed_crc32": "d8f17b33",
+            "matches_video": true
+          }
+        },
+        "header_and_matching_chain_survived_one_observed_reboot": true,
+        "interpretation": "The audited A terminal branch and logger were reached before original BCM STR with SCTLR.M=0. Its original prefix, terminal physical-stack conversion and phase11 append passed in this trial; same-session chain survived the observed reboot into reader. Direct SYSTEM_RESET is the intended source path and no return record is retained, but exact hardware reset source is not independently attributed. A never executes original BCM STR or enables MMU; B/C and sustained MMU-on remain untested."
+      },
+      "hardware_verification_scope": "One A terminal prefix stop and retained ARM/ENTRY/phase11 chain, no BCM store or MMU enable"
+    },
+    "b": {
+      "version": "V23P10B",
+      "image": "j716f-mu-zui13-kernel-trace-v23p10b-boot.img",
+      "image_bytes": 8343552,
+      "image_sha256": "e77d5b67e8b6a044ef1ca1df10e143f07bc78e060ad371214c5634bd9f690cb4",
+      "fd_sha256": "e085be51bdf6e6e31a4b74e7ace055580c0540e763053520406e13fc759cc1f5",
+      "payload_sha256": "04f2e5fc1f31408e42e541b5373389703831e6e31d7f47c62bebe855bf03d0e8",
+      "kernel_sha256": "257cd92fa9b0a8ab1b44fa4f656de3f660275ae0183a783b5073d60b07b05c84",
+      "app_sha256": "a9a646c9f422063e78d2b31a27f8fe9b01e6035419782c34d72eac6d12af7e52",
+      "nonpayload_changes_vs_p8": [],
+      "nonpayload_changes_vs_p9": [],
+      "reader_matches_p9": true,
+      "compact_sec_matches_p8": true,
+      "host_checks_passed": true,
+      "hardware_verified": true,
+      "device_writes_performed": true,
+      "terminal_site": "0xfffffff0073fe330",
+      "terminal_description": "after BCM STR, before ISB",
+      "probe_sha256": "24732506c5f945ea08fc2d373658c64d8b7e94b6d11f7658576f436105cfd149",
+      "probe_bytes": 900,
+      "writer_source_matches_p9": true,
+      "mmu_enable_attempted": false,
+      "mapping_setup_used": false,
+      "terminal_record_survived_observed_reset": false,
+      "device_launch": {
+        "partition_images_flashed": [
+          "boot_b"
+        ],
+        "current_slot_before_reboot": "b",
+        "slot_unbootable_b_before_reboot": false,
+        "reboot_command_succeeded": true,
+        "image_sha256": "e77d5b67e8b6a044ef1ca1df10e143f07bc78e060ad371214c5634bd9f690cb4",
+        "hardware_verified": false
+      },
+      "initial_reader_observation": {
+        "evidence_kind": "user-supplied photo; raw photo private",
+        "photo_sha256": "cbacb563f3cfdf3fef8790bf4f0f537e6e529f5cb653a7af49c2f514fb74e73a",
+        "reader_identity": "J716F V23P9 KERNEL TRACE r1",
+        "parent_menu_variant_visible": false,
+        "expected_variant_from_recorded_flash": "V23P10B",
+        "entry": {
+          "signature": "0x43474244",
+          "next": "0x27fe9",
+          "size": "0x27fe9",
+          "console_crc32": "0x2394a7e1",
+          "logical_count": 0,
+          "logical_latest_id": 0,
+          "logical_latest_phase": 0,
+          "logical_latest_crc32": 0,
+          "raw_count": 7,
+          "raw_latest_id": 1,
+          "raw_latest_phase": 11,
+          "raw_latest_crc32": "0xd8f17b33"
+        },
+        "now_valid": true,
+        "now_next": "0x27fe9",
+        "now_size": "0x27fe9",
+        "frozen_checkpoint_id": 1,
+        "frozen_rows": {
+          "ARM": {
+            "logical_hits": 0,
+            "raw_hits": 1,
+            "logical_crc32": 0,
+            "raw_crc32": "0xde027ae6",
+            "raw_value": "0x50394b45524e454c"
+          },
+          "KERNEL_ENTRY": {
+            "logical_hits": 0,
+            "raw_hits": 1,
+            "logical_crc32": 0,
+            "raw_crc32": "0xf3461909",
+            "raw_value": "0xc00808"
+          },
+          "PRE_MMU": {
+            "logical_hits": 0,
+            "raw_hits": 1,
+            "logical_crc32": 0,
+            "raw_crc32": "0xd8f17b33",
+            "raw_value": "0xc00808"
+          },
+          "POST_MMU": {
+            "logical_hits": 0,
+            "raw_hits": 0
+          },
+          "MAP_FAILURE": {
+            "logical_hits": 0,
+            "raw_hits": 0
+          },
+          "RESET_RETURN": {
+            "logical_hits": 0,
+            "raw_hits": 0
+          }
+        },
+        "this_run": {
+          "id": 2,
+          "query": false,
+          "armed": false,
+          "crc32": 0,
+          "current_el": 1,
+          "psci_version_not_queried": true,
+          "features_not_queried": true
+        },
+        "status": "Read only. Photograph ENTRY before Query or ARM.",
+        "kernel_launch_observed": false,
+        "interpretation": "Valid fresh baseline after B fastboot launch. A ARM/ENTRY/terminal CRCs remain as raw-only hits outside current logical extent. Header differs from A immediate reentry; timing/cause of that change through intervening flash/boot path is not isolated. This is not a B kernel result or controlled B retention trial; do not reuse A ARM."
+      },
+      "query_arm_observation": {
+        "evidence_kind": "two user-supplied photos; raw photos private",
+        "photo_sha256": {
+          "query": "001961fbcb328b85a8b94f93a0fcb34609eb02637d7e5478a3b58de74e9b1a5f",
+          "arm": "2a22d06bf88f358337cdcf56880e39a0d652271f10490c5d3f27664de121d029"
+        },
+        "frozen_entry_unchanged": true,
+        "frozen_checkpoint_rows_still_describe_raw_A_ID1": true,
+        "query": {
+          "now_valid": true,
+          "next": "0x280e9",
+          "size": "0x280e9",
+          "logical_count": 4,
+          "raw_count": 11,
+          "id": 2,
+          "query": true,
+          "armed": false,
+          "crc32": "0xdcae06f5",
+          "current_el": 1,
+          "psci_version": "0x00010001",
+          "system_reset_features": 0,
+          "status": "Query OK. Select ARM, photograph ID/CRC, then return to menu.",
+          "reconstructed_phase8_crc_matches": true
+        },
+        "arm": {
+          "now_valid": true,
+          "next": "0x28129",
+          "size": "0x28129",
+          "logical_count": 5,
+          "raw_count": 12,
+          "id": 2,
+          "query": true,
+          "armed": true,
+          "crc32": "0xa59682b0",
+          "current_el": 1,
+          "psci_version": "0x00010001",
+          "system_reset_features": 0,
+          "status": "ARM readback OK. Photograph ID/CRC; return to menu and start kernel.",
+          "phase": 9,
+          "cookie": "0x50394b45524e454c",
+          "before_next": "0x280e9",
+          "before_size": "0x280e9",
+          "reconstructed_crc_matches": true
+        },
+        "kernel_launch_observed": false,
+        "interpretation": "Fresh B session ID2 Query/ARM is observed and both CRCs reconstruct. Frozen raw ID1 rows are historical A, not B kernel progress. No B launch or reset is shown."
+      },
+      "launch_video_observation": {
+        "evidence_kind": "user-supplied video plus user report of later reboot; raw video private",
+        "video": {
+          "sha256": "1fc137afed6d324e677ade288c1aba3eb6040a1e54621bf80aacee55bb6755b4",
+          "frames": 679,
+          "fps": 29.98013098829936,
+          "width": 720,
+          "height": 1280,
+          "duration_seconds": 22.648333333333333
+        },
+        "prelaunch_arm_visible": {
+          "frame": 0,
+          "id": 2,
+          "crc32": "0xa59682b0",
+          "now_valid": true,
+          "next": "0x28129",
+          "logical_count": 5,
+          "raw_count": 12
+        },
+        "sampled_events": [
+          {
+            "frame": 0,
+            "seconds": 0.0,
+            "observed": "Fresh armed B ID2/A59682B0 page"
+          },
+          {
+            "frame": 120,
+            "seconds": 4.003,
+            "observed": "EFI return diagnosis: START IMAGE, Success, code0; before kernel selection"
+          },
+          {
+            "frame": 180,
+            "seconds": 6.004,
+            "observed": "P10B menu"
+          },
+          {
+            "frame": 240,
+            "seconds": 8.005,
+            "observed": "B kernel item selected"
+          },
+          {
+            "frame": 300,
+            "seconds": 10.007,
+            "observed": "Green handoff band above B menu"
+          },
+          {
+            "frame": 420,
+            "seconds": 14.009,
+            "observed": "DarwinBoot inputs validated; exiting boot services"
+          },
+          {
+            "frame": 678,
+            "seconds": 22.615,
+            "observed": "Still green handoff band / DARWIN BOOT at end of supplied clip"
+          }
+        ],
+        "menu_identity": "J716F V23P10B - KERNEL TRACE r1",
+        "selected_entry": "V23P10B: STOP after BCM STR before ISB; terminal SYSTEM_RESET",
+        "user_report": "Did not remain stopped; later automatically rebooted into UniXNU interface",
+        "subsequent_reboot_video_captured": false,
+        "post_reboot_reader_supplied": false,
+        "terminal_checkpoint_established": false,
+        "reset_source_established": false,
+        "interpretation": "Clip validates prelaunch ARM and B menu/handoff, ending on DarwinBoot display. User reports later reboot; supplied clip does not include that later reboot or first reader reentry. The earlier EFI Success page is the reader return path before B selection, not kernel reset success. A successful terminal probe intentionally resets; reboot alone cannot discriminate terminal success from an earlier fault/reset. Need retained B ID2/A59682B0 chain."
+      },
+      "post_reported_reboot_reader_observation": {
+        "evidence_kind": "user-supplied photo in response to first-reader request after user-reported reboot; raw photo private",
+        "photo_sha256": "5978f68d111e7a19ae54f2582990c76de3776be1061c57fd94a4ce04b0ca446f",
+        "entry": {
+          "signature": "0x43474244",
+          "next": "0x28169",
+          "size": "0x28169",
+          "console_crc32": "0xf03b33ab",
+          "logical_count": 6,
+          "logical_id": 2,
+          "logical_phase": 10,
+          "logical_crc32": "0xdcd7df11",
+          "raw_count": 14,
+          "raw_id": 2,
+          "raw_phase": 11,
+          "raw_crc32": "0xc49c5711"
+        },
+        "now_valid": true,
+        "now_next": "0x28169",
+        "now_size": "0x28169",
+        "frozen_checkpoint_id": 2,
+        "frozen_rows": {
+          "ARM": {
+            "logical_hits": 1,
+            "raw_hits": 1,
+            "crc32": "0xa59682b0",
+            "value": "0x50394b45524e454c"
+          },
+          "KERNEL_ENTRY": {
+            "logical_hits": 1,
+            "raw_hits": 1,
+            "crc32": "0xdcd7df11",
+            "value": "0xc00808"
+          },
+          "PRE_MMU": {
+            "logical_hits": 0,
+            "raw_hits": 1,
+            "logical_crc32": 0,
+            "raw_crc32": "0xc49c5711",
+            "raw_value": "0xc00808",
+            "p10_meaning": "B terminal prefix probe after original BCM STR, before original ISB"
+          },
+          "POST_MMU": {
+            "logical_hits": 0,
+            "raw_hits": 0
+          },
+          "MAP_FAILURE": {
+            "logical_hits": 0,
+            "raw_hits": 0
+          },
+          "RESET_RETURN": {
+            "logical_hits": 0,
+            "raw_hits": 0
+          }
+        },
+        "this_run": {
+          "id": 3,
+          "query": false,
+          "armed": false,
+          "crc32": 0,
+          "current_el": 1
+        },
+        "status": "Read only. Photograph ENTRY before Query or ARM.",
+        "crc_reconstruction": {
+          "entry": {
+            "id": 2,
+            "phase": 10,
+            "value": "0xc00808",
+            "inferred_before_next_size": "0x28129",
+            "crc32": "0xdcd7df11",
+            "matches": true
+          },
+          "terminal": {
+            "id": 2,
+            "phase": 11,
+            "value": "0xc00808",
+            "inferred_before_next_size": "0x28169",
+            "crc32": "0xc49c5711",
+            "matches": true
+          }
+        },
+        "header_expected_if_terminal_published": "0x281a9",
+        "terminal_record_visible_in_current_logical_extent": false,
+        "continuous_reboot_not_in_supplied_video": true,
+        "interpretation": "Fresh B ARM matches logical/raw. ENTRY is logically published; new same-ID CRC-valid terminal phase11 exists raw-only. This supports execution past original BCM STR into the terminal writer and complete surviving record bytes; it does not show successful append/header publication or direct SYSTEM_RESET. Current header is at ENTRY endpoint, not terminal endpoint. Exact stopping PC and hardware reset source remain unknown; no MMU enable."
+      },
+      "hardware_verification_scope": "B entry and CRC-valid raw-only terminal record after STR; header publication/reset completion not verified",
+      "terminal_record_published_in_current_logical_extent": false,
+      "raw_terminal_record_survived_user_reported_reset": true
+    },
+    "c": {
+      "version": "V23P10C",
+      "image": "j716f-mu-zui13-kernel-trace-v23p10c-boot.img",
+      "image_bytes": 8359936,
+      "image_sha256": "67890bd6eb47fad7efe00f607359d22aed7d27f504b279956fe27a31ce45cbcf",
+      "fd_sha256": "639515bf87c296aa48fe48e9c3116752c344260a45e0a3f1356300b198816253",
+      "payload_sha256": "d60d66ca53335d2e55904cfa0da60065fa276e4289b2e53e2f0797ed29832bdb",
+      "kernel_sha256": "f7ec668302b31b2a972103433b631154c832c802c7d8a5328b38d40ae1dbd04f",
+      "app_sha256": "a9a646c9f422063e78d2b31a27f8fe9b01e6035419782c34d72eac6d12af7e52",
+      "nonpayload_changes_vs_p8": [],
+      "nonpayload_changes_vs_p9": [],
+      "reader_matches_p9": true,
+      "compact_sec_matches_p8": true,
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "device_writes_performed": false,
+      "terminal_site": "0xfffffff0073fe374",
+      "terminal_description": "before SCTLR, no console mapping",
+      "probe_sha256": "24732506c5f945ea08fc2d373658c64d8b7e94b6d11f7658576f436105cfd149",
+      "probe_bytes": 900,
+      "writer_source_matches_p9": true,
+      "mmu_enable_attempted": false,
+      "mapping_setup_used": false,
+      "terminal_record_survived_observed_reset": false
+    }
+  },
+  "kernel_logic_cases": 18,
+  "reader_logic_cases": 13,
+  "hardware_verified": true,
+  "device_writes_performed": true,
+  "proposed_partition": "boot_b",
+  "status": "B reentry has matched ARM/ENTRY logically and new phase11 raw-only; header ends at ENTRY. B terminal append completion unresolved; C remains gated. A published-terminal retention preserved.",
+  "phase11_meaning": "Named terminal prefix stop with M=0; reused reader labels it PRE_MMU. It does not mean P9M map_console success.",
+  "baseline_sha256": "cab8f385a44d21fc6f455cb501227452212ba44d34a9fa03d04fcf7e85324214",
+  "observed_p9_input": "research/v23p9-kernel-trace.json: fresh ID3 ARM 671D1670, ENTRY D1AFE339, no later checkpoints",
+  "hardware_limits": "A has one video-observed published terminal retention cycle. B has video-observed armed launch, user-reported later reboot and subsequent reader photo with raw-only phase11. B publication/completed reset and exact stopping PC remain unverified; original BCM transaction completion and MMU-on unproven.",
+  "source_sha256": {
+    "scripts/build-v23p10-kernel.py": "a1be1c2650c562e32fa5cdb21bbac338217f60658e337c31b75354d7f5d9eba4",
+    "scripts/v23p10-prefix.S": "a0698c17f7f6f28c80afafc8e30e0c22ca7596fa7137a7e18ca27145c7cd233e",
+    "scripts/build-v23-payload.py": "c931812f74cbad5edd7237d85c331a7a9ed553028e48c94832d6b7dd3371618c",
+    "scripts/v23p9-trace.S": "1555310a5a89507ccade7c175ac3c063d23d21b97f7fb3af729f24cfbb22ccd8"
+  },
+  "private_host_tool_sha256": {
+    "build_j716f_v23p10.sh": "1063e00340115968efab3219bf5b444e7fdd85c42477c25a42e9cae4c4d91820",
+    "check_j716f_v23p10.py": "0b6dce89d27d2c7a7a6ce1187206c280997452b3f499f34cca3cd670bb78e5fd",
+    "check_j716f_v23p10_reader.py": "26b07ac475eeccfd6130b7d87877d66d693e6ee7985241236f0b295161f2933e",
+    "flash_j716f_v23p10.py": "abd08f5899bc84835c663e27d4630f747d0272d365218b3c7dde8c5c98e09252",
+    "make_j716f_v23p10_fat.py": "992a45fa72ffa03fe783bf492f6c627ed75cbacda16b3914f27942ead2fc9f7d",
+    "manage_j716f_v23p10_vm.py": "28e9150c97b7443df1bbe65e75cc46148034921d89a50172f07b2485380fbb09",
+    "package_j716f_v23p10.py": "6e83bbdd6184d59d4f5f840439fd34068999def3027d3551749ecae4e16884a7",
+    "record_j716f_v23p10.py": "3dec85e17804e6dbe2e9d54c683838fdef5fa2548c999b6ea45924d9bce680c7",
+    "snapshot_j716f_v23p10.py": "f8109f84de9b0e7f9be5ba2179157cd934ec63e3be02358a8d4f05761258a3ec"
+  },
+  "next_action": "Preserve this B reader without another launch. Diagnose terminal record publication separately: post-body DSB SY, byte readback and header writes/retention. Prepare a single-factor B writer control before C; keep entry writer unchanged, retain CRC/header binding and do not initialize/repair the device log to turn raw-only into a pass. Next firmware compilation must also honor docs/NEXT_MENU_BUILD.md.",
+  "hardware_verification_scope": "A published terminal retention; B logical entry plus raw-only terminal bytes. No B terminal publication or MMU enable."
+}

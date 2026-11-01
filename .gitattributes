@@ -1,0 +1,4 @@
+*.sh text eol=lf
+*.py text eol=lf
+# Unified diff context adds spaces before the original C indentation.
+*.patch text eol=lf whitespace=-space-before-tab

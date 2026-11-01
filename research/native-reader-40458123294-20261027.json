@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "date": "2026-10-27",
+  "scope": "Sanitized first native-image firmware menu / read-only reader observation; NOT an XNU launch or retention result",
+  "candidate": "NATIVE-LOG-40458123294",
+  "status": "reader-visible-session-admission-blocked",
+  "record_source_base": "48fbbf5a03241fe8c83f4bc4808da31975381fbc",
+  "host_audit_reference": "research/native-image-40458123294.json",
+  "candidate_binding": {
+    "source_ci_run": 40458123294,
+    "source_ci_attempt": 1,
+    "kernel_source_commit": "474c8a65b731d293987afdf550112f7b02f9ea32",
+    "implementation_commit": "36e1bd8a2c4482ca55386d005112501d305c37bc",
+    "boot_image_sha256": "801ddb86b29844e316053f4d061a9fd2cb266e47f1c27ed1d46745b036dbb8e7",
+    "prelinked_kernel_sha256": "150c5c5f13a4337eb05218232f3a157429f0974ba49f71b4627789497132d074",
+    "reader_efi_sha256": "aa349e240e3a0f817e5d94a2928762fd1b38d57705721cb58b4bfc7e4e9db5d7",
+    "logger_identity_sha256": "1c19ee51d5388dcfbbaefd41dcf361a54ccee3d08d889f6f0e4bb6f69a08d892",
+    "candidate_reselected": false
+  },
+  "evidence": {
+    "private_operation_record_sha256": "c902c3d4c9d26c324664cab69d9d3ac4434c6acaf0805ceb09eea13218aa2550",
+    "menu_photo_sha256": "9878750e5c17f48498ffe79d59fdcc49c6c7ac2e54f43ec8ff105487e63e3394",
+    "reader_photo_sha256": "0260689538389321cc6026f9f6ae2682232d4b2bf821d84bbb05f8a103701f41",
+    "original_and_private_copy_hashes_match": true,
+    "review_method": "Visual review of both original user-provided still photographs; production gate source inspection; local artifact/record SHA256 checks",
+    "continuous_video_available_for_this_test": false,
+    "photos_and_raw_operation_record_published": false,
+    "full_console_dump_available": false
+  },
+  "completed_hardware_operation": {
+    "authorization_scope": "One reader-only boot_b flash, activate B and reboot; no Query/ARM/native launch",
+    "partitions_flashed": ["boot_b"],
+    "flash_command_succeeded": true,
+    "set_active_b_command_succeeded": true,
+    "current_slot_b_rechecked": true,
+    "slot_b_unbootable_reported": false,
+    "reboot_command_succeeded": true,
+    "partition_readback_performed": false,
+    "boot_a_vbmeta_userdata_written": false,
+    "new_hardware_command_during_photo_review": false
+  },
+  "menu_observation": {
+    "selected_candidate_run_visible": 40458123294,
+    "reader_arm_native_exit_entries_visible": true,
+    "reader_entry_highlighted": true,
+    "manual_only_no_countdown_or_fallback_text_visible": true,
+    "external_driver_count": 0,
+    "driver_count_scope": "Loader external-driver count, not proof that native XNU platform drivers are missing",
+    "input_scope": "Sequence of menu and reader stills supports reaching the reader; it does not independently verify all key actions or volume/page navigation"
+  },
+  "reader_observation": {
+    "title": "J716F NATIVE READ v2 - FROZEN / READ ONLY / NO RESET",
+    "displayed_dbgc_signature": "0x43474244",
+    "displayed_next": "0x0002a354",
+    "displayed_size": "0x0003fff4",
+    "displayed_console_crc32": "0xca89d8bc",
+    "displayed_stable": true,
+    "displayed_expected_candidate_words": [
+      "CF8D38D551EE191C",
+      "A561F3DC41FDAEBB",
+      "6F9F888DD0E3CE4C",
+      "92D8089AF6B64B0E"
+    ],
+    "expected_words_match_selected_identity_little_endian": true,
+    "expected_words_scope": "Compiled-in reader expectation, NOT a candidate identity recovered from an established session",
+    "valid_matching_session_displayed": false,
+    "console_crc_independently_recomputed": false,
+    "stable_scope": "Reader reports equal live-before / frozen-copy / live-after CRCs for one read; no host full-console CRC reconstruction or cross-reset retention proof"
+  },
+  "source_based_diagnosis": {
+    "console_bytes": 262144,
+    "header_bytes": 12,
+    "capacity": "0x0003fff4",
+    "session_bytes": 8192,
+    "header_reports_full_ring": true,
+    "header_is_linear": false,
+    "unused_linear_tail_bytes": 0,
+    "query_arm_would_be_rejected_for_photographed_header": true,
+    "rejection_observed_by_running_query_arm": false,
+    "reason": "jl_arm_query and jl_reserve require next == size and at least 8192 bytes of unused aligned linear tail. The photographed header fails the first condition and reports a full ring.",
+    "reader_scan_scope": "jl_recover_header rejects a non-linear header; no matching session on this page does not establish absence of recoverable older bytes anywhere in physical RAM",
+    "writer_or_boot_stage_that_filled_ring": "unknown",
+    "reviewed_source": [
+      "package/native-log/NativeLog.h",
+      "package/native-log/NativeFirmware.h",
+      "package/native-log/reader/Read.c"
+    ]
+  },
+  "not_performed_or_not_qualified": [
+    "Query, ARM, session initialization, ring clear or native XNU launch",
+    "Complete console byte export or independent host recomputation of its CRC",
+    "RAM retention across a native launch and actual hang/recovery path",
+    "Kernel entry, VM/permanent mapping, platform match, CPU registration, GIC, real timer IRQ/rtclock/EOI or scheduling"
+  ],
+  "preserved_history": {
+    "host_audit_not_rewritten": true,
+    "private_host_audit_sha256": "8f45e3c94e9b8f99e778e8312ca08dc19143698a1343e73ba90b038e548f321e",
+    "original_fastboot_record_not_rewritten": true,
+    "p22_freeze_manifest_sha256": "ac1f161d7fcb9f49d27f2dcb1564b25bc20330ab67ef798fa2ba5564079ba469",
+    "p22_not_reopened": true
+  },
+  "next_action": "Remain at the read-only page. Review a complete read-only console export and an explicitly authorized, evidence-preserving session-establishment design, or a separately audited log region. Do not clear, wrap, relax admission, reuse P22 initialization, reflash, reset or launch XNU to bypass this gate. Recovery/retention and native-launch authorization remain separate requirements."
+}

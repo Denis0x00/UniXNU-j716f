@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "date": "2026-10-27",
+  "status": "android-console-classified-init-only-authorized-awaiting-live-screen",
+  "scope": "Offline analysis of the previously verified complete snapshot; authorization is not a device-execution result",
+  "record_source_base": "48fbbf5a03241fe8c83f4bc4808da31975381fbc",
+  "implementation_state": "Existing uncommitted RAW-v1 sources; no new build, CI, firmware or kernel selection",
+  "references": [
+    "research/native-console-complete-20261027.json",
+    "docs/NATIVE_CONSOLE_EXPORT.md",
+    "package/native-log/reader/Init.c",
+    "package/native-log/NativeExport.h",
+    "scripts/native_export.py"
+  ],
+  "binding": {
+    "boot_image_sha256": "63399ed5260c5291c25a9a5b55c5214aa0099799b6cc040d9b7ceef20eb5addc",
+    "logger_identity_sha256": "1c19ee51d5388dcfbbaefd41dcf361a54ccee3d08d889f6f0e4bb6f69a08d892",
+    "raw_snapshot_sha256": "0ebb2cdca1c32957283eeffc1cdff9cdc19f8b035cd71b10f0f08146725382fa",
+    "raw_snapshot_crc32": "1CC58AC7",
+    "raw_snapshot_bytes": 262144,
+    "dbgc_header": ["43474244", "0003CBD2", "0003FFF4"]
+  },
+  "analysis": {
+    "method": "Unpack little-endian signature/next/size; validate full ring; rotate raw[12:] at next-write offset 0x3cbd2. Count ASCII lines and case-insensitive category matches without exposing raw text or identifiers.",
+    "logical_payload_bytes": 262132,
+    "newline_count": 3164,
+    "first_line_is_truncated": true,
+    "ends_with_newline": true,
+    "nul_bytes": 0,
+    "payload_contains_only_ascii_printable_or_whitespace": true,
+    "category_counts_include_initial_fragment_and_newline_bytes": true,
+    "categories": [
+      {"category": "keymaster-service-retry", "pattern": "keymaster|IKeymasterDevice", "lines": 838, "bytes": 151608},
+      {"category": "battery-cycle-count", "pattern": "cycle_count", "lines": 1792, "bytes": 66304},
+      {"category": "charger-current-limit", "pattern": "set_ilim", "lines": 206, "bytes": 15141},
+      {"category": "healthd", "pattern": "healthd", "lines": 220, "bytes": 20494},
+      {"category": "fastbootd", "pattern": "fastbootd", "lines": 36, "bytes": 3206}
+    ],
+    "keymaster_interpretation": "837 complete repeated init messages report that hwservicemanager's interface_start request cannot find the keymaster service; one older message is truncated at the full-ring boundary. This is Android Recovery/fastbootd context, not ArmCpu or ArmDTPlatform failure.",
+    "display_error_labels": "12 Android DRM ERROR-labelled lines concern panel preparation/backlight updates; severity labels alone do not establish a display failure or native XNU defect.",
+    "tail": "Android records a power-control reboot request from fastbootd, shutdown handling, storage-cache synchronization and restart. This is compatible with the separately recorded deployment reboot, but the text is not an independently authenticated operation identifier or a native reset-retention test.",
+    "exact_marker_counts": {
+      "UNIXNU:": 0,
+      "DARWINBOOT:": 0,
+      "Darwin Kernel Version": 0,
+      "J16NLOG1": 0,
+      "J16INIT1": 0,
+      "ArmCpu": 0,
+      "ArmDTPlatform": 0,
+      "ExitBootServices": 0,
+      "arm_vm_init": 0,
+      "PANIC": 0,
+      "panic": 0
+    },
+    "conclusion": "The exported full ring is dominated by pre-native Android console traffic. It explains the full/nonlinear-header admission obstacle; it is not evidence of a native kernel crash or progress. Native launch remains unperformed in the observed workflow."
+  },
+  "backup_recheck": {
+    "dump_frames_receipt_recovery_audit_match_second_private_directory": true,
+    "dump_sha256_and_crc32_recomputed": true,
+    "production_init_policy_still_eligible": true,
+    "receipt_hash_formula_matches_saved_private_receipt": true,
+    "receipt_published_in_this_record": false,
+    "separate_physical_disk_claim": false
+  },
+  "authorization_and_execution": {
+    "user_authorized_init_only": true,
+    "live_init_screen_reviewed": false,
+    "live_snapshot_matches_complete_backup": "not yet observed",
+    "init_commit_observed": false,
+    "query_arm_authorized_or_executed_this_step": false,
+    "native_launch_authorized_or_executed_this_step": false,
+    "reflash_or_reset_authorized_or_executed_this_step": false
+  },
+  "limits": [
+    "A full ring has already overwritten older history. Missing text markers cannot prove a stage never ran outside this retained snapshot.",
+    "No claim of exclusive RAM ownership, native permanent mapping, DMA exclusion, crash recovery or reset retention follows from these Android bytes.",
+    "Init must compare the live candidate and entire snapshot SHA before receipt input and two separate confirmations; any mismatch requires a separate read-only export, not a forced write.",
+    "An Init success would establish an initialization receipt only, not an ARM or a running XNU session."
+  ],
+  "next_action": "Enter the existing image's Init page and obtain a full-screen photo before typing the private receipt. Review candidate, full snapshot SHA, ready=1 and used=0. Only after a match, guide receipt entry and two explicit confirmations; photograph readback and then Read. No ARM/native/reflash/reset."
+}

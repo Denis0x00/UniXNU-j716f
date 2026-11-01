@@ -1,0 +1,24 @@
+[Defines]
+  INF_VERSION = 0x00010005
+  BASE_NAME = J716fNativeRead
+  FILE_GUID = 3fd520ed-f212-411a-ad44-e3d812939f01
+  MODULE_TYPE = UEFI_APPLICATION
+  VERSION_STRING = 1.0
+  ENTRY_POINT = UefiMain
+[Sources]
+  Read.c
+  Font.c
+[Packages]
+  MdePkg/MdePkg.dec
+  ArmPkg/ArmPkg.dec
+[LibraryClasses]
+  UefiApplicationEntryPoint
+  UefiBootServicesTableLib
+  UefiLib
+  BaseLib
+  BaseMemoryLib
+  MemoryAllocationLib
+  PrintLib
+  ArmLib
+[Protocols]
+  gEfiGraphicsOutputProtocolGuid

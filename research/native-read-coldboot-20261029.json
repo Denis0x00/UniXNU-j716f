@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-29",
+  "status": "read-v3-observed-after-reported-cold-boot-invalid-header-export-only",
+  "source_base_revision": "48fbbf5a03241fe8c83f4bc4808da31975381fbc",
+  "photo_sha256": "b3b65b1c1123ec25197076d8449a7c0e0462b66419cfc46a9b4a2e9e5daa5e2d",
+  "photo_bytes": 149691,
+  "private_photo_copy_hash_verified": true,
+  "user_report": "Device was completely powered off, then powered on and Read was opened. Not merely a fastboot warm reboot.",
+  "device_observation": {
+    "reader_title": "J716F NATIVE READ v3 - FROZEN / READ ONLY / NO RESET",
+    "header_transcription_hex": ["00A7266B", "8D025595", "2A002021"],
+    "displayed_console_crc32": "B6D19E53",
+    "displayed_stable": 1,
+    "message": "NO VALID MATCHING SESSION. No boot result can be inferred.",
+    "expected_candidate_words": [
+      "CF8D38D551EE191C", "A561F3DC41FDAEBB",
+      "6F9F888DD0E3CE4C", "92D8089AF6B64B0E"
+    ],
+    "candidate_words_scope": "Reader compiled-in expectations, not identity recovered from a valid session or proof of the running kernel.",
+    "menu_photo_received": false,
+    "full_raw_snapshot_received": false,
+    "console_crc_independently_recomputed": false,
+    "raw_header_independently_decoded": false,
+    "binary_identity_authenticated_by_photo": false
+  },
+  "host_policy_review": {
+    "console_physical_base": "0xb00be000",
+    "console_bytes": 262144,
+    "expected_magic": "43474244",
+    "maximum_next_or_size": "0003FFF4",
+    "classification": "INVALID_HEADER",
+    "initialization_eligible": false,
+    "arm_eligible": false,
+    "header_only_synthetic_checks": 2,
+    "synthetic_check_scope": "Production Python classify/init_eligibility evaluated with the transcribed 12 header bytes and separate zero/0xff synthetic tails. Both reject as INVALID_HEADER. Not a device dump, full-record scan or physical C/EFI execution.",
+    "c_policy_reviewed": "NativeMaintenance.h jl2_classify rejects bad magic/out-of-range fields; jl2_prepare returns with ready=0 before any commit. NativeFirmware.h jl_arm_query also rejects the header.",
+    "export_path_reviewed": "Maintenance.c freezes a fixed-size raw snapshot and can export an invalid DBGC header; it does not initialize during export. native_maintenance.publish saves a complete verified capture but emits no initialization token when INVALID_HEADER.",
+    "stability_scope": "Read.c/jl_freeze compares live-before, frozen-copy and live-after CRCs for one capture. STABLE=1 does not validate header format, RAM ownership or reset retention."
+  },
+  "conclusion": "Reported complete power-off invalidates any assumption that this RAM contains the previous session. The invalid header is compatible with that history but does not identify the writer, prove a mapping fault or prove an XNU crash. Current MAINT-v2 has no admitted cold-start initialization path for an invalid header.",
+  "current_image_context": "Previously deployed MAINT-v2 image627dc31c; Read version and expected identity are consistent with it, but this photo is not partition readback or cryptographic image attestation.",
+  "new_init_query_arm_native_evidence": false,
+  "native_retention_qualified": false,
+  "device_commands_issued_by_agent": false,
+  "implementation_changed": false,
+  "next_action": "Export-only: return from Read to the menu without reboot, select the clearly labeled entry3 MAINT v2, photograph the paused first frame and verify profile/transfer/CRC before full capture. Do not enter Init, ARM or Native. Preserve a complete new snapshot before separately reviewing cold-start session establishment and RAM ownership; no automatic policy relaxation or successor probe.",
+  "preservation": "Original photo copied privately without overwriting an existing different file. Previous complete v1 dump, interrupted-snapshot record, MAINT-v2 build/deployment record and upstream host recheck remain unchanged."
+}

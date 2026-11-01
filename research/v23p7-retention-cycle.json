@@ -1,0 +1,20 @@
+{
+  "version": "V23P7 RESET r1",
+  "image_from_prior_flash_sha256": "919cd695ac28b4eada47b663ee3724575aaefaa5a8778a71f0c2c4581527f23e",
+  "private_launch_record_sha256": "5bd4c81f63ce0e97df89a1482a29ac4fd94c1ef2628ce2dde936894e11773c44",
+  "initial_slot": "a",
+  "initial_b_unbootable": true,
+  "userspace_fastboot": true,
+  "b_reactivated": true,
+  "current_slot_b_verified": true,
+  "b_unbootable_no_verified": true,
+  "b_successful_flag": false,
+  "reboot_command_succeeded": true,
+  "partition_flash_performed": false,
+  "image_content_read_back_this_launch": false,
+  "device_result": "Awaiting P7 identity and new baseline photo.",
+  "retention_verified": false,
+  "recovery_readback_verified": false,
+  "next_action": "Capture baseline in P7, Query, invoke SYSTEM_RESET once, then photograph first read-only app reentry before new queries. Preserve a ZUI/failure outcome instead of forcing poweroff.",
+  "interpretation": "The observed A-active/B-unbootable state can explain slot fallback to ZUI; why B was marked unbootable is unverified. set_active B restored the flag to no; no partition image was rewritten."
+}

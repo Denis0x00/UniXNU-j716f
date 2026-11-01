@@ -1,0 +1,227 @@
+{
+  "version": "V23P8 RETENTION r1",
+  "image_sha256": "b8d776e19de9d51feb88d20843a5bafc812c360c78ae0f52f2adbe0a9b11fba6",
+  "image_bytes": 1699840,
+  "fd_sha256": "61dae92f2769f0671e97a3403ec1900b796dc7b6cbe776ed71f70d6ea1e8acc7",
+  "app_sha256": "9db7618c199454424a9f8a18c5a5443efa09159cbe0f0ad01da2959ee39def54",
+  "payload_sha256": "d9d37e94317280abc52b82a60a53330d54b176e9399eefb700e304e2aa038087",
+  "nonpayload_changes_vs_p7": "None; all inner-FV non-payload sections and compact SEC executable match P7.",
+  "automatic_start": false,
+  "automatic_smc": false,
+  "automatic_ram_writes": false,
+  "kernel_included": false,
+  "console_base": "0xb00be000",
+  "console_bytes": "0x40000",
+  "record_bytes": 64,
+  "hardware_verified": true,
+  "retention_verified": true,
+  "device_writes_performed": true,
+  "proposed_partition": "boot_b",
+  "status": "One controlled SYSTEM_RESET cycle observed; valid console header and matching logical/raw PRE_RESET ID=1 phase=3 CRC=0xe13f0c63 survived immediate P8 reentry",
+  "checks": {
+    "linked_efi_ui_cases": 9,
+    "wrapper_cases": 3,
+    "sanitizers": "ASan/UBSan passed",
+    "record_single_bit_corruption_cases": 512,
+    "collector_status_cases": 5,
+    "header_backport": "Exact upstream file and fresh/repeated/reclone/failure-path checks passed; no full macOS build"
+  },
+  "source_hashes": {
+    "Platforms/Lenovo/j716fPkg/Application/J716fRetentionProbe/J716fRetentionProbe.inf": "4367eb515fd14b55c8eef90fbc8a228efcf76369efbb952ae80d8b3a10f57e5f",
+    "Platforms/Lenovo/j716fPkg/Application/J716fRetentionProbe/Panel.h": "4689ee7753007f5491f5738eeaa26c39d8e04a85e5ba75cc2e89c325d1bdd004",
+    "Platforms/Lenovo/j716fPkg/Application/J716fRetentionProbe/Main.c": "6c7456c0077b35ebc5ce05e616cdc4ef0b719910538cdae166df34ee82100243",
+    "Platforms/Lenovo/j716fPkg/Application/J716fRetentionProbe/Font.c": "588d0968cc8565aa882f755356bb7ac9440670a973265218b72639bbdc099f81",
+    "Platforms/Lenovo/j716fPkg/Application/J716fRetentionProbe/Ring.h": "cde3bfb861c8ba8402da044b18bd0a069b70acf78d5712ec0a90b7181f64825e",
+    "Platforms/Lenovo/j716fPkg/Application/J716fRetentionProbe/Trace.h": "d9c102e8239fd16901576f55602e0b989e15849fbddc51ee4c65afb3ce745066",
+    "Platforms/Lenovo/j716fPkg/Application/J716fRetentionProbe/Smc.S": "44e792bc917de7ca4e940f8029217bff53cb28681f9d4c6c851d4f367db8942f"
+  },
+  "latest_p7_recovery_correction": {
+    "photo_timing": "Unknown; intervening actions prevent reset attribution",
+    "ramoops_layout_unchanged": true,
+    "pstore_mounted": true,
+    "console_file_present": false,
+    "previous_named_capture_bytes": 65,
+    "previous_named_capture_is_error_text": true,
+    "p7_boot_b_image_length_prefix_sha256": "919cd695ac28b4eada47b663ee3724575aaefaa5a8778a71f0c2c4581527f23e",
+    "boot_b_tail_checked": false,
+    "cross_reset_retention_established": false
+  },
+  "device_launch": {
+    "partition_images_flashed": [
+      "boot_b"
+    ],
+    "current_slot_before_reboot": "b",
+    "slot_unbootable_b_before_reboot": false,
+    "reboot_command_succeeded": true,
+    "image_sha256": "b8d776e19de9d51feb88d20843a5bafc812c360c78ae0f52f2adbe0a9b11fba6",
+    "retention_verified": false
+  },
+  "first_entry_observation": {
+    "evidence_kind": "user-supplied photo; raw photo private",
+    "photo_sha256": "1dba5641eb114b42da682c8616acaccc48cfdecd2b5c2fd8682886f131383a59",
+    "identity": "J716F V23P8 RETENTION r1",
+    "entry": {
+      "signature": "0x43474244",
+      "next": "0x0003fb3f",
+      "size": "0x0003fb3f",
+      "console_crc32": "0x9e93c89c",
+      "logical_count": 0,
+      "raw_count": 0,
+      "record_id": 0,
+      "phase": 0,
+      "record_crc32": 0
+    },
+    "now": {
+      "valid": true,
+      "signature": "0x43474244",
+      "next": "0x0003fb3f",
+      "size": "0x0003fb3f",
+      "logical_count": 0,
+      "raw_count": 0,
+      "record_id": 0,
+      "phase": 0,
+      "record_crc32": 0
+    },
+    "this_run": {
+      "id": 1,
+      "baseline": false,
+      "query": false,
+      "last_record_crc32": 0
+    },
+    "current_el": 1,
+    "psci_query_result_established": false,
+    "retention_verified": false,
+    "next_action": "Skip Initialize because NOW is VALID. Append BASELINE once, then Query PSCI + record (NO RESET), and photograph full page before selecting reset."
+  },
+  "baseline_query_observation": {
+    "evidence_kind": "two user-supplied photos; raw photos private",
+    "baseline": {
+      "photo_sha256": "6f1401454059a1b5b64db2401866d1e42266ebc711ba4aa376c0e7a204cfacd7",
+      "valid": true,
+      "next": "0x3fb7f",
+      "size": "0x3fb7f",
+      "logical_count": 1,
+      "raw_count": 1,
+      "id": 1,
+      "phase": 2,
+      "record_crc32": "0x668a6fef",
+      "baseline": true,
+      "query": false,
+      "status_line": "BASELINE readback OK. Photograph ID/CRC, then Query."
+    },
+    "query": {
+      "photo_sha256": "87888008a05f6a20820ef3dba6341f365a47483a7139572f851c01ed8864022f",
+      "valid": true,
+      "next": "0x3fc7f",
+      "size": "0x3fc7f",
+      "logical_count": 5,
+      "raw_count": 5,
+      "id": 1,
+      "phase": 8,
+      "record_crc32": "0xb4d25630",
+      "baseline": true,
+      "query": true,
+      "current_el": 1,
+      "psci_version": "0x10001",
+      "features_system_reset": 0,
+      "last_x0": 0,
+      "status_line": "Query recorded. Photograph baseline; then select SYSTEM_RESET."
+    },
+    "frozen_entry_unchanged": true,
+    "same_run_append_readback_verified": true,
+    "retention_verified": false,
+    "next_action": "Select Direct SYSTEM_RESET and press once only to write PRE_RESET; photograph full page with ID, phase=3 and CRC before the second press."
+  },
+  "pre_reset_observation": {
+    "evidence_kind": "user-supplied photo; raw photo private",
+    "photo_sha256": "5d4c1babf037ece0030f39506bf1be2d5f1a5e082900da4b643dcf360c3a7e4f",
+    "valid": true,
+    "signature": "0x43474244",
+    "next": "0x3fcbf",
+    "size": "0x3fcbf",
+    "logical_count": 6,
+    "raw_count": 6,
+    "id": 1,
+    "phase": 3,
+    "record_crc32": "0xe13f0c63",
+    "baseline": true,
+    "query": true,
+    "frozen_entry_unchanged": true,
+    "status_line": "PRE_RESET ready. Photograph ID/CRC, then press again to reset.",
+    "reset_observed": false,
+    "retention_verified": false,
+    "next_action": "Without navigating, press the selected Direct SYSTEM_RESET once more. After observed reboot, reopen P8 and photograph full ENTRY before init/append/query. Preserve video; if reset returns, photograph returned status instead."
+  },
+  "hardware_verification_scope": "P8 same-run append/query and one observed SYSTEM_RESET with matching PRE_RESET at immediate read-only UEFI reentry; no XNU/MMU progress",
+  "retention_scope": "One observed UEFI-to-UEFI SYSTEM_RESET cycle; header valid and exact PRE_RESET ID/phase/record CRC matched in logical and raw scans",
+  "post_reset_observation": {
+    "evidence_kind": "user-supplied video; raw video and extracted frames private",
+    "video_sha256": "d96d4e0186c69107690057b0dd7651e04f28fb48e5bdbd4af8a0fe90487440ac",
+    "video_bytes": 821230,
+    "frame_count": 328,
+    "duration_seconds": 10.931661585365854,
+    "sampled_sequence": [
+      {
+        "seconds": 0,
+        "observation": "P8 PRE_RESET ready"
+      },
+      {
+        "seconds": 2,
+        "observation": "display dark"
+      },
+      {
+        "seconds": 4,
+        "observation": "Lenovo/Android splash"
+      },
+      {
+        "seconds": 5.032,
+        "observation": "P8 menu"
+      },
+      {
+        "seconds": 9.032,
+        "observation": "P8 read-only app reentry"
+      }
+    ],
+    "comparison_frame": 327,
+    "comparison_frame_seconds": 10.898333333333333,
+    "entry": {
+      "signature": "0x43474244",
+      "next": "0x3fcbf",
+      "size": "0x3fcbf",
+      "console_crc32": "0xb1d241d0",
+      "logical_count": 6,
+      "raw_count": 6,
+      "id": 1,
+      "phase": 3,
+      "record_crc32": "0xe13f0c63"
+    },
+    "now": {
+      "valid": true,
+      "signature": "0x43474244",
+      "next": "0x3fcbf",
+      "size": "0x3fcbf",
+      "logical_count": 6,
+      "raw_count": 6,
+      "id": 1,
+      "phase": 3,
+      "record_crc32": "0xe13f0c63"
+    },
+    "this_run": {
+      "id": 2,
+      "baseline": false,
+      "query": false,
+      "last_record_crc32": 0
+    },
+    "status_line": "Read only. Photograph ENTRY before any action.",
+    "reset_observed": true,
+    "pre_reset_id_phase_crc_matches": true,
+    "retention_verified": true,
+    "limits": [
+      "One observed immediate UEFI-to-UEFI cycle only",
+      "No pre-reset whole-console CRC comparison; not proof that every payload byte survived",
+      "No power-off, ZUI or Recovery retention result",
+      "No XNU/MMU or counter progress"
+    ],
+    "next_action": "Preserve P8 as the working reset/reader baseline. Audit XNU checkpoint writer physical/virtual mappings, cache visibility and register/NZCV preservation before attaching entry/pre-MMU/post-MMU records."
+  }
+}

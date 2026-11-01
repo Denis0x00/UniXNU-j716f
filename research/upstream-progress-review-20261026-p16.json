@@ -1,0 +1,113 @@
+{
+  "date": "2026-10-26",
+  "scope": "Read-only fresh upstream and sheng review after P16 hardware result; no new image, source dependency pin, flash or hardware test.",
+  "heads": {
+    "UniXNU": "ae687009348296e97e49ce6e925795044f363ce6",
+    "UniXNU-sheng": "08cde20edc3254ed6f7df8d0f5384fb887786e8f",
+    "UniXNU-sm8550-common": "23b2049fcd9e30356161def84231334fb55ecca9",
+    "ArmCpu": "9066b53bbc82e92a98ec44a11dd50fd13eaf1a1b"
+  },
+  "heads_changed_from_P16_preparation": false,
+  "source_build_pin_unchanged": "42bffe8a56823dad2e448c776b4f94862f3e290a",
+  "local_evidence": "research/v23p16-timer-wfe.json",
+  "current_stage": "Part of upstream bring-up stage5: short original early-kernel initialization. Earlier firmware/menu/payload/handoff milestones established for this diagnostic, not full OS qualification.",
+  "local_hardware_milestones": [
+    "Qualified reserved console records and observed immediate reboot retention",
+    "P13 actual MMU-on terminal SCTLR0x3454593d",
+    "P14 original cpu_data_init returned",
+    "P15 original PE_init_platform(0, bootArgs) entered and returned",
+    "P16 original WFE configure/init and misc returned; CNTKCTL_EL1=0x4f; all9 CRCs exact and records retained over observed reboot"
+  ],
+  "local_missing_integration": {
+    "frozen_terminal_bridge": true,
+    "source_native_timer_profile_resolved": true,
+    "source_native_timer_profile_compiled": false,
+    "ArmCpu_enabled_in_qualification_profile": false,
+    "ArmDTPlatform_enabled_in_qualification_profile": false,
+    "timer_IRQ_hardware_qualified": false,
+    "scheduler_storage_userspace_qualified": false
+  },
+  "sheng_review": {
+    "record_status": "13 implemented areas; source, host and device evidence have distinct scopes",
+    "evidence_counts": {
+      "source": 14,
+      "host": 2,
+      "device": 6
+    },
+    "device_evidence_references": [
+      {
+        "kind": "device",
+        "revision": "eb026be0b22dff2a32f9a161a5547657122276c0",
+        "reference": "scripts/read-sheng-log.py",
+        "command": "fastboot boot boot-i570.img; python3 scripts/read-sheng-log.py"
+      },
+      {
+        "kind": "device",
+        "revision": "a57341b4028514aedb961fe8ce636bb05f5e5925",
+        "reference": "scripts/read-sheng-log.py",
+        "command": "fastboot boot boot-i480.img (sheng-wifi=5); python3 scripts/read-sheng-log.py"
+      },
+      {
+        "kind": "device",
+        "revision": "9e2e6de1e63d9493e841d51c6b41108e75c7d537",
+        "reference": "scripts/read-sheng-log.py",
+        "command": "fastboot boot boot.img (sheng-adsp=2 sheng-audio=6); python3 scripts/read-sheng-log.py --wait 240"
+      },
+      {
+        "kind": "device",
+        "revision": "dea464ef093349dd746582691b0eaa3807fe1441",
+        "reference": "scripts/read-sheng-log.py",
+        "command": "fastboot boot boot.img (sheng-adsp=2 sheng-audio=14); play music and record in Voice Memos; python3 scripts/read-sheng-log.py --wait 240"
+      },
+      {
+        "kind": "device",
+        "revision": "8f5d921d7a3b71a20a97f551cad546dc8e2f3700",
+        "reference": "scripts/read-sheng-log.py",
+        "command": "fastboot boot boot.img; python3 scripts/read-sheng-log.py --wait 240"
+      },
+      {
+        "kind": "device",
+        "revision": "a338c71a6f83809c84686b4996478f1c4cd3f3ab",
+        "reference": "scripts/read-sheng-log.py",
+        "command": "fastboot boot boot.img (sheng-cpufreq=4 sheng-gpu-dcvs=1); python3 scripts/read-sheng-log.py --wait 240"
+      }
+    ],
+    "maintainer_reported_device_results": [
+      "GPU workload/rendering measurements",
+      "Wi-Fi association, DHCP and bidirectional speed test",
+      "DSP speaker and capture test",
+      "Application music playback and Voice Memos recording",
+      "Charging measurements with adapters and computer",
+      "CPU/GPU dynamic frequency observations"
+    ],
+    "limits": [
+      "Peer-maintainer reports, not independent J716F tests or a cross-version stability guarantee.",
+      "Record still notes Wi-Fi throughput/password persistence, audio tuning/protection and a low-battery shutdown panic.",
+      "Native-timer offline HVF checkpoint is separate from these board device observations."
+    ]
+  },
+  "recommendation": [
+    "Retain P16 as known terminal diagnostic and preserve all hardware evidence.",
+    "Next bounded continuation should cover /chosen lookup, xnu_platform_stall handling and the next original initialization boundary; instrument relevant branches together rather than one instruction per release.",
+    "In a separate source integration candidate qualify native architectural timer, ArmDTPlatform and ArmCpu using J716F CPU/GIC/timer/PSCI resources; do not merely flip flags in a source-only qualification profile.",
+    "Keep one CPU initially and require driver match, advancing timebase and increasing real timer IRQ counters before scheduler/secondary CPU/storage/UI work.",
+    "Keep checkpoint record admission/CRC/retention and mapping-lifetime checks in the new candidate."
+  ],
+  "upstream_file_sha256": {
+    "ArmCpu/ArmCpu.cpp": "f7b44d5892b7b2266458e7389e19d1e816942c0b9c3ed538a58dd761c2102436",
+    "ArmCpu/README.md": "11e0fe1a4b93ad00350ec7b5339c797c6614eceb4ddb22ee1e674760fce1fc75",
+    "UniXNU/README.md": "da1c7d3131a6c81acec84b09d232f2fbe98be0fef3d7b170ab3d763826dfde82",
+    "UniXNU-sheng/board.toml": "de7a0d6fcced4b1d277d1fd8e56f656e9ef48bb280a6357345846d0c092237ae",
+    "UniXNU-sheng/porting.toml": "7fe0bee0db3b85301bfe72acbd6498b9026a360e6161ba6b9b6beae261d1426c",
+    "UniXNU-sheng/README.md": "bb6d23ca20ef16b633b9cd9607aa083d762ed171a8b54ebcbfa34adf3fa33ff6",
+    "UniXNU-sm8550-common/README.md": "33b0986888f1adc6662b0e7a7391ab21b7f787d554b8b027e7491f5895bbe95f",
+    "UniXNU-sm8550-common/soc.toml": "2244454d0ce347c2bfa14e7f72d4f7ea649ee1b973c88ee52389081c9f0f5ce9",
+    "UniXNU/scripts/check-native-arch-timer-checkpoints.py": "8cc559ab884c51f31ec0da7cbd137eb2abcdab2e6fcf89eeee05f58580b35faa",
+    "UniXNU/docs/zh/devices/sheng.md": "6f7148a684867794e7f559e41079de87812d655db7ee8f4ef115e26ba9531431",
+    "UniXNU/docs/zh/porting/bring-up.md": "84020ef8a6d00c2f152ff8c8ef09aa582e98c6858a162072a16390ea7826ab0b",
+    "UniXNU/patches/xnu/architectural-timer-entry.patch": "71434a321c13785ec3f357e1e29f0f28db33bda80638f172836ac3073c159072",
+    "UniXNU-sheng/configs/sheng_defconfig": "f12271a5142970a8f394769aaaf4d929132298a5537c8c8764787e173066d1c3",
+    "UniXNU-sheng/patches/xnu/series": "5796768e8aeea9cdf30ba950e31297780ffae23f73c8d8ab3c6ec015e2f56016",
+    "UniXNU-sm8550-common/patches/xnu/series": "50a487fb9a07af624d6c8e2c1076e9a0915f9f81c2ef9fe4ab0915edd7336a12"
+  }
+}

@@ -1,0 +1,13 @@
+schema_version = 2
+
+[soc]
+name = "sm8250"
+description = "Qualcomm SM8250/Kona board-local transition snapshot"
+source_repository = "board evidence: ZUI DTB0/DTBO8 and recovery FDT"
+source_revision = "j716f-hardware-evidence-v1"
+
+# This is deliberately local until a reviewed UniXNU-sm8250-common repository
+# is available. Shared platform code and a public fixed commit must be added
+# before this source can be treated as a reusable SoC port.
+[components]
+include = []

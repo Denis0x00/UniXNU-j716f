@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "date": "2026-10-27",
+  "timezone": "Asia/Shanghai",
+  "status": "design-prepared-abstract-host-model-verified-not-implemented",
+  "scope": "User-authorized preparation of next maintenance-firmware plan; not deployment or native-launch authorization",
+  "record_source_base": "48fbbf5a03241fe8c83f4bc4808da31975381fbc",
+  "plan": {
+    "path": "docs/NATIVE_CONSOLE_V2_PLAN.md",
+    "sha256": "fd1f662642e93bde68cb27eede7129f74172545643d1f4b71e086599ffd457a2",
+    "implementation_pending": true
+  },
+  "motivation": {
+    "reference": "research/native-init-blocked-20261027.json",
+    "observed_linear_end": "0003F56E",
+    "aligned_space_bytes": 2688,
+    "required_session_bytes": 8192,
+    "current_init_v1_refusal_is_expected": true,
+    "current_snapshot_full_export_still_pending": true
+  },
+  "proposed_scope": [
+    "Explicit full-wrapped, full-linear, exhausted-linear, sufficient-space and invalid-header classification; no removal of backup or ARM protections",
+    "Refuse intact pending ARM for any candidate and recognizable malformed/unknown session headers; scan the physical region",
+    "Versioned data-only export ticket owned by resident menu in ordinary Boot Services memory; no retained stores or NVRAM variables",
+    "Separate J716F2 framing/receipt domain and maintenance profile binding, preserving read-only legacy-v1 decoding",
+    "Same bounded first272-byte initialization and independent Read validation of Init-v2 receipt; no automatic ARM",
+    "Menu scale3 to candidate scale2, shorter labels, explicit refusal codes and full hashes; do not shrink QR or blindly shrink already-scale2 diagnostic pages",
+    "Official reset/shutdown actions with mandatory Cancel-first confirmation, capability review, no warm/RESET2/fallback/automatic reset"
+  ],
+  "fixed_native_objects": {
+    "ci_run": 40458123294,
+    "ci_attempt": 1,
+    "logger_identity": "1c19ee51d5388dcfbbaefd41dcf361a54ccee3d08d889f6f0e4bb6f69a08d892",
+    "prelinked_kernel_sha256": "150c5c5f13a4337eb05218232f3a157429f0974ba49f71b4627789497132d074",
+    "adt_sha256": "806ad48c85881b51f6acbeeea7ff4ec065f9edbe32d90f4aa304b5046faa64a3",
+    "kernel_abi_or_arm_capacity_changes_planned": false,
+    "replacement_kernel_ci_required_for_this_plan": false
+  },
+  "upstream_review": {
+    "local_pinned_unixnu": "42bffe8a56823dad2e448c776b4f94862f3e290a",
+    "urls": [
+      "https://unixnu.com/zh/building",
+      "https://unixnu.com/zh/reference/boot-configuration",
+      "https://unixnu.com/zh/porting/log-capture",
+      "https://unixnu.com/zh/porting/uefi-firmware",
+      "https://unixnu.com/zh/porting/bring-up",
+      "https://unixnu.com/zh/porting/migration",
+      "https://unixnu.com/zh/porting/device-repository",
+      "https://unixnu.com/zh/porting/device-tree"
+    ],
+    "official_action_names": ["reset", "shutdown"],
+    "existing_menu_scale": 3,
+    "proposed_menu_scale": 2,
+    "existing_diagnostic_panel_scale_at_2560x1600": 2,
+    "actual_build_report_reset_path": ["ResetSystemRuntimeDxe", "ArmPsciResetSystemLib", "ArmMonitorLib"],
+    "reviewed_local_sources_match_saved_build_dependency_hashes": true,
+    "saved_dependency_hashes": {
+      "ArmPsciResetSystemLib.c": "32dd3f12e4606489df2bd967670bd191057493c67073a83f159e14828a08b9f6",
+      "ArmMonitorLib.S": "31bc773bbaf8a43d36a8dac371a50639a14f8afb01f61db12165fd3e7bff0eb7",
+      "ResetSystemRuntimeDxe/ResetSystem.c": "82d1714bc6f5cfaa4d4a23a983a3352d800395d01e7059071496437b4967de1f"
+    },
+    "power_action_hardware_qualified_by_this_review": false,
+    "standard_initrd_advanced_logger_clean_dependencies_completed": false
+  },
+  "design_model": {
+    "path": "scripts/check-native-init-v2-design.py",
+    "sha256": "6c51afb7584843fd56ec839635c26fbf179753e2fac47316b1987770b228c422",
+    "command": "python -X utf8 scripts/check-native-init-v2-design.py",
+    "test_methods_passed": 7,
+    "linear_sizes_checked": 262133,
+    "full_wrapped_cursors_checked": 262132,
+    "total_classified_valid_headers": 524265,
+    "last_linear_end_with_space": "0003DFF4",
+    "first_exhausted_linear_end": "0003DFF5",
+    "production_c_or_linked_efi_test": false,
+    "file_device_network_or_receipt_operations": false
+  },
+  "unchanged_boundaries": {
+    "existing_v1_production_files_edited_this_turn": false,
+    "new_firmware_built": false,
+    "new_ci_run_or_push": false,
+    "new_image_deployed": false,
+    "device_reset_or_power_action": false,
+    "init_commit_or_arm_or_native_launch": false,
+    "prior_raw_evidence_overwritten": false
+  },
+  "next_action": "Review and implement the versioned maintenance protocol/policy with independent production tests, then UI/power and a separately identified firmware build. Preserve current new snapshot first. Deployment and hardware actions remain separately gated; after any deployment reboot, perform a NEW export within that firmware run before Init. No stale receipt or synthetic ring filling."
+}

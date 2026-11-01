@@ -1,0 +1,133 @@
+{
+  "profile": "J716F V22 paired post-MMU reset checkpoints",
+  "created_at": "2026-10-25T16:16:07.380694+08:00",
+  "kernel_pair_only_differs_in_timer_literal": true,
+  "device_writes_performed": false,
+  "hardware_verified": false,
+  "proposed_partition": "boot_b",
+  "limits": [
+    "Checkpoint diagnostics stop by requesting PSCI reset; no continued platform boot.",
+    "No panic renderer: shared padding cannot fit it alongside the reset probe.",
+    "Counter behavior and PSCI reset must be verified on the device.",
+    "Unknown V21 reset source remains unresolved."
+  ],
+  "upstream_mu_base_commit": "42fe563791e51bf5500c2e470ed294ca0c94b97c",
+  "upstream_probe_commit": "42bffe8a56823dad2e448c776b4f94862f3e290a",
+  "probe_tool_sha256": "159eb1ea8d6c1da30f26913a281f46e21d940a1ae7886656529907ec3edf96ad",
+  "payload_builder_sha256": "d9d9822bfab12fa4c99f82b78e5038e954d17f67d3e3d9969aed93d5a1b708d9",
+  "build_profile": "Platforms/Lenovo/j716fPkg/j716f-entry-v22.dsc",
+  "build_profile_sha256": "7ccea3ab49064cca2983336f8b6f340d44bc72d7a15956ab0d5a33696f27b445",
+  "variants": {
+    "a": {
+      "variant": "V22A",
+      "delay_seconds": 1,
+      "image": "j716f-mu-zui13-entry-v22a-boot.img",
+      "image_bytes": 8339456,
+      "image_sha256": "7c2cce9a188da50f3b060e0ce5b5efb966fa97d5e754e5d8ca88016589f5360a",
+      "fd_sha256": "653f4608f0ac0c5961723a3ca14fdd0fd22ec31de8cf1627154d01732a6b2de0",
+      "payload_sha256": "10cd94e952d7a933681888a11c5872d95758579b5b1dead30851c77a4ecc65a5",
+      "probe": {
+        "baseline_sha256": "cab8f385a44d21fc6f455cb501227452212ba44d34a9fa03d04fcf7e85324214",
+        "kernel_sha256": "7e0d7c2a285cbb8affcb81c73620d3b7b04269824357839b5093499c2897fdef",
+        "kernel_bytes": 52113408,
+        "entry_va": "0xfffffff0073fc488",
+        "mmu_site": "0xfffffff0073fe374",
+        "post_mmu_site": "0xfffffff0073fe394",
+        "reset_cave": "0xfffffff0073fc5c0",
+        "delay_seconds": 1,
+        "timer_ticks": 19200000,
+        "psci_function": "0x84000009",
+        "changes_confined_to_verified_sites": true,
+        "panic_renderer_installed": false,
+        "hardware_verified": false
+      },
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "linked_modules": {
+        "UniXNU.efi": {
+          "bytes": 90112,
+          "sha256": "801ea2080472f114861373b01dadcea95383adbdadff1ae338f3fd38c413919a"
+        },
+        "DarwinBoot.efi": {
+          "bytes": 19456,
+          "sha256": "e6f42f35fa13efb83d3e3d97121b0c726c0744b25fdb9a821547173b83022f9c"
+        },
+        "J716fKeysDxe.efi": {
+          "bytes": 11264,
+          "sha256": "31356536c324dda7b2161e0efddf207748f2ec8d25d94bf7c1be72a56fb8b904"
+        }
+      }
+    },
+    "b": {
+      "variant": "V22B",
+      "delay_seconds": 3,
+      "image": "j716f-mu-zui13-entry-v22b-boot.img",
+      "image_bytes": 8347648,
+      "image_sha256": "d3d8d1a7fed7a954b5506c71c02ca1f11b2605885084de3e1f08a699dbac59d1",
+      "fd_sha256": "c059520d5ed915bebde2e1f605341776ef23d44b0ba413411b9fa5650b74728a",
+      "payload_sha256": "1680f1c686a4a0c7070d5e1f378d0133ba988f82b4b8b6444ca20b624aa36924",
+      "probe": {
+        "baseline_sha256": "cab8f385a44d21fc6f455cb501227452212ba44d34a9fa03d04fcf7e85324214",
+        "kernel_sha256": "e5b2111c243350980d579424878e393b0f0ad46ae8ce2a8d98fb80e0d0de207f",
+        "kernel_bytes": 52113408,
+        "entry_va": "0xfffffff0073fc488",
+        "mmu_site": "0xfffffff0073fe374",
+        "post_mmu_site": "0xfffffff0073fe394",
+        "reset_cave": "0xfffffff0073fc5c0",
+        "delay_seconds": 3,
+        "timer_ticks": 57600000,
+        "psci_function": "0x84000009",
+        "changes_confined_to_verified_sites": true,
+        "panic_renderer_installed": false,
+        "hardware_verified": false
+      },
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "linked_modules": {
+        "UniXNU.efi": {
+          "bytes": 90112,
+          "sha256": "801ea2080472f114861373b01dadcea95383adbdadff1ae338f3fd38c413919a"
+        },
+        "DarwinBoot.efi": {
+          "bytes": 19456,
+          "sha256": "e6f42f35fa13efb83d3e3d97121b0c726c0744b25fdb9a821547173b83022f9c"
+        },
+        "J716fKeysDxe.efi": {
+          "bytes": 11264,
+          "sha256": "31356536c324dda7b2161e0efddf207748f2ec8d25d94bf7c1be72a56fb8b904"
+        }
+      }
+    }
+  },
+  "source_hashes": {
+    "Platforms/Lenovo/j716fPkg/j716f-entry-v22.dsc": "7ccea3ab49064cca2983336f8b6f340d44bc72d7a15956ab0d5a33696f27b445",
+    "Platforms/Lenovo/j716fPkg/j716f-entry-v22.fdf": "3cff1f8a055462fbc4c84fee95cef454c0496444b9d89d6045bfbdbde8936664",
+    "Platforms/Lenovo/j716fPkg/Include/ENTRY_V22_DXE.inc": "85619cde27c7de56466afac05d4a855935136ed6aef00a031d5f3652d84c8736",
+    "Platforms/Lenovo/j716fPkg/Include/ENTRY_V22_APRIORI.inc": "005f48c9ba1898b32b329cc53c5a8fd802304c483a915bb6a7d778c2d6ebad2c",
+    "Platforms/Lenovo/j716fPkg/Library/J716fWindowMemoryMapLib/MemoryMapLib.c": "8f2c5c8b8dbece234eb385ae16067e0038215abc3933213a0355c63656a36f88",
+    "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fKeysDxe.c": "8385eecfd7ad43fc5b735306a2812d2cb997bed63388c6ca14d1990689ac0b14",
+    "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fSpmi.c": "d83bdaccba84d58c753edc14ff5af701729b7cd88f96263f4c68f5bb32fa2466",
+    "Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib/FrameBufferSerialPortLib.c": "a5fe54f148bac50931a74ddabb83fc89d0e43b1b1a87d8eb089083ff186be2e7",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/Volume.c": "ab9a7b36a258cfb43b8c15fee86393ec9a1978e9b3d3e8d8e2a83b2f36bdbff2",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/Ui.c": "241a27392c1e8cc7191ecff38fa3ac023e70ce4938a26ba87dfd805f5053c916",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/Toml.c": "4d82a7de6196873df6f0a2cc033c67d337f505c53d235b053b8c6458d7332a2a",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/Internal.h": "0587430657f938891fbdf8d03ddc2704a8689cfc94887515a5c952d68f11610e",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/IoResult.h": "09401aa4dd013af81f4634413acd71ea217f3ef5a2c71d56f1161b7c7b7d1054",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/Menu.c": "f9e4ffd78c8a6e2551ec81c6de78eeddcd67e34269dfa442e8959d7f79d1bb72",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/source-lock.json": "8cce7408a1b9faf02d3b63d228ec541a9b28c06730d7d9758b5c5b32689cfc09",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/Slice.c": "5cbd409945711c13a9dad18ed6eb5a7c0df49c9b53e7599424c03e23ed2126f8",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/Main.c": "5dc87c59fac48d5234646cc3e5a1181cec862fcf75cdd6830ec09d2647592971",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/Font.c": "391c7dbc8c6eb3cd07230e3dd8d38e4ba8a5a9b603bcaecb4d8e62a4603d2ac6",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/Kext.c": "f1869ca42e03faf9bd967619ba70dcd3329fb8839513811306478548f67f9aa4",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/LogoShape.h": "8fe96788c3c1e27df7f4209c31ae1b3818ae99cf858d6dae457cd16643a6a43b",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/Inject.c": "a0072e04b6ff233746aec973d38e288bdcc689481f660f043fbf8f3b8a9d4943",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/UniXNULib.inf": "6510142f4c116da9e6782cf9ac813bf594e0dd1e283dadabba455624e5f721bf",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/Config.c": "0c7474f912699e80878f6cf816ea48b0b5f798682665a8e7792df29d92a17d9c",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/Boot.c": "da03fbfaf44737174af64edf12fd04e6a0537a10b4d4d7a9e57e5fe47fae609d",
+    "Platforms/Lenovo/j716fPkg/Library/J716fV22TraceUniXNULib/Logo.c": "da9d49c502f42c489742d2abaa8a300db1c265b0fcf807e4d7bd3d8aa8a9e4a1"
+  },
+  "unchanged_adt_sha256": "b68fc49b2d9bb6b0a387e59a7816fd4848dffc3bde706a439cbbff3cbebb1aa7",
+  "base_kernel_scope": "Same experimental source-qualification prelinked baseline as V21; no ArmCpu/ArmDTPlatform or root-volume claim.",
+  "firmware_revision": "a325b2a928707cc618730ee2a0c0a1bac7ed8db2",
+  "firmware_revision_state": "local commit; not pushed during V22 preparation"
+}

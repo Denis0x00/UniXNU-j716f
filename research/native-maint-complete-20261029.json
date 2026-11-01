@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-29",
+  "status": "complete-physical-maint-v2-raw-export-verified-invalid-header-init-blocked",
+  "source_base_revision": "48fbbf5a03241fe8c83f4bc4808da31975381fbc",
+  "build_record": "research/native-maintenance-v2-20261027.json",
+  "prior_first_frame_record": "research/native-maint-first-frame-20261029.json",
+  "video": {
+    "sha256": "9ead8062fd1112b15c3650901153a1a8a54240ededd5837f91ca5e61114b2b80",
+    "bytes": 752923503,
+    "reported_seconds": 265.34,
+    "reported_camera_frames": 15905,
+    "reported_fps": 59.941961257254846,
+    "reported_dimensions": [1080, 1920],
+    "private_original_copy_hash_verified": true,
+    "sampled_start": "0 seconds: frame1/256, PAUSE1000ms",
+    "sampled_end": "264 seconds: frame256/256, PLAY1000ms",
+    "current_live_device_state_confirmed": false
+  },
+  "reconstruction": {
+    "receiver": "Unchanged scripts/receive-native-console.py with explicitly pinned candidate and maintenance profile; video only; --sample-fps 4",
+    "first_pass_unique_frames": 256,
+    "expected_frames": 256,
+    "per_frame_crcs_independently_checked": 256,
+    "raw_bytes": 262144,
+    "complete": true,
+    "photo_frames_merged_into_capture": false,
+    "video_first_frame_exactly_matches_prior_photo_frame_text": true,
+    "maintenance_profile": "fb6ea084e0ac3c4f9cf8acb37464d2e1e28835141acb099812cc844718946537",
+    "logger_candidate_sha256": "1c19ee51d5388dcfbbaefd41dcf361a54ccee3d08d889f6f0e4bb6f69a08d892",
+    "transfer_id": "000000039CA7ACD9",
+    "snapshot_sha256": "5583ff6edf75f5bd2aa7ec2019548a3cebf891fc0c34d4302c810b8197e18811",
+    "console_crc32": "B6D19E53",
+    "whole_sha_crc_independently_recomputed": true,
+    "independent_frame_parse_reconstruction_matches_saved_raw": true,
+    "dbgc_header": ["00B7266B", "8E025595", "2A002821"]
+  },
+  "preservation": {
+    "frames_sha256": "c1aebc8522c80f8ea1b16a3ad70c2bc03754e57d626ee9cb2286ae8a41cfe0b1",
+    "frames_bytes": 587776,
+    "private_result_report_sha256": "13b6b7820baf924e3a09fdc2dcb16f29fc4e6100f5151bda96e1cf5931c47d0f",
+    "private_independent_verification_sha256": "1b3fe1a296b0107b783e6ab0b1a26eaf9b3c702fc893644c3e7296053f3b7957",
+    "primary_files_fsynced_and_readback_verified": true,
+    "second_directory_files_copied_flushed_hash_verified": 4,
+    "second_directory_on_same_volume": true,
+    "off_device_backup": true,
+    "independent_storage_failure_domain": false,
+    "raw_media_and_ram_kept_private": true,
+    "previous_evidence_overwritten": false
+  },
+  "offline_analysis": {
+    "header_classification": "INVALID_HEADER",
+    "native_decoder_result": "Invalid/nonlinear/short DBGC console",
+    "whole_raw_exact_signature_counts": {
+      "native_session_magic": 0,
+      "native_event_magic": 0,
+      "init_v1_magic": 0,
+      "init_v2_magic": 0,
+      "dbgc_signature": 0,
+      "current_candidate_bytes": 0
+    },
+    "signature_scan_scope": "Exact current ABI markers across every raw byte, not just the invalid logical header. No current-format session/events recovered. This does not prove absence of all historical execution, unknown formats, overwritten records or another writer.",
+    "power_history_scope": "User reported complete power-off/on before Read. This capture is not a before/after retention test and does not identify why the bytes have this content or prove an XNU crash/mapping fault."
+  },
+  "current_policy": {
+    "initialization_eligible": false,
+    "initialization_receipt": null,
+    "private_receipt_json_is_report_not_an_init_token": true,
+    "arm_eligible": false,
+    "source_review": "NativeMaintenance.h jl2_classify rejects the recovered magic/next/size; jl2_prepare refuses INVALID_HEADER before preparing any commit. NativeFirmware.h jl_arm_query also rejects it. Complete optical export does not override these gates.",
+    "physical_cold_start_initialization_performed": false,
+    "policy_relaxed": false
+  },
+  "milestone": "This snapshot now has a complete verified off-device read-only export. Native candidate execution, post-hang recovery, RAM ownership and reset retention remain unqualified.",
+  "implementation_changed": false,
+  "device_commands_issued_by_agent": false,
+  "new_build_push_ci_flash_reset": false,
+  "new_native_execution_evidence": false,
+  "next_action": "No further recording is required for this snapshot. Keep MAINT-v2 paused; no Init/ARM/Native/exit/reset/reflash. Review explicit cold-start session establishment and retained-region ownership next, retaining the same selected kernel/ADT/ABI. Any future maintenance implementation must preserve backup, snapshot binding, suspect-session refusal, explicit confirmations and independent Read; do not merely relax INVALID_HEADER or reuse this evidence as a receipt for changed live bytes."
+}

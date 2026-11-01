@@ -1,0 +1,397 @@
+{
+  "source": "Manual transcription of user photographs; not a raw GetMemoryMap binary dump",
+  "descriptor_count": 49,
+  "pages_observed": [
+    1,
+    2,
+    3
+  ],
+  "descriptors": [
+    {
+      "index": 0,
+      "type": 0,
+      "physical_start": 2153775104,
+      "bytes": 1048576,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 1,
+      "type": 0,
+      "physical_start": 2156412928,
+      "bytes": 65536,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 2,
+      "type": 4,
+      "physical_start": 2613051392,
+      "bytes": 4194304,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 3,
+      "type": 4,
+      "physical_start": 2675965952,
+      "bytes": 2097152,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 4,
+      "type": 0,
+      "physical_start": 2678063104,
+      "bytes": 5242880,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 5,
+      "type": 4,
+      "physical_start": 2683305984,
+      "bytes": 851968,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 6,
+      "type": 6,
+      "physical_start": 2684317696,
+      "bytes": 36864,
+      "attributes": "0x800000000000100f"
+    },
+    {
+      "index": 7,
+      "type": 0,
+      "physical_start": 2684354560,
+      "bytes": 268435456,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 8,
+      "type": 7,
+      "physical_start": 3221225472,
+      "bytes": 202899456,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 9,
+      "type": 1,
+      "physical_start": 3424124928,
+      "bytes": 151552,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 10,
+      "type": 7,
+      "physical_start": 3424276480,
+      "bytes": 24576,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 11,
+      "type": 4,
+      "physical_start": 3424301056,
+      "bytes": 4804608,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 12,
+      "type": 3,
+      "physical_start": 3429105664,
+      "bytes": 114688,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 13,
+      "type": 4,
+      "physical_start": 3429220352,
+      "bytes": 53248,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 14,
+      "type": 3,
+      "physical_start": 3429273600,
+      "bytes": 114688,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 15,
+      "type": 4,
+      "physical_start": 3429388288,
+      "bytes": 8396800,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 16,
+      "type": 3,
+      "physical_start": 3437785088,
+      "bytes": 61440,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 17,
+      "type": 4,
+      "physical_start": 3437846528,
+      "bytes": 106496,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 18,
+      "type": 3,
+      "physical_start": 3437953024,
+      "bytes": 233472,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 19,
+      "type": 4,
+      "physical_start": 3438186496,
+      "bytes": 28672,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 20,
+      "type": 3,
+      "physical_start": 3438215168,
+      "bytes": 98304,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 21,
+      "type": 5,
+      "physical_start": 3438313472,
+      "bytes": 393216,
+      "attributes": "0x800000000000100f"
+    },
+    {
+      "index": 22,
+      "type": 3,
+      "physical_start": 3438706688,
+      "bytes": 126976,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 23,
+      "type": 4,
+      "physical_start": 3438833664,
+      "bytes": 20480,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 24,
+      "type": 3,
+      "physical_start": 3438854144,
+      "bytes": 81920,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 25,
+      "type": 5,
+      "physical_start": 3438936064,
+      "bytes": 393216,
+      "attributes": "0x800000000000100f"
+    },
+    {
+      "index": 26,
+      "type": 4,
+      "physical_start": 3439329280,
+      "bytes": 4096,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 27,
+      "type": 5,
+      "physical_start": 3439333376,
+      "bytes": 851968,
+      "attributes": "0x800000000000100f"
+    },
+    {
+      "index": 28,
+      "type": 4,
+      "physical_start": 3440185344,
+      "bytes": 36864,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 29,
+      "type": 3,
+      "physical_start": 3440222208,
+      "bytes": 32768,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 30,
+      "type": 5,
+      "physical_start": 3440254976,
+      "bytes": 458752,
+      "attributes": "0x800000000000100f"
+    },
+    {
+      "index": 31,
+      "type": 3,
+      "physical_start": 3440713728,
+      "bytes": 143360,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 32,
+      "type": 4,
+      "physical_start": 3440857088,
+      "bytes": 8192,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 33,
+      "type": 3,
+      "physical_start": 3440865280,
+      "bytes": 32768,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 34,
+      "type": 5,
+      "physical_start": 3440898048,
+      "bytes": 851968,
+      "attributes": "0x800000000000100f"
+    },
+    {
+      "index": 35,
+      "type": 4,
+      "physical_start": 3441750016,
+      "bytes": 24576,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 36,
+      "type": 3,
+      "physical_start": 3441774592,
+      "bytes": 53248,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 37,
+      "type": 4,
+      "physical_start": 3441827840,
+      "bytes": 1200128,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 38,
+      "type": 5,
+      "physical_start": 3443027968,
+      "bytes": 614400,
+      "attributes": "0x800000000000100f"
+    },
+    {
+      "index": 39,
+      "type": 6,
+      "physical_start": 3443642368,
+      "bytes": 1228800,
+      "attributes": "0x800000000000100f"
+    },
+    {
+      "index": 40,
+      "type": 4,
+      "physical_start": 3444871168,
+      "bytes": 4096,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 41,
+      "type": 3,
+      "physical_start": 3444875264,
+      "bytes": 192512,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 42,
+      "type": 4,
+      "physical_start": 3445067776,
+      "bytes": 18378752,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 43,
+      "type": 0,
+      "physical_start": 2147483648,
+      "bytes": 6291456,
+      "attributes": "0x1"
+    },
+    {
+      "index": 44,
+      "type": 0,
+      "physical_start": 2154823680,
+      "bytes": 1572864,
+      "attributes": "0x1"
+    },
+    {
+      "index": 45,
+      "type": 0,
+      "physical_start": 2156920832,
+      "bytes": 264241152,
+      "attributes": "0x1"
+    },
+    {
+      "index": 46,
+      "type": 0,
+      "physical_start": 2617245696,
+      "bytes": 37748736,
+      "attributes": "0x100f"
+    },
+    {
+      "index": 47,
+      "type": 0,
+      "physical_start": 2952790016,
+      "bytes": 524288,
+      "attributes": "0x1"
+    },
+    {
+      "index": 48,
+      "type": 0,
+      "physical_start": 3463446528,
+      "bytes": 26214400,
+      "attributes": "0x1"
+    }
+  ],
+  "checks": {
+    "page_indices_complete": true,
+    "page_aligned_ranges": true,
+    "no_overlaps": true,
+    "c0000000_through_ce700000_contiguous": true,
+    "summary_free_bytes_match": true,
+    "summary_largest_run_match": true
+  },
+  "free_bytes": 202924032,
+  "largest_run_bytes": 202899456,
+  "largest_run_start": "0xc0000000",
+  "minimum_window_bytes": 268435456,
+  "physical_memory_total_unknown": true,
+  "new_window_qualified": false,
+  "window_analysis": {
+    "method": "Static arithmetic using fixed DarwinBoot AllocateWindow and photographed V13 snapshot; no physical allocation attempted",
+    "kernel_virtual_base": "0xfffffff00427c000",
+    "kernel_base_residue_2m": "0x7c000",
+    "minimum_window_bytes": 268435456,
+    "attempts": [
+      {
+        "descriptor_index": 8,
+        "candidate_physical_start": "0xc007c000",
+        "available_after_alignment": 202391552,
+        "fits_256m": false
+      },
+      {
+        "descriptor_index": 10,
+        "candidate_physical_start": "0xcc27c000",
+        "available_after_alignment": 0,
+        "fits_256m": false
+      }
+    ],
+    "any_fit": false,
+    "adjacent_free_descriptors": false,
+    "hypothetical_2m_aligned_run_minimum_bytes": 268943360,
+    "existing_bank_capture_warning": "measured-hardware.json and memory-baseline-audit.json derive from prior HyperOS, not ZUI 13.0.430",
+    "stock_offline_fdt_warning": "/memory/reg is a zero placeholder; it does not confirm physical RAM banks",
+    "next_step": "Obtain current bootloader-patched FDT or validated SMEM RAM partition data; subtract stock and current UEFI reservations before publishing conventional RAM",
+    "no_new_memory_region_qualified": true
+  },
+  "hardware_result": "UEFI survey and EFI_SUCCESS return observed; no real kernel handoff",
+  "return_page_note": "Inherited V12 title and V12 probe GUID lookup do not match the V13 memory app report; no GetMemoryMap failure inferred"
+}

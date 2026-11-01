@@ -1,0 +1,658 @@
+{
+  "profile": "J716F V23P3 single-factor legacy-store/title-barrier controls",
+  "updated_at": "2026-10-25",
+  "source_state": "Local uncommitted additions; no V23P3 push.",
+  "device_source_parent": "db1d13ec94dc2922d6b6209469fe430dcd0e6271",
+  "firmware_source_parent": "a325b2a928707cc618730ee2a0c0a1bac7ed8db2",
+  "variants": {
+    "p3a": {
+      "variant": "V23P3A",
+      "mode": 5,
+      "image": "j716f-mu-zui13-entry-v23p3a-boot.img",
+      "image_bytes": 8347648,
+      "image_sha256": "47fe01601cbe28c7862bda06725894f0dee6859818e095fd144d0d1d40311a76",
+      "fd_sha256": "e8b3cd5e40d0d1f48fde7d91b3adab381c2dcc3cb72ed00cc397be44858e18c1",
+      "payload_sha256": "e712a72c12504f6f324a181d6a5e2f82ad9d3bb875650c3d86b66013f4ef73a7",
+      "probe": {
+        "variant": "V23P3A",
+        "kernel_sha256": "575897e2253296788674fd9aeb1a6b340821a4ea223cf58a9ff1bbec868f3eaa",
+        "baseline_sha256": "cab8f385a44d21fc6f455cb501227452212ba44d34a9fa03d04fcf7e85324214",
+        "changes_confined": true,
+        "probe_bytes": 1824,
+        "probe_capacity": 2800,
+        "exception_vectors": 16,
+        "source_crypto_hmac": {
+          "offset": 1449688,
+          "computed": "53467994bbbfbad049ba129248d9c1092057e674eb6f9e8090bf9d0fbb634269",
+          "stored": "53467994bbbfbad049ba129248d9c1092057e674eb6f9e8090bf9d0fbb634269",
+          "matches": true
+        },
+        "counter_loop_bound": null,
+        "psci_function": "0x84000009",
+        "uses_counter": false,
+        "uses_psci": true,
+        "direct_mmu_display_mapping": false,
+        "normal_kernel_continuation": false,
+        "hardware_verified": false,
+        "display_mode": 5,
+        "checkpoints": {
+          "1": "Before title renderer call",
+          "2": "Title stores complete; before original DSB",
+          "3": "After original title DSB; before RET",
+          "4": "Title call returned; before CurrentEL",
+          "5": "CurrentEL read completed",
+          "6": "EL renderer returned; before SCTLR read",
+          "7": "SCTLR read completed",
+          "8": "SCTLR renderer returned",
+          "9": "FUNC renderer returned",
+          "10": "A0 renderer returned; before SMC argument setup",
+          "11": "SMC returned; x0 retained in x21",
+          "12": "Exception entry before register reads"
+        },
+        "raw_checkpoint_geometry": {
+          "x": 1280,
+          "y": 32,
+          "pitch": 104,
+          "width": 96,
+          "height": 96
+        },
+        "checkpoint_limits": "Inline stores without barriers; absence alone does not prove non-execution.",
+        "control_kernel_sha256": "5984888de0c85d8a06e56b3524ce185fa608851ada096b531a23d059edbcf8de",
+        "control_probe_sha256": "f0e9819df126934e1388d0219fd11ac45deeb1d2f19444d66b50ec0c3e544039",
+        "single_factor_verified": true,
+        "mutation": {
+          "site": "0xfffffff0073fe32c",
+          "before": "010000b9",
+          "after": "1f2003d5"
+        },
+        "diagnostic_mode_unchanged": 5
+      },
+      "boot": {
+        "kernel_sha256": "62452e55ab7dea522d42c2c3c23ffd65c87cacf8afcdb65a35214f26b438feed",
+        "ramdisk_bytes": 0,
+        "header_version": 2,
+        "kernel_address": "0x8000",
+        "tags_address": "0x100",
+        "separate_dtb_bytes": 728300,
+        "separate_dtb_address": "0x1f00000"
+      },
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "linked_modules": {
+        "UniXNU.efi": {
+          "bytes": 90112,
+          "sha256": "5e219d78170b4b884358783da87d4b84e72eaca20307e3bcdb093d8db6f2e05d"
+        },
+        "DarwinBoot.efi": {
+          "bytes": 19456,
+          "sha256": "e6f42f35fa13efb83d3e3d97121b0c726c0744b25fdb9a821547173b83022f9c"
+        },
+        "J716fKeysDxe.efi": {
+          "bytes": 11264,
+          "sha256": "31356536c324dda7b2161e0efddf207748f2ec8d25d94bf7c1be72a56fb8b904"
+        }
+      },
+      "source_hashes": {
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.dsc": "6a295e3d0046205284d52f4931ed2a17bc1f3c7276648e3753299acf357c13b6",
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.fdf": "b1a29c9e13560f6ddd34461be450ba11ab56b52d9082576af9df79f03f5a858b",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_DXE.inc": "85619cde27c7de56466afac05d4a855935136ed6aef00a031d5f3652d84c8736",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_APRIORI.inc": "005f48c9ba1898b32b329cc53c5a8fd802304c483a915bb6a7d778c2d6ebad2c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fWindowMemoryMapLib/MemoryMapLib.c": "8f2c5c8b8dbece234eb385ae16067e0038215abc3933213a0355c63656a36f88",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fKeysDxe.c": "8385eecfd7ad43fc5b735306a2812d2cb997bed63388c6ca14d1990689ac0b14",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fSpmi.c": "d83bdaccba84d58c753edc14ff5af701729b7cd88f96263f4c68f5bb32fa2466",
+        "Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib/FrameBufferSerialPortLib.c": "a5fe54f148bac50931a74ddabb83fc89d0e43b1b1a87d8eb089083ff186be2e7",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Volume.c": "ab9a7b36a258cfb43b8c15fee86393ec9a1978e9b3d3e8d8e2a83b2f36bdbff2",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Ui.c": "241a27392c1e8cc7191ecff38fa3ac023e70ce4938a26ba87dfd805f5053c916",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Toml.c": "4d82a7de6196873df6f0a2cc033c67d337f505c53d235b053b8c6458d7332a2a",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Internal.h": "0587430657f938891fbdf8d03ddc2704a8689cfc94887515a5c952d68f11610e",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/IoResult.h": "09401aa4dd013af81f4634413acd71ea217f3ef5a2c71d56f1161b7c7b7d1054",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Menu.c": "f9e4ffd78c8a6e2551ec81c6de78eeddcd67e34269dfa442e8959d7f79d1bb72",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/source-lock.json": "8c9c6bd5d541641a47e882b60323ccc2571c96684966461df4092fc56c2d2006",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Slice.c": "5cbd409945711c13a9dad18ed6eb5a7c0df49c9b53e7599424c03e23ed2126f8",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Main.c": "252c76c6d11dd7823bf6d6dda28b8d5e7e4a4b56315d42f722478ba0c7d5528b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Font.c": "391c7dbc8c6eb3cd07230e3dd8d38e4ba8a5a9b603bcaecb4d8e62a4603d2ac6",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Kext.c": "f1869ca42e03faf9bd967619ba70dcd3329fb8839513811306478548f67f9aa4",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/LogoShape.h": "8fe96788c3c1e27df7f4209c31ae1b3818ae99cf858d6dae457cd16643a6a43b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Inject.c": "a0072e04b6ff233746aec973d38e288bdcc689481f660f043fbf8f3b8a9d4943",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/UniXNULib.inf": "2b556a2e73cdf7e06be818d63ead70e970e46e463394114c92de636c23c96683",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Config.c": "0c7474f912699e80878f6cf816ea48b0b5f798682665a8e7792df29d92a17d9c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Boot.c": "da03fbfaf44737174af64edf12fd04e6a0537a10b4d4d7a9e57e5fe47fae609d",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Logo.c": "da9d49c502f42c489742d2abaa8a300db1c265b0fcf807e4d7bd3d8aa8a9e4a1"
+      }
+    },
+    "p3b": {
+      "variant": "V23P3B",
+      "mode": 5,
+      "image": "j716f-mu-zui13-entry-v23p3b-boot.img",
+      "image_bytes": 8351744,
+      "image_sha256": "adfaa0c65904647501ac9c81f08cc2c0b77fb5516a2953316e77edf690e6e277",
+      "fd_sha256": "e52a1beacf0a83715c9d9c3df393a2ce4d7813d195e24216def1ef156bc19e09",
+      "payload_sha256": "cd7bfc3056e5b782d5df6fcb3d92778d39dc10951b98a63803c6cba3a8ea9eb5",
+      "probe": {
+        "variant": "V23P3B",
+        "kernel_sha256": "c0f6cf26d4c674ad5096e2291eeb48d69264d3d9b8828fb9d53882a87919f00b",
+        "baseline_sha256": "cab8f385a44d21fc6f455cb501227452212ba44d34a9fa03d04fcf7e85324214",
+        "changes_confined": true,
+        "probe_bytes": 1844,
+        "probe_capacity": 2800,
+        "exception_vectors": 16,
+        "source_crypto_hmac": {
+          "offset": 1449688,
+          "computed": "9e9c4be82e82eca5e1c48d014887c6882319b33c4f4fe9e1304bd90136a16803",
+          "stored": "9e9c4be82e82eca5e1c48d014887c6882319b33c4f4fe9e1304bd90136a16803",
+          "matches": true
+        },
+        "counter_loop_bound": null,
+        "psci_function": "0x84000009",
+        "uses_counter": false,
+        "uses_psci": true,
+        "direct_mmu_display_mapping": false,
+        "normal_kernel_continuation": false,
+        "hardware_verified": false,
+        "display_mode": 5,
+        "checkpoints": {
+          "1": "Before title renderer call",
+          "2": "Title stores complete; before original DSB",
+          "3": "After title-only DMB dispatcher; before RET",
+          "4": "Title call returned; before CurrentEL",
+          "5": "CurrentEL read completed",
+          "6": "EL renderer returned; before SCTLR read",
+          "7": "SCTLR read completed",
+          "8": "SCTLR renderer returned",
+          "9": "FUNC renderer returned",
+          "10": "A0 renderer returned; before SMC argument setup",
+          "11": "SMC returned; x0 retained in x21",
+          "12": "Exception entry before register reads"
+        },
+        "raw_checkpoint_geometry": {
+          "x": 1280,
+          "y": 32,
+          "pitch": 104,
+          "width": 96,
+          "height": 96
+        },
+        "checkpoint_limits": "Inline stores without barriers; absence alone does not prove non-execution.",
+        "control_kernel_sha256": "5984888de0c85d8a06e56b3524ce185fa608851ada096b531a23d059edbcf8de",
+        "control_probe_sha256": "f0e9819df126934e1388d0219fd11ac45deeb1d2f19444d66b50ec0c3e544039",
+        "single_factor_verified": true,
+        "mutation": {
+          "site": "0xfffffff0073fca54",
+          "before": "9f3f03d5",
+          "after": "73000014",
+          "dispatcher": "0xfffffff0073fcc20",
+          "dispatcher_bytes": "610000b5bf3f03d58cffff179f3f03d58affff17",
+          "title_row": "DMB SY",
+          "other_rows": "DSB SY"
+        },
+        "diagnostic_mode_unchanged": 5
+      },
+      "boot": {
+        "kernel_sha256": "9d8f1d9f07df869733de2c34c77ada6a0bf3fcd417ed89ee0db8d6279ae71d73",
+        "ramdisk_bytes": 0,
+        "header_version": 2,
+        "kernel_address": "0x8000",
+        "tags_address": "0x100",
+        "separate_dtb_bytes": 728300,
+        "separate_dtb_address": "0x1f00000"
+      },
+      "host_checks_passed": true,
+      "hardware_verified": false,
+      "linked_modules": {
+        "UniXNU.efi": {
+          "bytes": 90112,
+          "sha256": "5e219d78170b4b884358783da87d4b84e72eaca20307e3bcdb093d8db6f2e05d"
+        },
+        "DarwinBoot.efi": {
+          "bytes": 19456,
+          "sha256": "e6f42f35fa13efb83d3e3d97121b0c726c0744b25fdb9a821547173b83022f9c"
+        },
+        "J716fKeysDxe.efi": {
+          "bytes": 11264,
+          "sha256": "31356536c324dda7b2161e0efddf207748f2ec8d25d94bf7c1be72a56fb8b904"
+        }
+      },
+      "source_hashes": {
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.dsc": "6a295e3d0046205284d52f4931ed2a17bc1f3c7276648e3753299acf357c13b6",
+        "Platforms/Lenovo/j716fPkg/j716f-entry-v23.fdf": "b1a29c9e13560f6ddd34461be450ba11ab56b52d9082576af9df79f03f5a858b",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_DXE.inc": "85619cde27c7de56466afac05d4a855935136ed6aef00a031d5f3652d84c8736",
+        "Platforms/Lenovo/j716fPkg/Include/ENTRY_V23_APRIORI.inc": "005f48c9ba1898b32b329cc53c5a8fd802304c483a915bb6a7d778c2d6ebad2c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fWindowMemoryMapLib/MemoryMapLib.c": "8f2c5c8b8dbece234eb385ae16067e0038215abc3933213a0355c63656a36f88",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fKeysDxe.c": "8385eecfd7ad43fc5b735306a2812d2cb997bed63388c6ca14d1990689ac0b14",
+        "Platforms/Lenovo/j716fPkg/Drivers/J716fKeysDxe/J716fSpmi.c": "d83bdaccba84d58c753edc14ff5af701729b7cd88f96263f4c68f5bb32fa2466",
+        "Silicon/Silicium/SiliciumPkg/Library/FrameBufferSerialPortLib/FrameBufferSerialPortLib.c": "a5fe54f148bac50931a74ddabb83fc89d0e43b1b1a87d8eb089083ff186be2e7",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Volume.c": "ab9a7b36a258cfb43b8c15fee86393ec9a1978e9b3d3e8d8e2a83b2f36bdbff2",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Ui.c": "241a27392c1e8cc7191ecff38fa3ac023e70ce4938a26ba87dfd805f5053c916",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Toml.c": "4d82a7de6196873df6f0a2cc033c67d337f505c53d235b053b8c6458d7332a2a",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Internal.h": "0587430657f938891fbdf8d03ddc2704a8689cfc94887515a5c952d68f11610e",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/IoResult.h": "09401aa4dd013af81f4634413acd71ea217f3ef5a2c71d56f1161b7c7b7d1054",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Menu.c": "f9e4ffd78c8a6e2551ec81c6de78eeddcd67e34269dfa442e8959d7f79d1bb72",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/source-lock.json": "8c9c6bd5d541641a47e882b60323ccc2571c96684966461df4092fc56c2d2006",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Slice.c": "5cbd409945711c13a9dad18ed6eb5a7c0df49c9b53e7599424c03e23ed2126f8",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Main.c": "252c76c6d11dd7823bf6d6dda28b8d5e7e4a4b56315d42f722478ba0c7d5528b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Font.c": "391c7dbc8c6eb3cd07230e3dd8d38e4ba8a5a9b603bcaecb4d8e62a4603d2ac6",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Kext.c": "f1869ca42e03faf9bd967619ba70dcd3329fb8839513811306478548f67f9aa4",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/LogoShape.h": "8fe96788c3c1e27df7f4209c31ae1b3818ae99cf858d6dae457cd16643a6a43b",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Inject.c": "a0072e04b6ff233746aec973d38e288bdcc689481f660f043fbf8f3b8a9d4943",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/UniXNULib.inf": "2b556a2e73cdf7e06be818d63ead70e970e46e463394114c92de636c23c96683",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Config.c": "0c7474f912699e80878f6cf816ea48b0b5f798682665a8e7792df29d92a17d9c",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Boot.c": "da03fbfaf44737174af64edf12fd04e6a0537a10b4d4d7a9e57e5fe47fae609d",
+        "Platforms/Lenovo/j716fPkg/Library/J716fV23TraceUniXNULib/Logo.c": "da9d49c502f42c489742d2abaa8a300db1c265b0fcf807e4d7bd3d8aa8a9e4a1"
+      }
+    }
+  },
+  "host_logic_checks": {
+    "scope": "Actual renderer, dispatcher, RAW stores and RET. Modeled stops/exceptions and mocked registers/SMC; no hardware barrier, permission, reset or MMU qualification.",
+    "cases": [
+      {
+        "variant": "V23P3A",
+        "barrier_hits": [
+          [
+            "dsb",
+            0
+          ],
+          [
+            "dsb",
+            10
+          ],
+          [
+            "dsb",
+            11
+          ],
+          [
+            "dsb",
+            2
+          ],
+          [
+            "dsb",
+            1
+          ],
+          [
+            "dsb",
+            1
+          ],
+          [
+            "dsb",
+            3
+          ]
+        ],
+        "case": "smc_return",
+        "checkpoints": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "smc_calls": 1,
+        "square_pixels_checked": 110592,
+        "passed": true
+      },
+      {
+        "variant": "V23P3A",
+        "barrier_hits": [],
+        "case": "before_title_dsb",
+        "checkpoints": [
+          1,
+          2
+        ],
+        "smc_calls": 0,
+        "square_pixels_checked": 110592,
+        "passed": true
+      },
+      {
+        "variant": "V23P3A",
+        "barrier_hits": [
+          [
+            "dsb",
+            0
+          ]
+        ],
+        "case": "before_title_ret",
+        "checkpoints": [
+          1,
+          2,
+          3
+        ],
+        "smc_calls": 0,
+        "square_pixels_checked": 110592,
+        "passed": true
+      },
+      {
+        "variant": "V23P3A",
+        "barrier_hits": [
+          [
+            "dsb",
+            0
+          ]
+        ],
+        "case": "before_currentel",
+        "checkpoints": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "smc_calls": 0,
+        "square_pixels_checked": 110592,
+        "passed": true
+      },
+      {
+        "variant": "V23P3A",
+        "barrier_hits": [
+          [
+            "dsb",
+            0
+          ],
+          [
+            "dsb",
+            1
+          ],
+          [
+            "dsb",
+            7
+          ],
+          [
+            "dsb",
+            8
+          ],
+          [
+            "dsb",
+            12
+          ],
+          [
+            "dsb",
+            13
+          ],
+          [
+            "dsb",
+            14
+          ],
+          [
+            "dsb",
+            15
+          ]
+        ],
+        "case": "currentel_exception",
+        "checkpoints": [
+          1,
+          2,
+          3,
+          4,
+          12
+        ],
+        "smc_calls": 0,
+        "square_pixels_checked": 110592,
+        "passed": true
+      },
+      {
+        "variant": "V23P3B",
+        "barrier_hits": [
+          [
+            "dmb",
+            0
+          ],
+          [
+            "dsb",
+            10
+          ],
+          [
+            "dsb",
+            11
+          ],
+          [
+            "dsb",
+            2
+          ],
+          [
+            "dsb",
+            1
+          ],
+          [
+            "dsb",
+            1
+          ],
+          [
+            "dsb",
+            3
+          ]
+        ],
+        "case": "smc_return",
+        "checkpoints": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "smc_calls": 1,
+        "square_pixels_checked": 110592,
+        "passed": true
+      },
+      {
+        "variant": "V23P3B",
+        "barrier_hits": [],
+        "case": "before_title_dsb",
+        "checkpoints": [
+          1,
+          2
+        ],
+        "smc_calls": 0,
+        "square_pixels_checked": 110592,
+        "passed": true
+      },
+      {
+        "variant": "V23P3B",
+        "barrier_hits": [
+          [
+            "dmb",
+            0
+          ]
+        ],
+        "case": "before_title_ret",
+        "checkpoints": [
+          1,
+          2,
+          3
+        ],
+        "smc_calls": 0,
+        "square_pixels_checked": 110592,
+        "passed": true
+      },
+      {
+        "variant": "V23P3B",
+        "barrier_hits": [
+          [
+            "dmb",
+            0
+          ]
+        ],
+        "case": "before_currentel",
+        "checkpoints": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "smc_calls": 0,
+        "square_pixels_checked": 110592,
+        "passed": true
+      },
+      {
+        "variant": "V23P3B",
+        "barrier_hits": [
+          [
+            "dmb",
+            0
+          ],
+          [
+            "dsb",
+            1
+          ],
+          [
+            "dsb",
+            7
+          ],
+          [
+            "dsb",
+            8
+          ],
+          [
+            "dsb",
+            12
+          ],
+          [
+            "dsb",
+            13
+          ],
+          [
+            "dsb",
+            14
+          ],
+          [
+            "dsb",
+            15
+          ]
+        ],
+        "case": "currentel_exception",
+        "checkpoints": [
+          1,
+          2,
+          3,
+          4,
+          12
+        ],
+        "smc_calls": 0,
+        "square_pixels_checked": 110592,
+        "passed": true
+      }
+    ]
+  },
+  "firmware_modules_outside_payload_match_p2": true,
+  "source_sha256": {
+    "build-v23-payload.py": "c931812f74cbad5edd7237d85c331a7a9ed553028e48c94832d6b7dd3371618c",
+    "build-v23p2-payload.py": "b4c3ad9c4e7b60d2b82c16bb7592387c0a6a81dcfd882b52d2e0645be2f050e6",
+    "build-v23p3-payload.py": "3ad1b724174c5a4c9cf560b8fd52516c3aa2ad65bce06da526acc9f36765611b",
+    "v23p2-probe.S": "02d96e6e3bd35ab3f958c5b9ee314541f473fe427d8c88f868f315cd1e2c3774"
+  },
+  "device_writes_performed": true,
+  "hardware_verified": false,
+  "hardware_trials": {
+    "p3a": 0,
+    "p3b": 0
+  },
+  "next_variant": "prefix follow-up",
+  "proposed_partition": "boot_b",
+  "limits": [
+    "Mode 5 and all checkpoint locations remain the P2 control; the menu identifies A/B.",
+    "P3B square 3 follows title DMB, not successful completion of the original DSB.",
+    "Host simulation does not qualify MMIO completion, barriers, exception permissions or PSCI firmware.",
+    "No counter, sustained MMU-on, platform expert, storage or userspace qualification is added.",
+    "No 9008 operation, source commit or repository push was performed. P3A flash/reboot command success is not a kernel functional result."
+  ],
+  "device_operation": {
+    "variant": "V23P3B",
+    "date": "2026-10-25",
+    "interface": "fastbootd",
+    "partition": "boot_b",
+    "flash_succeeded": true,
+    "activate_b_succeeded": true,
+    "reboot_command_succeeded": true,
+    "post_activation_current_slot": "b",
+    "post_activation_b_unbootable": false,
+    "post_activation_b_successful": false,
+    "b_retry_count": "unsupported by fastbootd",
+    "hardware_result": "pending video; menu and XNU execution not yet observed",
+    "prior_a_observation": "User reports V23P3A screen flashed briefly and rebooted; no checkpoint or reset source was established"
+  },
+  "next_action": "Treat P3A/P3B as equivalent at the observed prefix; isolate the earlier pre-title path without changing multiple factors.",
+  "hardware_observations": [
+    {
+      "variant": "V23P3A",
+      "video_path_label": "faf5aaef7d2e913db8976977c4a15875.mp4",
+      "video_sha256": "43aff70d8efda3bc62eff054a4932792fbe9325e7369754b1456271dcadf063f",
+      "video_bytes": 350212,
+      "duration_seconds": 3.966666666666667,
+      "decoded_frames": 119,
+      "resolution": [
+        720,
+        1280
+      ],
+      "menu_identity": "J716F V23P3A - P2 control: skip legacy BCM store only",
+      "menu_visible": true,
+      "pmic_menu_value": "0x02000041",
+      "diagnostic_item_started_or_visible": false,
+      "visible_checkpoints": [],
+      "first_black_approx_seconds": 1.7,
+      "logo_seen": false,
+      "returned_menu_seen": false,
+      "el_sctlr_seen": false,
+      "psci_hardware_verified": false,
+      "mmu_on_hardware_verified": false,
+      "reset_source": "unknown",
+      "limits": [
+        "Video ends shortly after the screen goes dark; no XNU checkpoint is visible.",
+        "Menu identity is established, but the diagnostic entry result is not.",
+        "A screen loss/reboot cannot by itself prove PSCI or watchdog."
+      ],
+      "next_action": "Keep P3B hardware result separate; if retesting A, record from before the power-key action through the full restart."
+    },
+    {
+      "variant": "V23P3B",
+      "video_path_label": "d302f4a571a92089d6927e9c975fdb58.mp4",
+      "video_sha256": "278d80917ba700f1ed6b43824d7dbd9f67120776d423abc67b2ebbb5fbc51dff",
+      "video_bytes": 2179859,
+      "duration_seconds": 28.363333333333333,
+      "decoded_frames": 851,
+      "resolution": [
+        720,
+        1280
+      ],
+      "menu_identity": "J716F V23P3B - P2 control: title DMB only; other rows DSB",
+      "menu_visible": true,
+      "pmic_menu_value": "0x02000001",
+      "diagnostic_title": "V23 0000000000000005",
+      "title_first_visible_frame": 39,
+      "title_first_visible_seconds": 1.2998472385428907,
+      "visible_checkpoints": [
+        1,
+        2
+      ],
+      "checkpoint_3_or_later_not_observed": true,
+      "last_title_and_squares_frame": 629,
+      "last_title_and_squares_seconds": 20.964202898550724,
+      "screen_loss_approx_seconds": 21.0,
+      "lenovo_logo_frame_approx": 720,
+      "lenovo_logo_seconds_approx": 23.997179788484136,
+      "returned_menu_frame_approx": 780,
+      "returned_menu_seconds_approx": 25.996944770857816,
+      "el_sctlr_seen": false,
+      "psci_hardware_verified": false,
+      "mmu_on_hardware_verified": false,
+      "reset_source": "unknown",
+      "interpretation": [
+        "The P3B menu identity and mode 5 title are visible.",
+        "Only inline checkpoint squares 1 and 2 are visible; square 3 after the title-only DMB dispatcher is not observed.",
+        "P3B did not visibly pass the title boundary, so the DMB change has no demonstrated hardware effect at this stop.",
+        "Later Lenovo/Android and return to the menu show a restart path, not a PSCI proof."
+      ],
+      "limits": [
+        "Camera timing and display latency limit exact instruction timing.",
+        "Absence of a square is not a PC trace or proof that DMB/DSB itself stalled.",
+        "No PMIC post-restart value was captured in this clip."
+      ],
+      "next_action": "Treat P3A/P3B as equivalent at the observed prefix. Preserve P2, P3A and P3B; next isolate the earlier pre-title path or add a checkpoint immediately before/after the legacy sequence without changing multiple factors."
+    }
+  ]
+}

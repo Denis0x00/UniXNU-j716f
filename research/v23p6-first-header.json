@@ -1,0 +1,27 @@
+{
+  "version": "V23P6 RAMLOG r1",
+  "image_sha256": "a939905b05f4db01aa88311f7e0a1f420ed0b95e39661a871e03108e903f82e3",
+  "video_sha256": "508b58195e18323f29a18cf3b982f437924ab6892edd73a56530eb7f7ff21ddb",
+  "video_seconds": 5.966666666666667,
+  "photo_sha256": "0e6891616edfca17a80d5fd13020e9a555304b2cd3066585c0da800c96ff45d7",
+  "observed": {
+    "menu_identity": true,
+    "test_app_visible": true,
+    "signature": "0x43474244",
+    "next": "0x37bd9",
+    "size": "0x37bd9",
+    "capacity": "0x3fff4",
+    "valid": true,
+    "markers_on_entry": 0,
+    "markers_now": 0,
+    "appended_this_run": 0,
+    "remaining_bytes_before_full": 33819
+  },
+  "live_header_verified": true,
+  "append_verified": false,
+  "retention_verified": false,
+  "recovery_readback_verified": false,
+  "xnu_progress_claimed": false,
+  "video_scope": "Menu then read-only app; no append or restart shown.",
+  "transcription_correction": "Enlarged photo and subsequent video confirm 00037BD9, superseding the earlier 0003FBD9 reading."
+}

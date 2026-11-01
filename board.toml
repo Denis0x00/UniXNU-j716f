@@ -1,0 +1,154 @@
+schema_version = 2
+
+[board]
+example = false
+name = "j716f"
+kit = "j716f"
+soc = "SM8250"
+soc_source = "sm8250"
+os_profile = "ipados-17.7.11-21H461"
+description = "Lenovo Xiaoxin Pad Pro 2021 TB-J716F UniXNU bring-up"
+
+[package]
+unixnu = "../UniXNU"
+
+[package.defconfig]
+"ipados-17.7.11-21H461" = "j716f_defconfig"
+
+[components]
+# Native platform mainline components
+include = ["XnuPrelink", "DarwinBoot", "ArmDTPlatform", "ArmCpu", "J716FUfs"]
+
+[ipsw]
+url = "https://updates.cdn-apple.com/2025SpringFCS/fullrestores/122-77166/DCA6CFE8-90E9-4B92-880D-3DE171798E40/iPad_Pro_HFR_17.7.11_21H461_Restore.ipsw"
+product = "iPad7,1"
+version = "17.7.11"
+build = "21H461"
+device_class = "j120ap"
+chip_id = 0x8011
+board_id = 12
+fetch = ["KernelCache", "DeviceTree", "StaticTrustCache", "Cryptex1,SystemTrustCache"]
+
+[kernel]
+defconfig = "j716f_defconfig"
+config_fragments = [
+  "arch:configs/common.config",
+  "soc:configs/sm8250.config",
+  "os:configs/ipados.config",
+]
+patch_series = [
+  "arch:patches/xnu/series",
+  "soc:patches/xnu/series",
+  "os:patches/xnu/series",
+  "device:patches/xnu/series",
+]
+archives = [
+  "component:ArmDTPlatform",
+  "component:ArmCpu",
+  "component:J716FUfs",
+  "build-libpthread-kernel.py",
+  "build-corecrypto-14.py",
+  "build-corecrypto-14.py --namespace",
+]
+
+[kernel.prelink]
+tool = "kits/NativePrelink/emit_prelink.py"
+kernel = "build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/mach.development.bcm2837.unstripped"
+kernelcache_sha256 = "f18b4df865405f2a287b84977d7aca745e056d656d9fc9df1662970ce2969de7"
+slide = "-0x1000000"
+early_security_init = "com.apple.driver.AppleMobileFileIntegrity=0xfffffff005ab4ae0"
+roots = [
+  "com.apple.AppleFSCompression.AppleFSCompressionTypeZlib",
+  "com.apple.driver.AppleARMPlatform",
+  "com.apple.driver.AppleARMWatchdogTimer",
+  "com.apple.driver.AppleAudioClockLibs",
+  "com.apple.driver.AppleEffaceableStorage",
+  "com.apple.driver.AppleIISController",
+  "com.apple.driver.AppleM2ScalerCSCDriver",
+  "com.apple.driver.AppleMobileFileIntegrity",
+  "com.apple.driver.ApplePMGR",
+  "com.apple.driver.IODARTFamily",
+  "com.apple.filesystems.apfs",
+  "com.apple.iokit.CoreAnalyticsFamily",
+  "com.apple.iokit.IOAVFamily",
+  "com.apple.iokit.IOAudio2Family",
+  "com.apple.iokit.IOCECFamily",
+  "com.apple.iokit.IOCryptoAcceleratorFamily",
+  "com.apple.iokit.IOGPUFamily",
+  "com.apple.iokit.IOHDCPFamily",
+  "com.apple.iokit.IOMobileGraphicsFamily",
+  "com.apple.iokit.IOReportFamily",
+  "com.apple.iokit.IOSlowAdaptiveClockingFamily",
+  "com.apple.iokit.IOStorageFamily",
+  "com.apple.iokit.IOSurface",
+  "com.apple.kec.Libm",
+  "com.apple.kec.corecrypto",
+  "com.apple.kext.AppleMatch",
+  "com.apple.kext.CoreTrust",
+  "com.apple.security.AppleImage4",
+  "com.apple.security.sandbox",
+  "com.apple.iokit.IOHIDFamily",
+  "com.apple.iokit.IOHIDEventDriver",
+]
+
+[device_tree]
+source = "device:dts/j716f.dts"
+include_dirs = ["soc:dts"]
+
+[firmware]
+config = "j716f"
+dsc = "Platforms/Lenovo/j716fPkg/j716f.dsc"
+fd = "Build/j716fPkg/{target}_CLANGPDB/FV/SILICIUM_UEFI.fd"
+preflight = ["scripts/check-j716f.py"]
+packages = [
+  "{uefi}",
+  "{uefi}/Platforms/Lenovo",
+  "{uefi}/Common/Mu",
+  "{uefi}/Common/Mu_OEM_Sample",
+  "{edk2}",
+  "{uefi}/Silicon/Qualcomm",
+  "{uefi}/Silicon/Silicium",
+  "{tree}/package",
+  "{tree}/drivers/DarwinBoot",
+]
+
+[firmware.defines]
+ENABLE_SECUREBOOT = 0
+DEVICE_MODEL = "j716f"
+
+[payload]
+volume = "J716FNATIVE"
+size_mib = 64
+loader = "firmware"
+title = "Lenovo Pad Pro 2021 (iPadOS 17.7.11)"
+dram_size = "0x140000000"
+timeout = -1
+kernel_args = [
+  "-v",
+  "serial=0",
+  "debug=0x14e",
+  "cpus=1",
+  "-no_slto_panic",
+  "native-ufs-root=1",
+]
+panic_screen = false
+
+[payload.adt]
+tool = "scripts/make-j716f-adt.py"
+chip_id = "8011"
+unique_chip_id = "required"
+owned_memory_size = "0x10000000"
+dram_base = "0xc0000000"
+dram_size = "0x140000000"
+psci_method = "smc"
+ipad_identity = true
+root_match_volume_uuid = "04769D26-2CA0-4825-B443-E2E5F88300F2"
+
+[bootimg.image]
+base = 0
+kernel_offset = 0x8000
+ramdisk_offset = 0x1000000
+tags_offset = 0x100
+dtb_offset = 0x1f00000
+pagesize = 4096
+header_version = 2

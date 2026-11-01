@@ -1,0 +1,45 @@
+{
+  "source": "local iPad_Pro_HFR_17.7.11_21H461_Restore.ipsw",
+  "product": "iPad7,1",
+  "device_class": "j120ap",
+  "native_target_board": "j716f",
+  "kernelcache": {
+    "bytes": 46415872,
+    "sha256": "f18b4df865405f2a287b84977d7aca745e056d656d9fc9df1662970ce2969de7",
+    "matches_official_sheng_pin": true,
+    "macho_header": [
+      4277009103,
+      16777228,
+      0,
+      2
+    ]
+  },
+  "original_apple_adt": {
+    "bytes": 35192,
+    "sha256": "5ffbd985890feaa1046c5fa36a47d0b0ffcf284db3ff5e59ac29c3b4d0cc4392",
+    "is_j716f_adt": false
+  },
+  "prelink_performed": false,
+  "components": {
+    "KernelCache": {
+      "member": "kernelcache.release.ipad7",
+      "bytes": 16238580,
+      "sha256": "13b97fa2c5ce97f04408dcc28c41fb6b0d60b9440065197879acf44b2572bf7b"
+    },
+    "DeviceTree": {
+      "member": "Firmware/all_flash/DeviceTree.j120ap.im4p",
+      "bytes": 35260,
+      "sha256": "3f612f64819fbf6a8aacc03fabeda08ba897c4bf5385df995c59815c0c80c8f0"
+    },
+    "StaticTrustCache": {
+      "member": "Firmware/044-76040-038.dmg.trustcache",
+      "bytes": 59519,
+      "sha256": "4563bdbf6ed8f72237d45dbba3ccde432634338f95c10d79d5d4631678a97c7c"
+    },
+    "Cryptex1,SystemTrustCache": {
+      "member": "Firmware/044-76034-038.dmg.trustcache",
+      "bytes": 1871,
+      "sha256": "9742f3d566369e6c48f63b3dc0740b06c243d13c6650e25bbf44616e13d6d097"
+    }
+  }
+}

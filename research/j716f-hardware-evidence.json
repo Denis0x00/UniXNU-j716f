@@ -1,0 +1,59 @@
+{
+  "board": "j716f",
+  "soc": "SM8250 / kona",
+  "source": "matching ZUI DTB0+DTBO8 and independent recovery FDT",
+  "stock_dtb_sha256": "2c0d57deb7f99a081fe4994535c51ca0362bf44b6ad5422a7300f01496f6b3ec",
+  "recovery_fdt_sha256": "68a47ee572da795077a692e7944c393c272197c66a69f43ba8d9a8ec03b39db2",
+  "stock_recovery_resources_agree": true,
+  "root_compatible": [
+    "qcom,kona"
+  ],
+  "cpu0": {
+    "mpidr_affinity": 0,
+    "compatible": "qcom,kryo"
+  },
+  "timer_hz": 19200000,
+  "psci_method": "smc",
+  "gic": {
+    "compatible": "arm,gic-v3",
+    "distributor_base": 396361728,
+    "distributor_bytes": 65536,
+    "redistributor_base": 396754944,
+    "redistributor_bytes": 1048576,
+    "redistributor_stride": 131072
+  },
+  "ram_banks": [
+    {
+      "base": 2147483648,
+      "bytes": 1019215872
+    },
+    {
+      "base": 3221225472,
+      "bytes": 5368709120
+    }
+  ],
+  "primary_contiguous_dram_bank": {
+    "base": 3221225472,
+    "bytes": 5368709120
+  },
+  "owned_memory_bytes": 268435456,
+  "v14_qualified_window": {
+    "base": 3490168832,
+    "bytes": 268435456
+  },
+  "gop": {
+    "base": 2617245696,
+    "width": 2560,
+    "height": 1600,
+    "row_bytes": 10240,
+    "depth": 32,
+    "source": "V13 real-device GOP observation; loader rechecks GOP at runtime"
+  },
+  "source_nodes": {
+    "gic": "/soc/interrupt-controller@17a00000",
+    "timer": "/soc/timer",
+    "cpu0": "/cpus/cpu@0",
+    "psci": "/psci"
+  },
+  "scope": "single boot CPU, GIC resource description, physical RAM capacity; allocator uses only 256 MiB owned boot_args memory"
+}

@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "date": "2026-10-27",
+  "status": "complete-physical-screen-raw-export-verified-init-not-authorized",
+  "scope": "Complete 262144-byte retained-console snapshot reconstructed from user-supplied hardware video; no native XNU launch or reset-retention claim",
+  "record_source_base": "48fbbf5a03241fe8c83f4bc4808da31975381fbc",
+  "implementation_state": "Uncommitted RAW-v1 implementation and host tools on the recorded base; no new CI qualification implied",
+  "references": [
+    "research/native-console-optical-20261027.json",
+    "docs/NATIVE_CONSOLE_EXPORT.md"
+  ],
+  "candidate_binding": {
+    "source_ci_run": 40458123294,
+    "source_ci_attempt": 1,
+    "kernel_source_commit": "474c8a65b731d293987afdf550112f7b02f9ea32",
+    "boot_image_sha256": "63399ed5260c5291c25a9a5b55c5214aa0099799b6cc040d9b7ceef20eb5addc",
+    "logger_identity_sha256": "1c19ee51d5388dcfbbaefd41dcf361a54ccee3d08d889f6f0e4bb6f69a08d892",
+    "prelinked_kernel_sha256": "150c5c5f13a4337eb05218232f3a157429f0974ba49f71b4627789497132d074",
+    "private_host_audit_sha256": "c9edd800089e10396d2cd6ce45f55164fd4094c101bba14f92356a96adc3051c"
+  },
+  "private_video": {
+    "sha256": "7f9b2689df8bda02484d3d2fca9da602c03e6f45d21e1ae2ee1cd10e41f7a99d",
+    "bytes": 153047858,
+    "original_and_private_copy_hashes_match": true,
+    "reported_width": 1080,
+    "reported_height": 1920,
+    "reported_camera_frames": 5531,
+    "reported_duration_seconds": 92.27166666666666,
+    "video_modified_by_receiver": false,
+    "published": false,
+    "scope": "Media metadata and decoded optical bytes, not forensic proof of continuous or unedited recording or timer cadence"
+  },
+  "transfer": {
+    "photo_transfer_id": "0000000071E24046",
+    "video_transfer_id": "00000001AD5A00BB",
+    "candidate_and_advertised_snapshot_same_as_photo": true,
+    "mixed_photo_video_attempt_refused": true,
+    "photo_frame_not_used_in_completed_video_capture": true,
+    "all_256_frames_from_single_video_transfer": true
+  },
+  "recovery": {
+    "initial_4fps_unique_frames": 250,
+    "missing_zero_based_hex": ["0062", "0092", "00A6", "00AC", "00BE", "00CB"],
+    "supplemental_original_camera_frame_decode_attempts": 286,
+    "supplemental_frames_recovered": 6,
+    "final_unique_frames": 256,
+    "method": "ZXing-C++ 3.1.1 on unchanged video frames; bounded denser temporal sampling for missing pages; unchanged production Capture/publish checks",
+    "production_codec_sha256": "23d03891da58508a30aafa6f91e7e941c7251f932ca8b31e3b07592c7f3fc24e",
+    "private_recovery_runner_sha256": "a2d5efd1ba34e5b747d314a38877b6f00dcdb522d3e0f8afa815676157ccc839",
+    "private_recovery_audit_sha256": "df2866138d65406f3d0a897e20d5acc114bd7ee500821aef05d7c63e0ed8b0c5",
+    "partial_frames_preserved": true,
+    "frame_crc_verified_count": 256,
+    "bytes_guessed_or_synthesized": false
+  },
+  "complete_snapshot": {
+    "bytes": 262144,
+    "sha256": "0ebb2cdca1c32957283eeffc1cdff9cdc19f8b035cd71b10f0f08146725382fa",
+    "crc32": "1CC58AC7",
+    "whole_sha256_and_crc_independently_recomputed": true,
+    "independent_frame_reassembly_matches_saved_dump": true,
+    "dbgc_header": ["43474244", "0003CBD2", "0003FFF4"],
+    "header_and_crc_match_reader_photo": true,
+    "full_wrapped_ring": true,
+    "intact_pending_arm_count_under_declared_abi": 0,
+    "production_host_initialization_policy_eligible": true,
+    "raw_snapshot_published": false
+  },
+  "durable_host_evidence": {
+    "frames_sha256": "31bf8d06e45768c88c3edb525b77143887e979f74c72e3584cfff665b861eee8",
+    "private_receipt_report_sha256": "00ec4ff6ebc032714fedfb0ffcab2abb5a5771943093f8fae258c02732ead2fa",
+    "frames_dump_and_receipt_fsynced_then_readback_verified": true,
+    "additional_private_directory_copy_hash_verified": true,
+    "additional_copy_is_on_separate_physical_disk": false,
+    "initialization_receipt_generated_privately": true,
+    "receipt_is_device_authorization": false
+  },
+  "device_boundary": {
+    "new_device_commands_during_receiving": false,
+    "ram_initialization_performed_or_authorized": false,
+    "query_arm_performed_or_authorized": false,
+    "native_kernel_launched": false,
+    "native_retention_permanent_map_irq_scheduler_qualified": false,
+    "live_console_still_matches_backup": "must be rechecked before any authorized commit"
+  },
+  "limits": [
+    "This proves complete read-only optical export of one frozen retained-console region, not all RAM or all possible logs.",
+    "The receipt is an accident-prevention binding, not authentication or proof of external disk durability to the device.",
+    "No intact pending ARM under the current ABI does not mean every historical byte has been semantically classified.",
+    "The transfer ID changed; why Export was re-entered is not inferred. Snapshot equality does not prove recovery across a native hang/reset.",
+    "Camera timing and QR page progression do not qualify native timer IRQs or scheduler behavior.",
+    "Advanced Logger/OneSend, standard initrd, clean dependencies and native recovery remain unqualified."
+  ],
+  "next_action": "Keep the current Export paused while obtaining separate permission for Init only. Before any commit, compare the Init candidate and complete snapshot SHA256 with the saved dump. No ARM, XNU launch, reflash or reset."
+}

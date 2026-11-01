@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-29",
+  "status": "reference-mapping-and-existing-image-host-recheck-complete-awaiting-current-read-photo",
+  "source_base_revision": "48fbbf5a03241fe8c83f4bc4808da31975381fbc",
+  "scope": "Documentation/reference mapping and read-only binary recheck. Existing dirty implementation changes preserved; no new implementation, build, push, CI or device operation.",
+  "reference_document": "docs/UPSTREAM_REFERENCE_20261029.md",
+  "references": {
+    "UniXNU/UniXNU": "066c8d8315f83749d28bcae2faf3595718646be5",
+    "UniXNU/UniXNU-sheng": "08cde20edc3254ed6f7df8d0f5384fb887786e8f",
+    "UniXNU/uefi-sheng": "20ac23d5e0937106c2129303dfc931b3390ae660",
+    "xVanTuring/UniXNU-pipa": "cdb3d62771e31d48d832853ee0c90964346d78da",
+    "reAAAq/UniXNU-umi": "3eb72578597d2ca16471b172d45eddc096a34a04"
+  },
+  "unchanged_candidate": {
+    "kernel_ci_run": 40458123294,
+    "kernel_ci_attempt": 1,
+    "image_sha256": "627dc31c8049c8b4948058f987691a5ce790319676c4b94f22044f6c4168f7bc",
+    "image_bytes": 8380416,
+    "kernel_sha256": "150c5c5f13a4337eb05218232f3a157429f0974ba49f71b4627789497132d074",
+    "adt_sha256": "806ad48c85881b51f6acbeeea7ff4ec065f9edbe32d90f4aa304b5046faa64a3",
+    "logger_candidate_sha256": "1c19ee51d5388dcfbbaefd41dcf361a54ccee3d08d889f6f0e4bb6f69a08d892",
+    "maintenance_profile": "fb6ea084e0ac3c4f9cf8acb37464d2e1e28835141acb099812cc844718946537",
+    "prior_host_audit_sha256": "f1cf4dc9af465c31b78ea99fe8121970b2d986cca58efeb6833887e9356fd34b"
+  },
+  "host_recheck": {
+    "method": "In-memory Python parsing of the existing final image using native_image_formats.extract_fd/read_fat32; verify Android v2 header/image ID/padding and gzip/DTB; match every final payload file to the prior audit and kernel/ADT to staging; call native_candidate.check_kernel/check_board and check-native-platform-adt.check. No parser output files or device access.",
+    "final_image_roundtrip_matches": true,
+    "payload_file_count": 7,
+    "fv_file_guid_count": 34,
+    "native_provider_definitions": true,
+    "crypto_hmac_matches": true,
+    "observer_initial_abi_matches": true,
+    "adt_resource_encoding_matches": true,
+    "timer_hz": 19200000,
+    "single_cpu": true,
+    "psci_method": "smc",
+    "menu_matches_existing_manual_maintenance_profile": true,
+    "selected_module_presence": {
+      "UniXNU": true,
+      "DarwinBoot": true,
+      "J716fNativeFatDxe": true,
+      "UniXNURamDiskDxe": false,
+      "AdvancedLogDxe": false
+    },
+    "logger_command": "python -B scripts/check-native-logger.py <existing-stage>/inputs/kernel.macho --candidate 1c19ee51d5388dcfbbaefd41dcf361a54ccee3d08d889f6f0e4bb6f69a08d892",
+    "logger_check_passed": true,
+    "pre_mmu_reachable_instructions": 711,
+    "pre_mmu_indirect_calls": false,
+    "pre_mmu_external_runtime_calls": false,
+    "pre_mmu_simd_fp": false
+  },
+  "findings": [
+    "Sheng is a primary reference for shared integration, not only for process documentation. Its SM8550-specific MMIO, PMIC and storage geometry are not J716F inputs.",
+    "board.toml tools=true is not selected by the dedicated payload menu; adding AdvancedLogDxe alone would not complete collection, dependencies or menu integration.",
+    "Existing embedded FAT and native logger remain the current candidate. Standard initrd and Advanced Logger are integration gaps, not newly proven causes of an XNU failure.",
+    "The current retained writer records bounded checkpoints, faults and IRQ/scheduler samples, not a continuous kernel msgbuf stream.",
+    "Umi-style IRQ1/2/8 enter/rtclock-return/EOI observation is already implemented; collecting physical records is the next evidence gap.",
+    "Sheng BootLog depends on UFS; its boot ID and commit/readout structure are reusable, but a recovery reader does not create missing kernel writes or prove RAM retention."
+  ],
+  "user_report": "User reports powering on and opening Read; no current photo received at time of this record. This report does not confirm menu version, header or a native session.",
+  "hardware_validated": false,
+  "hardware_launch_admitted": false,
+  "device_operations": false,
+  "new_image_built": false,
+  "next_action": "Review current Read photo first; keep the device on that page. Follow the existing same-invocation MAINT-v2 full-export/receipt/Init procedure only after current evidence review, then independent Read and separate fresh Query/ARM/native review. Do not reflash, reset or reuse historical receipts.",
+  "limits": [
+    "This host recheck does not confirm which image is running on the device or read back any partition.",
+    "No physical Init, native launch, retention, IRQ or scheduling result was obtained.",
+    "Existing dirty shared dependencies and standard CLI/initrd/Advanced Logger gaps remain open.",
+    "All previous hardware evidence and build reports remain unchanged."
+  ]
+}

@@ -1,0 +1,4 @@
+# Private firmware inputs stay outside this public repository.
+# Record each file as: <path> <source URL or release> <sha256>.
+# Current V15 diagnostics use a local UEFI checkout and vendor inputs; no
+# proprietary binary is committed here.
