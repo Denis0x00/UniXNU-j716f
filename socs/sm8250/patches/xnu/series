@@ -1,1 +1,3 @@
-# No SM8250 shared XNU patch is currently public.
+# SM8250 8-core SMP + E/P cluster Edge scheduler (from UniXNU & UniXNU-pipa)
+native-smp-secondary.patch
+native-smp-type-clusters.patch

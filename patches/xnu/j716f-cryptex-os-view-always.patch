@@ -1,0 +1,13 @@
+diff --git a/bsd/kern/kern_exec.c b/bsd/kern/kern_exec.c
+--- a/bsd/kern/kern_exec.c
++++ b/bsd/kern/kern_exec.c
+@@ -7645,6 +7645,9 @@ native_gpu_addon_prepare(proc_t p, user_addr_t scratch)
+ {
+ 	uint32_t enabled = 0;
+ 	if (!PE_parse_boot_argn("sheng-gpu-addon", &enabled, sizeof(enabled)) || enabled != 1) {
++		native_cryptex_os_view(p, scratch);
++		native_gestalt_cache_drop(p, scratch);
++		native_ls_store_drop(p, scratch);
+ 		return;
+ 	}
+ 	native_gpu_addon_install(p, scratch);

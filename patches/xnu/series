@@ -1,1 +1,3 @@
-# No board-local XNU patch is currently required.
+# Board-local XNU fixes for TB-J716F
+j716f-throttle-and-verbose-console.patch
+j716f-cryptex-os-view-always.patch

@@ -4,56 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - '.github/workflows/xnu-source-macos.yml'
-      - 'configs/j716f_source_defconfig'
-      - 'configs/j716f_arch_timer_source_defconfig'
-      - 'scripts/build-j716f-source.py'
-      - 'scripts/prepare-native-platform.py'
-      - 'scripts/prepare-native-observer.py'
-      - 'scripts/check-native-irq-trace.py'
-      - 'scripts/test-native-irq-observer.py'
-      - 'scripts/j716f-native-timer-route.json'
-      - 'package/native-observer/**'
-      - 'package/native-log/**'
-      - 'scripts/prepare-native-logger.py'
-      - 'scripts/check-native-logger.py'
-      - 'scripts/decode-native-log.py'
-      - 'scripts/test-native-log.py'
-      - 'scripts/native_export.py'
-      - 'scripts/native_maintenance.py'
-      - 'scripts/test-native-maintenance.py'
-      - 'scripts/receive-native-console.py'
-      - 'scripts/test-native-export.py'
-      - 'scripts/check-native-qr-inputs.py'
-      - 'scripts/test-native-console-profile.py'
-      - 'scripts/decode-native-pages.py'
-      - 'scripts/native_image_formats.py'
-      - 'scripts/test-native-image-formats.py'
-      - 'scripts/build-native-payload.py'
-      - 'scripts/prepare-native-firmware.py'
-      - 'scripts/prepare-native-reader.py'
-      - 'scripts/make-native-mainline-adt.py'
-      - 'scripts/package-native-image.py'
-      - 'scripts/source-artifact-transfer.py'
-      - 'scripts/test-source-artifact-transfer.py'
-      - 'scripts/native_candidate.py'
-      - 'scripts/receive-native-candidate.py'
-      - 'scripts/prelink-native-candidate.py'
-      - 'scripts/test-native-candidate.py'
-      - 'configs/native-candidate-lock.json'
-      - 'configs/native-log-candidate-*.json'
-      - 'ci/source-artifacts-public.pem'
-      - 'patches/build-driver/0002-guard-optional-legacy-display-probe.patch'
-      - 'patches/build-driver/0003-allow-boot-progress-without-sheng-pmgr.patch'
-      - 'patches/build-driver/0004-restore-xnu-headers-after-reclone.patch'
-      - 'patches/build-driver/0005-j716f-ufs-driver-support.patch'
-      - 'drivers/**'
-      - 'board.toml'
-      - 'feeds.toml'
-      - 'dts/**'
-      - 'socs/**'
-      - 'unixnu.lock'
+  pull_request:
 
 permissions:
   contents: read
@@ -66,207 +17,69 @@ defaults:
   run:
     shell: bash
 
-env:
-  HOMEBREW_NO_AUTO_UPDATE: 1
-  HOMEBREW_NO_INSTALL_CLEANUP: 1
-  HOMEBREW_NO_ENV_HINTS: 1
-  DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
-
 jobs:
-  transfer-checks:
+  driver-and-source-checks:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
-      - name: Check encrypted transfer for baseline and native platform outputs
+          python-version: '3.12'
+
+      - name: Install device-tree compiler
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq device-tree-compiler
+
+      - name: Validate board configuration, DTB compilation, and proprietary firmware manifest
         run: |
           set -euo pipefail
-          python3 -m pip install --disable-pip-version-check --no-input cryptography==46.0.6
-          python3 scripts/test-source-artifact-transfer.py -v
-      - name: Check native IRQ observer writer and refusal cases
-        run: python3 scripts/test-native-irq-observer.py
-      - name: Check native provenance, prelink preservation and packaging policy
-        run: python3 scripts/test-native-candidate.py -v
-      - name: Check production retained-log ABI, page mapper and AArch64 assembly
-        run: python3 scripts/test-native-log.py --cc gcc
-      - name: Check firmware container corruption refusal with synthetic inputs
-        run: python3 scripts/test-native-image-formats.py -v
-      - name: Check raw export, durable receipt and isolated initialization gates
-        run: |
-          python3 scripts/test-native-export.py --cc gcc
-          python3 scripts/test-native-export.py --cc clang
-          python3 scripts/test-native-maintenance.py --cc gcc
-          python3 scripts/test-native-maintenance.py --cc clang
-          python3 scripts/test-native-console-profile.py --cc gcc
-          python3 scripts/test-native-console-profile.py --cc clang
+          dtc -I dts -O dtb -i socs/sm8250/dts dts/j716f.dts -o /tmp/j716f-hardware.dtb
+          test -s /tmp/j716f-hardware.dtb
+          python3 scripts/check-j716f.py
+          python3 - <<'PY'
+          import re
+          import tomllib
+          from pathlib import Path
+          board = tomllib.loads(Path('board.toml').read_text())
+          assert board['board']['name'] == 'j716f'
+          assert board['board']['soc'] == 'SM8250'
+          assert 'j716f-touch=1' in board['payload']['kernel_args']
+          assert 'j716f-usb=1' in board['payload']['kernel_args']
+          lines = [
+              ln.strip() for ln in Path('proprietary-files.txt').read_text().splitlines()
+              if ln.strip() and not ln.strip().startswith('#')
+          ]
+          assert len(lines) >= 10
+          for ln in lines:
+              parts = [p.strip() for p in ln.split('|')]
+              assert len(parts) == 4 and re.fullmatch(r'[0-9a-f]{64}', parts[2]), f'Bad entry: {ln}'
+          print(f'Verified board.toml, hardware.dtb, and {len(lines)} proprietary firmware SHA-256 entries')
+          PY
 
-  source:
-    needs: transfer-checks
-    runs-on: macos-26
-    timeout-minutes: 360
-    steps:
-      - name: Check out the J716F configuration
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          path: device
-
-      - name: Check out the pinned official UniXNU build driver
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          repository: UniXNU/UniXNU
-          ref: cac825716b2d3a0e7f8475632b49abf981b06fa9
-          persist-credentials: false
-          path: unixnu
-
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: '3.13'
-
-      - name: Install host tools
+      - name: Compile and run J716F driver unit tests (GCC and Clang -Werror)
         run: |
           set -euo pipefail
-          test -d "$DEVELOPER_DIR"
-          brew install llvm lld
-          if ! command -v unifdef >/dev/null; then
-            brew install unifdef
-            echo "$(brew --prefix unifdef)/bin" >> "$GITHUB_PATH"
-          fi
-
-      - name: Report toolchain
-        run: |
-          set -euo pipefail
-          mkdir -p unixnu/out/j716f
-          {
-            sw_vers
-            uname -m
-            xcodebuild -version
-            xcrun --sdk iphoneos --show-sdk-version
-            xcrun --sdk iphoneos --find mig
-            clang --version
-            python3 --version
-            git -C unixnu rev-parse HEAD
-            git -C device rev-parse HEAD
-            df -h "$GITHUB_WORKSPACE"
-          } | tee unixnu/out/j716f/toolchain.log
-          for tool in git make clang cmake ninja unifdef xcodebuild; do
-            command -v "$tool"
+          for cc in gcc clang; do
+            "$cc" -std=c11 -O2 -Wall -Wextra -Werror -I package package/ButtonsTests.c -o /tmp/buttons-test-"$cc"
+            /tmp/buttons-test-"$cc"
+            "$cc" -std=c11 -O2 -Wall -Wextra -Werror -I package package/TouchBoardTests.c -o /tmp/touch-test-"$cc"
+            /tmp/touch-test-"$cc"
+            "$cc" -std=c11 -O2 -Wall -Wextra -Werror -I drivers/GopFramebuffer drivers/GopFramebuffer/Test/request-state.c -o /tmp/gop-test-"$cc"
+            /tmp/gop-test-"$cc"
+            "$cc" -std=c11 -O2 -Wall -Wextra -Werror -c package/QcomRpmh.c -o /tmp/qcom-rpmh-"$cc".o
+          done
+          for cxx in g++ clang++; do
+            "$cxx" -std=c++17 -O2 -Wall -Wextra -Werror -I package package/UsbDebugTests.cpp -o /tmp/usb-test-"$cxx"
+            /tmp/usb-test-"$cxx"
           done
 
-      - name: Build source XNU, pthread and corecrypto
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          J716F_NATIVE_TIMER: 'true'
+      - name: Validate Apple DeviceTree (ADT) generation
         run: |
           set -euo pipefail
-          timer_args=()
-          if [[ "$J716F_NATIVE_TIMER" == "true" ]]; then
-            timer_args+=(--native-arch-timer)
-          fi
-          python3 device/scripts/build-j716f-source.py \
-            --unixnu "$GITHUB_WORKSPACE/unixnu" \
-            --device "$GITHUB_WORKSPACE/device" --jobs 3 \
-            "${timer_args[@]}" \
-            2>&1 | tee unixnu/out/j716f/source-driver.log
-
-      - name: Encrypt source outputs for local bring-up
-        run: |
-          set -euo pipefail
-          python3 -m pip install --disable-pip-version-check --no-input cryptography==46.0.6
-          reports="$(find unixnu/out/j716f -type f -path '*/logs/source-build-report.json' -print)"
-          test -n "$reports"
-          test "$(printf '%s\n' "$reports" | wc -l | tr -d ' ')" -eq 1
-          report="$reports"
-          root="${report%/logs/source-build-report.json}/tree"
-          echo "transfer: report = $report"
-          echo "transfer: root = $root"
-          SOURCE_TREE="$root" SOURCE_REPORT="$report" python3 - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-          from cryptography.hazmat.primitives import serialization
-
-          root = Path(os.environ['SOURCE_TREE'])
-          report_path = Path(os.environ['SOURCE_REPORT'])
-          key_path = Path('device/ci/source-artifacts-public.pem')
-          report = json.loads(report_path.read_text())
-          print('transfer: cryptography import ok')
-          print('transfer: report status =', report.get('status'))
-          print('transfer: prelink performed =', report.get('prelink_performed'))
-          print('transfer: manifest entries =', len(report.get('artifacts', [])))
-          for entry in report.get('artifacts', []):
-              path = root / entry['path']
-              print('transfer: output', entry['path'], 'bytes=', path.stat().st_size,
-                    'reported=', entry['bytes'])
-          key = serialization.load_pem_public_key(key_path.read_bytes())
-          print('transfer: public key type =', type(key).__name__,
-                'bits =', key.key_size)
-          PY
-          SOURCE_TREE="$root" SOURCE_REPORT="$report" python3 device/scripts/source-artifact-transfer.py seal \
-            --root "$root" \
-            --report "$report" \
-            --public-key device/ci/source-artifacts-public.pem \
-            --output private-transfer/j716f-source-only.enc \
-            2>&1 | tee unixnu/out/j716f/source-transfer.log
-
-      - name: Upload encrypted source outputs
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: j716f-source-encrypted-${{ github.run_id }}-${{ github.run_attempt }}
-          path: private-transfer/j716f-source-only.enc
-          if-no-files-found: error
-          retention-days: 3
-
-      - name: Stage text logs and reports
-        if: always()
-        run: |
-          python3 - <<'PY'
-          import shutil
-          from pathlib import Path
-          root = Path('unixnu/out/j716f')
-          target = Path('public-logs')
-          target.mkdir(exist_ok=True)
-          candidates = [path for path in root.rglob('*') if path.is_file()]
-          # Only the following source archive diagnostics are added. No binary,
-          # IPSW, kernelcache, payload or full build directory is uploaded.
-          for folder in ('corecrypto-2023', 'libpthread-kernel'):
-              builds = list(root.rglob('tree/build/' + folder))
-              for build in builds:
-                  candidates.extend(build.glob('*.json'))
-                  candidates.extend(build.rglob('*.log'))
-          for path in candidates:
-              if not path.is_file() or path.suffix not in ('.log', '.json'):
-                  continue
-              data = path.read_bytes()
-              if b'\0' in data:
-                  continue
-              name = '__'.join(path.relative_to(root).parts)
-              (target / name).write_text(data.decode('utf-8', 'replace'))
-          PY
-
-      - name: Upload text diagnostics
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: j716f-xnu-source-logs-${{ github.run_id }}-${{ github.run_attempt }}
-          path: public-logs/
-          if-no-files-found: warn
-          retention-days: 7
-
-      - name: Summary
-        if: always()
-        run: |
-          {
-            echo '## J716F XNU source build'
-            echo
-            echo 'Target: ARM64 / BCM2837 4 KiB / DEVELOPMENT / iOS 17 ABI.'
-            echo 'Source dependencies: libpthread, corecrypto, libplatform, libdispatch and AvailabilityVersions.'
-            echo 'This run performs source compilation only. It does not perform prelink or prove a J716F boot.'
-            echo 'Text diagnostics and an encrypted source-output bundle are uploaded. Only the local private key can decrypt the bundle.'
-          } >> "$GITHUB_STEP_SUMMARY"
+          python3 scripts/make-j716f-adt.py --output /tmp/j716f-adt.bin
+          test -s /tmp/j716f-adt.bin

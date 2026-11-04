@@ -1,4 +1,15 @@
-# Private firmware inputs stay outside this public repository.
-# Record each file as: <path> <source URL or release> <sha256>.
-# Current V15 diagnostics use a local UEFI checkout and vendor inputs; no
-# proprietary binary is committed here.
+# Required firmware inputs: relative path | source | SHA-256 | consumer
+# Private firmware binaries stay outside this public repository (.cache/firmware/).
+firmware/a650_gmu.bin | TB_J716F_ZUI_15.0.485.7z | df79fa8482fcc7587bb239b9c9e2b24bce4729893b990fe3f82b30da8175b01c | Adreno 650 GMU
+firmware/a650_sqe.fw | TB_J716F_ZUI_15.0.485.7z | b4c27420fd6a5c6b511b254cc0fad8cdd40eea38ceb3418f895a1084f4460487 | Adreno 650 CP SQE
+firmware/a650_zap.mdt | TB_J716F_ZUI_15.0.485.7z | e80c4e572107a4d97f8cef3ba651d6c7798008d7a30cc457af09605cc90e6a72 | Adreno 650 ZAP PAS 13
+firmware/a650_zap.b00 | TB_J716F_ZUI_15.0.485.7z | ec9b9d5a67456384809624b14a00d15d36297e5f2e75728504cd872bc95e0947 | Adreno 650 ZAP PAS 13
+firmware/a650_zap.b01 | TB_J716F_ZUI_15.0.485.7z | 520c1924eadda0ee9c6b56c2839dac274a5cb63a28d90d51dfc89b8001915ee8 | Adreno 650 ZAP PAS 13
+firmware/a650_zap.b02 | TB_J716F_ZUI_15.0.485.7z | a415e5452fa8f597670a6e51010e97bfabca7d20fbce8044caed64d9d5873113 | Adreno 650 ZAP PAS 13
+firmware/a650_zap.elf | TB_J716F_ZUI_15.0.485.7z | 45863d11e234032c135d18edc5b2361795060a29217c4716ab634cc5440da759 | Adreno 650 ZAP PAS 13
+firmware/goodix_firmware.bin | TB_J716F_ZUI_15.0.485.7z | 9fe37be8cbfda50affbe125d644f7edfe8cfa152cae3fb3192985910fd50b435 | Goodix GT7386 Touch
+firmware/goodix_cfg_group.bin | TB_J716F_ZUI_15.0.485.7z | 96b8e74d1bbeb2098eb26e238998a8a327d076ecc4ef70b4bd47b033257941ca | Goodix GT7386 Touch
+firmware/cs35l41-dsp1-spk-prot.wmfw | TB_J716F_ZUI_15.0.485.7z | cfee644db22850bb4a6ddae98144ba73c0756f98939d7bb5f905ae2b8468a525 | CS35L41 Quad Speaker Amp
+firmware/cs35l41-dsp1-spk-cali.bin | TB_J716F_ZUI_15.0.485.7z | 8034e338c4a4ecc2c659219941732abf7ef78a491ee56020071d8466b9b38ff2 | CS35L41 Quad Speaker Amp
+firmware/ipa_fws.elf | TB_J716F_ZUI_15.0.485.7z | 09aea115ebd97cddc66447c4e3db00584698c5c5a6cfa31aaa26a292499730e5 | SM8250 IPA
+firmware/ipa_uc.elf | TB_J716F_ZUI_15.0.485.7z | 66f88da635cc834160b641e9862697febffaf29e02ae3043e8344ebe2ebdb5ee | SM8250 IPA
