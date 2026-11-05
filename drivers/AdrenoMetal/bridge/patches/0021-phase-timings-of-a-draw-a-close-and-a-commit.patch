@@ -1,0 +1,237 @@
+diff --git a/crates/metal2vulkan-runtime/src/command_buffer/mod.rs b/crates/metal2vulkan-runtime/src/command_buffer/mod.rs
+index 8b3a0c2..023b8ed 100644
+--- a/crates/metal2vulkan-runtime/src/command_buffer/mod.rs
++++ b/crates/metal2vulkan-runtime/src/command_buffer/mod.rs
+@@ -40,6 +40,7 @@ pub(super) use completion::Completion;
+ pub(super) use first_submission::NotedTable;
+ 
+ use super::contexts::{self, Run};
++use super::encoder::phases;
+ use super::deferred::{Deferred, Prepared};
+ use super::degradation::Degradation;
+ use super::descriptor_arena::DescriptorArena;
+@@ -1536,6 +1537,10 @@ impl CommandBuffer {
+ 
+     /// [`commit_as`](Self::commit_as) itself.
+     fn commit_now(&self, call: &'static str, failure: Option<CommitFailure>) -> Result<(), Error> {
++        // Where a commit's CPU time goes (the B row of the telemetry): collecting its encoders' state, preparing their host steps,
++        // planning the batches, then the queue submit. Diagnostic only.
++        let commit_at = std::time::Instant::now();
++        phases::counted(2);
+         let device = &self.0.device;
+         let (segments, failure, reached): (Vec<(Deferred, bool)>, _, _) = {
+             let mut state = self.state();
+@@ -1572,6 +1577,8 @@ impl CommandBuffer {
+             let reached = state.reached(device.shared(), runs);
+             (segments, failure, reached)
+         };
++        let state_at = std::time::Instant::now();
++        phases::add(phases::COMMIT_STATE, commit_at, state_at);
+         // What the commands of its encoders that run use is resident from its commit on, as
+         // Metal's is: a no-copy buffer or a heap among it is reached unnamed from here, by its
+         // own commands too, the work recorded below included (`live_buffers.rs`). Listed without
+@@ -1594,6 +1601,8 @@ impl CommandBuffer {
+                 return Err(error);
+             }
+         };
++        let prepared_at = std::time::Instant::now();
++        phases::add(phases::COMMIT_PREPARE, state_at, prepared_at);
+         // The first segment a host step records, which the device announces.
+         let announced = segments
+             .iter()
+@@ -1722,6 +1731,8 @@ impl CommandBuffer {
+             // heap set.
+             (waits, away, state.heaps.bound(), unreplayable)
+         };
++        let planned_at = std::time::Instant::now();
++        phases::add(phases::COMMIT_PLAN, prepared_at, planned_at);
+         // Each making the batches wait for wakes the scheduler as it finishes, with no lock
+         // held (`render/pending.rs`), registered before the scheduler first looks at the batches:
+         // a making that finished between that look and a later registration left the batch held
+@@ -1754,6 +1765,7 @@ impl CommandBuffer {
+         if let Some(work) = announced {
+             work.degrade(device);
+         }
++        phases::add(phases::COMMIT_SUBMIT, planned_at, std::time::Instant::now());
+         Ok(())
+     }
+ 
+diff --git a/crates/metal2vulkan-runtime/src/encoder.rs b/crates/metal2vulkan-runtime/src/encoder.rs
+index 1194f78..5363494 100644
+--- a/crates/metal2vulkan-runtime/src/encoder.rs
++++ b/crates/metal2vulkan-runtime/src/encoder.rs
+@@ -28,6 +28,51 @@
+ //!   `!Sync` marker so no encoder is shared between threads by reference.
+ 
+ use super::command_buffer::CommandBuffer;
++/// Where the compositor's encoder takes its CPU time, in nanoseconds by step and by call kind: the draw's steps (the bind state and variant, the
++/// command it builds, the heaps and descriptors, the record), the pass's close (its end, its shadow copies, its bookkeeping), and the commit's
++/// (state collection, host-step preparation, planning, the queue submit). Read by the device's telemetry (`phase_timings`, the D/C/B rows);
++/// diagnostic only, and off the command's own result.
++pub(crate) mod phases {
++    use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
++    use std::time::Instant;
++
++    pub(crate) const DRAW_SETTLE: usize = 0;
++    pub(crate) const DRAW_COMMANDS: usize = 1;
++    pub(crate) const DRAW_HEAPS: usize = 2;
++    pub(crate) const DRAW_RECORD: usize = 3;
++    pub(crate) const CLOSE_END_PASS: usize = 4;
++    pub(crate) const CLOSE_SHADOWS: usize = 5;
++    pub(crate) const CLOSE_BOOKKEEPING: usize = 6;
++    pub(crate) const COMMIT_STATE: usize = 7;
++    pub(crate) const COMMIT_PREPARE: usize = 8;
++    pub(crate) const COMMIT_PLAN: usize = 9;
++    pub(crate) const COMMIT_SUBMIT: usize = 10;
++    /// The steps, in nanoseconds.
++    pub(crate) static NS: [AtomicU64; 11] = [const { AtomicU64::new(0) }; 11];
++    /// The draws, closes and commits counted.
++    pub(crate) static COUNT: [AtomicU64; 3] = [const { AtomicU64::new(0) }; 3];
++
++    pub(crate) fn add(step: usize, from: Instant, to: Instant) {
++        NS[step].fetch_add(to.saturating_duration_since(from).as_nanos() as u64, Relaxed);
++    }
++
++    pub(crate) fn counted(kind: usize) {
++        COUNT[kind].fetch_add(1, Relaxed);
++    }
++}
++
++/// [`phases`]' answer: the eleven steps' nanoseconds, then the draws, closes and commits counted.
++pub fn phase_timings() -> [u64; 14] {
++    use std::sync::atomic::Ordering::Relaxed;
++    let mut out = [0u64; 14];
++    for (i, step) in phases::NS.iter().enumerate() {
++        out[i] = step.load(Relaxed);
++    }
++    for (i, count) in phases::COUNT.iter().enumerate() {
++        out[11 + i] = count.load(Relaxed);
++    }
++    out
++}
+ use super::deferred::{Deferred, StepInputs};
+ use super::error::{internal, invalid, vulkan, CommandBufferError, Error, Problem};
+ use super::execution::Execution;
+@@ -876,6 +921,7 @@ impl EncoderCore {
+                 && !self.faults
+                 && !self.taken.named_pins().is_empty()
+         });
++        let phase_at = std::time::Instant::now();
+         let copies = self.shadows.finish();
+         let texels = copies.iter().map(ShadowCopy::texels_back).sum();
+         let counts = &self.device().shared().counts;
+@@ -883,6 +929,8 @@ impl EncoderCore {
+         self.shadow_copies(&copies);
+         // SAFETY: as in `barrier`.
+         unsafe { self.device().shared().vk().end_command_buffer(self.raw) }.map_err(vulkan)?;
++        // Its shadow copies and the command buffer's own end (the B and C rows of the telemetry).
++        phases::add(phases::CLOSE_SHADOWS, phase_at, std::time::Instant::now());
+         let EncoderCore {
+             mut open,
+             raw,
+@@ -907,6 +955,7 @@ impl EncoderCore {
+             .heap_keys
+             .among(keys.iter().copied());
+         heaps.extend(keyed);
++        let bookkeeping_at = std::time::Instant::now();
+         let mut state = open.command_buffer.state();
+         state.use_heaps(heaps);
+         let encoder = state.encoder_ended(kind, keys, residency, taken);
+@@ -968,6 +1017,11 @@ impl EncoderCore {
+         drop(state);
+         drop(unkept);
+         open.ended = true;
++        phases::add(
++            phases::CLOSE_BOOKKEEPING,
++            bookkeeping_at,
++            std::time::Instant::now(),
++        );
+         Ok(())
+     }
+ 
+diff --git a/crates/metal2vulkan-runtime/src/lib.rs b/crates/metal2vulkan-runtime/src/lib.rs
+index 4781491..4047633 100644
+--- a/crates/metal2vulkan-runtime/src/lib.rs
++++ b/crates/metal2vulkan-runtime/src/lib.rs
+@@ -205,9 +205,12 @@ pub use argument_encoder::{ArgumentEncoder, ArgumentEncoderProblem};
+ pub use attributes::PurgeableState;
+ pub use binary_archive::{BinaryArchive, BinaryArchiveDescriptor};
+ pub use blit::BlitCommandEncoder;
++pub use blit_texture::copy_census;
++pub use encoder::phase_timings;
+ pub use buffer::Buffer;
+ pub use buffer_descriptor::{BufferContents, BufferDescriptor};
+ pub use buffer_texture::IoSurfacePlane;
++pub use texture::buffer_texture_census;
+ pub use capabilities::{DeviceProperties, Query};
+ pub use command_buffer::checks::{Submission, SubmissionCheck};
+ pub use command_buffer::{CommandBuffer, CommitFailure, FailedEncoders, Handler};
+diff --git a/crates/metal2vulkan-runtime/src/render.rs b/crates/metal2vulkan-runtime/src/render.rs
+index 5cd377c..bed9bd2 100644
+--- a/crates/metal2vulkan-runtime/src/render.rs
++++ b/crates/metal2vulkan-runtime/src/render.rs
+@@ -269,6 +269,7 @@ use super::depth_stencil_scratch::{ScratchCopy, Separate};
+ use super::device::lock;
+ use super::draw_source::{CopySteps, DrawSource, IndexBind};
+ use super::dynamic_state::ExtendedDynamicState;
++use super::encoder::phases;
+ use super::encoder::{EncoderCore, Replayed};
+ use super::error::{internal, invalid, vulkan, Error, Problem, RuntimeGap};
+ use super::execution::{ExecutedPipeline, Execution};
+@@ -2989,7 +2990,10 @@ impl RenderCommandEncoder {
+     /// is left untouched, as plain Metal leaves it. The encoder is consumed either way, so a
+     /// refusal leaves its command buffer abandoned, as Metal stops there.
+     pub fn end_encoding(self) -> Result<(), Error> {
++        let close_at = std::time::Instant::now();
++        phases::counted(1);
+         let (core, residency, log) = self.end_pass()?;
++        phases::add(phases::CLOSE_END_PASS, close_at, std::time::Instant::now());
+         core.end_with_replay(
+             EncoderKind::Render,
+             Some(residency),
+@@ -5739,6 +5743,10 @@ impl RenderCommandEncoder {
+         buffers: DrawBuffers<'_>,
+         empty: bool,
+     ) -> Result<(), Error> {
++        // Where a draw's CPU time goes (the D row of the telemetry): the bind state and variant, the command it builds, the heaps and
++        // descriptors, then the record and the encoder's own bookkeeping. Diagnostic only.
++        let draw_at = std::time::Instant::now();
++        phases::counted(0);
+         let pipeline = match self.pipeline.as_ref().map(RenderPipelineState::kind) {
+             None => return Err(invalid(call, Problem::NoPipelineState)),
+             Some(RenderStateKind::Tile(_)) => {
+@@ -5895,6 +5903,8 @@ impl RenderCommandEncoder {
+             &function_tables,
+         )?;
+         let (variant, plan) = (Arc::clone(&settled.variant), Arc::clone(&settled.plan));
++        let settled_at = std::time::Instant::now();
++        phases::add(phases::DRAW_SETTLE, draw_at, settled_at);
+         self.give_up_extended_shadows(&pipeline, &live.state);
+         // A capture draw runs its variant's capture form, where its objects are made: else it
+         // records nothing, and the capture neither.
+@@ -5976,6 +5986,8 @@ impl RenderCommandEncoder {
+         let mut commands = self.draw_commands.take().unwrap_or_else(DrawCommands::empty);
+         plan.instantiate_draw_into(&live.state, &draw, &mut commands)
+             .map_err(Error::Bind)?;
++        let built_at = std::time::Instant::now();
++        phases::add(phases::DRAW_COMMANDS, settled_at, built_at);
+         self.reaches_unnamed |= !commands.root_tables.is_empty() || reads_handles(&plan);
+         // A mesh draw the binder launches no threadgroup of (as plain Metal draws nothing).
+         let empty = empty
+@@ -6594,6 +6606,8 @@ impl RenderCommandEncoder {
+                 }
+             }
+         }
++        let heaps_at = std::time::Instant::now();
++        phases::add(phases::DRAW_HEAPS, built_at, heaps_at);
+         let instance = match &next {
+             Next::Current => &self.current,
+             Next::New { instance, .. } => &**instance,
+@@ -7328,6 +7342,7 @@ impl RenderCommandEncoder {
+         // The states go; the list stays for the next draw's.
+         argument_samplers.clear();
+         self.argument_samplers_room = argument_samplers;
++        phases::add(phases::DRAW_RECORD, heaps_at, std::time::Instant::now());
+         Ok(())
+     }
+ 

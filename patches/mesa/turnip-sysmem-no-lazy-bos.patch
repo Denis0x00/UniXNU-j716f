@@ -1,0 +1,12 @@
+diff --git a/src/freedreno/vulkan/tu_knl_darwin.cc b/src/freedreno/vulkan/tu_knl_darwin.cc
+--- a/src/freedreno/vulkan/tu_knl_darwin.cc
++++ b/src/freedreno/vulkan/tu_knl_darwin.cc
+@@ -1730,7 +1730,7 @@
+     * 32-112 MiB image allocations whenever the render server held more of them than before, wired page by page (up to 309 ms in
+     * untagged-7718d8c9). A pass that cannot render in GMEM still backs its attachment in full at the pass
+     * (tu_allocate_transient_attachments). */
+-   device->has_lazy_bos = true;
++   device->has_lazy_bos = !TU_DEBUG(SYSMEM);
+    device->has_sparse = false;
+    device->has_sparse_prr = false;
+    device->has_raytracing = false;

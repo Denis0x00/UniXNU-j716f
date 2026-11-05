@@ -50,6 +50,10 @@ jobs:
           assert board['board']['soc'] == 'SM8250'
           assert 'j716f-touch=1' in board['payload']['kernel_args']
           assert 'j716f-usb=1' in board['payload']['kernel_args']
+          assert 'pipa-gpu=12' in board['payload']['kernel_args']
+          assert 'sheng-gpu-addon=1' in board['payload']['kernel_args']
+          assert 'sheng-fb-gpu=1' in board['payload']['kernel_args']
+          assert 'sheng-tum=s' in board['payload']['kernel_args']
           lines = [
               ln.strip() for ln in Path('proprietary-files.txt').read_text().splitlines()
               if ln.strip() and not ln.strip().startswith('#')

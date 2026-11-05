@@ -1,0 +1,106 @@
+diff --git a/crates/metal2vulkan-runtime/src/blit_texture.rs b/crates/metal2vulkan-runtime/src/blit_texture.rs
+index f280c2a..13943c4 100644
+--- a/crates/metal2vulkan-runtime/src/blit_texture.rs
++++ b/crates/metal2vulkan-runtime/src/blit_texture.rs
+@@ -81,6 +81,46 @@ use super::sparse::emulated::{Scrub, Written};
+ use super::texture::{buffer_image_copy, texture_aspects, texture_region, twin_copy, Texture};
+ use super::tracker::Access;
+ use super::two_planes;
++
++/// The compositor's scanout copies, counted for the device's telemetry (`copy_census`): the copies out of a texture, the path each took
++/// (one buffer-image copy, one buffer copy per texel row, or a scratch buffer), and the regions and commands they recorded. Diagnostic only;
++/// nothing here changes a copy. A 1800 x 2880 frame into a 7200-byte scanout is 2880 rows, about 5.5 ms of CPU and 4.3 ms of GPU a frame at
++/// 2026-10-25, against one buffer-image copy of one command.
++pub(crate) mod copy_census {
++    use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
++
++    /// Copies out of a texture, and the path each took.
++    pub(crate) static TEXTURE_TO_BUFFER: AtomicU64 = AtomicU64::new(0);
++    pub(crate) static IMAGE_PATH: AtomicU64 = AtomicU64::new(0);
++    pub(crate) static ROWS_PATH: AtomicU64 = AtomicU64::new(0);
++    pub(crate) static STAGING_PATH: AtomicU64 = AtomicU64::new(0);
++    /// The buffer copies and buffer-image regions those paths recorded, and the last rows copy's row count.
++    pub(crate) static ROW_REGIONS: AtomicU64 = AtomicU64::new(0);
++    pub(crate) static IMAGE_REGIONS: AtomicU64 = AtomicU64::new(0);
++    pub(crate) static LAST_ROWS: AtomicU64 = AtomicU64::new(0);
++
++    pub(crate) fn counted(counter: &AtomicU64) {
++        counter.fetch_add(1, Relaxed);
++    }
++
++    pub(crate) fn added(counter: &AtomicU64, by: u64) {
++        counter.fetch_add(by, Relaxed);
++    }
++}
++
++/// [`copy_census`]'s counters: copies out of a texture, those of each path, their regions, and the last rows copy's row count.
++pub fn copy_census() -> [u64; 7] {
++    use std::sync::atomic::Ordering::Relaxed;
++    [
++        copy_census::TEXTURE_TO_BUFFER.load(Relaxed),
++        copy_census::IMAGE_PATH.load(Relaxed),
++        copy_census::ROWS_PATH.load(Relaxed),
++        copy_census::STAGING_PATH.load(Relaxed),
++        copy_census::ROW_REGIONS.load(Relaxed),
++        copy_census::IMAGE_REGIONS.load(Relaxed),
++        copy_census::LAST_ROWS.load(Relaxed),
++    ]
++}
+ use super::values::{Origin, Region, ResourceOptions, Size, StorageMode};
+ use super::Buffer;
+ use ash::vk;
+@@ -566,6 +606,7 @@ impl BlitCommandEncoder {
+             }))
+         });
+         const CALL: &str = "copy_from_texture_to_buffer";
++        copy_census::counted(&copy_census::TEXTURE_TO_BUFFER);
+         self.check_texture(CALL, source_texture)?;
+         source_texture.check_bytes_reached(CALL)?;
+         self.core()
+@@ -661,6 +702,33 @@ impl BlitCommandEncoder {
+             )
+             .map_err(|problem| invalid(CALL, Problem::Copy(problem)))?;
+             let copy = RowsCopy::new(&from, &to);
++            // Rows that lie apart on both sides (a destination pitch other than the texture's)
++            // and a texture whose image is its buffer's own bytes: one buffer-image copy states
++            // the destination's row length, where the rows path records one buffer copy per row.
++            // The scanout copy of a 1800 x 2880 frame into a 7200-byte scanout is 2880 of them,
++            // about 5.5 ms of CPU and 4.3 ms of GPU a frame against one of each. The rows path
++            // stays for a texture with no image of its own (a texture buffer, a shadow), for rows
++            // that run together anyway, and for a layout the image path refuses. No compressed
++            // format backs a buffer, so the compressed rows after the image path below are none
++            // of this texture's.
++            if copy.rows.len() > 1 && source_texture.aliases_buffer() {
++                if let Ok(plan) = plan_copy(
++                    CALL,
++                    source_texture,
++                    &region,
++                    &unit,
++                    &layout,
++                    destination_buffer,
++                    false,
++                ) {
++                    copy_census::counted(&copy_census::IMAGE_PATH);
++                    copy_census::added(&copy_census::IMAGE_REGIONS, plan.regions.len() as u64);
++                    return self.buffer_texture_copy(destination_buffer, source_texture, plan, false);
++                }
++            }
++            copy_census::counted(&copy_census::ROWS_PATH);
++            copy_census::added(&copy_census::ROW_REGIONS, copy.rows.len() as u64);
++            copy_census::LAST_ROWS.store(copy.rows.len() as u64, std::sync::atomic::Ordering::Relaxed);
+             return self.rows_copy(&texels.buffer, destination_buffer, &copy);
+         }
+         let plan = plan_copy(
+@@ -672,6 +740,12 @@ impl BlitCommandEncoder {
+             destination_buffer,
+             false,
+         )?;
++        copy_census::counted(if plan.staging.is_some() {
++            &copy_census::STAGING_PATH
++        } else {
++            &copy_census::IMAGE_PATH
++        });
++        copy_census::added(&copy_census::IMAGE_REGIONS, plan.regions.len() as u64);
+         self.buffer_texture_copy(destination_buffer, source_texture, plan, false)?;
+         // Out of a texture Metal keeps compressed: the texels its blit writes, at the buffer's
+         // rows, image after image.

@@ -1,0 +1,75 @@
+diff --git a/crates/metal2vulkan-runtime/src/texture.rs b/crates/metal2vulkan-runtime/src/texture.rs
+index 071beb8..3b9f9ab 100644
+--- a/crates/metal2vulkan-runtime/src/texture.rs
++++ b/crates/metal2vulkan-runtime/src/texture.rs
+@@ -56,6 +56,47 @@
+ //! - **Not yet:** CPU access through a stencil view of a combined depth/stencil texture, and
+ //!   blits of textures over buffers, are refused `NotImplemented`.
+ 
++/// A texture over a buffer's linear image, counted for the device's telemetry (`buffer_texture_census`): how often the image is the
++/// buffer's own bytes (an alias, whose copies are one command), how often it is not (a shadow, or raw texels), and the buffer's row pitch
++/// against the driver's. Diagnostic only; nothing here changes a texture. The compositor's 1800 x 2880 frames: the driver's linear pitch is
++/// Metal's only when it is 256-byte aligned (fdl6's linear pitch alignment for a 4-byte texel), and where it is not, every copy out of the
++/// texture runs one buffer copy per row.
++pub(crate) mod buffer_texture_census {
++    use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
++
++    pub(crate) static ALIASED: AtomicU64 = AtomicU64::new(0);
++    pub(crate) static NOT_ALIASED: AtomicU64 = AtomicU64::new(0);
++    pub(crate) static LAYOUT_PITCH: AtomicU64 = AtomicU64::new(0);
++    pub(crate) static IMAGE_PITCH: AtomicU64 = AtomicU64::new(0);
++    pub(crate) static ALIGNMENT: AtomicU64 = AtomicU64::new(0);
++
++    pub(crate) fn counted(counter: &AtomicU64) {
++        counter.fetch_add(1, Relaxed);
++    }
++
++    pub(crate) fn pitches() -> (u64, u64, u64) {
++        (
++            LAYOUT_PITCH.load(Relaxed),
++            IMAGE_PITCH.load(Relaxed),
++            ALIGNMENT.load(Relaxed),
++        )
++    }
++}
++
++/// [`buffer_texture_census`]'s counters: buffer textures whose image aliased its bytes, those whose did not, and the last one's layout row
++/// pitch, the driver's row pitch and the image's memory alignment.
++pub fn buffer_texture_census() -> [u64; 5] {
++    use std::sync::atomic::Ordering::Relaxed;
++    let (layout, image, alignment) = buffer_texture_census::pitches();
++    [
++        buffer_texture_census::ALIASED.load(Relaxed),
++        buffer_texture_census::NOT_ALIASED.load(Relaxed),
++        layout,
++        image,
++        alignment,
++    ]
++}
++
+ use super::address::{ObjectsToken, RangeToken};
+ use super::address_map::AddressModeMap;
+ use super::attachment_stand_in::KeptBacking;
+@@ -2286,6 +2327,9 @@ impl Device {
+             row_pitch: report.row_pitch,
+             array_pitch: report.array_pitch,
+         };
++        buffer_texture_census::LAYOUT_PITCH.store(texels.layout.row_pitch, std::sync::atomic::Ordering::Relaxed);
++        buffer_texture_census::IMAGE_PITCH.store(report.row_pitch, std::sync::atomic::Ordering::Relaxed);
++        buffer_texture_census::ALIGNMENT.store(requirements.alignment, std::sync::atomic::Ordering::Relaxed);
+         let why = if !aliases(&texels.layout, holds, memory_offset, room, &image) {
+             Some(format!(
+                 "{who}'s linear image of the texture lays its texels out otherwise than Metal \
+@@ -2301,10 +2345,12 @@ impl Device {
+             None
+         };
+         if let Some(why) = why {
++            buffer_texture_census::counted(&buffer_texture_census::NOT_ALIASED);
+             // SAFETY: the image is live and unbound, and no command uses it.
+             unsafe { release::object(raw_device, raw) };
+             return Ok(Err(why));
+         }
++        buffer_texture_census::counted(&buffer_texture_census::ALIASED);
+         // SAFETY: the image is live and unbound; the memory is the buffer's, which outlives the
+         // texture holding it, in a type the image takes, at an offset `aliases` checked against
+         // the image's alignment and size. An image bound to imported host memory was made for

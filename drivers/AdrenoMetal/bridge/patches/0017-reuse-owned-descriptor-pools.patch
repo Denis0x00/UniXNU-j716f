@@ -1,0 +1,75 @@
+diff --git a/crates/metal2vulkan-runtime/src/owned_kernel.rs b/crates/metal2vulkan-runtime/src/owned_kernel.rs
+index d2968cf..0e0c905 100644
+--- a/crates/metal2vulkan-runtime/src/owned_kernel.rs
++++ b/crates/metal2vulkan-runtime/src/owned_kernel.rs
+@@ -598,17 +598,35 @@ pub(super) struct OwnedSet {
+ pub(super) struct OwnedSets {
+     device: Device,
+     pool: vk::DescriptorPool,
++    key: PoolKey,
+     pub(super) sets: Vec<vk::DescriptorSet>,
+ }
+ 
++/// The pools of completed commands, kept for the next command of the same sizes: `write_each`
++/// resets one instead of creating a pool, whose descriptor memory the driver allocates and maps
++/// each time (Turnip on NativeAdreno: a buffer object, two kernel calls; a mipmap chain makes one
++/// pool per command, several per frame of a compositor's blurs). At most [`KEPT_PER_SIZE`] of a
++/// size are kept; the others are destroyed as before.
++type PoolKey = (u64, u32, u32, u32, u32); // device, sets, sampled images, storage images, buffers
++static KEPT_POOLS: std::sync::Mutex<Vec<(PoolKey, vk::DescriptorPool)>> = std::sync::Mutex::new(Vec::new());
++const KEPT_PER_SIZE: usize = 16;
++
+ impl Drop for OwnedSets {
+     fn drop(&mut self) {
+         // Once the process is exiting, the pool is left to its end (`exit_guard`).
+         let Some(_busy) = exit_guard::enter() else {
+             return;
+         };
+-        // SAFETY: no pending command uses the sets (a command buffer retains them until it
+-        // completes); the sets are freed with their pool.
++        // No pending command uses the sets (a command buffer retains them until it completes):
++        // the pool is kept for reuse where there is room, else destroyed with its sets.
++        {
++            let mut kept = lock(&KEPT_POOLS);
++            if kept.iter().filter(|(key, _)| *key == self.key).count() < KEPT_PER_SIZE {
++                kept.push((self.key, self.pool));
++                return;
++            }
++        }
++        // SAFETY: as above; the sets are freed with their pool.
+         unsafe { release::object(self.device.shared().vk(), self.pool) };
+     }
+ }
+@@ -675,11 +693,30 @@ impl OwnedSets {
+         let info = vk::DescriptorPoolCreateInfo::default()
+             .max_sets(count)
+             .pool_sizes(&sizes);
+-        // SAFETY: `info` and its array are live for the call.
+-        let pool = unsafe { raw.create_descriptor_pool(&info, None) }.map_err(vulkan)?;
++        use ash::vk::Handle;
++        let key = (raw.handle().as_raw(), count, images, storage_images, buffers);
++        let kept = {
++            let mut kept = lock(&KEPT_POOLS);
++            let found = kept.iter().position(|(k, _)| *k == key);
++            found.map(|at| kept.swap_remove(at).1)
++        };
++        let pool = match kept {
++            // SAFETY: the pool's sets belonged to a completed command (see `Drop`).
++            Some(pool) => match unsafe { raw.reset_descriptor_pool(pool, vk::DescriptorPoolResetFlags::empty()) } {
++                Ok(()) => pool,
++                Err(error) => {
++                    // SAFETY: as above; nothing else holds the pool.
++                    unsafe { release::object(raw, pool) };
++                    return Err(vulkan(error));
++                }
++            },
++            // SAFETY: `info` and its array are live for the call.
++            None => unsafe { raw.create_descriptor_pool(&info, None) }.map_err(vulkan)?,
++        };
+         let mut owned = OwnedSets {
+             device: device.clone(),
+             pool,
++            key,
+             sets: Vec::new(),
+         };
+         let layouts: Vec<vk::DescriptorSetLayout> =

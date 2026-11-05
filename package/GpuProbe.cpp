@@ -1217,12 +1217,11 @@ bool metal() {
     accelerator->setProperty("MetalPluginName", "NativeAdrenoMetal");
     accelerator->setProperty("NativeSandboxGrantProcess", "backboardd,iconservicesagent,Preferences");
     accelerator->setProperty("MetalPluginClassName", "NativeAdrenoMetalDevice");
-    // Turnip's options for this board, which replace the plugin's default "sysmem,nocb" (NativeAdrenoMetalPlugin.mm
-    // applyBoardTurnipDebug). That default keeps every pass in system memory against a hang of the A740's concurrent binning (BV
-    // and BR); the A650 has no concurrent binning, so by default Turnip picks tiled GMEM rendering with binning or system memory
-    // per pass, as on Linux ("nocb" is a no-op here and keeps the variable non-empty). pipa-turnip-debug=<options> replaces it
-    // for a round, e.g. pipa-turnip-debug=sysmem,nocb.
-    char turnip[64] = "nocb";
+    // Turnip's options for this board, which replace the plugin's default (NativeAdrenoMetalPlugin.mm applyBoardTurnipDebug).
+    // On TB-J716F's Adreno 650 (GMEM base 0), tiled GMEM color/input-attachment passes leave 16-row holes at the top of each
+    // 256x160 tile bin (y = 160*k + 0..15), whereas "sysmem,nocb" renders cleanly in system memory using GMEM as the CCU cache
+    // while keeping memoryless transient attachments in GMEM. pipa-turnip-debug=<options> or pipa-tu=1..12 overrides it.
+    char turnip[64] = "sysmem,nocb";
     PE_parse_boot_arg_str("pipa-turnip-debug", turnip, sizeof turnip);
     // Canned Turnip option sets for a round, so an A/B on the GMEM input attachment bug (HANDOFF-pipa.md 10.14) fits in the
     // 1000-byte command line: pipa-tu=1..5 (8 bytes) instead of pipa-turnip-debug=<46 bytes>.

@@ -1,0 +1,27 @@
+diff --git a/crates/metal2vulkan-runtime/src/pipeline/graphics.rs b/crates/metal2vulkan-runtime/src/pipeline/graphics.rs
+index c5e5f46..a07451e 100644
+--- a/crates/metal2vulkan-runtime/src/pipeline/graphics.rs
++++ b/crates/metal2vulkan-runtime/src/pipeline/graphics.rs
+@@ -808,15 +808,18 @@ impl VariantObjects {
+                 }
+             })
+             .collect();
+-        // In a pass whose draws fetch through input attachments every pipeline orders its color
+-        // attachment accesses by rasterization (`framebuffer_fetch.rs`), so a fetch reads what an
+-        // earlier fragment of any pipeline wrote.
++        // In a pass whose draws fetch through input attachments only the pipelines that fetch order
++        // their color attachment accesses by rasterization. Turnip orders such a pipeline's
++        // primitives after every earlier fragment that overlaps them, whichever pipeline drew it
++        // (GRAS_SC_CNTL single primitive mode, FLUSH_PER_OVERLAP in GMEM), so a fetch still reads
++        // what an earlier fragment wrote; on every other pipeline that mode serialized each
++        // overlapping layer of a compositor pass (an Adreno 610 home screen frame: 50-130 ms).
+         if graphics.rasterization_order_attachment_access && !key.pass.fetch_inputs {
+             return Err(internal(
+                 "a pipeline fetching in rasterization order outside a pass that does",
+             ));
+         }
+-        let blend_flags = match key.pass.fetch_inputs {
++        let blend_flags = match graphics.rasterization_order_attachment_access {
+             true => {
+                 vk::PipelineColorBlendStateCreateFlags::RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXT
+             }

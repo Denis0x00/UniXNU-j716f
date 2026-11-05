@@ -470,20 +470,14 @@ static u64 smc3(u64 function, u64 a1, u64 a2, u64 a3) {
 }
 
 // RamoopsLogLib's RestartIntoFastboot after its PON part (prepare_warm_fastboot, done at boot_progress_start). Interrupts are
-// masked; it does not return.
+// masked; it does not return. On Lenovo TB-J716F, IMEM 0x146BF65C is TZ XPU-protected and SCM_HALT_PMIC_ARB hangs;
+// PSCI_SYSTEM_RESET (0x84000009) performs a direct warm reset into Fastboot using PON_SOFT_RB_SPARE (0x8F = 0x04).
 __attribute__((noreturn)) static void restart_into_fastboot(void) {
   __asm__ volatile("msr daifset, #3" ::: "memory");
-  if (ps_hold && imem) {
-    *imem = RESTART_BOOTLOADER;
-    __asm__ volatile("dsb sy" ::: "memory");
-    smc3(SCM_WDOG_DEBUG_OFF, 2, 1, 0);
-    smc3(SCM_HALT_PMIC_ARB, 1, 0, 0);
-    *ps_hold = 0;
-    __asm__ volatile("dsb sy" ::: "memory");
-    delay_ms(1000);
-    static const char fallback[] = "[xnu] restart: PS_HOLD did not restart, PSCI SYSTEM_RESET\n";
-    if (zone) zone_put(fallback, sizeof fallback - 1);
-  }
+  (void)ps_hold;
+  (void)imem;
+  static const char msg[] = "[xnu] restart: PSCI SYSTEM_RESET into fastboot\n";
+  if (zone) zone_put(msg, sizeof msg - 1);
   smc3(PSCI_SYSTEM_RESET, 0, 0, 0);
   for (;;) __asm__ volatile("wfe");
 }

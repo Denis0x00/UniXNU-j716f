@@ -30,6 +30,8 @@ extern volatile uint32_t native_legacy_gop_height __attribute__((weak_import));
 extern volatile uint32_t native_legacy_stage __attribute__((weak_import));
 extern volatile uint32_t native_legacy_transfer_calls __attribute__((weak_import));
 extern volatile uint32_t native_legacy_retirement_calls __attribute__((weak_import));
+extern volatile uint32_t native_gop_gpu_offers __attribute__((weak_import));
+extern volatile uint32_t native_gop_gpu_completions __attribute__((weak_import));
 
 extern volatile unsigned native_touch_stage __attribute__((weak_import));
 extern volatile unsigned native_touch_stroke_count __attribute__((weak_import));
@@ -201,6 +203,7 @@ static void drawHudString2x(volatile uint32_t *fb, uint32_t fbW, uint32_t fbH,
 
 static void renderHudOverlay() {
     if (!&native_legacy_gop_virtual || !native_legacy_gop_virtual) return;
+    if (&native_gop_gpu_completions && native_gop_gpu_completions > 0u) return;
     const uint32_t w = (&native_legacy_gop_width && native_legacy_gop_width) ? native_legacy_gop_width : 2560u;
     const uint32_t h = (&native_legacy_gop_height && native_legacy_gop_height) ? native_legacy_gop_height : 1600u;
     if (w < 640u || h < 80u) return;
@@ -632,14 +635,16 @@ static void handleCommand(TerminalSession &s, const char *raw) {
         s.reply.writeStr(buf);
     } else if (strEq(raw, "display")) {
         snprintf(buf, sizeof(buf),
-                 "[usb] FB: stage=%u %ux%u phys=0x%llx virt=0x%llx xfer=%u retired=%u\r\n",
+                 "[usb] FB: stage=%u %ux%u phys=0x%llx virt=0x%llx xfer=%u retired=%u gpu_offers=%u gpu_completions=%u\r\n",
                  &native_legacy_stage ? native_legacy_stage : 0u,
                  &native_legacy_gop_width ? native_legacy_gop_width : 0u,
                  &native_legacy_gop_height ? native_legacy_gop_height : 0u,
                  &native_legacy_gop_physical ? (unsigned long long)native_legacy_gop_physical : 0ULL,
                  &native_legacy_gop_virtual ? (unsigned long long)native_legacy_gop_virtual : 0ULL,
                  &native_legacy_transfer_calls ? native_legacy_transfer_calls : 0u,
-                 &native_legacy_retirement_calls ? native_legacy_retirement_calls : 0u);
+                 &native_legacy_retirement_calls ? native_legacy_retirement_calls : 0u,
+                 &native_gop_gpu_offers ? native_gop_gpu_offers : 0u,
+                 &native_gop_gpu_completions ? native_gop_gpu_completions : 0u);
         s.reply.writeStr(buf);
         if (&native_mdss_rows) {
             for (unsigned i = 0; i < 31; ++i) {
@@ -865,40 +870,13 @@ static void pollUsbEvents(TerminalSession &s) {
 __attribute__((noreturn)) static void executeWarmFastbootReboot(UsbHw &hw) {
     // Cleanly drop USB pull-up so host pyserial closes immediately and enters fastboot wait
     hw.wr(DWC3_DCTL, hw.rd(DWC3_DCTL) & ~DWC3_DCTL_RUN_STOP);
-    IOSleep(150);
+    IOSleep(100);
 
-    OSSharedPtr<IOMemoryMap> psMap, imemMap;
-    volatile uint32_t *psHold = reinterpret_cast<volatile uint32_t *>(
-        mapRangeUncached(J716F_PS_HOLD_PHYS, 0x1000u, psMap));
-    volatile uint8_t *imemPage = reinterpret_cast<volatile uint8_t *>(
-        mapRangeUncached(J716F_IMEM_REASON_PAGE, 0x1000u, imemMap));
-
+    // PM8150 PON_SOFT_RB_SPARE (0x8F) is already programmed to PON_REASON_BOOTLOADER (0x04)
+    // with warm-reset retention by prepare_warm_fastboot() in BootRamoops.c.
+    // On Lenovo TB-J716F, IMEM 0x146BF65C is TZ XPU-protected and SCM_HALT_PMIC_ARB hangs;
+    // PSCI_SYSTEM_RESET (0x84000009) performs a direct warm reset into Fastboot.
     __asm__ volatile("msr daifset, #3" ::: "memory");
-    if (psHold && imemPage) {
-        *reinterpret_cast<volatile uint32_t *>(imemPage + J716F_IMEM_REASON_OFFSET) = J716F_RESTART_BOOTLOADER;
-        __asm__ volatile("dsb sy" ::: "memory");
-        {
-            register uint64_t x0 __asm__("x0") = J716F_SCM_WDOG_DEBUG_OFF;
-            register uint64_t x1 __asm__("x1") = 2;
-            register uint64_t x2 __asm__("x2") = 1;
-            register uint64_t x3 __asm__("x3") = 0;
-            __asm__ volatile("smc #0" : "+r"(x0), "+r"(x1), "+r"(x2), "+r"(x3)
-                             : : "x4", "x5", "x6", "x7", "x8", "x9", "x10", "x11",
-                                 "x12", "x13", "x14", "x15", "x16", "x17", "memory");
-        }
-        {
-            register uint64_t x0 __asm__("x0") = J716F_SCM_HALT_PMIC_ARB;
-            register uint64_t x1 __asm__("x1") = 1;
-            register uint64_t x2 __asm__("x2") = 0;
-            register uint64_t x3 __asm__("x3") = 0;
-            __asm__ volatile("smc #0" : "+r"(x0), "+r"(x1), "+r"(x2), "+r"(x3)
-                             : : "x4", "x5", "x6", "x7", "x8", "x9", "x10", "x11",
-                                 "x12", "x13", "x14", "x15", "x16", "x17", "memory");
-        }
-        *psHold = 0u;
-        __asm__ volatile("dsb sy" ::: "memory");
-        for (unsigned i = 0; i < 50000000u; ++i) { __asm__ volatile("" ::: "memory"); }
-    }
     {
         register uint64_t x0 __asm__("x0") = J716F_PSCI_SYSTEM_RESET;
         register uint64_t x1 __asm__("x1") = 0;
@@ -1142,9 +1120,6 @@ static void usbDebugThread(void *arg, int waitResult) {
                 if (s->reply.used > 0) {
                     const uint32_t n = s->reply.pop(txScratch, DMA_EP3_MAX_CHUNK);
                     (void)startBulkIn(s->hw, txScratch, n);
-                } else if (s->pendingFastboot) {
-                    IOSleep(50);
-                    executeWarmFastbootReboot(s->hw);
                 } else if (s->ramoops) {
                     volatile const uint32_t *hdr = reinterpret_cast<volatile const uint32_t *>(s->ramoops);
                     const uint32_t sig = hdr[0], start = hdr[1];
@@ -1163,6 +1138,11 @@ static void usbDebugThread(void *arg, int waitResult) {
                     }
                 }
             }
+        }
+
+        if (s->pendingFastboot && (!s->hw.configured || !s->hw.hostReady || (s->reply.used == 0 && !s->hw.ep3Busy))) {
+            IOSleep(50);
+            executeWarmFastbootReboot(s->hw);
         }
 
         if (!s->hw.configured) {

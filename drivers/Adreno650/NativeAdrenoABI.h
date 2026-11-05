@@ -30,6 +30,8 @@ enum {
     NativeAdrenoMethodBoCpuUnmap = 14,
     NativeAdrenoMethodGetDeviceInfo = 15,
     NativeAdrenoMethodBoImport = 16,
+    NativeAdrenoMethodSetPriority = 17,
+    NativeAdrenoMethodNote = 18,
     NativeAdrenoAbiMetadataBytes = 64,
     NativeAdrenoAbiMaxQueues = 8
 };
@@ -41,7 +43,9 @@ struct NativeAdrenoAbiParams {
     uint64_t max_bo_bytes;
 };
 enum {
-    NativeAdrenoParamsHostImport = 1  /* BoImport pins the caller's own pages (an IOSurface's) as a BO */
+    NativeAdrenoParamsHostImport = 1,      /* BoImport pins the caller's own pages (an IOSurface's) as a BO */
+    NativeAdrenoParamsOwnedCoherent = 2,   /* Owned BOs are cacheable without explicit cache ops */
+    NativeAdrenoParamsMemoryPressure = 4   /* KMD under memory pressure */
 };
 struct NativeAdrenoAbiBoAlloc {
     uint64_t bytes;               /* 4KiB multiple, <= max_bo_bytes */
@@ -113,6 +117,16 @@ struct NativeAdrenoAbiBoCpuUnmap {
     uint64_t handle;
     uint32_t token;               /* exactly the token returned by map */
     uint32_t reserved;            /* zero */
+};
+struct NativeAdrenoAbiPriority {
+    uint32_t foreground;          /* 0..5, 3 refused */
+    uint32_t background;          /* 0..5 */
+};
+enum { NativeAdrenoNoteWords = 30, NativeAdrenoNotePass = 1, NativeAdrenoNotePipeline = 2 };
+struct NativeAdrenoAbiNote {
+    uint32_t kind;
+    uint32_t count;               /* words used, <= NativeAdrenoNoteWords */
+    uint32_t words[NativeAdrenoNoteWords];
 };
 struct NativeAdrenoAbiQueue {
     uint64_t queue;               /* zero for create, an open id for close */

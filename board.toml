@@ -155,7 +155,7 @@ home-button-type = 2
 
 [payload]
 volume = "J716FNATIVE"
-size_mib = 64
+size_mib = 80
 loader = "firmware"
 title = "Lenovo Pad Pro 2021 (iPadOS 17.7.11)"
 dram_size = "0x140000000"
@@ -207,6 +207,9 @@ kernel_args = [
   "j716f-touch=1",
   "j716f-usb=1",
   "pipa-gpu=12",
+  "sheng-gpu-addon=1",
+  "sheng-fb-gpu=1",
+  "sheng-tum=s",
   "pipa-cpufreq=1",
   "pipa-buttons=1",
   "pipa-wd=0",

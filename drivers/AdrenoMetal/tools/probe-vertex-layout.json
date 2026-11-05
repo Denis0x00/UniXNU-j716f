@@ -1,0 +1,10 @@
+{
+  "layouts": {
+    "0": {"stride": 48, "step_function": "PerVertex", "step_rate": 1}
+  },
+  "attributes": {
+    "0": {"format": "Float4", "offset": 0, "buffer_index": 0},
+    "1": {"format": "Float2", "offset": 16, "buffer_index": 0},
+    "3": {"format": "Float4", "offset": 32, "buffer_index": 0}
+  }
+}
