@@ -1,10 +1,14 @@
-# Copy to local.toml in this device repository only when building locally.
-# local.toml is ignored by git.
+# Copy to ../UniXNU/unixnu.local.toml (or pass --config FILE) when building locally.
+# unixnu.local.toml and local.toml are ignored by git.
 [build]
-device = "D:/TB-J716F/github-export/UniXNU-j716f"
-uefi = "D:/TB-J716F/github-export/uefi-j716f"
-dtb = "D:/path/to/j716f-firmware.dtb"
-# kernelcache = "D:/path/to/kernelcache"
-# unique_chip_id = "REQUIRED_DEVICE_SEED"
-# trust_cache = "D:/path/to/trustcache.bundle"
-# data_ramdisk = "D:/path/to/data-seed.dbr"
+device = "../UniXNU-j716f"
+uefi = "../uefi-j716f"
+fd = "../uefi-j716f/Build/j716fPkg/DEBUG_CLANGPDB/FV/SILICIUM_UEFI.fd"
+dtb = "out/j716f/ipados-17.7.11-21H461/j716f/tree/build/j716f/j716f.dtb"
+kernelcache = "out/ipsw/21H461/kernelcache.decompressed"
+owner_trust_cache = "out/j716f/ipados-17.7.11-21H461/j716f/tree/build/adreno-metal-plugin/owner-trust.bundle"
+gpu_addon = "out/j716f/ipados-17.7.11-21H461/j716f/tree/build/adreno-metal-plugin/gpu-addon-clients.bin"
+# data_ramdisk = "/path/to/j716f-data-seed-8g.dbr"
+# unique_chip_id = "0x1"
+jobs = 8
+target = "DEBUG"

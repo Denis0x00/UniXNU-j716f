@@ -17,7 +17,7 @@ unixnu = "../UniXNU"
 
 [components]
 # Native platform mainline components aligned with UniXNU component catalog
-include = ["XnuPrelink", "DarwinBoot", "ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "ShengUfs", "GopFramebuffer", "AppleKeyStoreState", "ShengHidInput"]
+include = ["XnuPrelink", "DarwinBoot", "ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "VirtioMmioBlock", "VerifiedRoot", "ShengUfs", "GopFramebuffer", "AppleKeyStoreState", "ShengHidInput", "AdrenoPM4", "AdrenoFirmware", "ArmSmmu4K", "AirNir"]
 
 [ipsw]
 url = "https://updates.cdn-apple.com/2025SpringFCS/fullrestores/122-77166/DCA6CFE8-90E9-4B92-880D-3DE171798E40/iPad_Pro_HFR_17.7.11_21H461_Restore.ipsw"
@@ -59,7 +59,9 @@ archives = [
   "build-platform-power.py",
   "build-boot-progress.py",
   "build-adreno650.py",
+  "build-j716f-gpu-addon.py",
   "build-gop-legacy-display.py",
+  "check-j716f.py",
 ]
 
 [kernel.prelink]
@@ -215,7 +217,6 @@ kernel_args = [
   "pipa-wd=0",
 ]
 tools = true
-entry_probe = true
 panic_screen = true
 trust_cache_sha256 = [
   "7416ca4f8377146626bb284e2133c76bee6cb4e3ee0af5d648b186235a7323a7",
@@ -241,7 +242,7 @@ packed_data_ramdisk = true
 root_match_volume_uuid = "04769D26-2CA0-4825-B443-E2E5F88300F2"
 
 [bootimg]
-dtb = "{uefi}/Resources/DTBs/j716f.dtb"
+dtb = "build/j716f/j716f.dtb"
 
 [bootimg.image]
 base = 0

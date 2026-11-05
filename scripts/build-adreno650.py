@@ -59,6 +59,13 @@ def macho_globalize_symbol(path: Path, sym_name: str) -> bool:
     return False
 
 # Ensure symlinks/copies in build tree for kits and drivers
+for rel in ('drivers/Adreno650', 'drivers/AdrenoMetal', 'kits/ArmSmmu4K'):
+    src_dir = PKG_REPO / rel
+    dst_dir = ROOT / rel
+    if src_dir.is_dir() and not dst_dir.exists():
+        dst_dir.parent.mkdir(parents=True, exist_ok=True)
+        dst_dir.symlink_to(src_dir.resolve())
+
 smmu_dir = PKG_REPO / 'kits/ArmSmmu4K' if (PKG_REPO / 'kits/ArmSmmu4K').exists() else (UNIXNU_REPO / 'kits/ArmSmmu4K')
 pm4_dir = UNIXNU_REPO / 'kits/AdrenoPM4'
 fw_dir = UNIXNU_REPO / 'kits/AdrenoFirmware'
