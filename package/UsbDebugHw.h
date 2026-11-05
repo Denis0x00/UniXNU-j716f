@@ -74,6 +74,11 @@ struct UsbHw {
     uint32_t usbEvents      = 0;
     uint32_t usbResets      = 0;
     uint32_t usbCfgCount    = 0;
+    int lastCmdSt           = 0;
+    uint32_t smmuBank       = 0;
+    uint32_t smmuOrigSmr    = 0;
+    uint32_t smmuOrigS2cr   = 0;
+    uint32_t phyInitMode    = 0;
     uint8_t lineCoding[7]   = {0x00, 0xC2, 0x01, 0x00, 0x00, 0x00, 0x08};
 
     void initDefaults() {
@@ -203,45 +208,96 @@ static void usbVoteRpmhRailsOnce() {
 }
 
 static bool usbConfigureSmmuBypass(UsbHw &hw, const char **outErr = nullptr) {
-    hw.smmu = reinterpret_cast<volatile uint32_t *>(
-        mapRangeUncached(J716F_APPS_SMMU_BASE, J716F_APPS_SMMU_SIZE, hw.smmuMap));
+    if (outErr) *outErr = nullptr;
     if (!hw.smmu) {
-        if (outErr) *outErr = "smmu map failed";
-        return false;
+        hw.smmu = reinterpret_cast<volatile uint32_t *>(
+            mapRangeUncached(J716F_APPS_SMMU_BASE, J716F_APPS_SMMU_SIZE, hw.smmuMap));
+    }
+    if (!hw.smmu) {
+        hw.smmuOrigSmr  = 0xDEAD0001u;
+        hw.smmuOrigS2cr = 0u;
+        return true;
     }
     smmu_io io{const_cast<uint32_t *>(hw.smmu), smmuIoRd, smmuIoWr};
 
-    // OEM UsbConfigDxe attaches HAL IOMMU domains for both USB Arid 0x0 (SID 0x0000) and Arid 0x1 (SID 0x0001),
-    // which may leave masked or non-bypass SMR entries. Evict any USB0 SMR entries while strictly guarding
-    // UFS (0x0060), Touch QUP (0x0043), and MDSS (0x0800).
-    unsigned count = smmuIoRd(io.ctx, 0x20u) & 0xFFu;
+    // Inspect existing USB0 SMR entry left by UEFI HALIOMMUDxe (DALSys.efi IORT Node @0x7c5 "\_SB_.USB": in=0 -> out_sid=0x0000, count=1).
+    // Never touch SID 0x0001 (not in IORT, trapped/rejected by QHEE hyp.mbn) and never evict existing SMR entries!
+    const uint32_t idr0 = smmuIoRd(io.ctx, 0x20u);
+    const uint32_t idr1 = smmuIoRd(io.ctx, 0x24u);
+    unsigned count = idr0 & 0xFFu;
     if (count > 128u) count = 128u;
+    const unsigned pages = 1u << (((idr1 >> 28) & 7u) + 1u);
+    const unsigned banks = idr1 & 0xFFu;
+    const unsigned bypassBank = (banks >= 2u) ? (banks - 1u) : 73u;
+    hw.smmuBank = bypassBank;
+
+    // Ensure shared bypass context bank (73) is configured for stage-1 disabled / stage-2 bypass
+    const unsigned cbOff = (pages + bypassBank) * 4096u;
+    if (smmuIoRd(io.ctx, cbOff) != 0u ||
+        smmuIoRd(io.ctx, 0x1800u + 4u * bypassBank) != 1u ||
+        smmuIoRd(io.ctx, 0x1000u + 4u * bypassBank) != 0x10000u) {
+        smmuIoWr(io.ctx, cbOff, 0u);
+        smmuIoWr(io.ctx, 0x1800u + 4u * bypassBank, 1u);
+        smmuIoWr(io.ctx, 0x1000u + 4u * bypassBank, 0x10000u);
+    }
+
+    bool foundUsb0Smr = false;
+    static const uint16_t kProtectedSids[] = {
+        0x0060u, 0x00E0u, 0x04E0u, // UFS0 (DT + UEFI IORT)
+        0x00C0u, 0x04A0u,          // SDC1 (UEFI IORT)
+        0x0043u, 0x0056u, 0x0076u, 0x05A3u, 0x05B6u, // QGP0 / Touch QUP
+        0x0800u, 0x0820u, 0x0821u, 0x0822u, 0x0C20u, 0x0C21u, 0x0C22u // MDP / Display
+    };
+
     for (unsigned i = 0; i < count; ++i) {
         const uint32_t smr = smmuIoRd(io.ctx, 0x800u + 4u * i);
         if (!(smr & 0x80000000u)) continue;
+        const uint32_t s2cr = smmuIoRd(io.ctx, 0xC00u + 4u * i);
         const uint32_t mask = (smr >> 16) & 0x7FFFu;
-        const bool matchUsb = (((smr ^ J716F_USB0_SMMU_SID_0) & 0xFFFFu & ~mask) == 0u) ||
-                              (((smr ^ J716F_USB0_SMMU_SID_1) & 0xFFFFu & ~mask) == 0u);
-        const bool safeGuard = (((smr ^ J716F_UFS_SMMU_SID) & 0xFFFFu & ~mask) != 0u) &&
-                               (((smr ^ J716F_TOUCH_SMMU_SID) & 0xFFFFu & ~mask) != 0u) &&
-                               (((smr ^ J716F_MDSS_SMMU_SID) & 0xFFFFu & ~mask) != 0u);
-        if (matchUsb && safeGuard) {
-            smmuIoWr(io.ctx, 0x800u + 4u * i, 0u);
-            smmuIoWr(io.ctx, 0xC00u + 4u * i, 0u);
+
+        bool hitsProtected = false;
+        for (unsigned p = 0; p < sizeof(kProtectedSids) / sizeof(kProtectedSids[0]); ++p) {
+            if (((smr ^ kProtectedSids[p]) & 0x7FFFu & ~mask) == 0u) {
+                hitsProtected = true;
+                break;
+            }
+        }
+        if (hitsProtected) continue;
+
+        if (((smr ^ J716F_USB0_SMMU_SID_0) & 0x7FFFu & ~mask) == 0u) {
+            foundUsb0Smr    = true;
+            hw.smmuOrigSmr  = smr;
+            hw.smmuOrigS2cr = s2cr;
+            // Keep UEFI's SMR[i] untouched! Check whether its context bank has Stage-1 M=1 enabled.
+            if ((s2cr & 0x00030000u) == 0u) {
+                const unsigned cb = s2cr & 0xFFu;
+                if (cb < banks) {
+                    const uint32_t sctlr = smmuIoRd(io.ctx, (pages + cb) * 4096u);
+                    if ((sctlr & 1u) != 0u) {
+                        smmuIoWr(io.ctx, 0xC00u + 4u * i, bypassBank);
+                        hw.smmuOrigS2cr = smmuIoRd(io.ctx, 0xC00u + 4u * i);
+                    }
+                }
+            }
         }
     }
 
-    static const uint16_t kUsbSids[2] = {J716F_USB0_SMMU_SID_0, J716F_USB0_SMMU_SID_1};
-    for (unsigned s = 0; s < 2; ++s) {
-        const smmu_plan plan = smmu_plan_bypass(&io, kUsbSids[s], hw.dmaPhys, DMA_TOTAL_BYTES);
-        if (plan.error) {
-            if (outErr) *outErr = plan.error;
-            return false;
-        }
-        const char *cfgErr = smmu_configure_bypass(&io, &plan, kUsbSids[s]);
-        if (cfgErr) {
-            if (outErr) *outErr = cfgErr;
-            return false;
+    if (!foundUsb0Smr) {
+        const smmu_plan plan = smmu_plan_bypass(&io, J716F_USB0_SMMU_SID_0, hw.dmaPhys, DMA_TOTAL_BYTES);
+        if (!plan.error) {
+            const char *cfgErr = smmu_configure_bypass(&io, &plan, J716F_USB0_SMMU_SID_0);
+            hw.smmuOrigSmr  = smmuIoRd(io.ctx, 0x800u + 4u * plan.slot);
+            hw.smmuOrigS2cr = smmuIoRd(io.ctx, 0xC00u + 4u * plan.slot);
+            if (cfgErr && (hw.smmuOrigSmr & 0x80000000u) == 0u && !plan.reuse) {
+                // QHEE hypervisor trapped/ignored new SMR write; revert temporary S2CR write.
+                // With SMMU_sCR0.USFCFG == 0, unmatched streams bypass SMMUv2 automatically.
+                smmuIoWr(io.ctx, 0xC00u + 4u * plan.slot, 0u);
+                hw.smmuOrigSmr  = smmuIoRd(io.ctx, 0x00u);
+                hw.smmuOrigS2cr = 0xCEu;
+            }
+        } else {
+            hw.smmuOrigSmr  = smmuIoRd(io.ctx, 0x00u);
+            hw.smmuOrigS2cr = 0xCFu;
         }
     }
     return true;
@@ -302,64 +358,16 @@ static void usbEnsureGccRcg(const UsbHw &hw) {
     usbUpdateRcg(hw, GCC_USB3_PRIM_PHY_AUX_CMD_RCGR, GCC_USB3_PRIM_PHY_AUX_CFG_RCGR, 0x0200u);
 }
 
-static bool usbGccAndPhyInit(UsbHw &hw) {
-    hw.gcc = reinterpret_cast<volatile uint32_t *>(
-        mapRangeUncached(J716F_GCC_BASE, J716F_GCC_SIZE, hw.gccMap));
-    hw.phy = reinterpret_cast<volatile uint32_t *>(
-        mapRangeUncached(J716F_HSPHY_BASE, J716F_HSPHY_SIZE, hw.phyMap));
-    hw.eud = reinterpret_cast<volatile uint32_t *>(
-        mapRangeUncached(J716F_EUD_BASE, J716F_EUD_SIZE, hw.eudMap));
-    if (!hw.gcc || !hw.phy) return false;
-
-    // OEM SSUsb1InitCommon (0x8fdc..0x9018): collapse & uncollapse usb30_prim_gdsc,
-    // configure RCGs, and enable all 8 USB0 branch clocks.
-    hw.gwr(GCC_USB30_PRIM_GDSCR, hw.grd(GCC_USB30_PRIM_GDSCR) | GCC_GDSCR_SW_COLLAPSE);
-    IODelay(150);
-    hw.gwr(GCC_USB30_PRIM_GDSCR, hw.grd(GCC_USB30_PRIM_GDSCR) & ~GCC_GDSCR_SW_COLLAPSE);
-    for (unsigned i = 0; i < 5000; ++i) {
-        if (hw.grd(GCC_USB30_PRIM_GDSCR) & GCC_GDSCR_PWR_ON) break;
-        IODelay(5);
-    }
-    usbEnsureGccRcg(hw);
-    (void)usbEnableGccBranches(hw);
-
-    // OEM UsbConfigDxe EUD attach helper (0x8fa4 -> 0x8700..0x8760):
-    // Toggle EUD_SW_ATTACH_DET (0x088E1018 bit 0) in non-secure eud_mode_mgr page
-    // so the EUD HS PHY switch routes D+/D- to the Type-C connector.
-    if (hw.eud) {
-        const uint32_t attach = hw.eud[EUD_SW_ATTACH_DET / 4u];
-        if (attach & 1u) {
-            hw.eud[EUD_SW_ATTACH_DET / 4u] = attach & ~1u;
-            __asm__ volatile("dsb sy" ::: "memory");
-            IODelay(1000);
-        }
-        hw.eud[EUD_SW_ATTACH_DET / 4u] = (attach & ~1u) | 1u;
-        __asm__ volatile("dsb sy" ::: "memory");
-    }
-
-    // OEM Usb30Reset (UsbConfigDxe 0x8088..0x81a8): assert all 4 BCRs, wait 100us, deassert in reverse order.
-    hw.gwr(GCC_USB30_PRIM_BCR, 1u);
-    hw.gwr(GCC_QUSB2PHY_PRIM_BCR, 1u);
-    hw.gwr(GCC_USB3_PHY_PRIM_BCR, 1u);
-    hw.gwr(GCC_USB3PHY_PHY_PRIM_BCR, 1u);
-    IODelay(100);
-    hw.gwr(GCC_USB3PHY_PHY_PRIM_BCR, 0u);
-    hw.gwr(GCC_USB3_PHY_PRIM_BCR, 0u);
-    hw.gwr(GCC_QUSB2PHY_PRIM_BCR, 0u);
-    hw.gwr(GCC_USB30_PRIM_BCR, 0u);
-    IODelay(100);
-    usbEnsureGccRcg(hw);
-    (void)usbEnableGccBranches(hw);
-
+static void usbInitFemtoHsPhy(UsbHw &hw) {
+    hw.phyInitMode = 1u;
     // ZUI 15.0.485 msm_snps_hsphy_init (0x9acd14..0x9acd44) & UsbConfigDxe SSUsb1InitHSPhy (0x8388..0x83c8):
-    // Pulse GCC_QUSB2PHY_PRIM_BCR (0x12000) immediately before Femto v2 HS PHY register programming!
+    // Pulse ONLY GCC_QUSB2PHY_PRIM_BCR (0x12000) before Femto v2 HS PHY register programming (never touch SS PHY BCRs!)
     hw.gwr(GCC_QUSB2PHY_PRIM_BCR, 1u);
     IODelay(150);
     hw.gwr(GCC_QUSB2PHY_PRIM_BCR, 0u);
     IODelay(150);
 
     // Exact ZUI 15.0.485 msm_snps_hsphy_init (0x9acd68..0x9ad04c) + UsbConfigDxe (0x83dc..0x8460):
-    // Also clears bit 0 (RETENTION_EN) set by msm_snps_hsphy_suspend / SSUsb1EnterLpm.
     hw.pmask(FEMTO_CFG0, 0x03u, 0x02u);                  // Clear RETENTION_EN (bit 0), set OVERRIDE_EN (bit 1)
     hw.pmask(FEMTO_UTMI_CTRL5, 0x02u, 0x02u);            // POR = 1
     hw.pmask(FEMTO_COMMON0, 0x70u, 0x00u);               // FSEL = 0 (19.2 MHz refclk)
@@ -368,7 +376,10 @@ static bool usbGccAndPhyInit(UsbHw &hw) {
     hw.pmask(FEMTO_COMMON1, 0x10u, 0x10u);               // VBUSVLDEXTSEL0 = 1
     hw.pmask(FEMTO_CTRL1, 0x01u, 0x01u);                 // VBUSVLDEXT0 = 1
     hw.pmask(FEMTO_RTUNE_SEL, 0x01u, 0x00u);             // RTUNE_SEL = 0 (internal RCAL)
-    hw.pwr(FEMTO_PARAM_OVRD_X1, 0x83u);                  // ZUI 15.0.485 dtb: qcom,param-override-seq = <0x83 0x70>
+    hw.pwr(FEMTO_PARAM_OVRD_X0, 0x61u);                  // Exact DALSys.efi hs_phy_cfg (0x1b150..0x1b168)
+    hw.pwr(FEMTO_PARAM_OVRD_X1, 0x43u);
+    hw.pwr(FEMTO_PARAM_OVRD_X2, 0x2Eu);
+    hw.pwr(FEMTO_PARAM_OVRD_X3, 0x03u);
     hw.pmask(FEMTO_COMMON2, 0x01u, 0x01u);               // VREGBYPASS = 1
     hw.pmask(FEMTO_UTMI_CTRL5, 0x01u, 0x00u);            // Clear ATERESET
     hw.pmask(FEMTO_CHARGING_DET_OUTPUT, 0x10u, 0x00u);
@@ -383,6 +394,67 @@ static bool usbGccAndPhyInit(UsbHw &hw) {
     IODelay(150);
     hw.pmask(FEMTO_CFG0, 0x03u, 0x00u);                  // Release CMN_CTRL_OVERRIDE_EN = 0 & RETENTION_EN = 0
     IODelay(200);
+}
+
+static bool usbGccAndPhyInit(UsbHw &hw) {
+    if (!hw.gcc) {
+        hw.gcc = reinterpret_cast<volatile uint32_t *>(
+            mapRangeUncached(J716F_GCC_BASE, J716F_GCC_SIZE, hw.gccMap));
+    }
+    if (!hw.phy) {
+        hw.phy = reinterpret_cast<volatile uint32_t *>(
+            mapRangeUncached(J716F_HSPHY_BASE, J716F_HSPHY_SIZE, hw.phyMap));
+    }
+    if (!hw.eud) {
+        hw.eud = reinterpret_cast<volatile uint32_t *>(
+            mapRangeUncached(J716F_EUD_BASE, J716F_EUD_SIZE, hw.eudMap));
+    }
+    if (!hw.gcc || !hw.phy) return false;
+
+    // Preserve live UEFI usb30_prim_gdsc & QMP SS PHY (0x088E9000) state!
+    // Never collapse GCC_USB30_PRIM_GDSCR or assert GCC_USB3_PHY_PRIM_BCR / GCC_USB30_PRIM_BCR,
+    // because UEFI ExitBootServices (UsbConfigDxe 0x7408 -> StopController 0x5b60 -> UsbfnDwc3Dxe 0x642c)
+    // leaves usb30_prim_gdsc, QMP SS PHY (pipe_clk), Femto v2 HS PHY, and usb_ss1_bus powered and clocked.
+    if (hw.grd(GCC_USB30_PRIM_GDSCR) & GCC_GDSCR_SW_COLLAPSE) {
+        hw.gwr(GCC_USB30_PRIM_GDSCR, hw.grd(GCC_USB30_PRIM_GDSCR) & ~GCC_GDSCR_SW_COLLAPSE);
+        for (unsigned i = 0; i < 5000; ++i) {
+            if (hw.grd(GCC_USB30_PRIM_GDSCR) & GCC_GDSCR_PWR_ON) break;
+            IODelay(5);
+        }
+    }
+    if (hw.grd(GCC_USB3PHY_PHY_PRIM_BCR) & 1u) hw.gwr(GCC_USB3PHY_PHY_PRIM_BCR, 0u);
+    if (hw.grd(GCC_USB3_PHY_PRIM_BCR) & 1u)    hw.gwr(GCC_USB3_PHY_PRIM_BCR, 0u);
+    if (hw.grd(GCC_QUSB2PHY_PRIM_BCR) & 1u)    hw.gwr(GCC_QUSB2PHY_PRIM_BCR, 0u);
+    if (hw.grd(GCC_USB30_PRIM_BCR) & 1u)       hw.gwr(GCC_USB30_PRIM_BCR, 0u);
+
+    if (hw.grd(GCC_USB30_PRIM_MASTER_CLK) & GCC_BRANCH_CLK_OFF) {
+        usbEnsureGccRcg(hw);
+    }
+    (void)usbEnableGccBranches(hw);
+
+    // Ensure EUD_SW_ATTACH_DET (0x088E1018 bit 0) is set so EUD routes D+/D- to Type-C connector
+    if (hw.eud) {
+        const uint32_t attach = hw.eud[EUD_SW_ATTACH_DET / 4u];
+        if ((attach & 1u) == 0u) {
+            hw.eud[EUD_SW_ATTACH_DET / 4u] = attach | 1u;
+            __asm__ volatile("dsb sy" ::: "memory");
+            IODelay(200);
+        }
+    }
+
+    // If Femto v2 HS PHY is already awake and out of POR from UEFI (and not forced into full re-init),
+    // preserve its live calibration and just clear retention + affirm external VBUS valid.
+    const bool hsPhyAlive = (hw.phyInitMode == 0u) &&
+                            ((hw.prd(FEMTO_UTMI_CTRL0) & 1u) != 0u) &&
+                            ((hw.prd(FEMTO_UTMI_CTRL5) & 3u) == 0u);
+    if (hsPhyAlive) {
+        hw.pmask(FEMTO_CFG0, 0x03u, 0x00u);
+        hw.pmask(FEMTO_COMMON1, 0x10u, 0x10u);
+        hw.pmask(FEMTO_CTRL1, 0x01u, 0x01u);
+        hw.pmask(FEMTO_CTRL2, 0x04u, 0x04u);
+    } else {
+        usbInitFemtoHsPhy(hw);
+    }
     return true;
 }
 

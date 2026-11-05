@@ -99,7 +99,10 @@ void native_usb_debug_probe(void);
 #define FEMTO_COMMON2                 0x5Cu
 #define FEMTO_CTRL1                   0x60u
 #define FEMTO_CTRL2                   0x64u
+#define FEMTO_PARAM_OVRD_X0           0x6Cu
 #define FEMTO_PARAM_OVRD_X1           0x70u  // j716f.dtb: qcom,param-override-seq = <0x83 0x70>
+#define FEMTO_PARAM_OVRD_X2           0x74u
+#define FEMTO_PARAM_OVRD_X3           0x78u
 #define FEMTO_CHARGING_DET_CTRL       0x80u
 #define FEMTO_CHARGING_DET_OUTPUT     0x84u
 #define FEMTO_CFG0                    0x94u

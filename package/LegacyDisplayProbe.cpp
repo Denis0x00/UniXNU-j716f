@@ -87,6 +87,7 @@ extern kern_return_t OSKextLoadKextWithIdentifier(const char *);
 extern int boot_progress_prepare_scanout(void) __attribute__((weak_import));
 extern void boot_progress_cancel_scanout(void) __attribute__((weak_import));
 extern void boot_progress_stage(const char *) __attribute__((weak_import));
+extern void usb_debug_draw_hud(void) __attribute__((weak_import));
 volatile uint32_t native_legacy_prepare_calls,native_legacy_prepare_reason,native_legacy_prepare_attempts;
 volatile uint32_t native_legacy_prepare_failures,native_legacy_prepare_retried,native_legacy_prepare_max_attempts;
 volatile uint64_t native_legacy_prepare_wait_us;
@@ -216,6 +217,7 @@ extern "C" void native_legacy_swap_stage(unsigned stage) {
             e.done=now;if(!e.offered)e.offered=now;
             const uint64_t life=now-e.submitted;
             retireCount++;retireUs+=life;if(life>retireMax)retireMax=life;
+            if(&usb_debug_draw_hud && usb_debug_draw_hud)usb_debug_draw_hud();
             return;
         }
     }
@@ -479,6 +481,7 @@ __attribute__((noinline)) bool native_legacy_gop_mapping_observed(IOService *obj
         }
     }
     native_legacy_gop_mapping_checkpoint();
+    if(&usb_debug_draw_hud && usb_debug_draw_hud)usb_debug_draw_hud();
     unsigned enabled=0;PE_parse_boot_argn("offline-legacy-unit-scale",&enabled,sizeof(enabled));
     if(!enabled)return true;
     native_legacy_unit_scale_calls=native_legacy_unit_scale_calls+1;native_legacy_unit_scale_status=1;

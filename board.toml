@@ -58,6 +58,7 @@ archives = [
   "build-link-stubs.py",
   "build-platform-power.py",
   "build-boot-progress.py",
+  "build-adreno650.py",
   "build-gop-legacy-display.py",
 ]
 
@@ -205,6 +206,7 @@ kernel_args = [
   "sheng-touch-hid=1",
   "j716f-touch=1",
   "j716f-usb=1",
+  "pipa-gpu=12",
   "pipa-cpufreq=1",
   "pipa-buttons=1",
   "pipa-wd=0",

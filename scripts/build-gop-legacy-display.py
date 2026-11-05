@@ -267,11 +267,28 @@ touch_obj = OUT / 'TouchState.o'
 run([str(touch_source) if str(arg) == str(source) else str(touch_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd], cwd=r['directory'])
 
 kit_dir = touch_source.parent
-pkg_fallback = next((p for p in [Path(__file__).resolve().parents[1] / 'package', Path('/home/test/tb-j716f-unixnu/sources/UniXNU-j716f/package')] if p.exists()), kit_dir)
-for extra_name in ('TouchBoard.h', 'TouchProbe.cpp', 'QcomRpmh.h', 'QcomRpmh.c', 'SmmuBypass.h', 'UsbDebugCdc.h', 'UsbDebugWire.h', 'UsbDebugCommands.h', 'UsbDebugHw.h', 'UsbDebugCdc.cpp'):
+pkg_repo = next(
+    (
+        p for p in (
+            ([Path(os.environ['UNIXNU_DEVICE'])] if os.environ.get('UNIXNU_DEVICE') else [])
+            + [Path(__file__).resolve().parents[1], Path('/home/test/tb-j716f-unixnu/sources/UniXNU-j716f')]
+        )
+        if (p / 'board.toml').is_file()
+    ),
+    kit_dir.parent,
+)
+pkg_fallback = pkg_repo / 'package' if (pkg_repo / 'package').exists() else kit_dir
+unixnu_repo = next((p for p in [ROOT, Path('/home/test/tb-j716f-unixnu/sources/UniXNU')] if (p / 'kits/AdrenoPM4').exists()), ROOT)
+
+for extra_name in (
+    'TouchBoard.h', 'TouchProbe.cpp', 'QcomRpmh.h', 'QcomRpmh.c', 'SmmuBypass.h',
+    'UsbDebugCdc.h', 'UsbDebugWire.h', 'UsbDebugCommands.h', 'UsbDebugHw.h', 'UsbDebugCdc.cpp',
+    'GpuPowerBoard.h', 'A650Gmu.h', 'A650Gmu.c', 'GpuProbe.cpp', 'MdssProbe.cpp',
+    'NativeBatteryBoard.h', 'NativeBattery.cpp',
+):
     dst_f = kit_dir / extra_name
     src_f = pkg_fallback / extra_name
-    if src_f.exists() and not dst_f.exists():
+    if src_f.exists() and src_f.resolve() != dst_f.resolve():
         shutil.copy2(src_f, dst_f)
 
 touch_probe_source = kit_dir / 'TouchProbe.cpp'
@@ -281,6 +298,73 @@ run([str(touch_probe_source) if str(arg) == str(source) else str(touch_probe_obj
 usb_debug_source = kit_dir / 'UsbDebugCdc.cpp'
 usb_debug_obj = OUT / 'UsbDebugCdc.o'
 run([str(usb_debug_source) if str(arg) == str(source) else str(usb_debug_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd] + ['-I', str(kit_dir)], cwd=r['directory'])
+
+smmu_dir = pkg_repo / 'kits/ArmSmmu4K' if (pkg_repo / 'kits/ArmSmmu4K').exists() else (unixnu_repo / 'kits/ArmSmmu4K')
+adreno_dir = pkg_repo / 'drivers/Adreno650' if (pkg_repo / 'drivers/Adreno650').exists() else (ROOT / 'drivers/Adreno650')
+gpu_includes = [
+    '-I', str(kit_dir),
+    '-I', str(adreno_dir),
+    '-I', str(smmu_dir),
+    '-I', str(unixnu_repo / 'kits/AdrenoFirmware'),
+    '-I', str(unixnu_repo / 'kits/AdrenoPM4'),
+]
+gpu_source = kit_dir / 'GpuProbe.cpp'
+gpu_obj = OUT / 'GpuProbe.o'
+run([str(gpu_source) if str(arg) == str(source) else str(gpu_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd] + gpu_includes, cwd=r['directory'])
+
+mdss_source = kit_dir / 'MdssProbe.cpp'
+mdss_obj = OUT / 'MdssProbe.o'
+run([str(mdss_source) if str(arg) == str(source) else str(mdss_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd] + ['-I', str(kit_dir)], cwd=r['directory'])
+
+battery_source = kit_dir / 'NativeBattery.cpp'
+battery_obj = OUT / 'NativeBattery.o'
+battery_late = OUT / 'NativeBattery.late.o'
+run([str(battery_source) if str(arg) == str(source) else str(battery_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd] + ['-I', str(kit_dir)], cwd=r['directory'])
+run(['llvm-objcopy', '--remove-section=__DATA,__mod_init_func', battery_obj, battery_late])
+require(macho_globalize_symbol(battery_late, '__GLOBAL__sub_I_NativeBattery.cpp'), 'Globalized NativeBattery initializer')
+
+def find_fw(env_key, rel_paths):
+    if os.environ.get(env_key):
+        return Path(os.environ[env_key])
+    for base in (ROOT, pkg_repo):
+        for rel in rel_paths:
+            cand = base / rel
+            if cand.is_file():
+                return cand
+    return ROOT / rel_paths[0]
+
+gmu_firmware = find_fw('PIPA_GMU_FIRMWARE', ('.cache/firmware/gpu/a650_gmu.bin', 'firmware/gpu/a650_gmu.bin'))
+require(gmu_firmware.is_file(), f'Missing GMU firmware {gmu_firmware}')
+gmu_blob = gmu_firmware.read_bytes()
+require(len(gmu_blob) >= 16 and len(gmu_blob) % 4 == 0, f'{gmu_firmware} is not a GMU block image')
+gmu_c = OUT / 'GmuFirmware.c'
+gmu_c.write_text(
+    f'// {gmu_firmware.name}, sha256 {hashlib.sha256(gmu_blob).hexdigest()}\n#include <stdint.h>\n'
+    'const uint8_t native_gpu_gmu_firmware[] __attribute__((aligned(16))) = {' + ','.join(map(str, gmu_blob)) + '};\n'
+    f'const uint32_t native_gpu_gmu_firmware_size = {len(gmu_blob)};\n'
+)
+
+sqe_firmware = find_fw('PIPA_SQE_FIRMWARE', ('.cache/firmware/gpu/a650_sqe.fw', '.cache/firmware/linux-firmware/a650_sqe.fw', 'firmware/gpu/a650_sqe.fw'))
+require(sqe_firmware.is_file(), f'Missing SQE firmware {sqe_firmware}')
+sqe_blob = sqe_firmware.read_bytes()
+require(len(sqe_blob) >= 8 and len(sqe_blob) % 4 == 0, f'{sqe_firmware} is not an SQE image')
+sqe_c = OUT / 'SqeFirmware.c'
+sqe_c.write_text(
+    f'// {sqe_firmware.name}, sha256 {hashlib.sha256(sqe_blob).hexdigest()}\n#include <stdint.h>\n'
+    'const uint8_t native_gpu_sqe_firmware[] __attribute__((aligned(16))) = {' + ','.join(map(str, sqe_blob)) + '};\n'
+    f'const uint32_t native_gpu_sqe_firmware_size = {len(sqe_blob)};\n'
+)
+
+zap_firmware = find_fw('PIPA_ZAP_FIRMWARE', ('.cache/firmware/gpu/a650_zap.elf', 'firmware/gpu/a650_zap.elf'))
+require(zap_firmware.is_file(), f'Missing zap shader {zap_firmware}')
+zap_blob = zap_firmware.read_bytes()
+require(len(zap_blob) >= 52 and zap_blob[:5] == b'\x7fELF\x01', f'{zap_firmware} is not a 32-bit ELF')
+zap_c = OUT / 'ZapFirmware.c'
+zap_c.write_text(
+    f'// {zap_firmware.name}, sha256 {hashlib.sha256(zap_blob).hexdigest()}\n#include <stdint.h>\n'
+    'const uint8_t native_gpu_zap_firmware[] __attribute__((aligned(16))) = {' + ','.join(map(str, zap_blob)) + '};\n'
+    f'const uint32_t native_gpu_zap_firmware_size = {len(zap_blob)};\n'
+)
 
 c_record = json.loads((ROOT / 'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/osfmk/DEVELOPMENT/startup.o.json').read_text().strip().rstrip(','))
 buttons_source = next(ROOT.glob('kits/*/Buttons.c'))
@@ -303,9 +387,19 @@ while j < len(c_args):
     j += 1
 run(c_out + ['-Wall', '-Wextra', '-Werror', '-I', str(buttons_source.parent)], cwd=c_record['directory'])
 
+def compile_c_obj(src_c: Path, dst_o: Path):
+    run([str(src_c) if str(arg) == str(buttons_source) else str(dst_o) if str(arg) == str(buttons_obj) else arg for arg in c_out] + ['-Wall', '-Wextra', '-Werror', '-I', str(kit_dir)], cwd=c_record['directory'])
+
 rpmh_source = kit_dir / 'QcomRpmh.c'
 rpmh_obj = OUT / 'QcomRpmh.o'
-run([str(rpmh_source) if str(arg) == str(buttons_source) else str(rpmh_obj) if str(arg) == str(buttons_obj) else arg for arg in c_out] + ['-Wall', '-Wextra', '-Werror', '-I', str(kit_dir)], cwd=c_record['directory'])
+compile_c_obj(rpmh_source, rpmh_obj)
+
+gmu_fw_obj = OUT / 'GmuFirmware.o'
+sqe_fw_obj = OUT / 'SqeFirmware.o'
+zap_fw_obj = OUT / 'ZapFirmware.o'
+compile_c_obj(gmu_c, gmu_fw_obj)
+compile_c_obj(sqe_c, sqe_fw_obj)
+compile_c_obj(zap_c, zap_fw_obj)
 
 print(run(['python3', ROOT / 'scripts/build-sheng-hid-input.py'], text=True), end='')
 hid_dir = ROOT / 'build/sheng-hid-input'
@@ -336,8 +430,14 @@ run([
     touch_obj,
     touch_probe_obj,
     usb_debug_obj,
+    gpu_obj,
+    mdss_obj,
+    battery_late,
     rpmh_obj,
     buttons_obj,
+    gmu_fw_obj,
+    sqe_fw_obj,
+    zap_fw_obj,
     hid_dir / 'NativeHidInput.late.o',
     hid_dir / 'hid-original-bindings.o',
     gop_late,
@@ -361,6 +461,12 @@ sources = [
     kit_dir / 'QcomRpmh.h',
     rpmh_source,
     kit_dir / 'SmmuBypass.h',
+    gpu_source,
+    kit_dir / 'GpuPowerBoard.h',
+    kit_dir / 'A650Gmu.h',
+    mdss_source,
+    battery_source,
+    kit_dir / 'NativeBatteryBoard.h',
     buttons_source,
     buttons_source.parent / 'ButtonsCore.h',
     ROOT / 'drivers/ShengHidInput/NativeHidInput.cpp',

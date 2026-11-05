@@ -69,6 +69,10 @@ jobs:
             /tmp/buttons-test-"$cc"
             "$cc" -std=c11 -O2 -Wall -Wextra -Werror -I package package/TouchBoardTests.c -o /tmp/touch-test-"$cc"
             /tmp/touch-test-"$cc"
+            "$cc" -std=c11 -O2 -Wall -Wextra -Werror -I package package/GpuPowerBoardTests.c -o /tmp/gpu-power-test-"$cc"
+            /tmp/gpu-power-test-"$cc"
+            "$cc" -std=c11 -O2 -Wall -Wextra -Werror -I package package/NativeBatteryTests.c -o /tmp/battery-test-"$cc"
+            /tmp/battery-test-"$cc"
             "$cc" -std=c11 -O2 -Wall -Wextra -Werror -I drivers/GopFramebuffer drivers/GopFramebuffer/Test/request-state.c -o /tmp/gop-test-"$cc"
             /tmp/gop-test-"$cc"
             "$cc" -std=c11 -O2 -Wall -Wextra -Werror -c package/QcomRpmh.c -o /tmp/qcom-rpmh-"$cc".o

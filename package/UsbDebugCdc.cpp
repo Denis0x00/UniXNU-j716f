@@ -37,8 +37,12 @@ extern char native_touch_rows[4][120] __attribute__((weak_import));
 
 extern volatile unsigned native_gpu_step __attribute__((weak_import));
 extern char native_gpu_rows[31][120] __attribute__((weak_import));
+extern volatile unsigned native_mdss_step __attribute__((weak_import));
 extern char native_mdss_rows[31][120] __attribute__((weak_import));
 extern char native_flip_rows[16][120] __attribute__((weak_import));
+extern char native_battery_row[120] __attribute__((weak_import));
+extern volatile int native_battery_error __attribute__((weak_import));
+extern volatile unsigned native_battery_published __attribute__((weak_import));
 
 extern volatile uint32_t armcpu_smp_running __attribute__((weak_import));
 }
@@ -65,7 +69,151 @@ static uint64_t nowMs() {
     return frq ? (cnt * 1000ULL) / frq : 0ULL;
 }
 
+static char gUsbHudLine0[112] = "usb: init";
+static char gUsbHudLine1[112] = "reg: waiting...";
+
+// Compact 8x8 bitmap font for printable ASCII 0x20..0x7E
+static const uint8_t kHudFont8x8[95][8] = {
+    {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}, // ' '
+    {0x18,0x3C,0x3C,0x18,0x18,0x00,0x18,0x00}, // '!'
+    {0x6C,0x6C,0x24,0x00,0x00,0x00,0x00,0x00}, // '"'
+    {0x6C,0x6C,0xFE,0x6C,0xFE,0x6C,0x6C,0x00}, // '#'
+    {0x18,0x3E,0x60,0x3C,0x06,0x7C,0x18,0x00}, // '$'
+    {0x00,0xC6,0xCC,0x18,0x30,0x66,0xC6,0x00}, // '%'
+    {0x38,0x6C,0x38,0x76,0xDC,0xCC,0x76,0x00}, // '&'
+    {0x18,0x18,0x30,0x00,0x00,0x00,0x00,0x00}, // '\''
+    {0x0C,0x18,0x30,0x30,0x30,0x18,0x0C,0x00}, // '('
+    {0x30,0x18,0x0C,0x0C,0x0C,0x18,0x30,0x00}, // ')'
+    {0x00,0x66,0x3C,0xFF,0x3C,0x66,0x00,0x00}, // '*'
+    {0x00,0x18,0x18,0x7E,0x18,0x18,0x00,0x00}, // '+'
+    {0x00,0x00,0x00,0x00,0x00,0x18,0x18,0x30}, // ','
+    {0x00,0x00,0x00,0x7E,0x00,0x00,0x00,0x00}, // '-'
+    {0x00,0x00,0x00,0x00,0x00,0x18,0x18,0x00}, // '.'
+    {0x06,0x0C,0x18,0x30,0x60,0xC0,0x80,0x00}, // '/'
+    {0x7C,0xC6,0xCE,0xD6,0xE6,0xC6,0x7C,0x00}, // '0'
+    {0x18,0x38,0x18,0x18,0x18,0x18,0x7E,0x00}, // '1'
+    {0x7C,0xC6,0x06,0x1C,0x30,0x66,0xFE,0x00}, // '2'
+    {0x7C,0xC6,0x06,0x3C,0x06,0xC6,0x7C,0x00}, // '3'
+    {0x1C,0x3C,0x6C,0xCC,0xFE,0x0C,0x1E,0x00}, // '4'
+    {0xFE,0xC0,0xFC,0x06,0x06,0xC6,0x7C,0x00}, // '5'
+    {0x38,0x60,0xC0,0xFC,0xC6,0xC6,0x7C,0x00}, // '6'
+    {0xFE,0xC6,0x0C,0x18,0x30,0x30,0x30,0x00}, // '7'
+    {0x7C,0xC6,0xC6,0x7C,0xC6,0xC6,0x7C,0x00}, // '8'
+    {0x7C,0xC6,0xC6,0x7E,0x06,0x0C,0x78,0x00}, // '9'
+    {0x00,0x18,0x18,0x00,0x00,0x18,0x18,0x00}, // ':'
+    {0x00,0x18,0x18,0x00,0x00,0x18,0x18,0x30}, // ';'
+    {0x0C,0x18,0x30,0x60,0x30,0x18,0x0C,0x00}, // '<'
+    {0x00,0x00,0x7E,0x00,0x00,0x7E,0x00,0x00}, // '='
+    {0x30,0x18,0x0C,0x06,0x0C,0x18,0x30,0x00}, // '>'
+    {0x7C,0xC6,0x0C,0x18,0x18,0x00,0x18,0x00}, // '?'
+    {0x7C,0xC6,0xDE,0xDE,0xDE,0xC0,0x78,0x00}, // '@'
+    {0x38,0x6C,0xC6,0xFE,0xC6,0xC6,0xC6,0x00}, // 'A'
+    {0xFC,0x66,0x66,0x7C,0x66,0x66,0xFC,0x00}, // 'B'
+    {0x3C,0x66,0xC0,0xC0,0xC0,0x66,0x3C,0x00}, // 'C'
+    {0xF8,0x6C,0x66,0x66,0x66,0x6C,0xF8,0x00}, // 'D'
+    {0xFE,0x62,0x68,0x78,0x68,0x62,0xFE,0x00}, // 'E'
+    {0xFE,0x62,0x68,0x78,0x68,0x60,0xF0,0x00}, // 'F'
+    {0x3C,0x66,0xC0,0xC0,0xCE,0x66,0x3E,0x00}, // 'G'
+    {0xC6,0xC6,0xC6,0xFE,0xC6,0xC6,0xC6,0x00}, // 'H'
+    {0x3C,0x18,0x18,0x18,0x18,0x18,0x3C,0x00}, // 'I'
+    {0x1E,0x0C,0x0C,0x0C,0xCC,0xCC,0x78,0x00}, // 'J'
+    {0xE6,0x66,0x6C,0x78,0x6C,0x66,0xE6,0x00}, // 'K'
+    {0xF0,0x60,0x60,0x60,0x62,0x66,0xFE,0x00}, // 'L'
+    {0xC6,0xEE,0xFE,0xFE,0xD6,0xC6,0xC6,0x00}, // 'M'
+    {0xC6,0xE6,0xF6,0xDE,0xCE,0xC6,0xC6,0x00}, // 'N'
+    {0x7C,0xC6,0xC6,0xC6,0xC6,0xC6,0x7C,0x00}, // 'O'
+    {0xFC,0x66,0x66,0x7C,0x60,0x60,0xF0,0x00}, // 'P'
+    {0x7C,0xC6,0xC6,0xC6,0xD6,0xDE,0x7C,0x06}, // 'Q'
+    {0xFC,0x66,0x66,0x7C,0x6C,0x66,0xE6,0x00}, // 'R'
+    {0x7C,0xC6,0x60,0x38,0x0C,0xC6,0x7C,0x00}, // 'S'
+    {0x7E,0x7E,0x5A,0x18,0x18,0x18,0x3C,0x00}, // 'T'
+    {0xC6,0xC6,0xC6,0xC6,0xC6,0xC6,0x7C,0x00}, // 'U'
+    {0xC6,0xC6,0xC6,0xC6,0xC6,0x6C,0x38,0x00}, // 'V'
+    {0xC6,0xC6,0xD6,0xFE,0xFE,0xEE,0xC6,0x00}, // 'W'
+    {0xC6,0xC6,0x6C,0x38,0x6C,0xC6,0xC6,0x00}, // 'X'
+    {0x66,0x66,0x66,0x3C,0x18,0x18,0x3C,0x00}, // 'Y'
+    {0xFE,0xC6,0x8C,0x18,0x32,0x66,0xFE,0x00}, // 'Z'
+    {0x3C,0x30,0x30,0x30,0x30,0x30,0x3C,0x00}, // '['
+    {0xC0,0x60,0x30,0x18,0x0C,0x06,0x02,0x00}, // '\\'
+    {0x3C,0x0C,0x0C,0x0C,0x0C,0x0C,0x3C,0x00}, // ']'
+    {0x10,0x38,0x6C,0xC6,0x00,0x00,0x00,0x00}, // '^'
+    {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xFF}, // '_'
+    {0x30,0x18,0x0C,0x00,0x00,0x00,0x00,0x00}, // '`'
+    {0x00,0x00,0x78,0x0C,0x7C,0xCC,0x76,0x00}, // 'a'
+    {0xE0,0x60,0x7C,0x66,0x66,0x66,0xDC,0x00}, // 'b'
+    {0x00,0x00,0x7C,0xC6,0xC0,0xC6,0x7C,0x00}, // 'c'
+    {0x1C,0x0C,0x7C,0xCC,0xCC,0xCC,0x76,0x00}, // 'd'
+    {0x00,0x00,0x7C,0xC6,0xFE,0xC0,0x7C,0x00}, // 'e'
+    {0x3C,0x66,0x60,0xF8,0x60,0x60,0xF0,0x00}, // 'f'
+    {0x00,0x00,0x76,0xCC,0xCC,0x7C,0x0C,0xF8}, // 'g'
+    {0xE0,0x60,0x6C,0x76,0x66,0x66,0xE6,0x00}, // 'h'
+    {0x18,0x00,0x38,0x18,0x18,0x18,0x3C,0x00}, // 'i'
+    {0x06,0x00,0x06,0x06,0x06,0x66,0x66,0x3C}, // 'j'
+    {0xE0,0x60,0x66,0x6C,0x78,0x6C,0xE6,0x00}, // 'k'
+    {0x38,0x18,0x18,0x18,0x18,0x18,0x3C,0x00}, // 'l'
+    {0x00,0x00,0xEC,0xFE,0xD6,0xD6,0xD6,0x00}, // 'm'
+    {0x00,0x00,0xDC,0x66,0x66,0x66,0x66,0x00}, // 'n'
+    {0x00,0x00,0x7C,0xC6,0xC6,0xC6,0x7C,0x00}, // 'o'
+    {0x00,0x00,0xDC,0x66,0x66,0x7C,0x60,0xF0}, // 'p'
+    {0x00,0x00,0x76,0xCC,0xCC,0x7C,0x0C,0x1E}, // 'q'
+    {0x00,0x00,0xDC,0x76,0x60,0x60,0xF0,0x00}, // 'r'
+    {0x00,0x00,0x7E,0xC0,0x7C,0x06,0xFC,0x00}, // 's'
+    {0x30,0x30,0xFC,0x30,0x30,0x36,0x1C,0x00}, // 't'
+    {0x00,0x00,0xCC,0xCC,0xCC,0xCC,0x76,0x00}, // 'u'
+    {0x00,0x00,0xC6,0xC6,0xC6,0x6C,0x38,0x00}, // 'v'
+    {0x00,0x00,0xC6,0xD6,0xD6,0xFE,0x6C,0x00}, // 'w'
+    {0x00,0x00,0xC6,0x6C,0x38,0x6C,0xC6,0x00}, // 'x'
+    {0x00,0x00,0xC6,0xC6,0xC6,0x7E,0x06,0xFC}, // 'y'
+    {0x00,0x00,0xFE,0x8C,0x18,0x32,0xFE,0x00}, // 'z'
+    {0x0E,0x18,0x18,0x70,0x18,0x18,0x0E,0x00}, // '{'
+    {0x18,0x18,0x18,0x00,0x18,0x18,0x18,0x00}, // '|'
+    {0x70,0x18,0x18,0x0E,0x18,0x18,0x70,0x00}, // '}'
+    {0x76,0xDC,0x00,0x00,0x00,0x00,0x00,0x00}, // '~'
+};
+
+static void drawHudString2x(volatile uint32_t *fb, uint32_t fbW, uint32_t fbH,
+                            uint32_t x0, uint32_t y0, const char *str,
+                            uint32_t fgColor, uint32_t bgColor, uint32_t padCols) {
+    const uint32_t scale = 2u;
+    const uint32_t glyphW = 8u * scale;
+    for (uint32_t col = 0; col < padCols; ++col) {
+        const char ch = (str && *str) ? *str++ : ' ';
+        const unsigned idx = (ch >= 0x20 && ch <= 0x7E) ? static_cast<unsigned>(ch - 0x20) : 0u;
+        const uint8_t *rows = kHudFont8x8[idx];
+        const uint32_t gx = x0 + col * glyphW;
+        if (gx + glyphW > fbW) break;
+        for (uint32_t ry = 0; ry < 8u; ++ry) {
+            const uint8_t bits = rows[ry];
+            for (uint32_t sy = 0; sy < scale; ++sy) {
+                const uint32_t py = y0 + ry * scale + sy;
+                if (py >= fbH) continue;
+                volatile uint32_t *line = fb + py * fbW + gx;
+                for (uint32_t rx = 0; rx < 8u; ++rx) {
+                    const uint32_t c = (bits & (0x80u >> rx)) ? fgColor : bgColor;
+                    for (uint32_t sx = 0; sx < scale; ++sx) {
+                        line[rx * scale + sx] = c;
+                    }
+                }
+            }
+        }
+    }
+}
+
+static void renderHudOverlay() {
+    if (!&native_legacy_gop_virtual || !native_legacy_gop_virtual) return;
+    const uint32_t w = (&native_legacy_gop_width && native_legacy_gop_width) ? native_legacy_gop_width : 2560u;
+    const uint32_t h = (&native_legacy_gop_height && native_legacy_gop_height) ? native_legacy_gop_height : 1600u;
+    if (w < 640u || h < 80u) return;
+    volatile uint32_t *fb = reinterpret_cast<volatile uint32_t *>(static_cast<uintptr_t>(native_legacy_gop_virtual));
+    drawHudString2x(fb, w, h, 16u, 12u, gUsbHudLine0, 0xFF00FFCCu, 0xFF0C141Eu, 96u);
+    drawHudString2x(fb, w, h, 16u, 32u, gUsbHudLine1, 0xFFFFEE55u, 0xFF0C141Eu, 96u);
+}
+
 static void logStage(const char *msg) {
+    if (msg) {
+        strlcpy(gUsbHudLine0, msg, sizeof(gUsbHudLine0));
+        renderHudOverlay();
+    }
     if (&boot_progress_stage && boot_progress_stage) {
         boot_progress_stage(msg);
     }
@@ -90,6 +238,7 @@ static int epCmd(UsbHw &hw, unsigned dep, uint32_t cmd, uint32_t p0, uint32_t p1
         IODelay(1);
     }
     if (drop) hw.wr(DWC3_GUSB2PHYCFG(0), cfg);
+    hw.lastCmdSt = st;
     return st;
 }
 
@@ -163,9 +312,10 @@ static void ep0StartData(UsbHw &hw, unsigned dep, uint32_t len) {
             ep0SetTrb(hw, 0, bufPa, len, DWC3_TRBCTL_CONTROL_DATA, true);
         }
     } else {
-        usbCacheRange(hw.dmaVirt + DMA_EP0_BUF_OFF, len > 64u ? len : 64u, 1);
+        usbCacheRange(hw.dmaVirt + DMA_EP0_BUF_OFF, 64u, 1);
         hw.ep0Trbs = 1;
-        ep0SetTrb(hw, 0, bufPa, len, DWC3_TRBCTL_CONTROL_DATA, true);
+        // Synopsys DWC3 Databook 8.2.2: EP0 Control-Data OUT TRB size must be aligned to MaxPacketSize (64B)
+        ep0SetTrb(hw, 0, bufPa, 64u, DWC3_TRBCTL_CONTROL_DATA, true);
     }
     ep0CommitHead(hw);
     ep0Start(hw, dep);
@@ -492,17 +642,47 @@ static void handleCommand(TerminalSession &s, const char *raw) {
                  &native_legacy_retirement_calls ? native_legacy_retirement_calls : 0u);
         s.reply.writeStr(buf);
         if (&native_mdss_rows) {
-            for (unsigned i = 0; i < 31 && native_mdss_rows[i][0]; ++i) {
+            for (unsigned i = 0; i < 31; ++i) {
+                if (!native_mdss_rows[i][0]) continue;
                 snprintf(buf, sizeof(buf), "[usb] MDSS[%u]: %s\r\n", i, native_mdss_rows[i]);
                 s.reply.writeStr(buf);
             }
         }
         if (&native_flip_rows) {
-            for (unsigned i = 0; i < 16 && native_flip_rows[i][0]; ++i) {
+            for (unsigned i = 0; i < 16; ++i) {
+                if (!native_flip_rows[i][0]) continue;
                 snprintf(buf, sizeof(buf), "[usb] FLIP[%u]: %s\r\n", i, native_flip_rows[i]);
                 s.reply.writeStr(buf);
             }
         }
+    } else if (strEq(raw, "mdss") || strEq(raw, "mdss.status")) {
+        snprintf(buf, sizeof(buf), "[usb] MDSS: step=%u\r\n", &native_mdss_step ? native_mdss_step : 0u);
+        s.reply.writeStr(buf);
+        if (&native_mdss_rows) {
+            for (unsigned i = 0; i < 31; ++i) {
+                if (!native_mdss_rows[i][0]) continue;
+                snprintf(buf, sizeof(buf), "[usb] MDSS[%u]: %s\r\n", i, native_mdss_rows[i]);
+                s.reply.writeStr(buf);
+            }
+        }
+    } else if (strEq(raw, "touch") || strEq(raw, "touch.status")) {
+        snprintf(buf, sizeof(buf), "[usb] TOUCH: stage=%u strokes=%u\r\n",
+                 &native_touch_stage ? native_touch_stage : 0u,
+                 &native_touch_stroke_count ? native_touch_stroke_count : 0u);
+        s.reply.writeStr(buf);
+        if (&native_touch_rows) {
+            for (unsigned i = 0; i < 4; ++i) {
+                if (!native_touch_rows[i][0]) continue;
+                snprintf(buf, sizeof(buf), "[usb] TOUCH[%u]: %s\r\n", i, native_touch_rows[i]);
+                s.reply.writeStr(buf);
+            }
+        }
+    } else if (strEq(raw, "battery") || strEq(raw, "battery.status")) {
+        snprintf(buf, sizeof(buf), "[usb] BATTERY: pub=%u err=%d %s\r\n",
+                 &native_battery_published ? native_battery_published : 0u,
+                 &native_battery_error ? native_battery_error : 0,
+                 (&native_battery_row && native_battery_row[0]) ? native_battery_row : "(empty)");
+        s.reply.writeStr(buf);
     } else if (strEq(raw, "usb")) {
         snprintf(buf, sizeof(buf),
                  "[usb] USB: cfg=%u mps=%u dtr=%u dsts=0x%08x gctl=0x%08x dctl=0x%08x phy2=0x%08x qhs=0x%08x qss=0x%08x events=%u resets=%u\r\n",
@@ -512,11 +692,12 @@ static void handleCommand(TerminalSession &s, const char *raw) {
                  s.hw.rd(QSCRATCH_SS_PHY_CTRL),
                  s.hw.usbEvents, s.hw.usbResets);
         s.reply.writeStr(buf);
-    } else if (strEq(raw, "gpu.status") || strEq(raw, "gpu.observe")) {
+    } else if (strEq(raw, "gpu") || strEq(raw, "gpu.status") || strEq(raw, "gpu.observe")) {
         snprintf(buf, sizeof(buf), "[usb] GPU: step=%u\r\n", &native_gpu_step ? native_gpu_step : 0u);
         s.reply.writeStr(buf);
         if (&native_gpu_rows) {
-            for (unsigned i = 0; i < 31 && native_gpu_rows[i][0]; ++i) {
+            for (unsigned i = 0; i < 31; ++i) {
+                if (!native_gpu_rows[i][0]) continue;
                 snprintf(buf, sizeof(buf), "[usb] GPU[%u]: %s\r\n", i, native_gpu_rows[i]);
                 s.reply.writeStr(buf);
             }
@@ -732,42 +913,42 @@ __attribute__((noreturn)) static void executeWarmFastbootReboot(UsbHw &hw) {
 
 static bool bringUpController(TerminalSession &s) {
     UsbHw &hw = s.hw;
-    hw.dmaDesc = IOBufferMemoryDescriptor::inTaskWithPhysicalMask(
-        kernel_task,
-        static_cast<IOOptionBits>(kIODirectionInOut) | static_cast<IOOptionBits>(kIOMemoryPhysicallyContiguous),
-        DMA_TOTAL_BYTES, 0xFFFFFFF000ULL);
-    if (!hw.dmaDesc || hw.dmaDesc->prepare() != kIOReturnSuccess) {
-        logStage("usb: dmaDesc alloc/prepare failed");
-        return false;
-    }
-    addr64_t segLen = 0;
-    hw.dmaPhys = hw.dmaDesc->getPhysicalSegment(0, &segLen);
-    hw.dmaVirt = static_cast<uint8_t *>(hw.dmaDesc->getBytesNoCopy());
-    if (!hw.dmaVirt || !hw.dmaPhys || segLen < DMA_TOTAL_BYTES) {
-        logStage("usb: dmaVirt/dmaPhys invalid");
-        return false;
+    if (!hw.dmaDesc) {
+        hw.dmaDesc = IOBufferMemoryDescriptor::inTaskWithPhysicalMask(
+            kernel_task,
+            static_cast<IOOptionBits>(kIODirectionInOut) | static_cast<IOOptionBits>(kIOMemoryPhysicallyContiguous),
+            DMA_TOTAL_BYTES, 0xFFFFFFF000ULL);
+        if (!hw.dmaDesc || hw.dmaDesc->prepare() != kIOReturnSuccess) {
+            logStage("usb: dmaDesc alloc/prepare failed");
+            return false;
+        }
+        addr64_t segLen = 0;
+        hw.dmaPhys = hw.dmaDesc->getPhysicalSegment(0, &segLen);
+        hw.dmaVirt = static_cast<uint8_t *>(hw.dmaDesc->getBytesNoCopy());
+        if (!hw.dmaVirt || !hw.dmaPhys || segLen < DMA_TOTAL_BYTES) {
+            logStage("usb: dmaVirt/dmaPhys invalid");
+            return false;
+        }
     }
     memset(hw.dmaVirt, 0, DMA_TOTAL_BYTES);
     usbCacheRange(hw.dmaVirt, DMA_TOTAL_BYTES, 1);
     logStage("usb: dma cacheable buffer ready");
 
-    const char *smmuErr = nullptr;
-    if (!usbConfigureSmmuBypass(hw, &smmuErr)) {
-        char msg[128];
-        snprintf(msg, sizeof(msg), "usb: smmu bypass failed (%s)", smmuErr ? smmuErr : "unknown");
-        logStage(msg);
-        return false;
+    if (!hw.smmu) {
+        (void)usbConfigureSmmuBypass(hw);
     }
     if (!usbGccAndPhyInit(hw)) {
         logStage("usb: gcc/phy init failed");
         return false;
     }
 
-    hw.core = reinterpret_cast<volatile uint32_t *>(
-        mapRangeUncached(J716F_USB0_CORE_BASE, J716F_USB0_CORE_SIZE, hw.coreMap));
     if (!hw.core) {
-        logStage("usb: core map failed");
-        return false;
+        hw.core = reinterpret_cast<volatile uint32_t *>(
+            mapRangeUncached(J716F_USB0_CORE_BASE, J716F_USB0_CORE_SIZE, hw.coreMap));
+        if (!hw.core) {
+            logStage("usb: core map failed");
+            return false;
+        }
     }
 
     const uint32_t gsnpsid = hw.rd(DWC3_GSNPSID);
@@ -779,41 +960,44 @@ static bool bringUpController(TerminalSession &s) {
         return false;
     }
 
-    // 1. OEM SSUsb1InitCommon (0x910c..0x93a0) + SynopsysInitDevice (0xbe00..0xbed8):
-    //    Glitch-free QSCRATCH UTMI clock mux (SS PHY disabled -> mux PIPE clock to UTMI)
-    hw.wr(QSCRATCH_GENERAL_CFG, hw.rd(QSCRATCH_GENERAL_CFG) | QSCRATCH_PIPE_UTMI_CLK_DIS);
-    IODelay(100);
-    hw.wr(QSCRATCH_GENERAL_CFG,
-          (hw.rd(QSCRATCH_GENERAL_CFG) & ~0x200u) |
-          QSCRATCH_PIPE_UTMI_CLK_SEL | QSCRATCH_PIPE3_PHYSTATUS_SW);
-    IODelay(100);
-    hw.wr(QSCRATCH_GENERAL_CFG, hw.rd(QSCRATCH_GENERAL_CFG) & ~QSCRATCH_PIPE_UTMI_CLK_DIS);
+    // 1. Switch QSCRATCH_GENERAL_CFG PIPE_UTMI_CLK_SEL if QMP SS PHY pipe_clk is off OR if forced into HS-only fallback (phyInitMode == 1).
+    //    During normal UEFI boot, SSUsb1InitSSPhy (0x9094) succeeds and leaves pipe_clk running with QSCRATCH_GENERAL_CFG = 0.
+    const bool pipeClkOff = (hw.grd(GCC_USB3_PRIM_PHY_PIPE_CLK) & GCC_BRANCH_CLK_OFF) != 0u;
+    if (pipeClkOff || hw.phyInitMode == 1u) {
+        hw.wr(QSCRATCH_GENERAL_CFG, hw.rd(QSCRATCH_GENERAL_CFG) | QSCRATCH_PIPE_UTMI_CLK_DIS);
+        IODelay(100);
+        hw.wr(QSCRATCH_GENERAL_CFG,
+              (hw.rd(QSCRATCH_GENERAL_CFG) & ~0x200u) |
+              QSCRATCH_PIPE_UTMI_CLK_SEL | QSCRATCH_PIPE3_PHYSTATUS_SW);
+        IODelay(100);
+        hw.wr(QSCRATCH_GENERAL_CFG, hw.rd(QSCRATCH_GENERAL_CFG) & ~QSCRATCH_PIPE_UTMI_CLK_DIS);
+    }
     hw.wr(QSCRATCH_CGCTL, hw.rd(QSCRATCH_CGCTL) | 0x02u);
 
-    hw.wr(DWC3_GCTL, hw.rd(DWC3_GCTL) | DWC3_GCTL_DSBLCLKGTNG);
-    hw.wr(DWC3_GUSB3PIPECTL(0),
-          (hw.rd(DWC3_GUSB3PIPECTL(0)) & ~((1u << 18) | DWC3_GUSB3PIPECTL_SUSPHY | 1u)) | 0x08000400u);
-    hw.wr(DWC3_OSTS_WRAP, (hw.rd(DWC3_OSTS_WRAP) & 0xFF00FF00u) | 0x00060005u);
-    hw.wr(DWC3_GUCTL,
-          ((hw.rd(DWC3_GUCTL) | (1u << 24) | (1u << 31)) & 0xFF1FFFFFu) | 0x00600000u);
-    hw.wr(DWC3_GUSB2PHYCFG(0), hw.rd(DWC3_GUSB2PHYCFG(0)) & ~DWC3_GUSB2PHYCFG_ENBLSLPM);
-    hw.wr(DWC3_GUCTL1, hw.rd(DWC3_GUCTL1) | 0x04630000u);
-
     // 2. OEM UsbfnDwc3Dxe VBUS + power-present override (0xee48..0xee94):
-    //    MUST set QSCRATCH_SS_PHY_CTRL.LANE0_PWR_PRESENT (bit 24) in addition to HS_PHY_CTRL bits 20 & 28!
-    hw.wr(QSCRATCH_HS_PHY_CTRL,
-          hw.rd(QSCRATCH_HS_PHY_CTRL) | QSCRATCH_UTMI_OTG_VBUS_VALID | QSCRATCH_SW_SESSVLD_SEL);
-    hw.wr(QSCRATCH_SS_PHY_CTRL,
-          hw.rd(QSCRATCH_SS_PHY_CTRL) | QSCRATCH_LANE0_PWR_PRESENT);
+    //    Set QSCRATCH_HS_PHY_CTRL bits 20 & 28 and QSCRATCH_SS_PHY_CTRL bit 24 (LANE0_PWR_PRESENT) before DwcInitialize!
+    hw.wr(QSCRATCH_HS_PHY_CTRL, hw.rd(QSCRATCH_HS_PHY_CTRL) | QSCRATCH_UTMI_OTG_VBUS_VALID);
+    hw.wr(QSCRATCH_HS_PHY_CTRL, hw.rd(QSCRATCH_HS_PHY_CTRL) | QSCRATCH_SW_SESSVLD_SEL);
+    hw.wr(QSCRATCH_SS_PHY_CTRL, hw.rd(QSCRATCH_SS_PHY_CTRL) | QSCRATCH_LANE0_PWR_PRESENT);
 
-    // 3. OEM UsbfnDwc3Dxe DwcInitialize (0x39cc..0x40c4): device CSFTRST, then configure DWC3 core
+    // 3. OEM UsbfnDwc3Dxe DwcInitialize (0x39cc..0x40e0): device CSFTRST, then configure DWC3 core
     hw.wr(DWC3_DCTL, (hw.rd(DWC3_DCTL) & ~DWC3_DCTL_RUN_STOP) | DWC3_DCTL_CSFTRST);
     for (unsigned i = 0; i < 100000; ++i) {
         if ((hw.rd(DWC3_DCTL) & DWC3_DCTL_CSFTRST) == 0u) break;
         IODelay(5);
     }
 
-    // OEM UsbfnDwc3Dxe DwcInitialize (0x3b10..0x3b7c): partition TX FIFOs 1..15 after CSFTRST
+    hw.wr(DWC3_DCTL, (hw.rd(DWC3_DCTL) & ~(0x1F000000u | DWC3_DCTL_RUN_STOP)) | 0x10F00000u);
+    hw.wr(DWC3_GSBUSCFG0, hw.rd(DWC3_GSBUSCFG0) | 0x0Eu);
+    hw.wr(DWC3_GSBUSCFG1, (hw.rd(DWC3_GSBUSCFG1) & ~0xF00u) | 0xE00u);
+
+    // Clear ENBLSLPM (bit 8) and SUSPHY (bit 6) ONLY; preserve hardware PHYIF/USBTRDTIM straps (0x3aa0..0x3ad4)
+    hw.wr(DWC3_GUSB2PHYCFG(0), hw.rd(DWC3_GUSB2PHYCFG(0)) & ~DWC3_GUSB2PHYCFG_ENBLSLPM);
+    hw.wr(DWC3_GUSB2PHYCFG(0), hw.rd(DWC3_GUSB2PHYCFG(0)) & ~DWC3_GUSB2PHYCFG_SUSPHY);
+    // Clear ELASTIC_BUFFER_MODE (bit 0) (0x3ae0..0x3b00)
+    hw.wr(DWC3_GUSB3PIPECTL(0), hw.rd(DWC3_GUSB3PIPECTL(0)) & ~1u);
+
+    // OEM UsbfnDwc3Dxe DwcInitialize (0x3b10..0x3b7c): partition TX FIFOs 1..15
     {
         uint32_t fifoAddr = hw.rd(DWC3_GTXFIFOSIZ(0)) & 0xFFFFu;
         for (unsigned ep = 1; ep <= 15; ++ep) {
@@ -823,40 +1007,19 @@ static bool bringUpController(TerminalSession &s) {
         }
     }
 
-    // Re-affirm QSCRATCH + HS PHY after CSFTRST (matching UsbConfigDxe 0xbbd4..0xbc10)
-    hw.wr(QSCRATCH_GENERAL_CFG,
-          (hw.rd(QSCRATCH_GENERAL_CFG) & ~(0x200u | QSCRATCH_PIPE_UTMI_CLK_DIS)) |
-          QSCRATCH_PIPE_UTMI_CLK_SEL | QSCRATCH_PIPE3_PHYSTATUS_SW);
-    hw.wr(QSCRATCH_CGCTL, hw.rd(QSCRATCH_CGCTL) | 0x02u);
-    hw.wr(QSCRATCH_HS_PHY_CTRL,
-          hw.rd(QSCRATCH_HS_PHY_CTRL) | QSCRATCH_UTMI_OTG_VBUS_VALID | QSCRATCH_SW_SESSVLD_SEL);
-    hw.wr(QSCRATCH_SS_PHY_CTRL,
-          hw.rd(QSCRATCH_SS_PHY_CTRL) | QSCRATCH_LANE0_PWR_PRESENT);
+    // Exact UsbfnDwc3Dxe GCTL sequence (0x3cf0..0x3d3c): clear bit 16 (U2RSTECN), PRTCAPDIR=2 (Device), PWRDNSCALE=2
+    hw.wr(DWC3_GCTL, hw.rd(DWC3_GCTL) & ~0x00010000u);
+    hw.wr(DWC3_GCTL, (hw.rd(DWC3_GCTL) & ~0x00003000u) | DWC3_GCTL_PRTCAPDIR(DWC3_GCTL_PRTCAP_DEVICE));
+    hw.wr(DWC3_GCTL, (hw.rd(DWC3_GCTL) & 0x0007FFFFu) | 0x00100000u);
 
-    hw.wr(DWC3_DCTL, (hw.rd(DWC3_DCTL) & ~(0x1F000000u | DWC3_DCTL_RUN_STOP)) | 0x10F00000u);
-    hw.wr(DWC3_GSBUSCFG0, hw.rd(DWC3_GSBUSCFG0) | 0x0Eu);
-    hw.wr(DWC3_GSBUSCFG1, (hw.rd(DWC3_GSBUSCFG1) & ~0xF00u) | 0xE00u);
-    hw.wr(DWC3_GUCTL1, hw.rd(DWC3_GUCTL1) | 0x04630000u);
-    hw.wr(DWC3_GUCTL,
-          ((hw.rd(DWC3_GUCTL) | (1u << 24) | (1u << 31)) & 0xFF1FFFFFu) | 0x00600000u);
-
-    // Clear SUSPHY (bit 6) and ENBLSLPM (bit 8) ONLY; preserve hardware PHYIF/USBTRDTIM straps (0x3aa0..0x3ad4)
-    hw.wr(DWC3_GUSB2PHYCFG(0),
-          hw.rd(DWC3_GUSB2PHYCFG(0)) & ~(DWC3_GUSB2PHYCFG_SUSPHY | DWC3_GUSB2PHYCFG_ENBLSLPM));
-    // Clear bit 18, SUSPHY (bit 17), and ELASTIC_BUFFER_MODE (bit 0); set 0x08000400 (0x9200 + 0x3af0)
-    hw.wr(DWC3_GUSB3PIPECTL(0),
-          (hw.rd(DWC3_GUSB3PIPECTL(0)) & ~((1u << 18) | DWC3_GUSB3PIPECTL_SUSPHY | 1u)) | 0x08000400u);
-
-    // Force Device mode (PRTCAPDIR=2), clear U2RSTECN (bit 16), PWRDNSCALE=2 (bit 20), DSBLCLKGTNG (bit 0) (0x3cf0..0x3d38)
-    {
-        uint32_t gctl = hw.rd(DWC3_GCTL) & 0x0006CFFFu;
-        gctl |= (2u << 19) | DWC3_GCTL_PRTCAPDIR(DWC3_GCTL_PRTCAP_DEVICE) | DWC3_GCTL_DSBLCLKGTNG;
-        hw.wr(DWC3_GCTL, gctl);
-    }
-
+    // Exact UsbfnDwc3Dxe DCFG + DEVTEN + DEPSTARTCFG + Event Buffer order (0x3d44..0x40e0)
     hw.wr(DWC3_DCFG,
           (hw.rd(DWC3_DCFG) & ~(DWC3_DCFG_SPEED_MASK | DWC3_DCFG_DEVADDR_MASK)) |
           (1u << 22) | DWC3_DCFG_HIGHSPEED);
+    hw.wr(DWC3_DEVTEN, 0x07u);       // DISCONNEVTEN | USBRSTEN | CONNECTDONEEN
+
+    // UsbfnDwc3Dxe 0x3dfc..0x3e58 issues DEPSTARTCFG(0) before programming GEVNTADR/SIZ/COUNT
+    (void)epCmd(hw, 0, DWC3_DEPCMD_DEPSTARTCFG, 0, 0, 0);
 
     const uint64_t evtPa = hw.dmaPhys + DMA_EVT_OFF;
     hw.wr(DWC3_GEVNTADRLO(0), static_cast<uint32_t>(evtPa));
@@ -864,11 +1027,10 @@ static bool bringUpController(TerminalSession &s) {
     hw.wr(DWC3_GEVNTSIZ(0), 4096u);  // bit 31 clear: event generation unmasked
     hw.wr(DWC3_GEVNTCOUNT(0), 0u);
     hw.evtOff = 0u;
-    hw.wr(DWC3_DEVTEN, 0x07u);       // DISCONNEVTEN | USBRSTEN | CONNECTDONEEN
 
     programEp0(hw);
 
-    // Hold SE0 disconnect cleanly for 30ms before asserting D+ pull-up via RUN_STOP
+    // Hold SE0 disconnect cleanly for 30ms before asserting D+ pull-up via RUN_STOP (0x6480..0x64ac)
     IOSleep(30);
     hw.wr(DWC3_DCTL, hw.rd(DWC3_DCTL) | DWC3_DCTL_RUN_STOP);
     {
@@ -920,32 +1082,50 @@ static void usbDebugThread(void *arg, int waitResult) {
     if (!txScratch) return;
 
     uint64_t bootTick = nowMs();
-    uint64_t extTick  = 0;
+    uint64_t hudTick  = 0;
     unsigned replugs  = 0;
 
     for (;;) {
         pollUsbEvents(*s);
 
         const uint64_t now = nowMs();
-        if (&boot_progress_ext && now >= extTick) {
-            extTick = now + 2000ULL;
-            snprintf(boot_progress_ext[1], sizeof(boot_progress_ext[1]),
-                     "usb e=%u r=%u c=%u d=%x p=%x",
+        if (now >= hudTick) {
+            hudTick = now + 250ULL;
+            const uint32_t dsts = s->hw.rd(DWC3_DSTS);
+            const uint32_t dctl = s->hw.rd(DWC3_DCTL);
+            const uint32_t gctl = s->hw.rd(DWC3_GCTL);
+            const uint32_t qcfg = s->hw.rd(QSCRATCH_GENERAL_CFG);
+            const uint32_t qhs  = s->hw.rd(QSCRATCH_HS_PHY_CTRL);
+            const uint32_t pclk = s->hw.grd(GCC_USB3_PRIM_PHY_PIPE_CLK);
+            const uint32_t gcnt = s->hw.rd(DWC3_GEVNTCOUNT(0));
+            snprintf(gUsbHudLine0, sizeof(gUsbHudLine0),
+                     "USB: ev=%u rst=%u cfg=%u ep0=%d cmd=%d phy=%u smmu=%u(smr=%08x/%02x) rplg=%u",
                      s->hw.usbEvents, s->hw.usbResets, s->hw.configured,
-                     s->hw.rd(DWC3_DSTS), s->hw.prd(FEMTO_CFG0));
+                     s->hw.ep0Stage, s->hw.lastCmdSt, s->hw.phyInitMode,
+                     s->hw.smmuBank, s->hw.smmuOrigSmr, s->hw.smmuOrigS2cr & 0xFFu, replugs);
+            snprintf(gUsbHudLine1, sizeof(gUsbHudLine1),
+                     "REG: dsts=%08x dctl=%08x gctl=%08x qcfg=%08x qhs=%08x pclk=%08x gcnt=%u",
+                     dsts, dctl, gctl, qcfg, qhs, pclk, gcnt);
+            renderHudOverlay();
+            if (&boot_progress_ext) {
+                snprintf(boot_progress_ext[1], sizeof(boot_progress_ext[1]),
+                         "usb e=%u r=%u c=%u d=%x q=%x",
+                         s->hw.usbEvents, s->hw.usbResets, s->hw.configured, dsts, qcfg);
+            }
         }
         if (s->hw.ep3Busy && now > s->hw.ep3ArmTick + 2000ULL) {
             endDepTransfer(s->hw, 3, s->hw.ep3RscIdx, s->hw.ep3Busy);
         }
 
-        // Re-announce D+ once via DCTL.RUN_STOP if cable was already attached and host missed initial pull-up
-        if (replugs < 1 && s->hw.usbEvents == 0 && now > bootTick + 4000ULL) {
+        // Fallback Stage 1 at t+4s: if no events arrived on UEFI-preserved PHY state,
+        // run full Femto v2 HS PHY re-init + glitch-free QSCRATCH UTMI clock mux + DwcInitialize!
+        if (replugs == 0 && s->hw.usbEvents == 0 && now > bootTick + 4000ULL) {
             ++replugs;
+            s->hw.phyInitMode = 1u;
             s->hw.wr(DWC3_DCTL, s->hw.rd(DWC3_DCTL) & ~DWC3_DCTL_RUN_STOP);
-            IOSleep(80);
-            programEp0(s->hw);
-            s->hw.wr(DWC3_DCTL, s->hw.rd(DWC3_DCTL) | DWC3_DCTL_RUN_STOP);
-            logStage("usb: RUN_STOP replug toggle issued");
+            IOSleep(50);
+            (void)bringUpController(*s);
+            logStage("usb: fallback Femto v2 HS PHY + UTMI mux replug issued");
         }
 
         if (s->hw.configured && s->hw.hostReady) {
@@ -996,6 +1176,10 @@ static void usbDebugThread(void *arg, int waitResult) {
 }
 
 } // namespace
+
+extern "C" void usb_debug_draw_hud(void) {
+    renderHudOverlay();
+}
 
 extern "C" void native_usb_debug_probe(void) {
     static int started = 0;
