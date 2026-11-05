@@ -341,6 +341,7 @@ public:
         if(ordinal>1 || !bootMapping){native_legacy_pm_observed(3,kIOReturnUnsupported,ordinal);return kIOReturnUnsupported;}
         native_legacy_pm_observed(3,kIOReturnSuccess,ordinal);
         IOReturn status=IOMobileFramebufferLegacy::setPowerState(ordinal,device);
+        if(ordinal==1 && primary && bootMapping){announcePoweredByFirmware();armVsync();}
         native_legacy_pm_observed(4,status,ordinal);return status;
     }
     // The explicit offline system-client experiment publishes only the real

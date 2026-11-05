@@ -183,6 +183,7 @@ struct Session {
     uint32_t polls = 0, readyFrames = 0, validFrames = 0, badCsum = 0, i2cErrors = 0, irqEdges = 0;
     int lastX = -1, lastY = -1, lastContacts = 0;
     uint8_t lastRaw[16] = {};
+    int slotRaw[10] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
     unsigned flipX = 0, flipY = 0, swapXY = 0;
 };
 
@@ -717,6 +718,7 @@ void touchThread(void *, wait_result_t) {
     s->smmuBank = -1;
     s->lastX = -1;
     s->lastY = -1;
+    for (unsigned i = 0; i < 10u; ++i) s->slotRaw[i] = -1;
     s->pidStr[0] = '-'; s->pidStr[1] = 0;
 
     PE_parse_boot_argn("j716f-touch-flipx",  &s->flipX,  sizeof s->flipX);
@@ -796,16 +798,28 @@ void touchThread(void *, wait_result_t) {
         TouchPoint pts[10];
         unsigned active = 0;
         if (!stylus) {
+            uint8_t rawIds[10];
+            int xs[10], ys[10], mappedSlots[10];
             for (unsigned i = 0; i < touchNum && active < 10u; ++i) {
                 const uint8_t *f = &buf[2u + 8u * i];
-                const unsigned tid = f[0];
                 const uint16_t rx  = static_cast<uint16_t>(f[1] | (static_cast<uint16_t>(f[2]) << 8));
                 const uint16_t ry  = static_cast<uint16_t>(f[3] | (static_cast<uint16_t>(f[4]) << 8));
                 const uint16_t rw  = static_cast<uint16_t>(f[5] | (static_cast<uint16_t>(f[6]) << 8));
-                if (tid >= 10u || rw == 0u) continue; // rw == 0 indicates lifted slot in GT7386
-                pts[active++] = { static_cast<int>(tid), static_cast<int>(rx), static_cast<int>(ry) };
+                if (rw == 0u) continue; // rw == 0 indicates lifted slot in GT7386; f[0] is an 8-bit rolling tracking ID (0..255)
+                rawIds[active] = f[0];
+                xs[active] = static_cast<int>(rx);
+                ys[active] = static_cast<int>(ry);
+                ++active;
             }
+            tb_update_slots(s->slotRaw, active, rawIds, mappedSlots);
+            unsigned validActive = 0;
+            for (unsigned i = 0; i < active; ++i) {
+                if (mappedSlots[i] < 0) continue;
+                pts[validActive++] = { mappedSlots[i], xs[i], ys[i] };
+            }
+            active = validActive;
         } else if (touchNum >= 1u) {
+            for (unsigned i = 0; i < 10u; ++i) s->slotRaw[i] = -1;
             const uint8_t *p = &buf[touchNum * 8u - 6u];
             const uint16_t rx = static_cast<uint16_t>(p[1] | (static_cast<uint16_t>(p[2]) << 8));
             const uint16_t ry = static_cast<uint16_t>(p[3] | (static_cast<uint16_t>(p[4]) << 8));

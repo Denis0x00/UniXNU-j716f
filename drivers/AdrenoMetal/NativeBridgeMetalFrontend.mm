@@ -300,6 +300,7 @@ static void sampleWriteProfile(uint32_t &consumed,int &fd,const char *const *pat
  if(write(fd,out.data(),out.size())<0)return;
 }
 static void traceStartWriter() {
+ if(!getenv("NMB_GPU_TRACE"))return;
  bool expected=false;
  if(!gTraceStarted.compare_exchange_strong(expected,true))return;
  std::thread([]{
@@ -851,9 +852,20 @@ static NBBuffer *surfaceBuffer(IOSurfaceRef surface,void *base,size_t bytes) {
  }
  return buffer;
 }
+static bool singleSample() {
+ static const bool on=[]{const char *v=getenv("NATIVE_METAL_SINGLE_SAMPLE");return !v || strcmp(v,"0")!=0;}();
+ return on;
+}
 static bool textureDescriptor(MTLTextureDescriptor *d,NmbTextureDescriptor *out) {
  if(!d)return false;
  *out={(uint64_t)d.textureType,(uint64_t)d.pixelFormat,d.width,d.height,d.depth,d.mipmapLevelCount,d.sampleCount,d.arrayLength,(uint64_t)d.usage,(uint64_t)d.resourceOptions};
+ if(singleSample() && out->samples>1) {
+  out->samples=1;
+  if(out->type==MTLTextureType2DMultisample)out->type=MTLTextureType2D;
+  else if(out->type==MTLTextureType2DMultisampleArray)out->type=MTLTextureType2DArray;
+  if(((out->options&MTLResourceStorageModeMask)>>MTLResourceStorageModeShift)==MTLStorageModeMemoryless)
+   out->options=(out->options&~MTLResourceStorageModeMask)|MTLResourceStorageModePrivate;
+ }
  return true;
 }
 @implementation NBTexture
@@ -1205,6 +1217,7 @@ static void notified(void *context,uint64_t value) {
  uint64_t createdUs;
  uint32_t createCpu,createTid,commitCpu,commitTid;
  BOOL earlyEligible;   // made by the render server's thread: its completed handlers may run at submission (see fireEarly)
+ BOOL fullScreenSurface;
 }
 @property(nonatomic) NmbCommandBuffer *handle;
 @property(nonatomic,strong) NBQueue *queue;
@@ -1222,7 +1235,14 @@ static void notified(void *context,uint64_t value) {
 @property(nonatomic) BOOL schedulingDelivered;
 - (void)refuse:(NSString *)what;
 @end
-@interface NBEncoder : NBObject
+struct SingleSampleCopy {
+ NmbTexture *source,*destination;
+ uint64_t sourceSlice,sourceLevel,destinationSlice,destinationLevel,width,height;
+};
+@interface NBEncoder : NBObject {
+@public
+ std::vector<SingleSampleCopy> resolveCopies;
+}
 @property(nonatomic) NmbEncoder *handle;
 @property(nonatomic,strong) NBCommandBuffer *commandBuffer;
 @end
@@ -1250,8 +1270,18 @@ static void waitForResource(id resource) {
  NmbEncoder *handle=_handle;_handle=nullptr;
  if(!handle){[_commandBuffer refuse:@"endEncoding twice"];return;}
  const uint64_t began=nowUs();
- [self check:nmb_encoder_end(handle) what:"endEncoding"];
+ const bool ended=[self check:nmb_encoder_end(handle) what:"endEncoding"];
  gTimePassClose.add(began);
+ if(ended && !resolveCopies.empty() && !_commandBuffer.committed) {
+  NmbEncoder *blit=nmb_blit_encoder_new(_commandBuffer.handle);
+  if(!blit){[_commandBuffer refuse:[NSString stringWithFormat:@"resolve blit: %@",lastError()]];return;}
+  const uint64_t zero[3]={0,0,0};
+  for(const SingleSampleCopy &c:resolveCopies) {
+   const uint64_t size[3]={c.width,c.height,1};
+   if(![self check:nmb_blit_copy_texture(blit,c.source,c.sourceSlice,c.sourceLevel,zero,size,c.destination,c.destinationSlice,c.destinationLevel,zero) what:"resolve copy"])break;
+  }
+  [self check:nmb_encoder_end(blit) what:"resolve endEncoding"];
+ }
 }
 - (void)insertDebugSignpost:(NSString *)s {(void)s;}
 - (void)pushDebugGroup:(NSString *)s {(void)s;}
@@ -1607,6 +1637,11 @@ static void scheduled(void *context);
 // instead; the swap offered by them is held back by the scanout client until the GPU finished everything committed before the offer
 // (NBWaitInFlight), and waitUntilCompleted, the resource waits and the real completion work (surface flushes, release) are unchanged.
 static bool earlyOn() {return false;}   // reverted: with the handlers early the blur passes read frames that were not finished (i343, i344)
+static bool freezeWallpaperOn() {
+ static const bool on=[]{const char *v=getenv("NATIVE_METAL_FREEZE_WALLPAPER");return v && !strcmp(v,"1") && !strcmp(getprogname(),"CollectionsPoster");}();
+ return on;
+}
+static std::atomic<bool> gWallpaperFrozen{false};
 static bool onRenderServerThread() {
  char name[32]={};pthread_getname_np(pthread_self(),name,sizeof name);
  return !strncmp(name,"com.apple.coreanimation",23);
@@ -1670,6 +1705,7 @@ extern "C" void NBWaitInFlight(uint64_t beforeUs);
 }
 - (id<MTLRenderCommandEncoder>)renderCommandEncoderWithDescriptor:(MTLRenderPassDescriptor *)d {
  NmbRenderPassDescriptor pass={};
+ std::vector<SingleSampleCopy> resolveCopies;
  {
   id<MTLTexture> first=d.colorAttachments[0].texture;
   if(first) {
@@ -1687,8 +1723,26 @@ extern "C" void NBWaitInFlight(uint64_t beforeUs);
   if(!a.texture)return true;
   if(![(id)a.texture isKindOfClass:[NBTexture class]])return false;
   NBTexture *texture=(NBTexture *)a.texture;if(texture.surface)[_surfaces addObject:texture];
+  if(texture.surface && (uint64_t)texture.width*texture.height>=2000000)fullScreenSurface=YES;
   [_resourceOwners addObject:texture];
   out.texture=texture.handle;out.level=a.level;out.slice=a.slice;out.depth_plane=a.depthPlane;out.load=a.loadAction;out.store=a.storeAction;
+  if(singleSample() && a.resolveTexture) {
+   if(![(id)a.resolveTexture isKindOfClass:[NBTexture class]])return false;
+   NBTexture *resolve=(NBTexture *)a.resolveTexture;if(resolve.surface)[_surfaces addObject:resolve];
+   if(resolve.surface && (uint64_t)resolve.width*resolve.height>=2000000)fullScreenSurface=YES;
+   [_resourceOwners addObject:resolve];
+   const bool resolves=a.storeAction==MTLStoreActionMultisampleResolve || a.storeAction==MTLStoreActionStoreAndMultisampleResolve;
+   const bool storesAttachment=a.storeAction==MTLStoreActionStore || a.storeAction==MTLStoreActionStoreAndMultisampleResolve;
+   if(resolves && !storesAttachment && a.loadAction!=MTLLoadActionLoad) {
+    out.texture=resolve.handle;out.level=a.resolveLevel;out.slice=a.resolveSlice;out.depth_plane=a.resolveDepthPlane;out.store=MTLStoreActionStore;
+   } else if(resolves) {
+    out.store=MTLStoreActionStore;
+    const uint64_t w=MAX(texture.width>>a.level,(NSUInteger)1),h=MAX(texture.height>>a.level,(NSUInteger)1);
+    resolveCopies.push_back({texture.handle,resolve.handle,a.slice,a.level,a.resolveSlice,a.resolveLevel,w,h});
+   }
+  } else if(out.store==MTLStoreActionMultisampleResolve || out.store==MTLStoreActionStoreAndMultisampleResolve) {
+   out.store=MTLStoreActionStore;
+  }
   return true;
  };
  for(unsigned i=0;i<8;i++) {
@@ -1698,7 +1752,8 @@ extern "C" void NBWaitInFlight(uint64_t beforeUs);
  }
  if(!attachment(d.depthAttachment,pass.depth) || !attachment(d.stencilAttachment,pass.stencil)){[self refuse:@"foreign depth/stencil attachment"];return nil;}
  pass.depth.clear[0]=d.depthAttachment.clearDepth;pass.stencil.clear[0]=d.stencilAttachment.clearStencil;
- pass.width=d.renderTargetWidth;pass.height=d.renderTargetHeight;pass.array_length=d.renderTargetArrayLength;pass.samples=d.defaultRasterSampleCount;
+ pass.width=d.renderTargetWidth;pass.height=d.renderTargetHeight;pass.array_length=d.renderTargetArrayLength;
+ pass.samples=singleSample()?(d.defaultRasterSampleCount?1:0):d.defaultRasterSampleCount;
  if(d.visibilityResultBuffer) {
   if(![(id)d.visibilityResultBuffer isKindOfClass:[NBBuffer class]]){[self refuse:@"foreign visibility result buffer"];return nil;}
   [_resourceOwners addObject:d.visibilityResultBuffer];
@@ -1707,7 +1762,9 @@ extern "C" void NBWaitInFlight(uint64_t beforeUs);
  const uint64_t began=nowUs();
  NmbEncoder *encoder=self.committed?nullptr:nmb_render_encoder_new(_handle,&pass);
  gTimePassOpen.add(began);
- return [self encoder:[NBRenderEncoder new] handle:encoder what:@"renderCommandEncoder"];
+ NBRenderEncoder *renderEncoder=[NBRenderEncoder new];
+ renderEncoder->resolveCopies=std::move(resolveCopies);
+ return [self encoder:renderEncoder handle:encoder what:@"renderCommandEncoder"];
 }
 - (void)addScheduledHandler:(MTLCommandBufferHandler)block {if(block)@synchronized(self){[_scheduledHandlers addObject:[block copy]];}}
 - (void)addCompletedHandler:(MTLCommandBufferHandler)block {if(block)@synchronized(self){[_completedHandlers addObject:[block copy]];}}
@@ -1747,6 +1804,8 @@ extern "C" void NBWaitInFlight(uint64_t beforeUs);
 // After completion (or a refusal): invalidate the CPU's view of imported surfaces, then completed handlers, once.
 - (void)finish {
  flushSurfaces(_surfaces);
+ if(!self.failedLocally && fullScreenSurface && freezeWallpaperOn())
+  gWallpaperFrozen.store(true,std::memory_order_relaxed);
  // Actual GPU completion (or a local refusal that never submitted) is the
  // release point. A retained completed command must not pin every old frame.
  [_surfaces removeAllObjects];[_resourceOwners removeAllObjects];
@@ -1781,6 +1840,10 @@ extern "C" void NBWaitInFlight(uint64_t beforeUs);
  dispatch_group_enter(_handlers);
  dispatch_group_enter(_schedulingHandlers);
  @synchronized(gInFlight){[gInFlight addObject:self];}
+ if(!self.encodeFailure && freezeWallpaperOn() && gWallpaperFrozen.load(std::memory_order_relaxed)) {
+  dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT,0),^{[self didSchedule];[self finish];});
+  return;
+ }
  if(!self.encodeFailure) {
   // The commit as a whole: the surfaces' flush, then the submission itself (the CPU's cost per commit, which the A1 row reports).
   const uint64_t began=nowUs();
@@ -2028,7 +2091,7 @@ static bool renderDescriptor(MTLRenderPipelineDescriptor *d,NmbRenderPipelineDes
   p->colors[i]={(uint64_t)a.pixelFormat,(uint64_t)a.writeMask,(uint64_t)a.blendingEnabled,(uint64_t)a.sourceRGBBlendFactor,(uint64_t)a.destinationRGBBlendFactor,
       (uint64_t)a.rgbBlendOperation,(uint64_t)a.sourceAlphaBlendFactor,(uint64_t)a.destinationAlphaBlendFactor,(uint64_t)a.alphaBlendOperation};
  }
- p->depth_format=d.depthAttachmentPixelFormat;p->stencil_format=d.stencilAttachmentPixelFormat;p->samples=d.rasterSampleCount;
+ p->depth_format=d.depthAttachmentPixelFormat;p->stencil_format=d.stencilAttachmentPixelFormat;p->samples=singleSample()?1:d.rasterSampleCount;
  p->topology=d.inputPrimitiveTopology;p->rasterization=d.rasterizationEnabled;
  if(MTLVertexDescriptor *v=d.vertexDescriptor) {
   for(unsigned i=0;i<31;i++) {
@@ -2468,8 +2531,11 @@ static uint64_t askAnswer(SEL cmd,NSUInteger arg) {
  static const SEL family=sel_registerName("supportsFamily:");
  static const bool withholdApple1=[]{const char *w=getenv("NMB_WITHHOLD");return w && strstr(w,"apple1-family");}();
  static const bool withholdApple=[]{const char *w=getenv("NMB_WITHHOLD");return w && strstr(w,"apple-families");}();
- static const bool apple2Client=[]{const char *list=getenv("NMB_APPLE2_CLIENTS");if(!list)list="Preferences,iconservicesagent";
-  const char *name=getprogname();if(!name)return false;const size_t len=strlen(name);
+ static const bool apple2Client=[]{
+  const char *name=getprogname();if(!name)return false;
+  const char *list=getenv("NMB_APPLE2_CLIENTS");
+  if(!list)return strcmp(name,"backboardd")!=0;
+  const size_t len=strlen(name);
   for(const char *at=list;*at;) {const char *end=strchr(at,',');const size_t part=end?(size_t)(end-at):strlen(at);
    if(part==len && !strncmp(at,name,len))return true;if(!end)break;at=end+1;}
   return false;}();
@@ -2513,7 +2579,7 @@ extern "C" id native_bridge_metal_open(const char *loader,const char *cache,uint
  }
  gDevice=nmb_device_open(loader,cache);
  if(!gDevice){NBLOG(@"native-metal: device refused: %s",nmb_last_error());return nil;}
- if(cache){gJournalPath=std::string(cache)+"/pipelines.log";gJournalBegan=nowUs();gProfilePath=std::string(cache)+"/profile.txt";}
+ if(cache && getenv("NMB_GPU_TRACE")){gJournalPath=std::string(cache)+"/pipelines.log";gJournalBegan=nowUs();gProfilePath=std::string(cache)+"/profile.txt";}
  char name[128]={};nmb_device_name(gDevice,name,sizeof name);gName=[NSString stringWithUTF8String:name];gRegistryID=registryID;
  // The target families supportsFamily: answers true, with the rows of Apple's tables the device does not meet in them (nmb_device_family_waivers).
  {char waived[4096]={};nmb_device_family_waivers(gDevice,waived,sizeof waived);

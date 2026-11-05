@@ -39,6 +39,35 @@ int main(void) {
     // DFS level with src=0 (19.2 MHz), mode=0, hid=1 -> 19.2 MHz
     assert(tb_dfs_level_hz((0u << 8) | 1u, 0, 0) == 19200000ULL);
 
+    // Goodix GT7386 8-bit rolling tracking ID (0..255) -> stable 0..9 contact slot mapping across >300 strokes
+    int slot_raw[10];
+    for (unsigned i = 0; i < 10u; ++i) slot_raw[i] = -1;
+    for (unsigned stroke = 0; stroke < 300u; ++stroke) {
+        uint8_t raw_id = (uint8_t)(stroke & 0xffu);
+        int out_slot = -1;
+        tb_update_slots(slot_raw, 1u, &raw_id, &out_slot);
+        assert(out_slot == 0);
+        // Hold for a second frame: same slot
+        int held_slot = -1;
+        tb_update_slots(slot_raw, 1u, &raw_id, &held_slot);
+        assert(held_slot == 0);
+        // Lift (count = 0): slot freed
+        tb_update_slots(slot_raw, 0u, &raw_id, &out_slot);
+        assert(slot_raw[0] == -1);
+    }
+
+    // Simultaneous lift of finger A (raw 0x1a in slot 0) + press of finger B (raw 0x1b) in the same frame must not reuse slot 0
+    {
+        uint8_t id_a = 0x1au, id_b = 0x1bu;
+        int slot_a = -1, slot_b = -1;
+        tb_update_slots(slot_raw, 1u, &id_a, &slot_a);
+        assert(slot_a == 0);
+        tb_update_slots(slot_raw, 1u, &id_b, &slot_b);
+        assert(slot_b == 1);
+        assert(slot_raw[0] == -1 && slot_raw[1] == 0x1b);
+        tb_update_slots(slot_raw, 0u, &id_b, &slot_b);
+    }
+
     puts("j716f TouchBoard tests passed");
     return 0;
 }

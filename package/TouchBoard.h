@@ -93,4 +93,50 @@ static inline uint64_t tb_dfs_level_hz(uint32_t cfg, uint32_t mreg, uint32_t nre
     return tb_calc_rate(tb_src_hz(src), m, n, mode, hid);
 }
 
+// Goodix GT7386 reports an 8-bit rolling tracking ID in record byte 0 (0..255, incrementing on each new press)
+// rather than a fixed 0..9 slot index. Map active raw tracking IDs to stable 0..9 contact slots across frames.
+static inline void tb_update_slots(int slot_raw[10], unsigned count, const uint8_t *raw_ids, int *out_slots) {
+    uint8_t keep[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    uint8_t matched[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    if (count > 10u) count = 10u;
+    for (unsigned i = 0; i < count; ++i) {
+        out_slots[i] = -1;
+        for (unsigned s = 0; s < 10u; ++s) {
+            if (!keep[s] && slot_raw[s] == (int)raw_ids[i]) {
+                out_slots[i] = (int)s;
+                keep[s] = 1u;
+                matched[i] = 1u;
+                break;
+            }
+        }
+    }
+    // Assign newly pressed contacts to slots that were already free (-1) before releasing lifted slots,
+    // so a simultaneous lift + press in the same frame never reuses the lifted finger's contact ID.
+    for (unsigned i = 0; i < count; ++i) {
+        if (matched[i]) continue;
+        for (unsigned s = 0; s < 10u; ++s) {
+            if (slot_raw[s] < 0) {
+                slot_raw[s] = (int)raw_ids[i];
+                keep[s] = 1u;
+                out_slots[i] = (int)s;
+                matched[i] = 1u;
+                break;
+            }
+        }
+    }
+    for (unsigned s = 0; s < 10u; ++s) {
+        if (!keep[s]) slot_raw[s] = -1;
+    }
+    for (unsigned i = 0; i < count; ++i) {
+        if (matched[i]) continue;
+        for (unsigned s = 0; s < 10u; ++s) {
+            if (slot_raw[s] < 0) {
+                slot_raw[s] = (int)raw_ids[i];
+                out_slots[i] = (int)s;
+                break;
+            }
+        }
+    }
+}
+
 #endif

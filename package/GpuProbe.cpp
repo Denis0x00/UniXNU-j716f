@@ -488,7 +488,7 @@ volatile bool gIrqAttached;
 volatile uint32_t gIrqCount, gIrqSeen, gIrqLast, gIrqRepeat, gIrqMasked;
 int naIdle(void *) {
     if (gIrqAttached && ml_get_interrupts_enabled() && !ml_at_interrupt_context() && get_preemption_level() == 0) {
-        assert_wait_timeout(event_t(&gIrqCount), THREAD_UNINT, 100, NSEC_PER_USEC);
+        assert_wait_timeout(event_t(&gIrqCount), THREAD_UNINT, 2000, NSEC_PER_USEC);
         thread_block(THREAD_CONTINUE_NULL);
         native_gpu_idle_sleeps = native_gpu_idle_sleeps + 1;
     } else {

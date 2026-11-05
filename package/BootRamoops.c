@@ -216,14 +216,21 @@ static u32 cpu_mhz_estimate(void) {
 // multiple of the 19.2 MHz XO; a repeated frequency ends the table), 0x320 the requested performance level (a table row).
 // pipa-cpufreq=1 asks each domain for its top row; the hardware's limits management still caps it. Logged either way.
 #define CPUFREQ_DOMAINS 3
+#define CPUFREQ_EN      0x000U
+#define CPUFREQ_STATE   0x020U
+#define CPUFREQ_L3_VOTE 0x090U
+#define CPUFREQ_DCVS    0x0b0U
 #define CPUFREQ_LUT     0x100U
 #define CPUFREQ_PERF    0x320U
 #define CPUFREQ_ROWS    40U
+static u32 want_cpufreq;
 static u32 cpufreq_mhz(u32 entry) {return ((entry >> 30) & 3) ? (entry & 0xff) * 192 / 10 : 300;}
 static void cpufreq(int request) {
   static const u64 phys[CPUFREQ_DOMAINS] = {0x18591000UL, 0x18592000UL, 0x18593000UL};
+  static const unsigned domain_cpus[CPUFREQ_DOMAINS] = {4U, 3U, 1U};
   static volatile u32 *domain[CPUFREQ_DOMAINS];
-  char text[256];
+  static volatile u32 *l3;
+  char text[320];
   unsigned at = 0;
   for (unsigned d = 0; d < CPUFREQ_DOMAINS && at + 64 < sizeof text; ++d) {
     if (!domain[d]) domain[d] = (volatile u32 *)ml_io_map(phys[d], 0x1000);
@@ -231,16 +238,37 @@ static void cpufreq(int request) {
     if (!r) {at += (unsigned)snprintf(text + at, sizeof text - at, "d%u unmapped | ", d); continue;}
     u32 rows = 0, top = 0, top_mhz = 0, previous = 0;
     for (; rows < CPUFREQ_ROWS; ++rows) {
-      u32 mhz = cpufreq_mhz(r[(CPUFREQ_LUT + 4 * rows) / 4]);
+      u32 row_val = r[(CPUFREQ_LUT + 4 * rows) / 4];
+      u32 mhz = cpufreq_mhz(row_val);
       if (rows && mhz == previous) break;
-      if (mhz > top_mhz) {top_mhz = mhz; top = rows;}
+      if (mhz >= top_mhz) {top_mhz = mhz; top = rows;}
       previous = mhz;
     }
-    if (request && rows) {r[CPUFREQ_PERF / 4] = top; __asm__ volatile("dsb sy" ::: "memory");}
+    if (request && rows) {
+      r[CPUFREQ_PERF / 4] = top;
+      if (r[CPUFREQ_DCVS / 4] & 1U) {
+        for (unsigned c = 1; c < domain_cpus[d]; ++c) r[(CPUFREQ_PERF + 4 * c) / 4] = top;
+      }
+      __asm__ volatile("dsb sy" ::: "memory");
+    }
     u32 perf = r[CPUFREQ_PERF / 4];
-    at += (unsigned)snprintf(text + at, sizeof text - at, "d%u perf %u (%u MHz) of %u rows, top %u (%u MHz)%s | ", d, perf,
+    u32 state_mhz = (r[CPUFREQ_STATE / 4] & 0xffU) * 192U / 10U;
+    at += (unsigned)snprintf(text + at, sizeof text - at, "d%u e%u cur %uMHz perf %u (%uMHz)/%u top %u (%uMHz)%s | ",
+                             d, r[CPUFREQ_EN / 4] & 1U, state_mhz, perf,
                              perf < rows ? cpufreq_mhz(r[(CPUFREQ_LUT + 4 * perf) / 4]) : 0, rows, top, top_mhz,
-                             request ? " requested" : "");
+                             request ? " req" : "");
+  }
+  if (!l3) l3 = (volatile u32 *)ml_io_map(0x18590000UL, 0x1000);
+  if (l3 && at + 40 < sizeof text) {
+    u32 rows = 0, top = 0, top_mhz = 0, previous = 0;
+    for (; rows < CPUFREQ_ROWS; ++rows) {
+      u32 mhz = cpufreq_mhz(l3[(CPUFREQ_LUT + 4 * rows) / 4]);
+      if (rows && mhz == previous) break;
+      if (mhz >= top_mhz) {top_mhz = mhz; top = rows;}
+      previous = mhz;
+    }
+    if (request && rows) {l3[CPUFREQ_L3_VOTE / 4] = top; __asm__ volatile("dsb sy" ::: "memory");}
+    at += (unsigned)snprintf(text + at, sizeof text - at, "L3 e%u v%u (%uMHz)", l3[CPUFREQ_EN / 4] & 1U, l3[CPUFREQ_L3_VOTE / 4], top_mhz);
   }
   line("cpufreq: ", text);
 }
@@ -1473,9 +1501,14 @@ static void hud_update(u32 up_sec) {
 static void writer(void *argument, int result) {
   (void)argument; (void)result;
   const u64 start = ticks(), limit = ticks_per_second() * restart_after;
+  static int smp_cpufreq_done;
   for (u32 pass = 1;; ++pass) {
     messages();
     panic_text(0);
+    if (!smp_cpufreq_done && &armcpu_smp_running && armcpu_smp_running >= 7) {
+      smp_cpufreq_done = 1;
+      cpufreq(want_cpufreq == 1);
+    }
     if (pass % 100 == 0) {display_status(); cpu_status(); touch_status(); gpu_stack_status(); framebuffer_status(); process_status(0); ddr_status(); ufs_status();}
     if (pass == 2000) process_status(1);   // the UI's stacks 200 s after the zone was mapped
     // Two corner crops every 50 s: a round can end on a panic before the 200 s mark (2026-10-24's unaligned_store round did), and
@@ -1578,7 +1611,7 @@ void boot_progress_start(void) {
   watchdog_start();
   snprintf(text, sizeof text, "about %u MHz (a counted loop against the counter)", cpu_mhz_estimate());
   line("boot cpu: ", text);
-  u32 want_cpufreq = 0;
+  want_cpufreq = 0;
   PE_parse_boot_argn("pipa-cpufreq", &want_cpufreq, sizeof want_cpufreq);
   cpufreq(want_cpufreq == 1);
   if (want_cpufreq == 1) {

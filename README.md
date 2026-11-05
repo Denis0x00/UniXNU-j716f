@@ -22,10 +22,10 @@ Specification: [UniXNU Porting Guide](https://unixnu.com/zh/porting/)
 | Subsystem | Status | Notes |
 | --- | --- | --- |
 | Boot & XNU Kernel | Device-verified | UEFI (`uefi-j716f`) -> DarwinBoot -> XNU ARM64 VM + IOKit -> iPadOS 17.7.11 desktop |
-| CPU & SMP | Device-verified | All 8 Kryo 585 cores online (`sheng-smp=1`) + EPSS hardware `cpufreq` (`pipa-cpufreq=1`) |
-| GPU Acceleration | Device-verified | Native `Adreno650` KMD (`pipa-gpu=12`) + `NativeAdrenoMetal` / Turnip (`sysmem,nocb`, `sheng-tum=s`, 60 FPS) |
-| Display & Scanout | Device-verified | 2560x1600 BGRX8888 GOP framebuffer + GPU hardware scanout blitter (`sheng-fb-gpu=1`) |
-| Touch & Buttons | Device-verified | Goodix `GT7386` multi-touch (`j716f-touch=1`) + PM8150/PM8150B PON power & volume keys (`pipa-buttons=1`) |
+| CPU & SMP | Device-verified | All 8 Kryo 585 cores online (`sheng-smp=1`) + 3-cluster EPSS `cpufreq` (`1804 / 2419 / 3187 MHz` + L3 `1612 MHz`, `pipa-cpufreq=1`) |
+| GPU Acceleration | Device-verified | Native `Adreno650` KMD (`pipa-gpu=12`) + `NativeAdrenoMetal` / Turnip (`sysmem,nocb`, `sheng-tum=s`, `1x` single-sample, `54 us/draw`) |
+| Display & Scanout | Device-verified | 2560x1600 BGRX8888 GOP framebuffer + GPU hardware scanout blitter (`sheng-fb-gpu=1`) + lock/wake power re-arm |
+| Touch & Buttons | Device-verified | Goodix `GT7386` multi-touch (`j716f-touch=1`, rolling `0..255` tracking-ID slot mapper) + PM8150/PM8150B PON keys (`pipa-buttons=1`) |
 | Storage & Root | Device-verified | SM8250 native UFS (`ShengUfs`) mounting iPadOS 17.7.11 APFS container + persistent data ramdisk |
 | Battery Gauge | Device-verified | PM8150B FG / SMB5 SPMI battery gauge (`NativeBattery`, `IOPMPowerSource` SoC, voltage, current, charging state) |
 | USB Diagnostics | Device-verified | DWC3 USB0 (`0x0A600000`) CDC-ACM console (`VID_1209&PID_0001`), `GSC1` live screen capture, `reboot.fastboot` |

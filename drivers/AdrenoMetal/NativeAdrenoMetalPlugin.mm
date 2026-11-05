@@ -197,13 +197,20 @@ static id clientDevice(unsigned port) {
     }
     // IOSurfaces this GPU reads or writes must be plain rows, as in the render server.
     CFPreferencesSetAppValue(CFSTR("CAEnableIOSurfaceCompression"), kCFBooleanFalse, kCFPreferencesCurrentApplication);
-    char candidates[2][512] = {};
-    if (!confstr(_CS_DARWIN_USER_CACHE_DIR, candidates[0], sizeof candidates[0] - 16)) candidates[0][0] = 0;
-    if (!confstr(_CS_DARWIN_USER_TEMP_DIR, candidates[1], sizeof candidates[1] - 16)) candidates[1][0] = 0;
+    char candidates[5][512] = {};
+    if (const passwd *user = getpwuid(getuid()); user && user->pw_dir && user->pw_dir[0]) {
+        snprintf(candidates[0], sizeof candidates[0] - 16, "%s/Library/Caches/org.unixnu.metal", user->pw_dir);
+        mkdir(candidates[0], 0700);
+        strlcat(candidates[0], "/", sizeof candidates[0]);
+    }
+    if (!confstr(_CS_DARWIN_USER_CACHE_DIR, candidates[1], sizeof candidates[1] - 16)) candidates[1][0] = 0;
+    if (!confstr(_CS_DARWIN_USER_TEMP_DIR, candidates[2], sizeof candidates[2] - 16)) candidates[2][0] = 0;
+    strlcpy(candidates[3], "/tmp/", sizeof candidates[3]);
+    strlcpy(candidates[4], "/private/var/tmp/", sizeof candidates[4]);
     id device = nil;
     const char *lastError = "";
     unsigned usable = 0;
-    for (unsigned i = 0; i < 2 && !device; ++i) {
+    for (unsigned i = 0; i < 5 && !device; ++i) {
         if (!candidates[i][0]) continue;
         strlcat(candidates[i], "m2v", sizeof candidates[i]);
         mkdir(candidates[i], 0700);
@@ -279,6 +286,7 @@ static id deviceForPort(unsigned port) {
         // runtime keeps within a texture's rows (bridge patch 0016). A board's NativeTurnipDebug comes first and replaces this default.
         applyBoardTurnipDebug(port);
         setenv("TU_DEBUG", "nocb", 0);
+        setenv("NATIVE_METAL_FREEZE_WALLPAPER", "1", 0);
         if (strcmp(getprogname(), "backboardd") != 0) return device = clientDevice(port);
         // The discovery releases the accelerator port when it is done; the monitor and the scanout client keep using it.
         if (void *iokit = dlopen("/System/Library/Frameworks/IOKit.framework/IOKit", RTLD_NOW | RTLD_LOCAL)) {
@@ -434,7 +442,7 @@ static id deviceForPort(unsigned port) {
                     if (!end) break;
                     line = end + 1;
                 }
-                sleep(6);
+                sleep(20);
             }
             return nullptr;
         }, gpu);
@@ -459,17 +467,16 @@ static id deviceForPort(unsigned port) {
                 return nullptr;
             }, gpu);
         }
-        // Every Metal library of the OS through the runtime, 90 s after the render server opened the device (PrimeShaders.h); the boots that froze
-        // or crashed before three minutes never primed anything. Progress is kept in the Data cache directory, so later boots resume.
-        // The translator recurses deeply on large functions: give it the stack of a main thread.
-        pthread_attr_setstacksize(&attributes, 8u << 20);
-        pthread_t primer;
-        pthread_create(&primer, &attributes, [](void *) -> void * {
-            char list[1024];
-            prime::run((id<MTLDevice>)device, gCacheDirectory, 90,
-                       requestedPath("NativeAdrenoMetal.primelist", list, sizeof list) ? std::string(list) : std::string());
-            return nullptr;
-        }, nullptr);
+        if (getenv("NMB_PRIME_SHADERS")) {
+            pthread_attr_setstacksize(&attributes, 8u << 20);
+            pthread_t primer;
+            pthread_create(&primer, &attributes, [](void *) -> void * {
+                char list[1024];
+                prime::run((id<MTLDevice>)device, gCacheDirectory, 90,
+                           requestedPath("NativeAdrenoMetal.primelist", list, sizeof list) ? std::string(list) : std::string());
+                return nullptr;
+            }, nullptr);
+        }
         pthread_attr_destroy(&attributes);
         gpu->mark(0x6803);
         return device;
