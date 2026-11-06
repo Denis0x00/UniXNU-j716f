@@ -66,7 +66,24 @@ def stage_dtb(uefi_root: Path, device_root: Path) -> str | None:
     return None
 
 
+def patch_baseline_script() -> None:
+    baseline = Path('scripts/build-xnu-4k-baseline.sh')
+    if not baseline.is_file():
+        return
+    text = baseline.read_text()
+    patched = text.replace(
+        'if [ "$OWNER_ROOT_AUDIT" = 1 ] && [ "$OWNER_ROOT_PROBE" != 1 ] && [ "${XNU_SOURCE_STORAGE:-0}" != 1 ]; then',
+        'if [ "$OWNER_ROOT_AUDIT" = 1 ] && [ "$OWNER_ROOT_PROBE" != 1 ] && [ "${XNU_SOURCE_STORAGE:-0}" != 1 ] && [ "${XNU_NATIVE_UFS:-0}" != 1 ]; then',
+    ).replace(
+        '{ [ "${XNU_NATIVE_VIRTIO_BLOCK:-0}" != 1 ] && [ "${XNU_SOURCE_STORAGE:-0}" != 1 ]; }; }; then',
+        '{ [ "${XNU_NATIVE_VIRTIO_BLOCK:-0}" != 1 ] && [ "${XNU_SOURCE_STORAGE:-0}" != 1 ] && [ "${XNU_NATIVE_UFS:-0}" != 1 ]; }; }; then',
+    )
+    if patched != text:
+        baseline.write_text(patched)
+
+
 def main() -> int:
+    patch_baseline_script()
     uefi_root = resolve_uefi_root()
     device_root = resolve_device_root()
     dtb_sha256 = stage_dtb(uefi_root, device_root)
