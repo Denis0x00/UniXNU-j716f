@@ -135,12 +135,4 @@ if component == 'NativeUfs':
 archive = out / ('lib' + identifier + '.a')
 archive.unlink(missing_ok=True)
 subprocess.run(['xcrun', 'ar', 'rcs', archive, destination, *extra_objects], check=True)
-if identifier in ('J716FUfs', 'ShengUfs'):
-    import shutil
-    for alt in (ROOT / 'build/sheng-ufs/libShengUfs.a', ROOT / 'build/j716f-ufs/libJ716FUfs.a'):
-        if alt == archive:
-            continue
-        alt.parent.mkdir(parents=True, exist_ok=True)
-        alt.unlink(missing_ok=True)
-        shutil.copy2(archive, alt)
 print(f'{identifier}: -Werror build and {TRIPLE} object audit passed')

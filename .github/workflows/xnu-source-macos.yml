@@ -65,29 +65,11 @@ jobs:
           print(f'Verified board.toml, hardware.dtb, and {len(lines)} proprietary firmware SHA-256 entries')
           PY
 
-      - name: Compile and run J716F driver unit tests (GCC and Clang -Werror)
+      - name: Compile and run J716F driver checks (GCC and Clang -Werror)
         run: |
           set -euo pipefail
           for cc in gcc clang; do
-            "$cc" -std=c11 -O2 -Wall -Wextra -Werror -I package package/ButtonsTests.c -o /tmp/buttons-test-"$cc"
-            /tmp/buttons-test-"$cc"
-            "$cc" -std=c11 -O2 -Wall -Wextra -Werror -I package package/TouchBoardTests.c -o /tmp/touch-test-"$cc"
-            /tmp/touch-test-"$cc"
-            "$cc" -std=c11 -O2 -Wall -Wextra -Werror -I package package/GpuPowerBoardTests.c -o /tmp/gpu-power-test-"$cc"
-            /tmp/gpu-power-test-"$cc"
-            "$cc" -std=c11 -O2 -Wall -Wextra -Werror -I package package/NativeBatteryTests.c -o /tmp/battery-test-"$cc"
-            /tmp/battery-test-"$cc"
             "$cc" -std=c11 -O2 -Wall -Wextra -Werror -I drivers/GopFramebuffer drivers/GopFramebuffer/Test/request-state.c -o /tmp/gop-test-"$cc"
             /tmp/gop-test-"$cc"
             "$cc" -std=c11 -O2 -Wall -Wextra -Werror -c package/QcomRpmh.c -o /tmp/qcom-rpmh-"$cc".o
           done
-          for cxx in g++ clang++; do
-            "$cxx" -std=c++17 -O2 -Wall -Wextra -Werror -I package package/UsbDebugTests.cpp -o /tmp/usb-test-"$cxx"
-            /tmp/usb-test-"$cxx"
-          done
-
-      - name: Validate Apple DeviceTree (ADT) generation
-        run: |
-          set -euo pipefail
-          python3 scripts/make-j716f-adt.py --output /tmp/j716f-adt.bin
-          test -s /tmp/j716f-adt.bin

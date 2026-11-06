@@ -1,5 +1,5 @@
 # Standard J716F (SM8250) defconfig for iPadOS 17.7.11 (21H461)
-# Mainline configuration: ArmDTPlatform + ArmCpu + SoftwareAES + RamBlock + J716FUfs + Display + BootProgress + PMGR
+# Mainline configuration: ArmDTPlatform + ArmCpu + SoftwareAES + RamBlock + ShengUfs + Display + BootProgress + PMGR
 CONFIG_XNU_BUILD_ARCHIVES=y
 CONFIG_XNU_SOURCE_CORECRYPTO14=y
 CONFIG_XNU_SOURCE_PTHREAD=y

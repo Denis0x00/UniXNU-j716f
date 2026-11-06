@@ -230,7 +230,6 @@ text_fixups = [
   "dyld_shared_cache_arm64.11,34f3b84,979701944914d794,e0031faa1f2003d5",
 ]
 [payload.adt]
-tool = "scripts/make-j716f-adt.py"
 chip_id = "8011"
 unique_chip_id = "required"
 owned_memory_size = "0xE0000000"

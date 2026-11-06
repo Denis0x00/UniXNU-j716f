@@ -42,25 +42,24 @@ UniXNU-j716f/
 ├── configs/
 │   └── j716f_defconfig                  # Kernel build configuration
 ├── dts/
-│   ├── j716f.dts                        # Device Tree Source
-│   └── kernel.macho.adt                 # Qualified Apple-format Device Tree
+│   └── j716f.dts                        # Device Tree Source (Format 2)
 ├── drivers/
 │   ├── Adreno650/                       # SM8250 Adreno 650 kernel driver + staged AGXAccelerator
 │   ├── AdrenoMetal/                     # Metal-to-Turnip userspace bridge & plugin sources
+│   ├── ArmCpu/                          # ARM64 SMP & interrupt controller driver
 │   ├── GopFramebuffer/                  # Display framebuffer & GPU scanout hand-off driver
-│   ├── J716FUfs/                        # SM8250 UFS controller support
-│   └── ShengHidInput/                   # Multi-touch & physical button HID injection driver
+│   ├── ShengHidInput/                   # Multi-touch & physical button HID injection driver
+│   └── ShengUfs/                        # SM8250 UFS 3.1 host controller driver
 ├── kits/
 │   └── ArmSmmu4K/                       # Qualcomm ARM SMMU v2 4K context bank kit
 ├── package/                             # Board probes (GPU, GMU, Touch, Battery, Buttons, USB CDC-ACM)
 ├── patches/
-│   ├── mesa/                            # Turnip Darwin backend SYSMEM BO patch
 │   └── xnu/                             # Upstream XNU kernel patch series
 └── scripts/
     ├── build-adreno650.py               # Archive builder for libAdreno650.a
     ├── build-gop-legacy-display.py      # Archive builder for GopFramebuffer + GPU presenter
-    ├── check-j716f.py                   # Platform preflight validator
-    ├── make-j716f-adt.py                # Qualified ADT generator
+    ├── build-j716f-gpu-addon.py         # GPU userspace bundle & firmware addon packager
+    ├── check-j716f.py                   # Platform preflight validator & DTB stager
     └── package.sh                       # Standard UniXNU release packaging entrypoint
 ```
 
