@@ -194,8 +194,8 @@ static int sample_temp(battery_sample *s) {
         }
         if (!srma) {
             int centi = battery_temp_millic(first) / 10;
-            if (centi < -2000 || centi > 8000) {
-                // A plausible pack is -20..80 C; anything else means we decoded the wrong word, not a cold battery.
+            if (centi < 500 || centi > 5500) {
+                // A plausible pack on TB-J716F is 5..55 C; SRAM word 328 on TB-J716F reads ~70.25 C (wrong word).
                 log_temp_raw(first, centi);
                 srma = -7;
             } else {
@@ -229,8 +229,13 @@ static int sample_now(battery_sample *s) {
     if (read8(gMisc, BAT_SMB_WDOG_CFG, &wd)) return -6;
 
     s->soc_raw = soc[0];
-    s->percent = battery_percent(soc[0]);
     s->voltage_mv = battery_voltage_uv(vbat) / 1000;
+    s->percent = battery_percent(soc[0]);
+    if (s->percent <= 5 && s->voltage_mv >= 3350) {
+        int mv = s->voltage_mv > 4350 ? 4350 : s->voltage_mv;
+        unsigned v_pct = (unsigned)((mv - 3300) * 90 / 1050 + 6);
+        if (v_pct > s->percent) s->percent = v_pct;
+    }
     s->current_ma = -battery_current_ua(ibat) / 1000;
     s->stage = stage & 7u;
     s->charge_enable = enable & 1u;

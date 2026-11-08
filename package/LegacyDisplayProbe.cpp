@@ -557,6 +557,10 @@ extern void native_buttons_probe(void);
 extern void native_gestures_probe(void);
 extern void native_battery_probe(void);
 extern void native_gpu_probe(void);
+extern "C" void sheng_wifi_probe(void) __attribute__((weak_import));
+extern "C" void sheng_bluetooth_probe(void) __attribute__((weak_import));
+extern "C" void sheng_backlight_probe(void) __attribute__((weak_import));
+extern "C" void sheng_usb_probe(void) __attribute__((weak_import));
 // The zero-copy plan's P0 map (MdssProbe.cpp): the apps SMMU's display streams, PE_Video, the published frame buffer
 // addresses and the compositor's surface count. It reads no display controller register (an SError from that block panicked
 // the kernel; the file records it), and it needs no boot argument.
@@ -571,12 +575,16 @@ extern void native_flip_probe(void);
 // are not in this board's archive.
 void native_legacy_display_late_probe(void) {
     native_usb_debug_probe();
+    if (sheng_usb_probe) sheng_usb_probe();
     native_keystore_probe();
     native_hid_input_probe();
     native_touch_probe();
+    if (sheng_wifi_probe) sheng_wifi_probe();
+    if (sheng_bluetooth_probe) sheng_bluetooth_probe();
     native_buttons_probe();
     native_gestures_probe();
     native_battery_probe();
+    if (sheng_backlight_probe) sheng_backlight_probe();
     native_gpu_probe();
     native_mdss_probe();
     native_flip_probe();

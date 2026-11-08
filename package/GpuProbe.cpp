@@ -488,7 +488,7 @@ volatile bool gIrqAttached;
 volatile uint32_t gIrqCount, gIrqSeen, gIrqLast, gIrqRepeat, gIrqMasked;
 int naIdle(void *) {
     if (gIrqAttached && ml_get_interrupts_enabled() && !ml_at_interrupt_context() && get_preemption_level() == 0) {
-        assert_wait_timeout(event_t(&gIrqCount), THREAD_UNINT, 2000, NSEC_PER_USEC);
+        assert_wait_timeout(event_t(&gIrqCount), THREAD_UNINT, 100, NSEC_PER_USEC);
         thread_block(THREAD_CONTINUE_NULL);
         native_gpu_idle_sleeps = native_gpu_idle_sleeps + 1;
     } else {
@@ -1215,7 +1215,7 @@ bool metal() {
     if (!accelerator) return stop(kIOReturnNoMemory);
     if (!accelerator->init()) {accelerator->release(); return stop(kIOReturnError);}
     accelerator->setProperty("MetalPluginName", "NativeAdrenoMetal");
-    accelerator->setProperty("NativeSandboxGrantProcess", "backboardd,iconservicesagent,Preferences");
+    accelerator->setProperty("NativeSandboxGrantProcess", "*");
     accelerator->setProperty("MetalPluginClassName", "NativeAdrenoMetalDevice");
     // Turnip's options for this board, which replace the plugin's default (NativeAdrenoMetalPlugin.mm applyBoardTurnipDebug).
     // On TB-J716F's Adreno 650 (GMEM base 0), tiled GMEM color/input-attachment passes leave 16-row holes at the top of each
@@ -1290,6 +1290,124 @@ void hangRows(unsigned t) {
     changed();
 }
 
+// Dynamic Adreno 650 GPU frequency scaling (pipa-gpu-dcvs=1, after UniXNU-sheng's GpuPowerProbe.cpp gpuDcvsThread):
+// 7 OPP levels (305..670 MHz) voted via HFI GX_BW_PERF_VOTE (msg 30), sampling GMU_CX_GMU_POWER_COUNTER_XOCLK_0 (0x5044/0x5045)
+// every 16 ms. Drops to level 1 (305 MHz, LOW_SVS) after 80 ms idle, jumps to level 7 (670 MHz, TURBO_L1) on touch boost (1000 ms)
+// or >85% busy, and scales proportionally in between.
+extern "C" {
+extern volatile uint32_t native_touch_seq __attribute__((weak_import));
+extern volatile unsigned native_touch_stroke_count __attribute__((weak_import));
+}
+constexpr uint32_t kGpuMhz[8] = {0, 305, 400, 441, 490, 525, 587, 670};
+constexpr unsigned kGpuTop = 7;
+volatile uint32_t gGpuDcvsActive, gGpuCurLevel = 7, gGpuCurMhz = 670, gGpuDcvsVotes, gGpuDcvsTouchBoosts;
+
+bool gpuVote(unsigned level) {
+    if (level < 1 || level > kGpuTop || gDevice.poisoned || gDevice.hfi.poisoned) return false;
+    const uint32_t vote[3] = {1, level, A650GmuDdrVote ? 1u : 0u};
+    uint32_t out[16], fwErr = 0;
+    size_t count = 0;
+    auto wait = [](void *) -> int { IODelay(100); return 0; };
+    return AdrenoHfiExchange(&gDevice.hfi, 30, vote, 3, 1000, wait, out, 16, &count, &fwErr) == AdrenoHfiSuccess;
+}
+
+uint64_t readGmuBusyTicks() {
+    uint32_t lo = 0, hi = 0, hi2 = 0;
+    gmuRead(nullptr, A650GmuCore, 0x5045 * 4, &hi);
+    gmuRead(nullptr, A650GmuCore, 0x5044 * 4, &lo);
+    gmuRead(nullptr, A650GmuCore, 0x5045 * 4, &hi2);
+    if (hi2 != hi) gmuRead(nullptr, A650GmuCore, 0x5044 * 4, &lo);
+    return uint64_t(hi2) << 32 | lo;
+}
+
+void gpuDcvsThread(void *, wait_result_t) {
+    constexpr unsigned kWinMs = 16;
+    unsigned floor = 1;
+    PE_parse_boot_argn("pipa-gpu-floor", &floor, sizeof floor);
+    if (floor < 1) floor = 1;
+    if (floor > kGpuTop) floor = kGpuTop;
+    unsigned cur = gGpuCurLevel;
+    uint64_t prevBusy = readGmuBusyTicks();
+    uint64_t prevNs = 0;
+    absolutetime_to_nanoseconds(mach_absolute_time(), &prevNs);
+    uint64_t prevSub = gSubmit ? gSubmit->stats().submissions : 0;
+    uint32_t prevTouch = (&native_touch_seq ? native_touch_seq : 0u) ^
+                         ((&native_touch_stroke_count ? native_touch_stroke_count : 0u) << 16);
+    unsigned idleMs = 0, wakeBoostMs = 0, touchBoostMs = 0;
+    gGpuDcvsActive = 1;
+
+    for (;;) {
+        IOSleep(kWinMs);
+        const uint64_t busy = readGmuBusyTicks();
+        uint64_t nowNs = 0;
+        absolutetime_to_nanoseconds(mach_absolute_time(), &nowNs);
+        const uint64_t sub = gSubmit ? gSubmit->stats().submissions : 0;
+        const uint64_t dtNs = nowNs > prevNs ? nowNs - prevNs : 1;
+        const uint64_t dTicks = busy >= prevBusy ? busy - prevBusy : 0;
+        const uint32_t permille = dtNs ? uint32_t(dTicks * 1000000000ull / 19200000ull * 1000ull / dtNs) : 0;
+        const bool submitted = sub != prevSub;
+        prevBusy = busy; prevNs = nowNs; prevSub = sub;
+
+        const uint32_t touch = (&native_touch_seq ? native_touch_seq : 0u) ^
+                               ((&native_touch_stroke_count ? native_touch_stroke_count : 0u) << 16);
+        if (touch != prevTouch) {
+            prevTouch = touch;
+            touchBoostMs = 1000;
+            gGpuDcvsTouchBoosts = gGpuDcvsTouchBoosts + 1;
+        } else if (touchBoostMs > kWinMs) {
+            touchBoostMs -= kWinMs;
+        } else {
+            touchBoostMs = 0;
+        }
+
+        unsigned want = cur;
+        if (touchBoostMs > 0) {
+            idleMs = 0;
+            wakeBoostMs = 0;
+            want = kGpuTop;
+        } else if (!submitted && permille < 20) {
+            idleMs += kWinMs;
+            if (idleMs >= 80) want = floor;
+        } else {
+            if (idleMs >= 80) wakeBoostMs = 50;
+            idleMs = 0;
+            if (wakeBoostMs > kWinMs) wakeBoostMs -= kWinMs;
+            else wakeBoostMs = 0;
+
+            if (permille > 850) {
+                want = kGpuTop;
+            } else if (permille > 700 && cur < kGpuTop) {
+                want = cur + 1;
+            } else if (permille < 300 && cur > floor) {
+                const uint32_t targetMhz = kGpuMhz[cur] * permille / 550;
+                unsigned m = floor;
+                while (m < kGpuTop && kGpuMhz[m] < targetMhz) ++m;
+                want = m < cur ? m : cur - 1;
+            }
+            if (wakeBoostMs > 0 && want < 5 && 5 <= kGpuTop) want = 5;
+        }
+        if (want < floor) want = floor;
+        if (want > kGpuTop) want = kGpuTop;
+        if (want != cur) {
+            if (gpuVote(want)) {
+                cur = want;
+                gGpuCurLevel = cur;
+                gGpuCurMhz = kGpuMhz[cur];
+                gGpuDcvsVotes = gGpuDcvsVotes + 1;
+            }
+        }
+    }
+}
+
+void startGpuDcvs() {
+    unsigned dcvs = 1;
+    PE_parse_boot_argn("pipa-gpu-dcvs", &dcvs, sizeof dcvs);
+    PE_parse_boot_argn("sheng-gpu-dcvs", &dcvs, sizeof dcvs);
+    if (!dcvs) return;
+    thread_t thread = nullptr;
+    if (kernel_thread_start(gpuDcvsThread, nullptr, &thread) == KERN_SUCCESS) thread_deallocate(thread);
+}
+
 // The live row, every 2 s once the device is published: interrupts (count, last status, all seen, masked), submissions (submitted,
 // completed, timeouts, poisoned), user clients opened/closed, the BO pool (MiB in use, peak, size; BOs that did not fit and fell
 // back to scattered pages, scattered BOs in all), and the GPU's busy share of the last beat in per mille. Only changed values reach
@@ -1301,12 +1419,7 @@ void hangRows(unsigned t) {
         // The GMU's busy counter as Linux's a6xx_gpu_busy reads it: GMU_CX_GMU_POWER_COUNTER_XOCLK_0 (0x5044/0x5045), 19.2 MHz
         // ticks while the GPU is busy (hw_init writes 0x20, Linux's BIT(5), into POWER_COUNTER_SELECT_0's low byte), against the time
         // since the last beat.
-        uint32_t lo = 0, hi = 0, hi2 = 0;
-        gmuRead(nullptr, A650GmuCore, 0x5045 * 4, &hi);
-        gmuRead(nullptr, A650GmuCore, 0x5044 * 4, &lo);
-        gmuRead(nullptr, A650GmuCore, 0x5045 * 4, &hi2);
-        if (hi2 != hi) gmuRead(nullptr, A650GmuCore, 0x5044 * 4, &lo);
-        const uint64_t busy = uint64_t(hi2) << 32 | lo;
+        const uint64_t busy = readGmuBusyTicks();
         uint64_t ns = 0;
         absolutetime_to_nanoseconds(mach_absolute_time(), &ns);
         const uint32_t permille = lastNs && ns > lastNs && busy >= lastBusy
@@ -1320,10 +1433,10 @@ void hangRows(unsigned t) {
         const uint32_t opened = native_adreno_publish_stats(&closed);
         char line[sizeof native_gpu_rows[0]];
         snprintf(line, sizeof line,
-            "LIVE irq%u last%x seen%x m%u | sub %u/%u t%u p%u | uc %u/%u | pool %u/%u/%u fb%u sc%u | busy %u",
+            "LIVE irq%u last%x seen%x m%u | sub %u/%u t%u p%u | uc %u/%u | pool %u/%u/%u fb%u sc%u | busy %u %uMHz/%u",
             gIrqCount, gIrqLast, gIrqSeen, gIrqMasked, st.submissions, st.completed, st.timeouts, st.poisoned_jobs, opened, closed,
             native_adreno_pool_stats[3], native_adreno_pool_stats[4], native_adreno_pool_stats[0], native_adreno_pool_stats[2],
-            native_adreno_pool_stats[5], permille);
+            native_adreno_pool_stats[5], permille, gGpuCurMhz, gGpuDcvsVotes);
         // The idle counters move on every fence wait: refresh the row only when the work itself changed.
         static uint32_t lastSub = ~0u, lastOpened = ~0u, lastIrqMasked = ~0u;
         if (st.submissions != lastSub || opened != lastOpened || gIrqMasked != lastIrqMasked || t % 30 == 0) {
@@ -1415,6 +1528,7 @@ void gpuThread(void *, wait_result_t) {
     if (irq) regDump("init");
     if (gMode >= 11 && irq && publish()) {
         if (selfTest() && gMode >= 12) metal();
+        startGpuDcvs();
         native_gpu_step = 99;
         heartbeat();
     }

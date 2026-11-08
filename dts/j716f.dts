@@ -7,6 +7,25 @@
     model = "Lenovo Xiaoxin Pad Pro 2021";
     compatible = "lenovo,j716f", "qcom,kona";
 
+    // Export the radios under /soc (/arm-io in ADT) before launchd evaluates wifid's device-tree condition.
+    // WifiProbe owns PCIe0 resources and fills local-mac-address at runtime.
+    soc {
+        wlan {
+            compatible = "qcom,qca6390";
+            unixnu,adt-name = "wlan";
+            status = "okay";
+        };
+
+        bluetooth {
+            device_type = "bluetooth";
+            compatible = "qcom,qca6390-bt";
+            unixnu,adt-name = "bluetooth";
+            transport-encoding = <1>;
+            transport-speed = <3200000>;
+            status = "okay";
+        };
+    };
+
     // Existing ZUI/UEFI reservation; not an allocator extension or new partition.
     // Only console 0xb00be000+0x40000 is under review for native diagnostics.
     // Do not export the whole reservation as an arm-io device/MMIO alias.

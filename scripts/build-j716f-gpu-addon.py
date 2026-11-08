@@ -201,11 +201,33 @@ def main() -> int:
 
     entitlements = out / 'adrenoprobed-entitlements.plist'
     entitlements.write_bytes(plistlib.dumps({
+        'application-identifier': 'org.blu-sharky.adrenoprobed',
+        'platform-application': True,
         'com.apple.private.security.no-container': True,
+        'com.apple.private.security.storage.AppInstallation': True,
+        'com.apple.private.coreservices.canmaplsdatabase': True,
+        'com.apple.private.installcoordinationd.client': True,
         'com.apple.security.iokit-user-client-class': ['AGXDeviceUserClient'],
         'com.apple.private.logging.admin': True,
         'com.apple.private.logging.diagnostic': True,
         'com.apple.private.logging.stream': True,
+        'com.apple.private.mobileinstall.allowedSPI': [
+            'Install',
+            'InstallForLaunchServices',
+            'InstallForInstallCoordination',
+            'Lookup',
+            'Uninstall',
+            'UninstallForLaunchServices',
+        ],
+        'com.apple.security.exception.mach-lookup.global-name': [
+            'com.apple.mobile.installd',
+            'com.apple.installcoordinationd',
+            'com.apple.lsd.mapdb',
+            'com.apple.lsd.modifydb',
+            'com.apple.frontboard.systemappservices',
+        ],
+        'com.apple.springboard.launchapplications': True,
+        'com.apple.frontboard.launchapplications': True,
     }))
     daemon = out / 'adrenoprobed'
     subprocess.run([
@@ -229,14 +251,156 @@ def main() -> int:
     (out / 'com.apple.iomfb_fdr_loader.plist').write_bytes(plistlib.dumps(dict(
         Label='com.apple.iomfb_fdr_loader', ProgramArguments=['/private/var/ngpu/bin/adrenoprobed'], RunAtLoad=True,
         KeepAlive=False, LimitLoadToSessionType='System', ProcessType='Interactive', StandardErrorPath='/dev/null'), fmt=plistlib.FMT_XML))
-    (out / 'com.apple.bluetoothd.plist').write_bytes(plistlib.dumps(dict(
-        Label='com.apple.bluetoothd', ProgramArguments=['/private/var/ngpu/bin/adrenoprobed'], RunAtLoad=True, KeepAlive=False,
-        ProcessType='Interactive', StandardErrorPath='/dev/null'), fmt=plistlib.FMT_XML))
+
+    bt_dir = GPU_WORK / 'build/bluetooth-userland'
+    wifi_dir = GPU_WORK / 'build/wifi-userland'
+    appsync_dir = GPU_WORK / 'build/appsync-userland'
+    extra_cdhashes = []
+    extra_files = []
+
+    if (bt_dir / 'bluetoothd').is_file() and (bt_dir / 'BlueTool').is_file():
+        for name in ('bluetoothd', 'BlueTool'):
+            bin_path = bt_dir / name
+            bin_detail = subprocess.run(['codesign', '--display', '--verbose=4', str(bin_path)], capture_output=True, text=True, check=True).stderr
+            bin_cdhash = re.search(r'^CDHash=([a-f0-9]{40})$', bin_detail, re.M)[1]
+            extra_cdhashes.append(bin_cdhash)
+            extra_files.append(('bluetooth-bin/' + name, 0o755, bin_path.read_bytes()))
+        shutil.copyfile(bt_dir / 'com.apple.bluetoothd.plist', out / 'com.apple.bluetoothd.plist')
+        extra_files.append(('daemons/com.apple.BlueTool.plist', 0o644, (bt_dir / 'com.apple.BlueTool.plist').read_bytes()))
+        extra_files.append(('bluetooth-bin/IOMFB_FDR_Loader', 0o755, daemon.read_bytes()))
+    else:
+        (out / 'com.apple.bluetoothd.plist').write_bytes(plistlib.dumps(dict(
+            Label='com.apple.bluetoothd', ProgramArguments=['/private/var/ngpu/bin/adrenoprobed'], RunAtLoad=True, KeepAlive=False,
+            ProcessType='Interactive', StandardErrorPath='/dev/null'), fmt=plistlib.FMT_XML))
+
+    if (wifi_dir / 'unixnu-wpa_supplicant').is_file():
+        wpa_path = wifi_dir / 'unixnu-wpa_supplicant'
+        wpa_detail = subprocess.run(['codesign', '--display', '--verbose=4', str(wpa_path)], capture_output=True, text=True, check=True).stderr
+        wpa_cdhash = re.search(r'^CDHash=([a-f0-9]{40})$', wpa_detail, re.M)[1]
+        extra_cdhashes.append(wpa_cdhash)
+        extra_files.append(('wifi-bin/unixnu-wpa_supplicant', 0o755, wpa_path.read_bytes()))
+        extra_files.append(('etc/wifi/wpa_supplicant.conf', 0o644, (wifi_dir / 'wpa_supplicant.conf').read_bytes()))
+        if os.environ.get('UNIXNU_WIFI_DAEMON_PLIST') == '1':
+            extra_files.append(('daemons/org.unixnu.wifi.supplicant.plist', 0o644, (wifi_dir / 'org.unixnu.wifi.supplicant.plist').read_bytes()))
+
+    if (appsync_dir / 'lib/UniXNUAppSync.dylib').is_file():
+        appsync_src = UNIXNU_REPO / 'scripts/appsync'
+        dylib_out = appsync_dir / 'lib/UniXNUAppSync.dylib'
+        if (appsync_src / 'AppSync.m').is_file():
+            subprocess.run([
+                'xcrun', 'clang', '-target', 'arm64-apple-ios17.0', '-isysroot', sdk,
+                '-fobjc-arc', '-O2', '-Wall', '-Wextra', '-Werror',
+                '-dynamiclib',
+                str(appsync_src / 'AppSync.m'),
+                str(appsync_src / 'Signing.m'),
+                str(appsync_src / 'BacklightMode.m'),
+                '-install_name', '/usr/lib/UniXNUAppSync.dylib',
+                '-framework', 'Foundation',
+                '-Wl,-compatibility_version,300.0.0', '-Wl,-current_version,2503.1.0',
+                '-o', str(dylib_out),
+            ], check=True)
+            dbytes = bytearray(dylib_out.read_bytes())
+            _, _, _, _, ncmds, _, mflags, _ = struct.unpack_from('<8I', dbytes, 0)
+            struct.pack_into('<I', dbytes, 24, mflags & ~0x00100000)
+            at = 32
+            for _ in range(ncmds):
+                cmd_id, cmd_len = struct.unpack_from('<II', dbytes, at)
+                if cmd_id == 0xC:
+                    name_off = struct.unpack_from('<I', dbytes, at + 8)[0]
+                    name = bytes(dbytes[at + name_off:at + cmd_len]).split(b'\0', 1)[0]
+                    if name == b'/System/Library/Frameworks/Foundation.framework/Foundation':
+                        struct.pack_into('<I', dbytes, at, 0x8000001F)
+                at += cmd_len
+            dylib_out.write_bytes(bytes(dbytes))
+            subprocess.run([
+                'codesign', '--force', '--sign', '-', '--pagesize', '4096',
+                '--identifier', 'org.unixnu.appsync', str(dylib_out),
+            ], check=True)
+            subprocess.run(['codesign', '--verify', '--strict', str(dylib_out)], check=True)
+        if (appsync_src / 'appinst.m').is_file():
+            appinst_out = appsync_dir / 'libexec/unixnu-appinst'
+            subprocess.run([
+                'xcrun', 'clang', '-target', 'arm64-apple-ios17.0', '-isysroot', sdk,
+                '-fobjc-arc', '-O2', '-Wall', '-Wextra', '-Werror',
+                str(appsync_src / 'appinst.m'),
+                '-framework', 'Foundation',
+                '-o', str(appinst_out),
+            ], check=True)
+            appinst_ent = out / 'appinst-entitlements.plist'
+            appinst_ent.write_bytes(plistlib.dumps({
+                'application-identifier': 'org.unixnu.appinst',
+                'platform-application': True,
+                'com.apple.private.security.no-container': True,
+                'com.apple.private.security.storage.AppInstallation': True,
+                'com.apple.private.coreservices.canmaplsdatabase': True,
+                'com.apple.private.installcoordinationd.client': True,
+                'com.apple.private.mobileinstall.allowedSPI': [
+                    'Install',
+                    'InstallForLaunchServices',
+                    'InstallForInstallCoordination',
+                    'Lookup',
+                    'Uninstall',
+                    'UninstallForLaunchServices',
+                ],
+                'com.apple.security.exception.mach-lookup.global-name': [
+                    'com.apple.mobile.installd',
+                    'com.apple.installcoordinationd',
+                    'com.apple.lsd.mapdb',
+                    'com.apple.lsd.modifydb',
+                    'com.apple.frontboard.systemappservices',
+                ],
+                'com.apple.springboard.launchapplications': True,
+                'com.apple.frontboard.launchapplications': True,
+            }))
+            subprocess.run([
+                'codesign', '--force', '--sign', '-', '--pagesize', '4096',
+                '--identifier', 'org.unixnu.appinst', '--entitlements', str(appinst_ent), str(appinst_out),
+            ], check=True)
+            subprocess.run(['codesign', '--verify', '--strict', str(appinst_out)], check=True)
+        appsync_bins = (
+            'lib/UniXNUAppSync.dylib',
+            'libexec/unixnu-ldid',
+            'libexec/unixnu-appinst',
+            'libexec/installd',
+            'libexec/backboardd',
+            'helper/com.apple.MobileInstallationHelperService',
+        )
+        for rel in appsync_bins:
+            bpath = appsync_dir / rel
+            if not bpath.is_file():
+                continue
+            bdetail = subprocess.run(['codesign', '--display', '--verbose=4', str(bpath)], capture_output=True, text=True, check=True).stderr
+            bcdhash = re.search(r'^CDHash=([a-f0-9]{40})$', bdetail, re.M)[1]
+            extra_cdhashes.append(bcdhash)
+        for subdir in ('lib', 'libexec', 'helper'):
+            sdir = appsync_dir / subdir
+            if not sdir.is_dir():
+                continue
+            for p in sorted(sdir.rglob('*')):
+                if not p.is_file():
+                    continue
+                rel = p.relative_to(appsync_dir).as_posix()
+                mode = 0o755 if rel in appsync_bins else 0o644
+                extra_files.append(('appsync/' + rel, mode, p.read_bytes()))
+        if (wifi_dir / 'unixnu-wpa_supplicant').is_file():
+            extra_files.append(('appsync/libexec/unixnu-wpa_supplicant', 0o755, (wifi_dir / 'unixnu-wpa_supplicant').read_bytes()))
+        extra_files.append(('appsync/libexec/IOMFB_FDR_Loader', 0o755, daemon.read_bytes()))
+        extra_files.append(('appsync/libexec/mtmergeprops', 0o755, daemon.read_bytes()))
+        extra_files.append(('appsync/libexec/misd', 0o755, daemon.read_bytes()))
+        for ipa_cand in (
+            Path('/tmp/unixnu_test_ipa/UniXNUTest.ipa'),
+            appsync_dir / 'autoinstall/UniXNUTest.ipa',
+            PKG_REPO / 'scripts/UniXNUTest.ipa',
+        ):
+            if ipa_cand.is_file():
+                extra_files.append(('appsync/autoinstall/UniXNUTest.ipa', 0o644, ipa_cand.read_bytes()))
+                break
 
     trust_data = {
         'cdhash': cdhash,
         'daemon_cdhash': daemon_cdhash,
         'turnip_cdhash': turnip_cdhash,
+        'extra_cdhashes': extra_cdhashes,
         'bundle': 'NativeAdrenoMetal.bundle',
         'executable_bytes': exe.stat().st_size,
         'purpose': 'owner-built plugin and probe daemon; trusted only through an extra owner trust module',
@@ -251,7 +415,7 @@ def main() -> int:
     assert count == 2
     offsets = struct.unpack_from('<2I', original, 4)
     originals = [original[offsets[0]:offsets[1]], original[offsets[1]:]]
-    hashes = sorted({bytes.fromhex(cdhash), bytes.fromhex(daemon_cdhash), bytes.fromhex(turnip_cdhash)})
+    hashes = sorted({bytes.fromhex(cdhash), bytes.fromhex(daemon_cdhash), bytes.fromhex(turnip_cdhash), *(bytes.fromhex(h) for h in extra_cdhashes)})
     identifier = uuid.uuid5(uuid.NAMESPACE_URL, 'org.blu-sharky.adreno-metal:' + ''.join(h.hex() for h in hashes))
     own = struct.pack('<I16sI', 2, identifier.bytes, len(hashes)) + b''.join(h + bytes([2, 0, 0, 0]) for h in hashes)
     modules = [own, *originals]
@@ -285,6 +449,7 @@ def main() -> int:
     files.append(('bin/adrenoprobed', 0o755, daemon.read_bytes()))
     for plist in ('com.apple.bluetoothd.plist', 'com.apple.iomfb_fdr_loader.plist', 'org.blu-sharky.adrenoprobed.plist'):
         files.append(('daemons/' + plist, 0o644, (out / plist).read_bytes()))
+    files.extend(extra_files)
 
     body = b''
     for name, mode, data in files:

@@ -9,6 +9,11 @@ soc_source = "sm8250"
 os_profile = "ipados-17.7.11-21H461"
 description = "Lenovo Xiaoxin Pad Pro 2021 TB-J716F UniXNU bring-up"
 
+[userdata]
+first_lba = 2315048
+last_lba = 30693370
+lba_bytes = 4096
+
 [package]
 unixnu = "../UniXNU"
 
@@ -17,7 +22,7 @@ unixnu = "../UniXNU"
 
 [components]
 # Native platform mainline components aligned with UniXNU component catalog
-include = ["XnuPrelink", "DarwinBoot", "ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "VirtioMmioBlock", "VerifiedRoot", "ShengUfs", "GopFramebuffer", "AppleKeyStoreState", "ShengHidInput", "AdrenoPM4", "AdrenoFirmware", "ArmSmmu4K", "AirNir"]
+include = ["XnuPrelink", "DarwinBoot", "ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "VirtioMmioBlock", "VerifiedRoot", "ShengUfs", "GopFramebuffer", "AppleKeyStoreState", "ShengHidInput", "AdrenoPM4", "AdrenoFirmware", "ArmSmmu4K", "AirNir", "Ath12kWifi", "QcaBluetooth"]
 
 [ipsw]
 url = "https://updates.cdn-apple.com/2025SpringFCS/fullrestores/122-77166/DCA6CFE8-90E9-4B92-880D-3DE171798E40/iPad_Pro_HFR_17.7.11_21H461_Restore.ipsw"
@@ -65,8 +70,8 @@ archives = [
 ]
 
 [kernel.prelink]
-tool = "kits/NativePrelink/emit_prelink.py"
-kernel = "build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/mach.development.bcm2837.unstripped"
+tool = "kits/XnuPrelink/emit_prelink.py"
+kernel = "build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/mach.development.bcm2837.unstripped.noctf"
 kernelcache_sha256 = "f18b4df865405f2a287b84977d7aca745e056d656d9fc9df1662970ce2969de7"
 slide = "-0x1000000"
 early_security_init = "com.apple.driver.AppleMobileFileIntegrity=0xfffffff005ab4ae0"
@@ -102,6 +107,9 @@ roots = [
   "com.apple.security.sandbox",
   "com.apple.iokit.IOHIDFamily",
   "com.apple.iokit.IOHIDEventDriver",
+  "com.apple.iokit.IOUSBDeviceFamily",
+  "com.apple.driver.AppleUSBXDCI",
+  "com.apple.driver.AppleUSBDeviceMux",
 ]
 
 [device_tree]
@@ -169,6 +177,7 @@ kernel_args = [
   "sheng-smp=1",
   "armcpu-self-ipi=1",
   "armcpu-spi-ipi=1",
+  "armcpu-edge=1",
   "armcpu-diagnostics=1",
   "dk=0",
   "validation_disables=0x10",
@@ -178,11 +187,9 @@ kernel_args = [
   "ml-timeout-lock-panic-scale=40",
   "native-ufs-root=1",
   "use_contiguous_hint=0",
-  "native-ufs-allow-unverified=1",
   "root-unverified=1",
   "sheng-data-persist=2",
   "-apfs_shared_datavolume",
-  "boot-ui-focus3=usermanagerd",
   "sheng-disable-watchdogd=1",
   "sheng-lite=1",
   "sheng-no-lc=1",
@@ -203,6 +210,7 @@ kernel_args = [
   "sheng-vsync=60",
   "sheng-vsync-fixed=1",
   "sheng-aks=1",
+  "sheng-aks-sls=3",
   "offline-hid-input=1",
   "offline-hid-home=1",
   "sheng-touch-hid=1",
@@ -212,15 +220,17 @@ kernel_args = [
   "sheng-gpu-addon=1",
   "sheng-fb-gpu=1",
   "sheng-tum=s",
-  "pipa-cpufreq=1",
+  "pipa-cpufreq=4",
   "pipa-buttons=1",
   "pipa-wd=0",
+  "sheng-wifi=4",
 ]
 tools = true
 panic_screen = true
 trust_cache_sha256 = [
   "7416ca4f8377146626bb284e2133c76bee6cb4e3ee0af5d648b186235a7323a7",
   "8900d6a93d7a59ce1a872a5c081e559f4240a218f97e12d44d22dda46644d68f",
+  "b0ecabed316498522a36c395f65f10fdd9ede3a5ac91b8929bc532533c46faa0",
 ]
 text_fixups = [
   "dyld_shared_cache_arm64.15,421e8bc,28ad1bb0008544f9,c0035fd6008544f9",

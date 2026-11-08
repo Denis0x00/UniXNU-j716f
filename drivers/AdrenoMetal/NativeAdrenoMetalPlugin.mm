@@ -14,7 +14,9 @@
 #include <unistd.h>
 #include <pwd.h>
 #include <mach/mach.h>
+#include <mach-o/dyld.h>
 #include <objc/message.h>
+#include <objc/runtime.h>
 #include "NativeAdrenoUserTest.h"
 #include "NativeMetalBridgePhase.h"
 #include "CacheExport.h"
@@ -139,8 +141,16 @@ static void reportDisplayState(Gpu &gpu) {
 }
 // Whether NativeAdrenoMetal.clients names this process (names separated by blanks, commas or new lines; "*" names every process; a
 // name that ends in "*" names every process whose name starts with it, so "com.apple.WebKit.*" covers the WebContent, Networking
-// and GPU service processes).
+// and GPU service processes). User-installed third-party applications under /private/var/containers/Bundle/Application are also allowed.
 static bool listedClient() {
+    char exePath[1024] = {};
+    uint32_t exeSize = sizeof exePath;
+    if (_NSGetExecutablePath(exePath, &exeSize) == 0) {
+        if (!strncmp(exePath, "/private/var/containers/Bundle/Application/", 43) ||
+            !strncmp(exePath, "/var/containers/Bundle/Application/", 35)) {
+            return true;
+        }
+    }
     char path[1024];
     if (!requestedPath("NativeAdrenoMetal.clients", path, sizeof path)) return false;
     FILE *file = fopen(path, "r");
@@ -216,6 +226,7 @@ static id clientDevice(unsigned port) {
         mkdir(candidates[i], 0700);
         if (access(candidates[i], W_OK) != 0) continue;
         ++usable;
+        setenv("MESA_SHADER_CACHE_DIR", candidates[i], 1);
         @try {
             device = native_bridge_metal_open(turnip, candidates[i], registryID, nullptr);
         } @catch (NSException *exception) {
@@ -483,6 +494,66 @@ static id deviceForPort(unsigned port) {
     }
 }
 }  // namespace publish
+
+// Force CoreBrightness in backboardd to select physical BLControl (mode 1) instead of VMBLControl (mode 3) when ADT vmm-present=1,
+// and mark user bundles under /private/var/*.app as trusted (8) in SpringBoard's FBSSignatureValidationService.
+@interface NSObject (NativeAppSyncBundlePrivate)
+- (NSURL *)bundleURL;
+@end
+static void (*gOrigInitBLControl)(id, SEL, int);
+static void hookInitBLControl(id self, SEL _cmd, int mode) {
+    gOrigInitBLControl(self, _cmd, mode == 3 ? 1 : mode);
+}
+static NSUInteger (*gOrigTrustState)(id, SEL, id);
+static BOOL isUserAppBundleURL(NSURL *url) {
+    if (![url isKindOfClass:[NSURL class]] || !url.isFileURL) return NO;
+    NSString *path = url.URLByResolvingSymlinksInPath.URLByStandardizingPath.path;
+    if (![path hasPrefix:@"/private/var/"] && ![path hasPrefix:@"/var/"]) return NO;
+    for (NSString *comp in path.pathComponents)
+        if ([comp hasSuffix:@".app"] && comp.length > 4) return YES;
+    return NO;
+}
+static void appSyncConsoleLog(const char *msg) {
+    int fd = open("/dev/console", O_WRONLY | O_NOCTTY | O_CLOEXEC);
+    if (fd >= 0) {
+        (void)write(fd, msg, strlen(msg));
+        close(fd);
+    }
+}
+static NSUInteger hookTrustState(id self, SEL _cmd, id application) {
+    NSUInteger state = gOrigTrustState(self, _cmd, application);
+    if (state == 8 || ![application respondsToSelector:@selector(bundleURL)]) return state;
+    NSURL *url = [application bundleURL];
+    if (isUserAppBundleURL(url)) {
+        char buf[256];
+        snprintf(buf, sizeof(buf), "[UniXNU AppSync] SpringBoard trustStateForApplication: %s -> 8 (orig=%lu)\n",
+                 url.path.UTF8String ? url.path.UTF8String : "?", (unsigned long)state);
+        appSyncConsoleLog(buf);
+        return 8;
+    }
+    return state;
+}
+__attribute__((constructor))
+static void initBackboarddBacklightMode(void) {
+    const char *prog = getprogname();
+    if (!prog) return;
+    if (strcmp(prog, "backboardd") == 0) {
+        dlopen("/System/Library/PrivateFrameworks/CoreBrightness.framework/CoreBrightness", RTLD_LAZY);
+        Class cls = objc_getClass("BrightnessSystemInternal");
+        if (!cls) return;
+        Method m = class_getInstanceMethod(cls, sel_registerName("initBLControl:"));
+        if (!m || method_getImplementation(m) == (IMP)hookInitBLControl) return;
+        gOrigInitBLControl = (void (*)(id, SEL, int))method_setImplementation(m, (IMP)hookInitBLControl);
+    } else if (strcmp(prog, "SpringBoard") == 0) {
+        dlopen("/System/Library/PrivateFrameworks/FrontBoardServices.framework/FrontBoardServices", RTLD_NOW);
+        Class cls = objc_getClass("FBSSignatureValidationService");
+        if (!cls) return;
+        Method m = class_getInstanceMethod(cls, sel_registerName("trustStateForApplication:"));
+        if (!m || method_getImplementation(m) == (IMP)hookTrustState) return;
+        gOrigTrustState = (NSUInteger (*)(id, SEL, id))method_setImplementation(m, (IMP)hookTrustState);
+        appSyncConsoleLog("[UniXNU AppSync] SpringBoard FBSSignatureValidationService hook active\n");
+    }
+}
 
 @implementation NativeAdrenoMetalDevice
 - (id)initWithAcceleratorPort:(unsigned)port {

@@ -21,6 +21,8 @@ bool native_gop_gpu_offer(IOService *,void *display,IOMemoryDescriptor *,uint64_
 void native_gop_presenter_set_source(IOService *presenter,IOService *nub);
 // Provided by the display driver: finishes (status 0) or fails the swap that was offered.
 void native_legacy_gpu_complete(void *display,int status);
+extern volatile uint32_t native_backlight_scale __attribute__((weak_import));
+void native_legacy_refresh_brightness(void);
 }
 class NativeGOPClient;
 class NativeGOPPresenter;
@@ -38,6 +40,9 @@ class NativeGOPPresenter : public IOService {
     bool gpuMode=false,gpuClient=false;
     struct {bool offered,delivered;uint64_t sequence;void *display;IOMemoryDescriptor *memory;IOMemoryMap *map;
             uint64_t stride;uint32_t width,height;} swap={};
+    IOMemoryDescriptor *lastMemory=nullptr;
+    uint64_t lastStride=0;
+    uint32_t lastWidth=0,lastHeight=0;
     uint64_t swapSequence=0;
     // The client task's mappings of the frames it was handed, kept across swaps: the compositor cycles through a few surfaces, so the
     // client imports each one into the GPU once instead of every frame (on the TB128FU each frame pinned and mapped about 2400 pages and
@@ -55,6 +60,7 @@ public:
     static IOReturn handoffCall(uint32_t op,task_t task,const void *in,size_t inSize,void *out,size_t outSize);
     static IOMemoryDescriptor *handoffMemory();
     bool offer(void *display,IOMemoryDescriptor *,uint64_t stride,uint32_t width,uint32_t height);
+    void refreshBrightness();
 private:
     IOReturn transfer(task_t,const NGPPresent &,NGPTransfer *);
 public:
@@ -140,14 +146,38 @@ IOReturn NativeGOPPresenter::transfer(task_t task,const NGPPresent &q,NGPTransfe
 bool NativeGOPPresenter::offer(void *display,IOMemoryDescriptor *memory,uint64_t stride,uint32_t width,uint32_t height) {
     if(!gpuMode || !memory || !display || !gate)return false;
     IOLockLock(gate);
+    // If a synthetic brightness-only refresh is queued but not yet delivered, replace it with the real compositor swap.
+    if(swap.offered && !swap.delivered && !swap.display) {
+        if(swap.memory)swap.memory->release();
+        swap={};
+    }
     bool accepted=online && gpuClient && !swap.offered;
     if(accepted) {
         memory->retain();
+        if(lastMemory != memory) {
+            if(lastMemory)lastMemory->release();
+            lastMemory=memory;
+            lastMemory->retain();
+        }
+        lastStride=stride;lastWidth=width;lastHeight=height;
         swap={true,false,++swapSequence,display,memory,nullptr,stride,width,height};
         native_gop_gpu_offers=native_gop_gpu_offers+1;
         IOLockWakeup(gate,&swap,false);
     }
     IOLockUnlock(gate);return accepted;
+}
+void NativeGOPPresenter::refreshBrightness() {
+    if(!gpuMode || !gate)return;
+    IOLockLock(gate);
+    if(online && gpuClient && !swap.offered && lastMemory && lastWidth && lastHeight) {
+        lastMemory->retain();
+        swap={true,false,++swapSequence,nullptr,lastMemory,nullptr,lastStride,lastWidth,lastHeight};
+        IOLockWakeup(gate,&swap,false);
+    }
+    IOLockUnlock(gate);
+}
+extern "C" void native_legacy_refresh_brightness(void) {
+    if(gHandoff)gHandoff->refreshBrightness();
 }
 IOReturn NativeGOPPresenter::waitSwap(task_t task,uint64_t timeoutMs,NGPSwap *out) {
     if(!gpuMode)return kIOReturnUnsupported;
@@ -198,8 +228,10 @@ IOReturn NativeGOPPresenter::waitSwap(task_t task,uint64_t timeoutMs,NGPSwap *ou
         IOLockUnlock(gate);OSSafeReleaseNULL(map);__atomic_fetch_add(&native_gop_gpu_failures,1,__ATOMIC_RELAXED);return kIOReturnNoMemory;
     }
     swap.map=map;
+    const uint32_t bScale=&native_backlight_scale?native_backlight_scale:256u;
     out->sequence=sequence;out->address=map->getVirtualAddress();out->bytes=map->getLength();out->stride=stride;
-    out->width=width;out->height=height;out->format=NGP_BGRX8888;out->reserved=tag;
+    out->width=width;out->height=height;out->format=NGP_BGRX8888;
+    out->reserved=(tag & 0xffffu) | ((bScale & 0x1ffu) << 16) | 0x80000000u;
     IOLockUnlock(gate);return kIOReturnSuccess;
 }
 IOReturn NativeGOPPresenter::completeSwap(uint64_t sequence,int status) {
@@ -210,7 +242,8 @@ IOReturn NativeGOPPresenter::completeSwap(uint64_t sequence,int status) {
     OSSafeReleaseNULL(done.map);done.memory->release();
     if(status)__atomic_fetch_add(&native_gop_gpu_failures,1,__ATOMIC_RELAXED);
     else native_gop_gpu_completions=native_gop_gpu_completions+1;
-    native_legacy_gpu_complete(done.display,status);return kIOReturnSuccess;
+    if(done.display)native_legacy_gpu_complete(done.display,status);
+    return kIOReturnSuccess;
 }
 // The client went away with a frame outstanding: the display driver is told it failed, so it can use its own path instead of waiting forever.
 void NativeGOPPresenter::abandonSwap() {
@@ -223,14 +256,17 @@ void NativeGOPPresenter::abandonSwap() {
     if(!done.offered)return;
     OSSafeReleaseNULL(done.map);if(done.memory)done.memory->release();
     __atomic_fetch_add(&native_gop_gpu_abandoned,1,__ATOMIC_RELAXED);
-    native_legacy_gpu_complete(done.display,kIOReturnAborted);
+    if(done.display)native_legacy_gpu_complete(done.display,kIOReturnAborted);
 }
 void NativeGOPPresenter::flushCache() {
     if(!gate)return;
     Cached old[4];
+    IOMemoryDescriptor *oldLast=nullptr;
     IOLockLock(gate);
     memcpy(old,cached,sizeof old);bzero(cached,sizeof cached);
+    oldLast=lastMemory;lastMemory=nullptr;
     IOLockUnlock(gate);
+    if(oldLast)oldLast->release();
     for(auto &entry:old)if(entry.map) {entry.map->release();entry.memory->release();}
 }
 extern "C" void native_gop_presenter_set_source(IOService *presenter,IOService *nub) {

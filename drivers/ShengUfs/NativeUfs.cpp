@@ -33,6 +33,7 @@ extern const uint8_t verified_root_key[];
 #include "RootDiagnostics.h"
 #include "TransferPoll.h"
 #include "J716FSmmuTakeover.h"
+#include "SmmuTakeover.h"
 
 static UfsRootDiagnostics gRootDiagnostic;
 static bool gRootDiagnosticEnabled;
@@ -272,6 +273,58 @@ static void zero32 (void *start, size_t length)
 // (arm_smmu_write_sme). ARM IHI 0062D.c table 3-1 additionally requires VA64=1
 // for inputs above 32 bits even with SCTLR.M=0. Storage DMA path only; this
 // is physical pass-through, not a page-table or Adreno 4 KiB qualification.
+extern "C" volatile uint32_t native_ufs_extra_stream;
+extern "C" uint8_t *native_ufs_extra_va;
+extern "C" volatile uint32_t native_ufs_extra_uncached;
+extern "C" volatile uint32_t native_ufs_extra_iova, native_ufs_extra_bytes;
+extern "C" volatile uint32_t native_ufs_extra_atos[8];
+static uintptr_t gExtraSmmu, gExtraCb;
+static unsigned gExtraBank;
+
+static __attribute__((unused)) void smmuBypassStream (uint16_t stream, OSSharedPtr<IOMemoryMap> &keep, uint32_t *report,
+                              uint64_t dma, uint64_t bytes)
+{
+  uintptr_t smmu = mapPhys (0x15000000ULL, 0xd0000, keep);
+  if (!smmu) {
+    panic ("NATIVE_UFS smmu: map failed");
+  }
+  UfsSmmuPlan plan = planUfsSmmu (stream, dma, bytes, [smmu](unsigned offset) { return read32 (smmu, offset); });
+  gRootDiagnostic.smmuId1 = read32 (smmu, 0x24);
+  gRootDiagnostic.smmuId2 = read32 (smmu, 0x28);
+  gRootDiagnostic.smmuSlot = plan.slot;
+  if (plan.error) {
+    gRootDiagnostic.stage = "SMMU planning";
+    gRootDiagnostic.result = static_cast<uint32_t> (kIOReturnNotReady);
+    gRootDiagnostic.smr = plan.smr; gRootDiagnostic.s2cr = plan.s2cr;
+    rootDiagnosticFailure (plan.error);
+    panic ("NATIVE_UFS smmu: %s slot=%u smr=%x s2cr=%x", plan.error, plan.slot, plan.smr, plan.s2cr);
+  }
+  unsigned bank = plan.bank, index = plan.slot;
+  uintptr_t cb = smmu + (plan.pages + bank) * 4096;
+  const char *failure = configureUfsSmmu (plan, stream,
+    [smmu](unsigned offset) { return read32 (smmu, offset); },
+    [smmu](unsigned offset, uint32_t value) {
+      write32 (smmu, offset, value);
+      __asm__ volatile ("dsb sy" ::: "memory");
+    });
+  uint32_t smr = read32 (smmu, 0x800 + 4 * index), s2cr = read32 (smmu, 0xc00 + 4 * index);
+  uint32_t cbar = read32 (smmu, 0x1000 + 4 * bank), sctlr = read32 (cb, 0x0);
+  gRootDiagnostic.smr = smr; gRootDiagnostic.s2cr = s2cr;
+  gRootDiagnostic.cbar = cbar; gRootDiagnostic.sctlr = sctlr;
+  gRootDiagnostic.smmuId2 = read32 (smmu, 0x28);
+  gRootDiagnostic.cba2r = read32 (smmu, 0x1800 + 4 * bank);
+  if (failure) {
+    gRootDiagnostic.stage = "SMMU readback";
+    gRootDiagnostic.result = static_cast<uint32_t> (kIOReturnNotReady);
+    rootDiagnosticFailure (failure);
+    panic ("NATIVE_UFS smmu: %s idx=%u bank=%u cba2r=%x", failure, index, bank,
+           gRootDiagnostic.cba2r);
+  }
+  report[0] = index | (bank << 16);
+  report[1] = cbar;
+  report[2] = sctlr;
+}
+
 static void smmuBypassDualStream (OSSharedPtr<IOMemoryMap> &keep, uint32_t *report,
                                   uint64_t dma, uint64_t bytes)
 {
@@ -986,6 +1039,85 @@ extern "C" int native_ufs_store_write (uint64_t rel, uint32_t blocks, const void
 extern "C" int native_ufs_store_sync (void)
 {
   return storeMode () == 2 && gStoreRegionBlocks && hostSyncCache () == kIOReturnSuccess;
+}
+
+// ---- Read-only access to other partitions, by GPT name ------------------------------------------------------------
+// The firmware the board's own boot stages left on the modem/bluetooth partitions is read from there, so it never has to be
+// part of the boot image. Nothing here writes: only reads of 4096-byte blocks of the LUN the name was found on.
+// The stream-match slot | context bank << 16 of the extra pass-through stream, bit 31 set once it exists (0: not requested).
+extern "C" volatile uint32_t native_ufs_extra_stream = 0;
+// The endpoint's DMA buffer: physically contiguous, seen by the endpoint at native_ufs_extra_iova (it only addresses 32 bits).
+extern "C" uint8_t *native_ufs_extra_va = nullptr;
+extern "C" volatile uint32_t native_ufs_extra_uncached = 0;
+extern "C" volatile uint32_t native_ufs_extra_iova = 0, native_ufs_extra_bytes = 0;
+extern "C" volatile uint32_t native_ufs_extra_atos[8] = { 0, 0, 0, 0 };
+
+extern "C" int native_ufs_part_find (const char *name, uint32_t *lun, uint64_t *first, uint64_t *blocks)
+{
+  if (!gHost.ready || !name || !lun || !first || !blocks) return 0;
+  uint8_t *buffer = static_cast<uint8_t *> (IOMalloc (4096));
+  if (!buffer) return 0;
+  int found = 0;
+  const size_t length = strlen (name);
+  for (uint32_t l = 0; l < 6 && !found; ++l) {
+    IOReturn r = kIOReturnNotReady;
+    for (unsigned attempt = 0; attempt < 3; ++attempt) {
+      r = hostRead4k (static_cast<uint8_t> (l), 1, 1, buffer);
+      if (r == kIOReturnSuccess) break;
+    }
+    if (r != kIOReturnSuccess || memcmp (buffer, "EFI PART", 8)) continue;
+    uint64_t entriesLba;
+    uint32_t count, size;
+    memcpy (&entriesLba, buffer + 72, 8);
+    memcpy (&count, buffer + 80, 4);
+    memcpy (&size, buffer + 84, 4);
+    if (size < 128 || size > 4096 || count > 512) continue;
+    for (uint32_t i = 0; i < count && !found; ++i) {
+      const uint64_t at = static_cast<uint64_t> (i) * size;
+      if (i == 0 || at % 4096 < size) {
+        if (hostRead4k (static_cast<uint8_t> (l), entriesLba + at / 4096, 1, buffer) != kIOReturnSuccess) break;
+      }
+      const uint8_t *entry = buffer + at % 4096;
+      uint64_t firstLba, lastLba;
+      memcpy (&firstLba, entry + 32, 8);
+      memcpy (&lastLba, entry + 40, 8);
+      if (!firstLba || lastLba < firstLba) continue;
+      size_t n = 0;
+      while (n < length && n < 36 && entry[56 + 2 * n] == static_cast<uint8_t> (name[n]) && entry[57 + 2 * n] == 0) ++n;
+      if (n == length && (n == 36 || (entry[56 + 2 * n] == 0 && entry[57 + 2 * n] == 0))) {
+        *lun = l;
+        *first = firstLba;
+        *blocks = lastLba - firstLba + 1;
+        found = 1;
+      }
+    }
+  }
+  IOFree (buffer, 4096);
+  return found;
+}
+
+// Reads `blocks` 4096-byte blocks from lba of the LUN (absolute, as native_ufs_part_find returned them).
+extern "C" int native_ufs_part_read (uint32_t lun, uint64_t lba, uint32_t blocks, void *dst)
+{
+  if (!gHost.ready || !dst || !blocks || lun > 5) return 0;
+  while (blocks) {
+    uint32_t chunk = blocks > kDataMax / 4096 ? static_cast<uint32_t> (kDataMax / 4096) : blocks;
+    if (hostRead4k (static_cast<uint8_t> (lun), lba, chunk, dst) != kIOReturnSuccess) return 0;
+    dst = static_cast<uint8_t *> (dst) + chunk * 4096ULL;
+    lba += chunk;
+    blocks -= chunk;
+  }
+  return 1;
+}
+
+// The fault registers of the endpoint's stream: global fault status and syndrome, then the context bank's FSR, FAR (low, high) and FSYNR0.
+extern "C" int native_ufs_extra_fault (uint32_t *out)
+{
+  if (!gExtraSmmu || !gExtraCb) return 0;
+  out[0] = read32 (gExtraSmmu, 0x48); out[1] = read32 (gExtraSmmu, 0x50);
+  out[2] = read32 (gExtraCb, 0x58); out[3] = read32 (gExtraCb, 0x60); out[4] = read32 (gExtraCb, 0x64); out[5] = read32 (gExtraCb, 0x68);
+  out[6] = read32 (gExtraCb, 0x0); out[7] = read32 (gExtraCb, 0x30); out[8] = read32 (gExtraCb, 0x20); out[9] = read32 (gExtraSmmu, 0x1000 + 4 * gExtraBank);
+  return 1;
 }
 
 // ---- Diagnostic log window (sheng-log=1) --------------------------------------------------------------------------

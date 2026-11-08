@@ -137,8 +137,9 @@ public:
         }
         const bool scaled = swap.width != scanout_.width || swap.height != scanout_.height;
         if (r == gpupresent::kOk && scaled) ++stats_->scaled;
-        // The read-back compares rows one to one; a scaled frame has no such rows.
-        if (r == gpupresent::kOk && !scaled && stats_->verified < 4) verify(swap);
+        // The read-back compares rows one to one; a scaled or dimmed frame has no such rows.
+        const uint32_t bScale = (swap.reserved & 0x80000000u) ? ((swap.reserved >> 16) & 0x1ffu) : 256u;
+        if (r == gpupresent::kOk && !scaled && bScale == 256u && stats_->verified < 4) verify(swap);
         if (r == gpupresent::kOk) updateOverlay();
         note(0x6731);   // the GPU copy returned
         const uint64_t copiedUs = clock_gettime_nsec_np(CLOCK_UPTIME_RAW) / 1000;

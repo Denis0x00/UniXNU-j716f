@@ -61,6 +61,9 @@ static void put (struct ctx *g, u8 c)
     g->log[g->logn++] = (c < 32) ? ' ' : c;
     g->log[g->logn] = 0;
   }
+  if (g->base == 0) {
+    return;
+  }
 
   if (c == '\n') {
     g->x = 0;
@@ -227,30 +230,34 @@ __attribute__((noreturn, used, section(".text.b_main"))) void panic_screen_main 
   u32 row, col;
 
   __asm__ volatile ("msr daifset, #15");
-  g.base = (u8 *)v->v_baseaddr;
+  if (fmt == 0) {
+    park ();
+  }
+  g.base = (v->v_depth == 32) ? (u8 *)v->v_baseaddr : 0;
   g.rb   = v->v_rowbytes;
   g.w    = v->v_width;
   g.h    = v->v_height;
-  if (g.base == 0 || v->v_depth != 32 || fmt == 0) {
-    park ();
-  }
-
-  /* First panic wins: a marker in the last row's first two pixels means a panic already drew
-   * the screen; a later panic (another thread or exception) must not overwrite it. */
-  volatile u32 *mark = (volatile u32 *)(g.base + (u64)(g.h - 1) * g.rb);
-  if (mark[0] == 0xC0FFEE11u && mark[1] == 0x5CEEDA7Au) {
-    park ();
-  }
   g.x = 0;
   g.y = g.h / 8;
   g.log = 0;
   g.logn = 0;
-  for (row = g.y; row < g.h; row++) {
-    for (col = 0; col < g.w; col++) {
-      *(volatile u32 *)(g.base + (u64)row * g.rb + (u64)col * 4) = 0;
+
+  if (g.base) {
+    /* First panic wins: a marker in the last row's first two pixels means a panic already drew
+     * the screen; a later panic (another thread or exception) must not overwrite it. */
+    volatile u32 *mark = (volatile u32 *)(g.base + (u64)(g.h - 1) * g.rb);
+    if (mark[0] == 0xC0FFEE11u && mark[1] == 0x5CEEDA7Au) {
+      park ();
     }
+    for (row = g.y; row < g.h; row++) {
+      for (col = 0; col < g.w; col++) {
+        *(volatile u32 *)(g.base + (u64)row * g.rb + (u64)col * 4) = 0;
+      }
+    }
+    g.y += 8;
+  } else if (PANIC_TEXT && *(volatile u8 *)PANIC_TEXT != 0) {
+    park ();
   }
-  g.y += 8;
   /* The board's live banner keeps showing this text after the next swap paints over the screen (BootProgress.c,
    * boot_progress_panic_text). The first panic's text is kept: a buffer that already holds one is left alone. */
   if (PANIC_TEXT && *(volatile u8 *)PANIC_TEXT == 0) {
@@ -274,9 +281,12 @@ __attribute__((noreturn, used, section(".text.b_main"))) void panic_screen_main 
   hex (&g, "\npages=", *(volatile const u32 *)PAGE_TOTAL);
   hex (&g, "\nfree=", *(volatile const u32 *)PAGE_FREE);
   /* The raw argument slots are not dumped: the formatted message above already carries them (room for the PANIC_TEXT copy). */
-  mark[0] = 0xC0FFEE11u;
-  mark[1] = 0x5CEEDA7Au;
-  __asm__ volatile ("dsb sy");
+  if (g.base) {
+    volatile u32 *mark = (volatile u32 *)(g.base + (u64)(g.h - 1) * g.rb);
+    mark[0] = 0xC0FFEE11u;
+    mark[1] = 0x5CEEDA7Au;
+    __asm__ volatile ("dsb sy");
+  }
   if (PANIC_HOOK) {
     ((void (*)(void))PANIC_HOOK) ();
   }

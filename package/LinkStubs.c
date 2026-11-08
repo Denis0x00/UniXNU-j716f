@@ -79,3 +79,19 @@ __attribute__((weak)) void native_flip_frame_offered(void) {}
 // --- Flip Diagnostics (BootRamoops) ---
 __attribute__((weak)) char native_flip_rows[16][120];
 __attribute__((weak)) volatile unsigned native_flip_changes = 0;
+
+// --- Kernel Thread / CPU Diagnostic Hooks (WifiNet.cpp) ---
+int boot_kthread_report(const char *name, char *out, unsigned size);
+__attribute__((weak)) int boot_kthread_report(const char *name, char *out, unsigned size)
+{
+  (void)name;
+  if (out && size) out[0] = 0;
+  return 0;
+}
+
+unsigned boot_cpu_kick(char *out, unsigned size);
+__attribute__((weak)) unsigned boot_cpu_kick(char *out, unsigned size)
+{
+  if (out && size) out[0] = 0;
+  return 0;
+}

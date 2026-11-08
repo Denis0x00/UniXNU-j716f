@@ -33,11 +33,25 @@ body:
   %si = zext i32 %sj to i64
   %from = getelementptr inbounds <4 x i32>, ptr addrspace(1) %source, i64 %si
   %value = load <4 x i32>, ptr addrspace(1) %from, align 16
+  %p4 = getelementptr inbounds i32, ptr addrspace(2) %params, i64 4
+  %scale = load i32, ptr addrspace(2) %p4, align 4
+  %s_ins = insertelement <4 x i32> poison, i32 %scale, i64 0
+  %s_vec = shufflevector <4 x i32> %s_ins, <4 x i32> poison, <4 x i32> zeroinitializer
+  %rb_in = and <4 x i32> %value, <i32 16711935, i32 16711935, i32 16711935, i32 16711935>
+  %rb_m = mul <4 x i32> %rb_in, %s_vec
+  %rb_sh = lshr <4 x i32> %rb_m, <i32 8, i32 8, i32 8, i32 8>
+  %rb_out = and <4 x i32> %rb_sh, <i32 16711935, i32 16711935, i32 16711935, i32 16711935>
+  %g_sh = lshr <4 x i32> %value, <i32 8, i32 8, i32 8, i32 8>
+  %g_in = and <4 x i32> %g_sh, <i32 255, i32 255, i32 255, i32 255>
+  %g_m = mul <4 x i32> %g_in, %s_vec
+  %g_out = and <4 x i32> %g_m, <i32 65280, i32 65280, i32 65280, i32 65280>
+  %rgb = or <4 x i32> %rb_out, %g_out
+  %out_val = or <4 x i32> %rgb, <i32 -16777216, i32 -16777216, i32 -16777216, i32 -16777216>
   %trow = mul nuw i32 %y, %target_row
   %tj = add nuw i32 %trow, %x
   %ti = zext i32 %tj to i64
   %to = getelementptr inbounds <4 x i32>, ptr addrspace(1) %target, i64 %ti
-  store <4 x i32> %value, ptr addrspace(1) %to, align 16
+  store <4 x i32> %out_val, ptr addrspace(1) %to, align 16
   br label %done
 
 done:

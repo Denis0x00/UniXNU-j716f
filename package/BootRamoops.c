@@ -214,7 +214,8 @@ static u32 cpu_mhz_estimate(void) {
 // 1 at 0x18592000 CPUs 4-6 (Gold), 2 at 0x18593000 CPU 7 (Gold Prime). Register facts as Linux's qcom-cpufreq-hw uses them for EPSS
 // (epss_soc_data): 0x100 + 4*i the frequency lookup table (bits 31:30 the source, 0 = the 300 MHz alternate clock; bits 7:0 the
 // multiple of the 19.2 MHz XO; a repeated frequency ends the table), 0x320 the requested performance level (a table row).
-// pipa-cpufreq=1 asks each domain for its top row; the hardware's limits management still caps it. Logged either way.
+// pipa-cpufreq=1 asks each domain for its top row; pipa-cpufreq=4 runs a 16 ms dynamic governor (after UniXNU-sheng's CpuFreqProbe.cpp)
+// that scales each domain and L3 by recount CPU busy share, with touch boost (1000 ms) and GPU/display frame floor (60%).
 #define CPUFREQ_DOMAINS 3
 #define CPUFREQ_EN      0x000U
 #define CPUFREQ_STATE   0x020U
@@ -223,52 +224,224 @@ static u32 cpu_mhz_estimate(void) {
 #define CPUFREQ_LUT     0x100U
 #define CPUFREQ_PERF    0x320U
 #define CPUFREQ_ROWS    40U
+extern u64 mach_absolute_time(void);
+extern u64 sheng_cpu_idle_mach(int cpu) __attribute__((weak_import));
+extern volatile u32 native_touch_seq __attribute__((weak_import));
+extern volatile unsigned native_touch_stroke_count __attribute__((weak_import));
+extern volatile u32 native_legacy_transfer_calls __attribute__((weak_import));
+extern volatile u64 native_adreno_submit_phase[7] __attribute__((weak_import));
+
 static u32 want_cpufreq;
+static volatile u32 *cpufreq_domain[CPUFREQ_DOMAINS];
+static volatile u32 *cpufreq_l3;
+static u32 cpufreq_lut_mhz[CPUFREQ_DOMAINS][CPUFREQ_ROWS];
+static u32 cpufreq_rows[CPUFREQ_DOMAINS], cpufreq_top[CPUFREQ_DOMAINS], cpufreq_top_mhz[CPUFREQ_DOMAINS];
+static u32 cpufreq_l3_rows, cpufreq_l3_top, cpufreq_l3_top_mhz;
+static volatile u32 gov_active, gov_cur_vote[CPUFREQ_DOMAINS], gov_l3_vote;
+static volatile u32 gov_mean_mhz[CPUFREQ_DOMAINS], gov_busy_permille[CPUFREQ_DOMAINS];
+static volatile u32 gov_reprograms, gov_touch_boosts;
+
 static u32 cpufreq_mhz(u32 entry) {return ((entry >> 30) & 3) ? (entry & 0xff) * 192 / 10 : 300;}
+
+static void cpufreq_vote_domain(unsigned d, u32 row) {
+  static const unsigned domain_cpus[CPUFREQ_DOMAINS] = {4U, 3U, 1U};
+  volatile u32 *r = cpufreq_domain[d];
+  if (!r || !cpufreq_rows[d]) return;
+  if (row >= cpufreq_rows[d]) row = cpufreq_rows[d] - 1U;
+  r[CPUFREQ_PERF / 4] = row;
+  if (r[CPUFREQ_DCVS / 4] & 1U) {
+    for (unsigned c = 1; c < domain_cpus[d]; ++c) r[(CPUFREQ_PERF + 4 * c) / 4] = row;
+  }
+  __asm__ volatile("dsb sy" ::: "memory");
+  gov_cur_vote[d] = row;
+}
+
+static void cpufreq_vote_l3(u32 row) {
+  if (!cpufreq_l3 || !cpufreq_l3_rows) return;
+  if (row >= cpufreq_l3_rows) row = cpufreq_l3_rows - 1U;
+  cpufreq_l3[CPUFREQ_L3_VOTE / 4] = row;
+  __asm__ volatile("dsb sy" ::: "memory");
+  gov_l3_vote = row;
+}
+
+static void cpufreq_governor_thread(void *argument, int result) {
+  (void)argument; (void)result;
+  static const unsigned cpu_domain[8] = {0U, 0U, 0U, 0U, 1U, 1U, 1U, 2U};
+  u64 prev_idle[8] = {0};
+  u64 prev_mach = mach_absolute_time();
+  for (int c = 0; c < 8; ++c) prev_idle[c] = &sheng_cpu_idle_mach ? sheng_cpu_idle_mach(c) : 0;
+  u32 prev_touch_sig = (&native_touch_seq ? native_touch_seq : 0U) ^
+                       ((&native_touch_stroke_count ? native_touch_stroke_count : 0U) << 16);
+  u64 prev_submits = (&native_adreno_submit_phase ? native_adreno_submit_phase[6] : 0ULL) +
+                     (&native_legacy_transfer_calls ? (u64)native_legacy_transfer_calls : 0ULL);
+  unsigned touch_hold = 0;
+  unsigned quiet_win[CPUFREQ_DOMAINS] = {0}, down_win[CPUFREQ_DOMAINS] = {0};
+  u64 sum_mhz[CPUFREQ_DOMAINS] = {0}, sum_busy[CPUFREQ_DOMAINS] = {0};
+  unsigned stat_samples = 0;
+  gov_active = 1;
+
+  for (;;) {
+    IOSleep(16);
+    const u64 now = mach_absolute_time();
+    const u64 dt = now > prev_mach ? now - prev_mach : 0;
+    prev_mach = now;
+    if (!dt) continue;
+
+    u32 dom_busy[CPUFREQ_DOMAINS] = {0};
+    for (int c = 0; c < 8; ++c) {
+      const u64 idle = &sheng_cpu_idle_mach ? sheng_cpu_idle_mach(c) : 0;
+      const u64 didle = idle >= prev_idle[c] ? idle - prev_idle[c] : 0;
+      prev_idle[c] = idle;
+      const u32 busy = didle >= dt ? 0U : (u32)((dt - didle) * 1000ULL / dt);
+      const unsigned d = cpu_domain[c];
+      if (busy > dom_busy[d]) dom_busy[d] = busy;
+    }
+
+    const u32 touch_sig = (&native_touch_seq ? native_touch_seq : 0U) ^
+                          ((&native_touch_stroke_count ? native_touch_stroke_count : 0U) << 16);
+    if (touch_sig != prev_touch_sig) {
+      prev_touch_sig = touch_sig;
+      touch_hold = 62U; // ~1000 ms touch boost at 16 ms/window
+      gov_touch_boosts = gov_touch_boosts + 1U;
+    } else if (touch_hold > 0) {
+      --touch_hold;
+    }
+
+    const u64 submits = (&native_adreno_submit_phase ? native_adreno_submit_phase[6] : 0ULL) +
+                        (&native_legacy_transfer_calls ? (u64)native_legacy_transfer_calls : 0ULL);
+    const int frame_active = (submits != prev_submits);
+    prev_submits = submits;
+
+    u32 max_busy = 0;
+    for (unsigned d = 0; d < CPUFREQ_DOMAINS; ++d) {
+      const u32 rows = cpufreq_rows[d];
+      if (!rows) continue;
+      const u32 top = cpufreq_top[d];
+      u32 busy = dom_busy[d];
+      if (d >= 1U) {
+        if (touch_hold > 0) busy = 1000U;
+        else if (frame_active && busy < 600U) busy = 600U;
+      }
+      if (busy > max_busy) max_busy = busy;
+
+      u32 target = gov_cur_vote[d];
+      if (busy < 100U) {
+        ++quiet_win[d];
+        const unsigned need_quiet = (d == 0U) ? 4U : 12U;
+        if (quiet_win[d] >= need_quiet) target = 0U;
+      } else {
+        quiet_win[d] = 0;
+        if (busy >= 900U) {
+          target = top;
+        } else {
+          const u32 want_mhz = cpufreq_top_mhz[d] * busy * 5U / 4000U;
+          target = top;
+          for (u32 r = 0; r < rows; ++r) {
+            if (cpufreq_lut_mhz[d][r] >= want_mhz) { target = r; break; }
+          }
+        }
+        if (target < gov_cur_vote[d]) {
+          if (++down_win[d] < 4U) target = gov_cur_vote[d];
+          else down_win[d] = 0;
+        } else {
+          down_win[d] = 0;
+        }
+      }
+
+      if (target != gov_cur_vote[d]) {
+        cpufreq_vote_domain(d, target);
+        gov_reprograms = gov_reprograms + 1U;
+      }
+      sum_mhz[d] += cpufreq_lut_mhz[d][gov_cur_vote[d]];
+      sum_busy[d] += dom_busy[d];
+    }
+
+    if (cpufreq_l3_rows) {
+      u32 l3_target = 0;
+      if (touch_hold > 0 || max_busy >= 900U) {
+        l3_target = cpufreq_l3_top;
+      } else if (gov_cur_vote[1] == 0U && gov_cur_vote[2] == 0U && max_busy < 100U) {
+        l3_target = 0U;
+      } else {
+        l3_target = (cpufreq_l3_top * max_busy) / 1000U;
+      }
+      if (l3_target != gov_l3_vote) cpufreq_vote_l3(l3_target);
+    }
+
+    if (++stat_samples >= 64U) {
+      for (unsigned d = 0; d < CPUFREQ_DOMAINS; ++d) {
+        gov_mean_mhz[d] = (u32)(sum_mhz[d] / stat_samples);
+        gov_busy_permille[d] = (u32)(sum_busy[d] / stat_samples);
+        sum_mhz[d] = 0;
+        sum_busy[d] = 0;
+      }
+      stat_samples = 0;
+    }
+  }
+}
+
 static void cpufreq(int request) {
   static const u64 phys[CPUFREQ_DOMAINS] = {0x18591000UL, 0x18592000UL, 0x18593000UL};
-  static const unsigned domain_cpus[CPUFREQ_DOMAINS] = {4U, 3U, 1U};
-  static volatile u32 *domain[CPUFREQ_DOMAINS];
-  static volatile u32 *l3;
-  char text[320];
+  char text[384];
   unsigned at = 0;
   for (unsigned d = 0; d < CPUFREQ_DOMAINS && at + 64 < sizeof text; ++d) {
-    if (!domain[d]) domain[d] = (volatile u32 *)ml_io_map(phys[d], 0x1000);
-    volatile u32 *r = domain[d];
+    if (!cpufreq_domain[d]) cpufreq_domain[d] = (volatile u32 *)ml_io_map(phys[d], 0x1000);
+    volatile u32 *r = cpufreq_domain[d];
     if (!r) {at += (unsigned)snprintf(text + at, sizeof text - at, "d%u unmapped | ", d); continue;}
-    u32 rows = 0, top = 0, top_mhz = 0, previous = 0;
-    for (; rows < CPUFREQ_ROWS; ++rows) {
-      u32 row_val = r[(CPUFREQ_LUT + 4 * rows) / 4];
-      u32 mhz = cpufreq_mhz(row_val);
-      if (rows && mhz == previous) break;
-      if (mhz >= top_mhz) {top_mhz = mhz; top = rows;}
-      previous = mhz;
-    }
-    if (request && rows) {
-      r[CPUFREQ_PERF / 4] = top;
-      if (r[CPUFREQ_DCVS / 4] & 1U) {
-        for (unsigned c = 1; c < domain_cpus[d]; ++c) r[(CPUFREQ_PERF + 4 * c) / 4] = top;
+    if (!cpufreq_rows[d]) {
+      u32 rows = 0, top = 0, top_mhz = 0, previous = 0;
+      for (; rows < CPUFREQ_ROWS; ++rows) {
+        u32 row_val = r[(CPUFREQ_LUT + 4 * rows) / 4];
+        u32 mhz = cpufreq_mhz(row_val);
+        if (rows && mhz == previous) break;
+        cpufreq_lut_mhz[d][rows] = mhz;
+        if (mhz >= top_mhz) {top_mhz = mhz; top = rows;}
+        previous = mhz;
       }
-      __asm__ volatile("dsb sy" ::: "memory");
+      cpufreq_rows[d] = rows;
+      cpufreq_top[d] = top;
+      cpufreq_top_mhz[d] = top_mhz;
     }
+    const u32 rows = cpufreq_rows[d], top = cpufreq_top[d], top_mhz = cpufreq_top_mhz[d];
+    if (request && rows) cpufreq_vote_domain(d, top);
     u32 perf = r[CPUFREQ_PERF / 4];
-    u32 state_mhz = (r[CPUFREQ_STATE / 4] & 0xffU) * 192U / 10U;
-    at += (unsigned)snprintf(text + at, sizeof text - at, "d%u e%u cur %uMHz perf %u (%uMHz)/%u top %u (%uMHz)%s | ",
-                             d, r[CPUFREQ_EN / 4] & 1U, state_mhz, perf,
-                             perf < rows ? cpufreq_mhz(r[(CPUFREQ_LUT + 4 * perf) / 4]) : 0, rows, top, top_mhz,
-                             request ? " req" : "");
-  }
-  if (!l3) l3 = (volatile u32 *)ml_io_map(0x18590000UL, 0x1000);
-  if (l3 && at + 40 < sizeof text) {
-    u32 rows = 0, top = 0, top_mhz = 0, previous = 0;
-    for (; rows < CPUFREQ_ROWS; ++rows) {
-      u32 mhz = cpufreq_mhz(l3[(CPUFREQ_LUT + 4 * rows) / 4]);
-      if (rows && mhz == previous) break;
-      if (mhz >= top_mhz) {top_mhz = mhz; top = rows;}
-      previous = mhz;
+    u32 state_mult = r[CPUFREQ_STATE / 4] & 0xffU;
+    u32 state_mhz = state_mult ? (state_mult * 192U / 10U) : 300U;
+    u32 perf_mhz = perf < rows ? cpufreq_lut_mhz[d][perf] : 0U;
+    if (gov_active) {
+      at += (unsigned)snprintf(text + at, sizeof text - at, "d%u cur %uMHz v%u(%uMHz) avg %uMHz b%u‰ | ",
+                               d, state_mhz, perf, perf_mhz, gov_mean_mhz[d] ? gov_mean_mhz[d] : perf_mhz,
+                               gov_busy_permille[d]);
+    } else {
+      at += (unsigned)snprintf(text + at, sizeof text - at, "d%u e%u cur %uMHz perf %u (%uMHz)/%u top %u (%uMHz)%s | ",
+                               d, r[CPUFREQ_EN / 4] & 1U, state_mhz, perf, perf_mhz, rows, top, top_mhz,
+                               request ? " req" : "");
     }
-    if (request && rows) {l3[CPUFREQ_L3_VOTE / 4] = top; __asm__ volatile("dsb sy" ::: "memory");}
-    at += (unsigned)snprintf(text + at, sizeof text - at, "L3 e%u v%u (%uMHz)", l3[CPUFREQ_EN / 4] & 1U, l3[CPUFREQ_L3_VOTE / 4], top_mhz);
+  }
+  if (!cpufreq_l3) cpufreq_l3 = (volatile u32 *)ml_io_map(0x18590000UL, 0x1000);
+  if (cpufreq_l3 && at + 40 < sizeof text) {
+    if (!cpufreq_l3_rows) {
+      u32 rows = 0, top = 0, top_mhz = 0, previous = 0;
+      for (; rows < CPUFREQ_ROWS; ++rows) {
+        u32 mhz = cpufreq_mhz(cpufreq_l3[(CPUFREQ_LUT + 4 * rows) / 4]);
+        if (rows && mhz == previous) break;
+        if (mhz >= top_mhz) {top_mhz = mhz; top = rows;}
+        previous = mhz;
+      }
+      cpufreq_l3_rows = rows;
+      cpufreq_l3_top = top;
+      cpufreq_l3_top_mhz = top_mhz;
+    }
+    if (request && cpufreq_l3_rows) cpufreq_vote_l3(cpufreq_l3_top);
+    const u32 l3_v = cpufreq_l3[CPUFREQ_L3_VOTE / 4];
+    const u32 l3_mhz = l3_v < cpufreq_l3_rows ? cpufreq_mhz(cpufreq_l3[(CPUFREQ_LUT + 4 * l3_v) / 4]) : cpufreq_l3_top_mhz;
+    if (gov_active) {
+      at += (unsigned)snprintf(text + at, sizeof text - at, "L3 v%u(%uMHz) rep %u tb %u",
+                               l3_v, l3_mhz, gov_reprograms, gov_touch_boosts);
+    } else {
+      at += (unsigned)snprintf(text + at, sizeof text - at, "L3 e%u v%u (%uMHz)",
+                               cpufreq_l3[CPUFREQ_EN / 4] & 1U, l3_v, l3_mhz);
+    }
   }
   line("cpufreq: ", text);
 }
@@ -1205,9 +1378,14 @@ static void framebuffer_crops(void) {
 char boot_progress_ext[8][48];
 
 // One line of the display's own state, written when its text changes (the counters in it move every sample while the UI runs).
+extern volatile u32 native_backlight_stats[8] __attribute__((weak_import));
+extern volatile u32 native_backlight_scale __attribute__((weak_import));
+extern volatile int sheng_backlight_probe_stage __attribute__((weak_import));
+extern volatile int sheng_backlight_probe_result __attribute__((weak_import));
+
 static void display_row(unsigned slot, const char *text) {
-  static char last[2][224];
-  if (slot > 1 || !text[0] || !strncmp(last[slot], text, sizeof last[slot])) return;
+  static char last[3][224];
+  if (slot > 2 || !text[0] || !strncmp(last[slot], text, sizeof last[slot])) return;
   strlcpy(last[slot], text, sizeof last[slot]);
   line("display: ", last[slot]);
 }
@@ -1223,6 +1401,16 @@ static void display_status(void) {
            &native_legacy_unit_scale_calls ? native_legacy_unit_scale_calls : 0, &native_legacy_chosen_scale ? native_legacy_chosen_scale : 0,
            &native_legacy_chosen_rotation ? native_legacy_chosen_rotation : 0);
   line("display: ", text);
+  if (&native_backlight_stats) {
+    snprintf(text, sizeof text, "backlight probe %d/%d stats %u calls %u level %u/%u scale %u/256 fade %u ms ramp %u/%u",
+             &sheng_backlight_probe_stage ? sheng_backlight_probe_stage : 0,
+             &sheng_backlight_probe_result ? sheng_backlight_probe_result : 0,
+             native_backlight_stats[0], native_backlight_stats[1],
+             native_backlight_stats[2], native_backlight_stats[3],
+             &native_backlight_scale ? native_backlight_scale : 256,
+             native_backlight_stats[5], native_backlight_stats[6], native_backlight_stats[7]);
+    display_row(2, text);
+  }
   // The frame rate while the UI moves (LegacyDisplayProbe.cpp): swaps less than 200 ms apart, their gaps, submit-to-retire.
   if (&native_legacy_swap_pacing && native_legacy_swap_pacing(text, sizeof text)) line("display: ", text);
   // The scanout hand-off's retries and whether the refresh tick still runs (LegacyDisplayProbe.cpp): the two facts a round that draws
@@ -1507,9 +1695,13 @@ static void writer(void *argument, int result) {
     panic_text(0);
     if (!smp_cpufreq_done && &armcpu_smp_running && armcpu_smp_running >= 7) {
       smp_cpufreq_done = 1;
-      cpufreq(want_cpufreq == 1);
+      cpufreq(want_cpufreq >= 1);
+      if (want_cpufreq >= 2) {
+        void *gov_thread = 0;
+        if (kernel_thread_start(cpufreq_governor_thread, 0, &gov_thread) == 0) thread_deallocate(gov_thread);
+      }
     }
-    if (pass % 100 == 0) {display_status(); cpu_status(); touch_status(); gpu_stack_status(); framebuffer_status(); process_status(0); ddr_status(); ufs_status();}
+    if (pass % 100 == 0) {display_status(); cpu_status(); cpufreq(0); touch_status(); gpu_stack_status(); framebuffer_status(); process_status(0); ddr_status(); ufs_status();}
     if (pass == 2000) process_status(1);   // the UI's stacks 200 s after the zone was mapped
     // Two corner crops every 50 s: a round can end on a panic before the 200 s mark (2026-10-24's unaligned_store round did), and
     // the crops of a round that turned the pages are the ones worth reading.
@@ -1613,9 +1805,9 @@ void boot_progress_start(void) {
   line("boot cpu: ", text);
   want_cpufreq = 0;
   PE_parse_boot_argn("pipa-cpufreq", &want_cpufreq, sizeof want_cpufreq);
-  cpufreq(want_cpufreq == 1);
-  if (want_cpufreq == 1) {
-    snprintf(text, sizeof text, "about %u MHz after the request", cpu_mhz_estimate());
+  cpufreq(want_cpufreq >= 1);
+  if (want_cpufreq >= 1) {
+    snprintf(text, sizeof text, "about %u MHz after the request (mode %u)", cpu_mhz_estimate(), want_cpufreq);
     line("boot cpu: ", text);
   }
   void *thread = 0;

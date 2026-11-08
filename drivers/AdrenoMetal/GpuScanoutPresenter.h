@@ -118,15 +118,16 @@ public:
         // The compositor cycles through a few surfaces and the display driver keeps this task's mapping of each (frame.tag): the import of
         // a cached mapping is made once and reused, instead of pinning and mapping about 2400 pages into the GPU and back every frame.
         id<MTLBuffer> source = nil;
-        Cached *cached = (frame.tag & 0x80) ? &cached_[frame.tag & 3] : nullptr;
+        const uint32_t cacheTag = frame.tag & 0xffffu;
+        Cached *cached = (cacheTag & 0x80) ? &cached_[cacheTag & 3] : nullptr;
         if (cached) {
-            if (cached->buffer && cached->tag == frame.tag && cached->base == frame.base && cached->bytes == frame.bytes) {
+            if (cached->buffer && cached->tag == cacheTag && cached->base == frame.base && cached->bytes == frame.bytes) {
                 source = cached->buffer;
                 ++imports_[1];
             } else {
                 cached->buffer = [device_ newBufferWithBytesNoCopy:(void *)frame.base length:frame.bytes options:MTLResourceStorageModeShared
                                                        deallocator:nil];
-                cached->tag = frame.tag; cached->base = frame.base; cached->bytes = frame.bytes;
+                cached->tag = cacheTag; cached->base = frame.base; cached->bytes = frame.bytes;
                 cached->texture = nil;   // another mapping: its texture is not this one's
                 source = cached->buffer;
                 ++imports_[0];
@@ -160,13 +161,15 @@ public:
         uint64_t step = nowNs();
         cost_.importNs += step - began;
         uint32_t form = 0;
-        const bool kernelCopy = !scaled && copier_ && frame.stride != scanout_.stride && !(frame.stride & 15) && !(scanout_.stride & 15) &&
-                                !(row & 15);
+        const uint32_t brightnessScale = (frame.tag & 0x80000000u) ? ((frame.tag >> 16) & 0x1ffu) : 256u;
+        const bool kernelCopy = !scaled && copier_ && (frame.stride != scanout_.stride || brightnessScale < 256u) &&
+                                !(frame.stride & 15) && !(scanout_.stride & 15) && !(row & 15);
         if (kernelCopy) {
             // One thread a 16-byte vector of a row; a threadgroup is a run of one row, so the scanout is written front to back.
             id<MTLComputeCommandEncoder> compute = [commands computeCommandEncoder];
             if (!compute) return kNoResource;
-            const uint32_t params[4] = {(uint32_t)(row / 16), frame.height, (uint32_t)(frame.stride / 16), (uint32_t)(scanout_.stride / 16)};
+            const uint32_t params[5] = {(uint32_t)(row / 16), frame.height, (uint32_t)(frame.stride / 16),
+                                        (uint32_t)(scanout_.stride / 16), brightnessScale};
             const NSUInteger side = copier_.maxTotalThreadsPerThreadgroup >= 128 ? 128 : 64;
             [compute setComputePipelineState:copier_];
             [compute setBuffer:source offset:0 atIndex:0];

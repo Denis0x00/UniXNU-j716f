@@ -207,7 +207,7 @@ static void usbVoteRpmhRailsOnce() {
     IODelay(2000);
 }
 
-static bool usbConfigureSmmuBypass(UsbHw &hw, const char **outErr = nullptr) {
+[[maybe_unused]] static bool usbConfigureSmmuBypass(UsbHw &hw, const char **outErr = nullptr) {
     if (outErr) *outErr = nullptr;
     if (!hw.smmu) {
         hw.smmu = reinterpret_cast<volatile uint32_t *>(
@@ -268,14 +268,17 @@ static bool usbConfigureSmmuBypass(UsbHw &hw, const char **outErr = nullptr) {
             foundUsb0Smr    = true;
             hw.smmuOrigSmr  = smr;
             hw.smmuOrigS2cr = s2cr;
-            // Keep UEFI's SMR[i] untouched! Check whether its context bank has Stage-1 M=1 enabled.
+            // Keep UEFI's SMR[i] untouched! If its context bank has Stage-1 M=1 enabled,
+            // disable Stage-1 on that context bank directly so S2CR[i] keeps its original CB index.
             if ((s2cr & 0x00030000u) == 0u) {
                 const unsigned cb = s2cr & 0xFFu;
                 if (cb < banks) {
-                    const uint32_t sctlr = smmuIoRd(io.ctx, (pages + cb) * 4096u);
+                    const unsigned usbCbOff = (pages + cb) * 4096u;
+                    const uint32_t sctlr = smmuIoRd(io.ctx, usbCbOff);
                     if ((sctlr & 1u) != 0u) {
-                        smmuIoWr(io.ctx, 0xC00u + 4u * i, bypassBank);
-                        hw.smmuOrigS2cr = smmuIoRd(io.ctx, 0xC00u + 4u * i);
+                        smmuIoWr(io.ctx, usbCbOff, 0u);
+                        smmuIoWr(io.ctx, 0x1800u + 4u * cb, 1u);
+                        smmuIoWr(io.ctx, 0x1000u + 4u * cb, 0x10000u);
                     }
                 }
             }

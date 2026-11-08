@@ -4,13 +4,43 @@
 // so the host gets every process's os_log lines (PosterBoard, WidgetRenderer, wifid, ...) without a second export channel.
 // Each pass rewrites the file through a temporary name; one daemon instance writes (the job runs under several labels).
 #import <Foundation/Foundation.h>
+#include <dlfcn.h>
 #include <fcntl.h>
 #include <objc/message.h>
+#include <objc/runtime.h>
+#include <spawn.h>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <sys/sysctl.h>
+#include <sys/wait.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <zlib.h>
 #include <string>
+
+extern char **environ;
+
+@interface NSObject (UniXNUAutoLaunch)
++ (id)defaultWorkspace;
+- (BOOL)openApplicationWithBundleID:(NSString *)bundleID;
++ (id)serviceWithDefaultShellEndpoint;
+- (void)openApplication:(NSString *)bundleID withOptions:(id)options completion:(void (^)(id process, NSError *error))completion;
+@end
+
+static void klog_printf(const char *fmt, ...) {
+    char buf[512];
+    va_list ap;
+    va_start(ap, fmt);
+    int n = vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+    if (n <= 0) return;
+    if ((size_t)n >= sizeof(buf)) n = (int)(sizeof(buf) - 1);
+    int fd = open("/dev/console", O_WRONLY | O_NOCTTY | O_CLOEXEC);
+    if (fd >= 0) {
+        (void)write(fd, buf, (size_t)n);
+        close(fd);
+    }
+}
 
 namespace {
 
@@ -80,12 +110,91 @@ void writePass(unsigned pass) {
     }
 }
 
+static void autoInstallAndLaunchTestApp() {
+    @autoreleasepool {
+        static const char *const kAppInst = "/usr/libexec/unixnu-appinst";
+        static const char *const kTestIpa = "/private/var/ngpu/appsync/autoinstall/UniXNUTest.ipa";
+        int a1 = access(kAppInst, X_OK);
+        int a2 = access(kTestIpa, R_OK);
+        klog_printf("[adrenoprobed] autoinstall check: appinst=%d ipa=%d uid=%d\n", a1, a2, (int)getuid());
+        if (a1 != 0 || a2 != 0) {
+            return;
+        }
+        // Wait for SpringBoard and installd to settle at the desktop
+        sleep(8);
+        char *const argv[] = {
+            const_cast<char *>(kAppInst),
+            const_cast<char *>("org.unixnu.testapp"),
+            const_cast<char *>(kTestIpa),
+            nullptr,
+        };
+        int status = -1;
+        for (unsigned instTry = 0; instTry < 3; ++instTry) {
+            pid_t pid = -1;
+            status = -1;
+            int sp = posix_spawn(&pid, kAppInst, nullptr, nullptr, argv, environ);
+            if (sp == 0 && pid > 0) {
+                (void)waitpid(pid, &status, 0);
+            }
+            int exitCode = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+            int sigCode = WIFSIGNALED(status) ? WTERMSIG(status) : 0;
+            klog_printf("[adrenoprobed] autoinstall try=%u spawn=%d pid=%d raw=%d exit=%d sig=%d\n",
+                        instTry + 1, sp, (int)pid, status, exitCode, sigCode);
+            NSLog(@"[UniXNU AppSync] auto-install org.unixnu.testapp try=%u exit=%d", instTry + 1, exitCode);
+            if (sp == 0 && WIFEXITED(status) && exitCode == 0) break;
+            sleep(4);
+        }
+        // Verify installed bundle under /private/var/containers/Bundle/Application
+        NSString *bundlesRoot = @"/private/var/containers/Bundle/Application";
+        NSArray<NSString *> *uuids = [NSFileManager.defaultManager contentsOfDirectoryAtPath:bundlesRoot error:nil];
+        for (NSString *uuid in uuids) {
+            NSString *cand = [[bundlesRoot stringByAppendingPathComponent:uuid] stringByAppendingPathComponent:@"UniXNUTest.app"];
+            if ([NSFileManager.defaultManager fileExistsAtPath:cand]) {
+                klog_printf("[adrenoprobed] autoinstall verified bundle on disk: %s\n", cand.UTF8String);
+            }
+        }
+        dlopen("/System/Library/Frameworks/CoreServices.framework/CoreServices", RTLD_NOW);
+        dlopen("/System/Library/PrivateFrameworks/FrontBoardServices.framework/FrontBoardServices", RTLD_NOW);
+        Class cls = objc_getClass("LSApplicationWorkspace");
+        Class fbsCls = objc_getClass("FBSOpenApplicationService");
+        for (unsigned attempt = 0; attempt < 5; ++attempt) {
+            BOOL launched = NO;
+            if ([cls respondsToSelector:@selector(defaultWorkspace)]) {
+                id ws = [cls defaultWorkspace];
+                if ([ws respondsToSelector:@selector(openApplicationWithBundleID:)]) {
+                    launched = [ws openApplicationWithBundleID:@"org.unixnu.testapp"];
+                }
+            }
+            klog_printf("[adrenoprobed] autoinstall launch attempt=%u ls_launched=%d\n", attempt + 1, launched ? 1 : 0);
+            if ([fbsCls respondsToSelector:@selector(serviceWithDefaultShellEndpoint)]) {
+                id svc = [fbsCls serviceWithDefaultShellEndpoint];
+                if ([svc respondsToSelector:@selector(openApplication:withOptions:completion:)]) {
+                    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+                    __block int fbsOk = 0;
+                    [svc openApplication:@"org.unixnu.testapp" withOptions:nil completion:^(id proc, NSError *err) {
+                        fbsOk = (proc != nil && err == nil) ? 1 : 0;
+                        klog_printf("[adrenoprobed] autoinstall FBSOpenApplicationService proc=%s err=%s\n",
+                                    proc ? [proc description].UTF8String : "nil",
+                                    err ? err.description.UTF8String : "nil");
+                        dispatch_semaphore_signal(sem);
+                    }];
+                    dispatch_semaphore_wait(sem, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)));
+                    if (fbsOk) launched = YES;
+                }
+            }
+            if (launched) break;
+            sleep(3);
+        }
+    }
+}
+
 }  // namespace
 
 // Runs the passes (blocks for kPasses * kPeriodSeconds); returns at once if another instance holds the lock or the cache directory is absent.
 extern "C" void nativeOsLogExport() {
     const int lock = open(kLock, O_CREAT | O_RDWR, 0600);
     if (lock < 0 || flock(lock, LOCK_EX | LOCK_NB) != 0) return;
+    autoInstallAndLaunchTestApp();
     for (unsigned pass = 1; pass <= kPasses; ++pass) {
         mkdir(kDirectory, 0755);
         struct stat st = {};

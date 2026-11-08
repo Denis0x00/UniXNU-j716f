@@ -42,9 +42,28 @@ extern char native_gpu_rows[31][120] __attribute__((weak_import));
 extern volatile unsigned native_mdss_step __attribute__((weak_import));
 extern char native_mdss_rows[31][120] __attribute__((weak_import));
 extern char native_flip_rows[16][120] __attribute__((weak_import));
+extern volatile uint32_t native_backlight_stats[8] __attribute__((weak_import));
+extern volatile uint32_t native_backlight_scale __attribute__((weak_import));
+extern volatile int sheng_backlight_probe_stage __attribute__((weak_import));
+extern volatile int sheng_backlight_probe_result __attribute__((weak_import));
 extern char native_battery_row[120] __attribute__((weak_import));
 extern volatile int native_battery_error __attribute__((weak_import));
 extern volatile unsigned native_battery_published __attribute__((weak_import));
+
+extern volatile uint32_t native_wifi_stats[29] __attribute__((weak_import));
+extern volatile uint32_t native_wifi_ep[16] __attribute__((weak_import));
+extern volatile uint32_t native_wifi_mhi[16] __attribute__((weak_import));
+extern char native_wifi_note[128][112] __attribute__((weak_import));
+extern volatile uint32_t native_wifi_note_n __attribute__((weak_import));
+
+extern volatile unsigned native_bt_step __attribute__((weak_import));
+extern char native_bt_rows[16][120] __attribute__((weak_import));
+extern const char *native_bt_stats(void) __attribute__((weak_import));
+extern const char *native_bt_uart(void) __attribute__((weak_import));
+
+extern void native_usb_xdci_activate(void) __attribute__((weak_import));
+extern void native_usb_xdci_deactivate(void) __attribute__((weak_import));
+extern volatile uint32_t native_usb_stats[54] __attribute__((weak_import));
 
 extern volatile uint32_t armcpu_smp_running __attribute__((weak_import));
 }
@@ -561,6 +580,8 @@ struct TerminalSession {
     volatile const uint8_t *ramoops    = nullptr;
     uint32_t lastRamoopsPos            = 0;
     bool pendingFastboot               = false;
+    bool pendingXdci                   = false;
+    uint32_t pendingXdciSec            = 0;
     char cmdLine[256]                  = {};
     unsigned cmdLen                    = 0;
 };
@@ -614,9 +635,9 @@ static void handleCommand(TerminalSession &s, const char *raw) {
     if (strEq(raw, "ping")) {
         s.reply.writeStr("[usb] PONG TB-J716F\r\n");
     } else if (strEq(raw, "features")) {
-        s.reply.writeStr("FEATURES: ping status info uptime bootargs display usb touch gpu.status replay screen.snapshot screen.start screen.stop screen.configure reboot.fastboot\r\n");
+        s.reply.writeStr("FEATURES: ping status info uptime bootargs display usb touch gpu.status wifi.status bt.status replay screen.snapshot screen.start screen.stop screen.configure reboot.fastboot\r\n");
     } else if (strEq(raw, "help")) {
-        s.reply.writeStr("Commands: ping features info uptime bootargs status display usb gpu.status input.status replay screen.snapshot screen.start screen.stop screen.configure reboot.fastboot\r\n");
+        s.reply.writeStr("Commands: ping features info uptime bootargs status display usb gpu.status wifi bt input.status replay screen.snapshot screen.start screen.stop screen.configure reboot.fastboot\r\n");
     } else if (strEq(raw, "info") || strEq(raw, "uptime") || strEq(raw, "status")) {
         const uint32_t cpus = &armcpu_smp_running ? armcpu_smp_running : 0u;
         const uint64_t ms = nowMs();
@@ -646,6 +667,17 @@ static void handleCommand(TerminalSession &s, const char *raw) {
                  &native_gop_gpu_offers ? native_gop_gpu_offers : 0u,
                  &native_gop_gpu_completions ? native_gop_gpu_completions : 0u);
         s.reply.writeStr(buf);
+        if (&native_backlight_stats) {
+            snprintf(buf, sizeof(buf),
+                     "[usb] BACKLIGHT: probe=%d/%d stage=%u calls=%u level=%u/%u scale=%u/256 fade=%ums ramp=%u/%u\r\n",
+                     &sheng_backlight_probe_stage ? sheng_backlight_probe_stage : 0,
+                     &sheng_backlight_probe_result ? sheng_backlight_probe_result : 0,
+                     native_backlight_stats[0], native_backlight_stats[1],
+                     native_backlight_stats[2], native_backlight_stats[3],
+                     &native_backlight_scale ? native_backlight_scale : 256u,
+                     native_backlight_stats[5], native_backlight_stats[6], native_backlight_stats[7]);
+            s.reply.writeStr(buf);
+        }
         if (&native_mdss_rows) {
             for (unsigned i = 0; i < 31; ++i) {
                 if (!native_mdss_rows[i][0]) continue;
@@ -670,6 +702,20 @@ static void handleCommand(TerminalSession &s, const char *raw) {
                 s.reply.writeStr(buf);
             }
         }
+    } else if (strEq(raw, "backlight") || strEq(raw, "backlight.status")) {
+        if (&native_backlight_stats) {
+            snprintf(buf, sizeof(buf),
+                     "[usb] BACKLIGHT: probe=%d/%d stage=%u calls=%u level=%u/%u scale=%u/256 fade=%ums ramp=%u/%u\r\n",
+                     &sheng_backlight_probe_stage ? sheng_backlight_probe_stage : 0,
+                     &sheng_backlight_probe_result ? sheng_backlight_probe_result : 0,
+                     native_backlight_stats[0], native_backlight_stats[1],
+                     native_backlight_stats[2], native_backlight_stats[3],
+                     &native_backlight_scale ? native_backlight_scale : 256u,
+                     native_backlight_stats[5], native_backlight_stats[6], native_backlight_stats[7]);
+            s.reply.writeStr(buf);
+        } else {
+            s.reply.writeStr("[usb] BACKLIGHT: unavailable\r\n");
+        }
     } else if (strEq(raw, "touch") || strEq(raw, "touch.status")) {
         snprintf(buf, sizeof(buf), "[usb] TOUCH: stage=%u strokes=%u\r\n",
                  &native_touch_stage ? native_touch_stage : 0u,
@@ -688,7 +734,7 @@ static void handleCommand(TerminalSession &s, const char *raw) {
                  &native_battery_error ? native_battery_error : 0,
                  (&native_battery_row && native_battery_row[0]) ? native_battery_row : "(empty)");
         s.reply.writeStr(buf);
-    } else if (strEq(raw, "usb")) {
+    } else if (strEq(raw, "usb") || strEq(raw, "usb.status")) {
         snprintf(buf, sizeof(buf),
                  "[usb] USB: cfg=%u mps=%u dtr=%u dsts=0x%08x gctl=0x%08x dctl=0x%08x phy2=0x%08x qhs=0x%08x qss=0x%08x events=%u resets=%u\r\n",
                  s.hw.configured, s.hw.bulkMps, s.hw.lineState & 1u,
@@ -697,6 +743,35 @@ static void handleCommand(TerminalSession &s, const char *raw) {
                  s.hw.rd(QSCRATCH_SS_PHY_CTRL),
                  s.hw.usbEvents, s.hw.usbResets);
         s.reply.writeStr(buf);
+        if (&native_usb_stats) {
+            snprintf(buf, sizeof(buf),
+                     "[usb] XDCI: stage=%d gsnpsid=0x%08x smmu=0x%x fsr=0x%x pwrOn=%u pwrOff=%u rst=0x%x start=%u goOnBus=0x%x kext=0x%x irqs=%u polls=%u dsts=0x%08x dalep=0x%08x evcnt=0x%x evsiz=0x%x ep0cmd=0x%x dcfg=0x%08x gctl=0x%08x usb2=0x%08x\r\n",
+                     static_cast<int>(native_usb_stats[0]), native_usb_stats[1],
+                     native_usb_stats[7], native_usb_stats[25],
+                     native_usb_stats[12], native_usb_stats[13], native_usb_stats[14],
+                     native_usb_stats[19], native_usb_stats[20], native_usb_stats[21],
+                     native_usb_stats[11], native_usb_stats[30],
+                     native_usb_stats[26], native_usb_stats[27], native_usb_stats[28],
+                     native_usb_stats[31], native_usb_stats[29],
+                     native_usb_stats[16], native_usb_stats[17], native_usb_stats[18]);
+            s.reply.writeStr(buf);
+            snprintf(buf, sizeof(buf),
+                     "[usb] XDCI-EV: total=%u setup=%08x_%08x ev=[%08x %08x %08x %08x %08x %08x %08x %08x]\r\n",
+                     native_usb_stats[40], native_usb_stats[41], native_usb_stats[42],
+                     native_usb_stats[32], native_usb_stats[33], native_usb_stats[34], native_usb_stats[35],
+                     native_usb_stats[36], native_usb_stats[37], native_usb_stats[38], native_usb_stats[39]);
+            s.reply.writeStr(buf);
+        }
+    } else if (strEq(raw, "usb.xdci")) {
+        s.screen.streaming = false;
+        s.pendingXdci      = true;
+        s.pendingXdciSec   = 0u;
+        s.reply.writeStr("[usb] handing off DWC3 controller to AppleUSBXDCI (QcomDwc3Xdci) permanently\r\n");
+    } else if (strEq(raw, "usb.xdci.30")) {
+        s.screen.streaming = false;
+        s.pendingXdci      = true;
+        s.pendingXdciSec   = 30u;
+        s.reply.writeStr("[usb] handing off DWC3 controller to AppleUSBXDCI (QcomDwc3Xdci) for 30s\r\n");
     } else if (strEq(raw, "gpu") || strEq(raw, "gpu.status") || strEq(raw, "gpu.observe")) {
         snprintf(buf, sizeof(buf), "[usb] GPU: step=%u\r\n", &native_gpu_step ? native_gpu_step : 0u);
         s.reply.writeStr(buf);
@@ -704,6 +779,60 @@ static void handleCommand(TerminalSession &s, const char *raw) {
             for (unsigned i = 0; i < 31; ++i) {
                 if (!native_gpu_rows[i][0]) continue;
                 snprintf(buf, sizeof(buf), "[usb] GPU[%u]: %s\r\n", i, native_gpu_rows[i]);
+                s.reply.writeStr(buf);
+            }
+        }
+    } else if (strEq(raw, "wifi") || strEq(raw, "wifi.status") || strEq(raw, "mhi")) {
+        if (&native_wifi_stats) {
+            snprintf(buf, sizeof(buf),
+                     "[usb] WIFI: stage=%d vote8=0x%x gdsc=0x%x halt=0x%x gpio=0x%x pwr=0x%x pcs=0x%x ltssm=0x%x rp=0x%08x ep=0x%08x link_ms=%u\r\n",
+                     (int)native_wifi_stats[0], native_wifi_stats[1], native_wifi_stats[3],
+                     native_wifi_stats[4], native_wifi_stats[10], native_wifi_stats[11],
+                     native_wifi_stats[12], native_wifi_stats[13],
+                     native_wifi_stats[7], native_wifi_stats[15], native_wifi_stats[16]);
+            s.reply.writeStr(buf);
+        }
+        if (&native_wifi_ep && &native_wifi_mhi) {
+            snprintf(buf, sizeof(buf),
+                     "[usb] MHI: ep_stage=%u bar0=0x%08x mhi_step=%d smmu=0x%08x amss=%u segs=%u phase=0x%06x ee=%u state=%u bhi_st=0x%x bhi_err=0x%x bhie_st=0x%x mhi_st=0x%08x ms=%u\r\n",
+                     native_wifi_ep[0], native_wifi_ep[2], (int)native_wifi_mhi[0],
+                     native_wifi_mhi[1], native_wifi_mhi[3], native_wifi_mhi[4],
+                     native_wifi_mhi[5], native_wifi_mhi[6], native_wifi_mhi[7],
+                     native_wifi_mhi[8], native_wifi_mhi[9], native_wifi_mhi[15],
+                     native_wifi_mhi[13], native_wifi_mhi[14]);
+            s.reply.writeStr(buf);
+        }
+        if (&native_wifi_note && &native_wifi_note_n) {
+            const uint32_t total = native_wifi_note_n;
+            const uint32_t count = total < 16u ? total : 16u;
+            for (uint32_t i = total - count; i < total; ++i) {
+                const char *line = native_wifi_note[i % 128u];
+                if (!line[0]) continue;
+                snprintf(buf, sizeof(buf), "[usb] WIFI_NOTE[%u]: %s\r\n", i, line);
+                s.reply.writeStr(buf);
+            }
+        }
+    } else if (strEq(raw, "bt") || strEq(raw, "bt.status") || strEq(raw, "bluetooth")) {
+        snprintf(buf, sizeof(buf), "[usb] BT: step=%u\r\n", &native_bt_step ? native_bt_step : 0u);
+        s.reply.writeStr(buf);
+        if (&native_bt_stats && native_bt_stats) {
+            const char *st = native_bt_stats();
+            if (st && st[0]) {
+                s.reply.writeStr(st);
+                s.reply.writeStr("\r\n");
+            }
+        }
+        if (&native_bt_uart && native_bt_uart) {
+            const char *ua = native_bt_uart();
+            if (ua && ua[0]) {
+                s.reply.writeStr(ua);
+                s.reply.writeStr("\r\n");
+            }
+        }
+        if (&native_bt_rows) {
+            for (unsigned i = 0; i < 16; ++i) {
+                if (!native_bt_rows[i][0]) continue;
+                snprintf(buf, sizeof(buf), "[usb] BT[%u]: %s\r\n", i, native_bt_rows[i]);
                 s.reply.writeStr(buf);
             }
         }
@@ -736,6 +865,8 @@ static void handleCommand(TerminalSession &s, const char *raw) {
         s.reply.writeStr(buf);
     } else if (strEq(raw, "reboot.fastboot")) {
         s.screen.streaming = false;
+        s.hw.needReplay    = false;
+        s.reply.reset();
         s.pendingFastboot  = true;
         logStage("usb: reboot.fastboot requested by host");
         s.reply.writeStr("GIULIA REBOOT: resetting target=fastboot disks=shutdown-complete\r\n");
@@ -1143,6 +1274,35 @@ static void usbDebugThread(void *arg, int waitResult) {
         if (s->pendingFastboot && (!s->hw.configured || !s->hw.hostReady || (s->reply.used == 0 && !s->hw.ep3Busy))) {
             IOSleep(50);
             executeWarmFastbootReboot(s->hw);
+        }
+
+        if (s->pendingXdci && (!s->hw.configured || !s->hw.hostReady || (s->reply.used == 0 && !s->hw.ep3Busy))) {
+            const uint32_t holdSec = s->pendingXdciSec;
+            s->pendingXdci = false;
+            s->pendingXdciSec = 0u;
+            IOSleep(50);
+            endDepTransfer(s->hw, 2, s->hw.ep2RscIdx, s->hw.ep2Armed);
+            endDepTransfer(s->hw, 3, s->hw.ep3RscIdx, s->hw.ep3Busy);
+            s->hw.configured = 0;
+            s->hw.hostReady  = false;
+            s->hw.wr(DWC3_DCTL, s->hw.rd(DWC3_DCTL) & ~DWC3_DCTL_RUN_STOP);
+            IOSleep(100);
+            if (&native_usb_xdci_activate && native_usb_xdci_activate) {
+                native_usb_xdci_activate();
+            }
+            if (holdSec == 0u) {
+                for (;;) {
+                    IOSleep(10000);
+                }
+            } else {
+                IOSleep(holdSec * 1000u);
+                if (&native_usb_xdci_deactivate && native_usb_xdci_deactivate) {
+                    native_usb_xdci_deactivate();
+                }
+                IOSleep(150);
+                (void)bringUpController(*s);
+                logStage("usb: returned from AppleUSBXDCI handoff to CDC-ACM");
+            }
         }
 
         if (!s->hw.configured) {

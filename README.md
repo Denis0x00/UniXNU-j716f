@@ -22,14 +22,15 @@ Specification: [UniXNU Porting Guide](https://unixnu.com/zh/porting/)
 | Subsystem | Status | Notes |
 | --- | --- | --- |
 | Boot & XNU Kernel | Device-verified | UEFI (`uefi-j716f`) -> DarwinBoot -> XNU ARM64 VM + IOKit -> iPadOS 17.7.11 desktop |
-| CPU & SMP | Device-verified | All 8 Kryo 585 cores online (`sheng-smp=1`) + 3-cluster EPSS `cpufreq` (`1804 / 2419 / 3187 MHz` + L3 `1612 MHz`, `pipa-cpufreq=1`) |
-| GPU Acceleration | Device-verified | Native `Adreno650` KMD (`pipa-gpu=12`) + `NativeAdrenoMetal` / Turnip (`sysmem,nocb`, `sheng-tum=s`, `1x` single-sample, `54 us/draw`) |
-| Display & Scanout | Device-verified | 2560x1600 BGRX8888 GOP framebuffer + GPU hardware scanout blitter (`sheng-fb-gpu=1`) + lock/wake power re-arm |
+| CPU & SMP | Device-verified | All 8 Kryo 585 cores online (`sheng-smp=1`) + AMP big.LITTLE E/P edge scheduler (`armcpu-edge=1`) + dynamic 3-cluster EPSS `cpufreq` (`pipa-cpufreq=4`, touch boost + `300 / 691 / 844 MHz` idle floors) |
+| GPU Acceleration | Device-verified | Native `Adreno650` KMD (`pipa-gpu=12`) + GMU HFI dynamic DCVS (`pipa-gpu-dcvs=1`, `305..670 MHz`) + `NativeAdrenoMetal` / Turnip (`sysmem,nocb`, `MESA_SHADER_CACHE_DIR`, `54 us/draw`) |
+| Display & Brightness | Device-verified | 2560x1600 BGRX8888 GOP framebuffer + GPU hardware scanout blitter (`sheng-fb-gpu=1`) + `AppleARMBacklight` (`sheng-backlight=1`) & `copy_rows` compute brightness slider + lock/wake power re-arm |
 | Touch & Buttons | Device-verified | Goodix `GT7386` multi-touch (`j716f-touch=1`, rolling `0..255` tracking-ID slot mapper) + PM8150/PM8150B PON keys (`pipa-buttons=1`) |
-| Storage & Root | Device-verified | SM8250 native UFS (`ShengUfs`) mounting iPadOS 17.7.11 APFS container + persistent data ramdisk |
-| Battery Gauge | Device-verified | PM8150B FG / SMB5 SPMI battery gauge (`NativeBattery`, `IOPMPowerSource` SoC, voltage, current, charging state) |
-| USB Diagnostics | Device-verified | DWC3 USB0 (`0x0A600000`) CDC-ACM console (`VID_1209&PID_0001`), `GSC1` live screen capture, `reboot.fastboot` |
-| Wi-Fi / Bluetooth / Audio | Planned | QCA6390 PCIe Wi-Fi/BT and WCD938x / WSA881x audio planned |
+| Storage & System Apps | Device-verified | SM8250 native UFS (`ShengUfs`) mounting iPadOS 17.7.11 APFS container + persistent Data volume + `owner-staged-apps=1` built-in system apps + `appsync=1` dynamic user-code trust & IPA installer |
+| Battery Gauge | Device-verified | PM8150B FG / SMB5 SPMI battery gauge (`NativeBattery`, `IOPMPowerSource` SoC, open-circuit voltage fallback, current, charging state) |
+| USB Diagnostics & Native Apple USB | Device-verified | DWC3 USB0 (`0x0A600000`) CDC-ACM console (`1209:0001`, `GSC1` screen capture, `reboot.fastboot`) + runtime switch (`usb.xdci` / `usb.xdci.30`) to native `QcomDwc3` / `AppleUSBXDCI` (`05ac:12ab`, `AppleUSBDeviceMux`, `lockdownd` pairing) |
+| Wi-Fi & Bluetooth | Host-verified | QCA6390 PCIe0 + MHI (`Ath12kWifi`, `sheng-wifi=4`) and QUPv3_0 SE6 GENI UART (`QcaBluetooth`, `sheng-bluetooth=1`) integrated |
+| Audio | Planned | WCD938x / WSA881x ADSP Q6AFE audio planned |
 
 ## Repository Layout
 
@@ -92,7 +93,7 @@ fastboot flash boot_b boot.img
 fastboot reboot
 ```
 
-Once booted with `j716f-usb=1`, the tablet enumerates as a USB CDC-ACM serial port (`1209:0001`, serial `J716FDBG01`) supporting live telemetry (`status`, `display`, `gpu.status`, `battery.status`), `GSC1` framebuffer capture (`screen.snapshot`), and warm reboot directly back to Fastboot (`reboot.fastboot`).
+Once booted with `j716f-usb=1`, the tablet enumerates as a USB CDC-ACM serial port (`1209:0001`, serial `J716FDBG01`) supporting live telemetry (`status`, `display`, `gpu.status`, `battery.status`), `GSC1` framebuffer capture (`screen.snapshot`), warm reboot directly back to Fastboot (`reboot.fastboot`), and runtime handoff (`usb.xdci.30` or persistent `usb.xdci`) to the native `QcomDwc3` / `AppleUSBXDCI` stack (`05ac:12ab`, `AppleUSBDeviceMux` + `lockdownd` host pairing).
 
 ## License
 

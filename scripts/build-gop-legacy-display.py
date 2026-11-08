@@ -283,8 +283,13 @@ unixnu_repo = next((p for p in [ROOT, Path('/home/test/tb-j716f-unixnu/sources/U
 for extra_name in (
     'TouchBoard.h', 'TouchProbe.cpp', 'QcomRpmh.h', 'QcomRpmh.c', 'SmmuBypass.h',
     'UsbDebugCdc.h', 'UsbDebugWire.h', 'UsbDebugCommands.h', 'UsbDebugHw.h', 'UsbDebugCdc.cpp',
+    'QcomDwc3.cpp', 'UsbProbe.cpp',
     'GpuPowerBoard.h', 'A650Gmu.h', 'A650Gmu.c', 'GpuProbe.cpp', 'MdssProbe.cpp',
+    'AppleARMBacklight.cpp', 'BacklightProbe.cpp',
     'NativeBatteryBoard.h', 'NativeBattery.cpp',
+    'BootResetCore.h', 'FatVolume.h', 'FatVolume.c', 'MhiBoot.h', 'MhiBoot.c',
+    'WcnPower.h', 'WifiPcieTables.h', 'WifiFirmware.h', 'WifiFirmware.c', 'WifiProbe.cpp', 'WifiNet.cpp',
+    'BluetoothFirmware.h', 'BluetoothFirmware.c', 'BluetoothProbe.cpp',
 ):
     dst_f = kit_dir / extra_name
     src_f = pkg_fallback / extra_name
@@ -298,6 +303,83 @@ run([str(touch_probe_source) if str(arg) == str(source) else str(touch_probe_obj
 usb_debug_source = kit_dir / 'UsbDebugCdc.cpp'
 usb_debug_obj = OUT / 'UsbDebugCdc.o'
 run([str(usb_debug_source) if str(arg) == str(source) else str(usb_debug_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd] + ['-I', str(kit_dir)], cwd=r['directory'])
+
+usb_abi_path = pkg_repo / 'scripts/usb-xdci-21H461.json' if (pkg_repo / 'scripts/usb-xdci-21H461.json').is_file() else (ROOT / 'scripts/usb-xdci-21H461.json')
+usb_abi = json.loads(usb_abi_path.read_text())
+usb_slide = int(usb_abi['slide'], 16)
+usb_slots = [int(x, 16) for x in usb_abi['slots']]
+usb_methods = {int(k): v for k, v in usb_abi['methods'].items()}
+usb_pure = set(usb_abi['pure_slots'])
+usb_out = OUT / 'qcom-dwc3'
+usb_out.mkdir(parents=True, exist_ok=True)
+usb_header = '''// SPDX-License-Identifier: BSD-2-Clause-Patent
+#pragma once
+#include <IOKit/IOService.h>
+class AppleUSBXDCI : public IOService {
+ OSDeclareAbstractStructors(AppleUSBXDCI)
+ unsigned char originalPrivate[0x2440-sizeof(IOService)];
+public:
+ void free() override;
+ bool init(OSDictionary *properties=nullptr) override;
+ IOReturn setProperties(OSObject *) override;
+ bool willTerminate(IOService *,IOOptionBits) override;
+ bool start(IOService *) override;
+ void stop(IOService *) override;
+ IOWorkLoop *getWorkLoop() const override;
+ IOReturn callPlatformFunction(const OSSymbol *,bool,void *,void *,void *,void *) override;
+'''
+for slot_idx in range(168, len(usb_slots)):
+    m = usb_methods[slot_idx]
+    suffix = '=0' if slot_idx in usb_pure else ''
+    usb_header += f' virtual {m["returns"]} {m["name"]}({m["parameters"]}){suffix};\n'
+usb_header += '};\nstatic_assert(sizeof(AppleUSBXDCI)==0x2440,"Original AppleUSBXDCI instance size");\n'
+(usb_out / 'OriginalUsbXdciABI.h').write_text(usb_header)
+
+qcom_dwc3_source = kit_dir / 'QcomDwc3.cpp'
+qcom_dwc3_obj = usb_out / 'QcomDwc3.o'
+qcom_dwc3_late = usb_out / 'QcomDwc3.late.o'
+run([str(qcom_dwc3_source) if str(arg) == str(source) else str(qcom_dwc3_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd] + ['-I', str(usb_out), '-I', str(kit_dir)], cwd=r['directory'])
+run(['llvm-objcopy', '--remove-section=__DATA,__mod_init_func', qcom_dwc3_obj, qcom_dwc3_late])
+require(macho_globalize_symbol(qcom_dwc3_late, '__GLOBAL__sub_I_QcomDwc3.cpp'), 'Globalized QcomDwc3 initializer')
+
+usb_probe_source = kit_dir / 'UsbProbe.cpp'
+usb_probe_obj = usb_out / 'UsbProbe.o'
+run([str(usb_probe_source) if str(arg) == str(source) else str(usb_probe_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd] + ['-I', str(usb_out), '-I', str(kit_dir)], cwd=r['directory'])
+
+usb_raw = qcom_dwc3_obj.read_bytes()
+usb_image = macho(usb_raw)
+usb_st = next(p for c, p, _ in usb_image['commands'] if c == 2)
+usb_sy, usb_count, usb_strings, _ = struct.unpack_from('<4I', usb_raw, usb_st + 8)
+usb_symbols = []
+for idx in range(usb_count):
+    ix, kind, section, _, va = struct.unpack_from('<IBBHQ', usb_raw, usb_sy + idx * 16)
+    usb_symbols.append((usb_raw[usb_strings + ix:usb_raw.index(b'\0', usb_strings + ix)].decode(), va, kind))
+usb_vtable = next(va for name, va, _ in usb_symbols if name == '__ZTV12QcomDwc3Xdci')
+usb_relocs = {}
+for segment in usb_image['segments']:
+    for sec in segment['sections']:
+        if sec['va'] <= usb_vtable < sec['va'] + sec['size']:
+            ro, rc = struct.unpack_from('<2I', usb_raw, sec['command_offset'] + 56)
+            for idx in range(rc):
+                offset, bits = struct.unpack_from('<2I', usb_raw, ro + idx * 8)
+                if bits >> 27 & 1 and bits >> 28 == 0 and bits >> 25 & 3 == 3:
+                    usb_relocs[sec['va'] + offset] = usb_symbols[bits & 0xffffff][0]
+usb_compiled = [usb_relocs.get(usb_vtable + 16 + idx * 8) for idx in range(len(usb_slots))]
+require(all(usb_compiled), 'Complete 267-entry QcomDwc3Xdci vtable')
+usb_bindings = {n: int(v, 16) + usb_slide for n, v in usb_abi['bindings'].items()}
+usb_bindings['__ZN12AppleUSBXDCI4initEP12OSDictionary'] = usb_slots[21] + usb_slide
+usb_bindings['__ZN12AppleUSBXDCI5startEP9IOService'] = usb_slots[86] + usb_slide
+usb_bindings['__ZN12AppleUSBXDCI14XDCI_GO_ON_BUSEv'] = usb_slots[204] + usb_slide
+usb_bindings['__ZN12AppleUSBXDCI15XDCI_GO_OFF_BUSEv'] = usb_slots[205] + usb_slide
+usb_bindings['__ZN12AppleUSBXDCI21XDCI_CONTROLLER_RESETEv'] = usb_slots[263] + usb_slide
+for idx, sym_name in enumerate(usb_compiled):
+    if '12AppleUSBXDCI' in sym_name:
+        require(idx not in usb_pure, f'Unresolved abstract AppleUSBXDCI slot {idx}')
+        usb_bindings[sym_name] = usb_slots[idx] + usb_slide
+usb_asm = usb_out / 'usb-bindings.S'
+usb_asm.write_text(''.join(f'.globl {name}\n.set {name}, {va:#x}\n' for name, va in sorted(usb_bindings.items())))
+usb_bindings_obj = usb_out / 'usb-bindings.o'
+run(['xcrun', 'clang', '-target', 'arm64-apple-ios17.0', '-isysroot', sdk, '-c', usb_asm, '-o', usb_bindings_obj])
 
 smmu_dir = pkg_repo / 'kits/ArmSmmu4K' if (pkg_repo / 'kits/ArmSmmu4K').exists() else (unixnu_repo / 'kits/ArmSmmu4K')
 adreno_dir = pkg_repo / 'drivers/Adreno650' if (pkg_repo / 'drivers/Adreno650').exists() else (ROOT / 'drivers/Adreno650')
@@ -322,6 +404,41 @@ battery_late = OUT / 'NativeBattery.late.o'
 run([str(battery_source) if str(arg) == str(source) else str(battery_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd] + ['-I', str(kit_dir)], cwd=r['directory'])
 run(['llvm-objcopy', '--remove-section=__DATA,__mod_init_func', battery_obj, battery_late])
 require(macho_globalize_symbol(battery_late, '__GLOBAL__sub_I_NativeBattery.cpp'), 'Globalized NativeBattery initializer')
+
+backlight_probe_source = kit_dir / 'BacklightProbe.cpp'
+backlight_probe_obj = OUT / 'BacklightProbe.o'
+run([str(backlight_probe_source) if str(arg) == str(source) else str(backlight_probe_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd] + ['-I', str(kit_dir)], cwd=r['directory'])
+
+backlight_class_source = kit_dir / 'AppleARMBacklight.cpp'
+backlight_class_obj = OUT / 'AppleARMBacklight.o'
+backlight_class_late = OUT / 'AppleARMBacklight.late.o'
+run([str(backlight_class_source) if str(arg) == str(source) else str(backlight_class_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd] + ['-I', str(kit_dir)], cwd=r['directory'])
+run(['llvm-objcopy', '--remove-section=__DATA,__mod_init_func', backlight_class_obj, backlight_class_late])
+require(macho_globalize_symbol(backlight_class_late, '__GLOBAL__sub_I_AppleARMBacklight.cpp'), 'Globalized AppleARMBacklight initializer')
+
+nativewifi = Path(os.environ.get('ATH12K_WIFI_DIR') or os.environ.get('NATIVE_WIFI_DIR') or (unixnu_repo / 'drivers/Ath12kWifi'))
+require((nativewifi / 'include/nw_abi.h').exists(), f'Missing Ath12kWifi module directory at {nativewifi}')
+qcabt = Path(os.environ.get('QCA_BLUETOOTH_DIR') or (unixnu_repo / 'drivers/QcaBluetooth'))
+require((qcabt / 'include/qbt.h').exists(), f'Missing QcaBluetooth module directory at {qcabt}')
+sm8250_platform = pkg_repo / 'socs/sm8250/kits/Sm8250Platform' if (pkg_repo / 'socs/sm8250/kits/Sm8250Platform').exists() else (ROOT / 'kits/Sm8250Platform')
+sheng_ufs_dir = pkg_repo / 'drivers/ShengUfs' if (pkg_repo / 'drivers/ShengUfs').exists() else (ROOT / 'drivers/ShengUfs')
+
+wifi_includes = ['-I', str(kit_dir), '-I', str(sm8250_platform), '-I', str(nativewifi / 'include'), '-I', str(nativewifi / 'src'), '-I', str(sheng_ufs_dir)]
+wifi_source = kit_dir / 'WifiProbe.cpp'
+wifi_obj = OUT / 'WifiProbe.o'
+run([str(wifi_source) if str(arg) == str(source) else str(wifi_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd] + wifi_includes, cwd=r['directory'])
+
+wifinet_source = kit_dir / 'WifiNet.cpp'
+wifinet_obj = OUT / 'WifiNet.o'
+wifinet_late = OUT / 'WifiNet.late.o'
+run([str(wifinet_source) if str(arg) == str(source) else str(wifinet_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd] + wifi_includes, cwd=r['directory'])
+run(['llvm-objcopy', '--remove-section=__DATA,__mod_init_func', wifinet_obj, wifinet_late])
+require(macho_globalize_symbol(wifinet_late, '__GLOBAL__sub_I_WifiNet.cpp'), 'Globalized WifiNet initializer')
+
+bt_includes = ['-I', str(kit_dir), '-I', str(sm8250_platform), '-I', str(sheng_ufs_dir), '-I', str(qcabt / 'include')]
+bt_source = kit_dir / 'BluetoothProbe.cpp'
+bt_obj = OUT / 'BluetoothProbe.o'
+run([str(bt_source) if str(arg) == str(source) else str(bt_obj) if str(arg) == str(OUT / 'LegacyDisplayProbe.o') else arg for arg in cmd] + bt_includes, cwd=r['directory'])
 
 def find_fw(env_key, rel_paths):
     if os.environ.get(env_key):
@@ -394,6 +511,52 @@ rpmh_source = kit_dir / 'QcomRpmh.c'
 rpmh_obj = OUT / 'QcomRpmh.o'
 compile_c_obj(rpmh_source, rpmh_obj)
 
+fat_source = kit_dir / 'FatVolume.c'
+fat_obj = OUT / 'FatVolume.o'
+compile_c_obj(fat_source, fat_obj)
+
+mhi_source = kit_dir / 'MhiBoot.c'
+mhi_obj = OUT / 'MhiBoot.o'
+compile_c_obj(mhi_source, mhi_obj)
+
+geni_uart_source = sm8250_platform / 'Sm8250GeniUart.c'
+geni_uart_obj = OUT / 'Sm8250GeniUart.o'
+run([str(geni_uart_source) if str(arg) == str(buttons_source) else str(geni_uart_obj) if str(arg) == str(buttons_obj) else arg for arg in c_out] + ['-Wall', '-Wextra', '-Werror', '-I', str(sm8250_platform)], cwd=c_record['directory'])
+
+bsd_record = json.loads((ROOT / 'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/bsd/DEVELOPMENT/kern_exec.o.json').read_text().strip().rstrip(','))
+def compile_bsd_c_obj(src_c: Path, dst_o: Path):
+    bsd_cmd = []
+    b_args = bsd_record['arguments']
+    k = 0
+    while k < len(b_args):
+        val = b_args[k]
+        if val == bsd_record['file']:
+            bsd_cmd.append(str(src_c))
+        elif val in ('-o', '-MF', '-MT', '-MJ'):
+            if val == '-o':
+                bsd_cmd += ['-o', str(dst_o)]
+            k += 1
+        elif val == '-Xclang' and b_args[k + 1].startswith('-W'):
+            k += 1
+        elif not val.startswith('-W'):
+            bsd_cmd.append(val)
+        k += 1
+    run(bsd_cmd + ['-mgeneral-regs-only', '-Wall', '-Wextra', '-Werror', '-I', str(kit_dir)], cwd=bsd_record['directory'])
+
+wifi_fw_source = kit_dir / 'WifiFirmware.c'
+wifi_fw_obj = OUT / 'WifiFirmware.o'
+compile_bsd_c_obj(wifi_fw_source, wifi_fw_obj)
+
+bt_fw_source = kit_dir / 'BluetoothFirmware.c'
+bt_fw_obj = OUT / 'BluetoothFirmware.o'
+compile_bsd_c_obj(bt_fw_source, bt_fw_obj)
+
+build_ath12k_script = pkg_repo / 'scripts/build-ath12k-wifi.py' if (pkg_repo / 'scripts/build-ath12k-wifi.py').exists() else (ROOT / 'scripts/build-ath12k-wifi.py')
+build_qcabt_script = pkg_repo / 'scripts/build-qca-bluetooth.py' if (pkg_repo / 'scripts/build-qca-bluetooth.py').exists() else (ROOT / 'scripts/build-qca-bluetooth.py')
+shutil.copy2(pkg_repo / 'scripts/kernel_target.py', build_ath12k_script.parent / 'kernel_target.py') if (pkg_repo / 'scripts/kernel_target.py').exists() and (pkg_repo / 'scripts/kernel_target.py').resolve() != (build_ath12k_script.parent / 'kernel_target.py').resolve() else None
+wifi_module_objs = [Path(l.split(' ', 1)[1]) for l in subprocess.check_output(['python3', str(build_ath12k_script), str(nativewifi), str(OUT / 'ath12k-wifi')], text=True, timeout=600).splitlines() if l.startswith('OBJ ')]
+bt_module_objs = [Path(l.split(' ', 1)[1]) for l in subprocess.check_output(['python3', str(build_qcabt_script), str(qcabt), str(OUT / 'qca-bluetooth')], text=True, timeout=300).splitlines() if l.startswith('OBJ ')]
+
 gmu_fw_obj = OUT / 'GmuFirmware.o'
 sqe_fw_obj = OUT / 'SqeFirmware.o'
 zap_fw_obj = OUT / 'ZapFirmware.o'
@@ -430,9 +593,22 @@ run([
     touch_obj,
     touch_probe_obj,
     usb_debug_obj,
+    qcom_dwc3_late,
+    usb_bindings_obj,
+    usb_probe_obj,
     gpu_obj,
     mdss_obj,
     battery_late,
+    backlight_probe_obj,
+    backlight_class_late,
+    wifi_obj,
+    wifinet_late,
+    wifi_fw_obj,
+    bt_obj,
+    bt_fw_obj,
+    geni_uart_obj,
+    fat_obj,
+    mhi_obj,
     rpmh_obj,
     buttons_obj,
     gmu_fw_obj,
@@ -441,6 +617,8 @@ run([
     hid_dir / 'NativeHidInput.late.o',
     hid_dir / 'hid-original-bindings.o',
     gop_late,
+    *wifi_module_objs,
+    *bt_module_objs,
 ])
 
 sources = [
@@ -453,6 +631,9 @@ sources = [
     touch_source,
     touch_probe_source,
     usb_debug_source,
+    qcom_dwc3_source,
+    usb_probe_source,
+    usb_out / 'OriginalUsbXdciABI.h',
     kit_dir / 'UsbDebugCdc.h',
     kit_dir / 'UsbDebugWire.h',
     kit_dir / 'UsbDebugCommands.h',
@@ -466,6 +647,8 @@ sources = [
     kit_dir / 'A650Gmu.h',
     mdss_source,
     battery_source,
+    backlight_probe_source,
+    backlight_class_source,
     kit_dir / 'NativeBatteryBoard.h',
     buttons_source,
     buttons_source.parent / 'ButtonsCore.h',
