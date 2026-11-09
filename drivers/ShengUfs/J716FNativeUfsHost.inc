@@ -25,30 +25,51 @@ static bool hostBringUp (const char **why)
     gRootDiagnostic.hce = read32 (gHost.hc, 0x34);
   }
 
-  // 3. Allocate DMA buffer
+  // 3. Allocate DMA buffer (up to kRegionSlots in Region A, upgraded to kSlots after SMMU setup)
   gRootDiagnostic.stage = "DMA allocation";
-  gHost.dma = IOBufferMemoryDescriptor::inTaskWithOptions (
-    kernel_task, static_cast<IOOptionBits> (kIODirectionInOut) |
-    static_cast<IOOptionBits> (kIOMemoryPhysicallyContiguous) |
-    static_cast<IOOptionBits> (kIOMemoryMapperNone),
-    kDmaBytes, 4096);
+  const bool wide = read32 (gHost.hc, 0) & 0x01000000;
+  const unsigned entries = (read32 (gHost.hc, 0) & 0x1f) + 1;
+  unsigned slots = (entries + 1) / 2 < kRegionSlots ? (entries + 1) / 2 : kRegionSlots;
   gHost.lock = IOLockAlloc ();
-  if (!gHost.dma || !gHost.lock) { *why = "DMA allocation"; return false; }
-  gHost.virt = static_cast<uint8_t *> (gHost.dma->getBytesNoCopy ());
-  IOByteCount contiguous = 0;
-  gHost.phys = gHost.dma->getPhysicalSegment (0, &contiguous, kIOMemoryMapperNone);
-  gRootDiagnostic.dma = gHost.phys;
-  gRootDiagnostic.contiguous = contiguous;
-  if (!gHost.virt || (gHost.phys & 4095) || contiguous < kDmaBytes) {
-    *why = "DMA outside conventional RAM"; return false;
+  const uint32_t sizes[3] = { uint32_t (kDmaBytes), uint32_t (kDmaBytesEightSlots), uint32_t (kDmaBytesOneSlot) };
+  const unsigned counts[3] = { kRegionSlots, 8, 1 };
+  for (unsigned attempt = 0; attempt < 3 && !gHost.virt; ++attempt) {
+    const uint32_t bytes = sizes[attempt];
+    if (counts[attempt] > slots && counts[attempt] > 1) continue;
+    IOBufferMemoryDescriptor *dma = IOBufferMemoryDescriptor::inTaskWithOptions (
+      kernel_task, static_cast<IOOptionBits> (kIODirectionInOut) |
+      static_cast<IOOptionBits> (kIOMemoryPhysicallyContiguous) |
+      static_cast<IOOptionBits> (kIOMemoryMapperNone),
+      bytes, 4096);
+    if (!dma) continue;
+    uint8_t *virt = static_cast<uint8_t *> (dma->getBytesNoCopy ());
+    IOByteCount contiguous = 0;
+    uint64_t phys = dma->getPhysicalSegment (0, &contiguous, kIOMemoryMapperNone);
+    gRootDiagnostic.dma = phys;
+    gRootDiagnostic.contiguous = contiguous;
+    if (!virt || !phys || (phys & 4095) || contiguous < bytes || (!wide && phys + bytes > 0x100000000ULL)) {
+      dma->release ();
+      continue;
+    }
+    gHost.dma = dma; gHost.virt = virt; gHost.phys = phys; gHost.dmaBytes = bytes;
   }
+  if (!gHost.virt || !gHost.lock) {
+    *why = !gHost.lock ? "dma buffer" : "DMA address/contiguity";
+    return false;
+  }
+  const unsigned regionSlots = gHost.dmaBytes == kDmaBytes ? slots : gHost.dmaBytes == kDmaBytesEightSlots ? (slots < 8 ? slots : 8) : 1;
+  hostSlotGeometryRegionA (regionSlots);
+  hostSlotsInit (regionSlots, gHost.lock);
+  native_ufs_slots = gSlotCount;
+  bzero (gHost.virt, gHost.dmaBytes);
+  cacheCivac (gHost.virt, gHost.dmaBytes);
 
   // 4. Map APPS SMMU and configure dual-stream bypass (0x0e0, 0x4e0)
   gRootDiagnostic.stage = "SMMU mapping";
   gHost.smmu = mapPhys (0x15000000ULL, 0xd0000, gHost.smmuMap);
   if (!gHost.smmu) { *why = "SMMU mapping"; return false; }
   auto read = [&] (unsigned at) { return read32 (gHost.smmu, at); };
-  J716fSmmuPlan plan = planJ716fSmmu (gHost.phys, kDmaBytes, read);
+  J716fSmmuPlan plan = planJ716fSmmu (gHost.phys, gHost.dmaBytes, read);
   if (plan.error) { *why = "SMMU plan refused"; return false; }
 
   // 5. Stop old firmware queue
@@ -59,7 +80,7 @@ static bool hostBringUp (const char **why)
   }
 
   // 6. Apply SMMU takeover for both 0x0e0 and 0x4e0
-  plan = planJ716fSmmu (gHost.phys, kDmaBytes, read);
+  plan = planJ716fSmmu (gHost.phys, gHost.dmaBytes, read);
   plan.error = configureJ716fSmmu (plan, read,
     [&] (unsigned at, uint32_t val) {
       write32 (gHost.smmu, at, val);
@@ -177,9 +198,18 @@ static bool hostBringUp (const char **why)
     gRootDiagnostic.fsrBefore = read32 (gHost.cb, 0x58);
   }
 
-  // 7. Initialize buffer and start queue
-  bzero (gHost.virt, kDmaBytes);
-  cacheCivac (gHost.virt, kDmaBytes);
+  // 7. Compute zero-copy DMA limit, upgrade request list/slots (up to 32 slots), and start queue
+  {
+    uint64_t limit = wide ? ~0ULL : 0x100000000ULL;
+    const uint32_t idr2 = gHost.smmu ? read32 (gHost.smmu, 0x28) : 0;
+    for (unsigned shift = 0; shift <= 8; shift += 4) {
+      const unsigned bits = ufsSmmuAddressBits ((idr2 >> shift) & 15);
+      const uint64_t width = bits ? (bits >= 64 ? ~0ULL : 1ULL << bits) : 0;
+      if (width < limit) limit = width;
+    }
+    gDmaLimit = limit;
+  }
+  hostSlotsUpgrade (regionSlots, entries, wide);
   if (!hostStartQueue (why)) return false;
 
   // 8. Test transport via NOP OUT
@@ -220,10 +250,11 @@ static bool hostBringUp (const char **why)
   gRootDiagnostic.stage = "LUN capacity";
   uint8_t capacity[10] = { 0x25 }; uint32_t scsi = 0;
   if (hostScsi (0, capacity, 10, true, 8, 200000, &scsi) != kIOReturnSuccess ||
-      loadBe32 (gHost.virt + kDataOffset + 4) != 4096) {
+      loadBe32 (gSlotGeom[0].data + 4) != 4096) {
     *why = "LUN geometry differs from hardware baseline"; return false;
   }
 
   gHost.ready = true;
+  hostEnableInterrupt ();
   return true;
 }

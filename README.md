@@ -29,7 +29,7 @@ Specification: [UniXNU Porting Guide](https://unixnu.com/zh/porting/)
 | Storage & System Apps | Device-verified | SM8250 native UFS (`ShengUfs`) mounting iPadOS 17.7.11 APFS container + persistent Data volume + `owner-staged-apps=1` built-in system apps + `appsync=1` dynamic user-code trust & IPA installer |
 | Battery Gauge | Device-verified | PM8150B FG / SMB5 SPMI battery gauge (`NativeBattery`, `IOPMPowerSource` SoC, open-circuit voltage fallback, current, charging state) |
 | USB Diagnostics & Native Apple USB | Device-verified | DWC3 USB0 (`0x0A600000`) CDC-ACM console (`1209:0001`, `GSC1` screen capture, `reboot.fastboot`) + runtime switch (`usb.xdci` / `usb.xdci.30`) to native `QcomDwc3` / `AppleUSBXDCI` (`05ac:12ab`, `AppleUSBDeviceMux`, `lockdownd` pairing) |
-| Wi-Fi & Bluetooth | Host-verified | QCA6390 PCIe0 + MHI (`Ath12kWifi`, `sheng-wifi=4`) and QUPv3_0 SE6 GENI UART (`QcaBluetooth`, `sheng-bluetooth=1`) integrated |
+| Wi-Fi & Bluetooth | Device-verified | QCA6390 PCIe0 + MHI AMSS Mission Mode (`Ath12kWifi`, `sheng-wifi=4`, `en0` + `wifid` + `unixnu-wpa_supplicant`) and QUPv3_0 SE6 GENI UART @ 3.2 Mbps (`QcaBluetooth`, `sheng-bluetooth=1`, `BlueTool` + `bluetoothd` + live BLE advertising RX) |
 | Audio | Planned | WCD938x / WSA881x ADSP Q6AFE audio planned |
 
 ## Repository Layout

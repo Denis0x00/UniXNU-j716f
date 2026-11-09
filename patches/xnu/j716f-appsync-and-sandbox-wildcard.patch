@@ -14,16 +14,44 @@
  		at += length + (at[length] == ',' ? 1 : 0);
 --- a/bsd/kern/kern_exec.c
 +++ b/bsd/kern/kern_exec.c
-@@ -7575,7 +7575,7 @@
+@@ -1369,6 +1369,27 @@
+ 
+ 		goto badtoolate;
+ 	}
++
++#if CONFIG_MACF && !CONFIG_SPTM && !PMAP_CS_PPL_MONITOR
++	if (load_result.platform_binary) {
++		extern bool appsync_is_user_code(const char *);
++		extern void kprintf(const char *, ...);
++		uint32_t appsync_enabled = 1;
++		PE_parse_boot_argn("appsync", &appsync_enabled, sizeof(appsync_enabled));
++		if (appsync_enabled == 1 && imgp->ip_vp != NULL) {
++			int as_path_len = MAXPATHLEN;
++			char *as_path = kalloc_data(MAXPATHLEN, Z_WAITOK);
++			if (as_path != NULL) {
++				if (vn_getpath(imgp->ip_vp, as_path, &as_path_len) == 0 &&
++				    appsync_is_user_code(as_path)) {
++					load_result.platform_binary = FALSE;
++					kprintf("[appsync-exec] cleared platform_binary for user code %s\n", as_path);
++				}
++				kfree_data(as_path, MAXPATHLEN);
++			}
++		}
++	}
++#endif
+ 
+ 	/*
+ 	 * ERROR RECOVERY
+@@ -7575,7 +7594,7 @@
  static void
  native_ls_store_drop(proc_t p, user_addr_t scratch)
  {
 -	static const char marker[] = "/private/var/ngpu/ls-store-rebuilt-1";
-+	static const char marker[] = "/private/var/ngpu/ls-store-rebuilt-2";
++	static const char marker[] = "/private/var/ngpu/ls-store-rebuilt-3";
  	static const char caches[] = "/private/var/mobile/Containers/Data/InternalDaemon/5C583048-0C53-456F-B110-BB12068B787F/Library/Caches";
  	static const char prefix[] = "com.apple.LaunchServices-";
  	vfs_context_t ctx = vfs_context_current();
-@@ -7689,6 +7690,34 @@
+@@ -7689,6 +7710,39 @@
  		    "/usr/libexec/launchd_cache_loader", "/usr/libexec/unixnu-wpa_supplicant", &native_wifi_addon_stage, &native_wifi_addon_status);
  		printf("[wifi-runtime] executables=%d/%d\n", native_wifi_addon_stage, native_wifi_addon_status);
  	}
@@ -40,7 +68,9 @@
 +			static const char as_helper_source[] = "/private/var/ngpu/appsync/helper";
 +			static const char as_helper_point[] = "/System/Library/PrivateFrameworks/MobileInstallation.framework/XPCServices/"
 +			    "com.apple.MobileInstallationHelperService.xpc";
-+			static volatile int as_exec_stage, as_exec_status, as_helper_stage, as_helper_status;
++			static const char as_sb_source[] = "/private/var/ngpu/appsync/coreservices";
++			static const char as_sb_point[] = "/System/Library/CoreServices";
++			static volatile int as_exec_stage, as_exec_status, as_helper_stage, as_helper_status, as_sb_stage, as_sb_status;
 +			native_gpu_addon_mount(p, scratch, 0x600, as_exec_source, sizeof(as_exec_source),
 +			    as_exec_point, sizeof(as_exec_point), "/usr/libexec/launchd_cache_loader", "/usr/libexec/unixnu-appinst",
 +			    &as_exec_stage, &as_exec_status);
@@ -50,15 +80,18 @@
 +			    "com.apple.MobileInstallationHelperService.xpc/Info.plist",
 +			    "/System/Library/PrivateFrameworks/MobileInstallation.framework/XPCServices/"
 +			    "com.apple.MobileInstallationHelperService.xpc/UniXNUAppSync.runtime", &as_helper_stage, &as_helper_status);
-+			printf("[appsync-runtime] installd=%d/%d helper=%d/%d\n",
-+			    as_exec_stage, as_exec_status, as_helper_stage, as_helper_status);
++			native_gpu_addon_mount(p, scratch, 0x600, as_sb_source, sizeof(as_sb_source),
++			    as_sb_point, sizeof(as_sb_point), "/System/Library/CoreServices/SystemVersion.plist",
++			    "/System/Library/CoreServices/SpringBoard.app/UniXNUAppSync.runtime", &as_sb_stage, &as_sb_status);
++			printf("[appsync-runtime] installd=%d/%d helper=%d/%d SpringBoard=%d/%d\n",
++			    as_exec_stage, as_exec_status, as_helper_stage, as_helper_status, as_sb_stage, as_sb_status);
 +		}
 +		printf("[appsync-runtime] library=%d/%d\n", as_lib_stage, as_lib_status);
 +	}
  	native_cryptex_os_view(p, scratch);
  	native_gestalt_cache_drop(p, scratch);
  	native_ls_store_drop(p, scratch);
-@@ -8002,6 +8031,27 @@
+@@ -8002,6 +8055,27 @@
  	vnode_put(vp);
  }
  
@@ -86,7 +119,7 @@
  static int
  native_owner_data_prepare(proc_t p, user_addr_t scratch)
  {
-@@ -8031,6 +8081,7 @@
+@@ -8031,6 +8105,7 @@
  	native_owner_data_seed_size = size;
  	native_owner_data_stage = 1;
  	strlcpy(native_owner_data_device_path, device_path, sizeof(native_owner_data_device_path));
@@ -105,7 +138,7 @@
  SECURITY_READ_ONLY_LATE(TrustCacheRuntime_t*) trust_cache_rt = &trust_cache_rt_storage;
  
  /* Mutable part of the runtime */
-@@ -1173,3 +1202,107 @@
+@@ -1173,3 +1202,119 @@
  
  	return KERN_SUCCESS;
  }
@@ -148,18 +181,27 @@
 +}
 +
 +bool
++appsync_is_user_code(const char *path)
++{
++	uint32_t enabled = 1;
++	PE_parse_boot_argn("appsync", &enabled, sizeof(enabled));
++	return enabled == 1 && appsync_user_app_path(path);
++}
++
++bool
 +appsync_trust_user_code(
 +	const char *path,
 +	const uint8_t cdhash[CS_CDHASH_LEN],
 +	uint8_t hash_type)
 +{
++	extern void kprintf(const char *, ...);
 +	uint32_t enabled = 1;
 +	PE_parse_boot_argn("appsync", &enabled, sizeof(enabled));
 +	if (enabled != 1 || cdhash == NULL || !appsync_user_app_path(path)) {
 +		return true;
 +	}
 +	if (trust_cache_rt == NULL || !trust_cache_rt->allowEngineeringTC) {
-+		printf("[appsync-trust] runtime unavailable for %s\n", path);
++		kprintf("[appsync-trust] runtime unavailable for %s\n", path);
 +		return false;
 +	}
 +	TrustCacheQueryToken_t token = {0};
@@ -175,7 +217,7 @@
 +		if (tc != NULL) {
 +			kfree_type(TrustCache_t, tc);
 +		}
-+		printf("[appsync-trust] allocation failed for %s\n", path);
++		kprintf("[appsync-trust] allocation failed for %s\n", path);
 +		return false;
 +	}
 +	mod->header.version = 1;
@@ -201,6 +243,7 @@
 +	lck_rw_unlock_exclusive(&trust_cache_rt_lock);
 +	if (ret.error == kTCReturnSuccess) {
 +		printf("[appsync-trust] registered user code %s\n", path);
++		kprintf("[appsync-trust] registered user code %s\n", path);
 +		return true;
 +	}
 +	kfree_type(appsync_trust_module_t, mod);
@@ -209,6 +252,8 @@
 +		return true;
 +	}
 +	printf("[appsync-trust] load failed (%u/%u, limit=%d) for %s\n",
++	    ret.component, ret.error, limit_reached, path);
++	kprintf("[appsync-trust] load failed (%u/%u, limit=%d) for %s\n",
 +	    ret.component, ret.error, limit_reached, path);
 +	return false;
 +}
@@ -241,3 +286,4 @@
  	/* AMFI needs to see the current blob state at the RO address */
  	zalloc_ro_update_elem(ZONE_ID_CS_BLOB, blob_ro, &tmp_blob);
  
+

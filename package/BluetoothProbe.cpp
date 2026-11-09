@@ -23,6 +23,8 @@
 #include "BluetoothFirmware.h"
 
 extern "C" int armcpu_spi_attach(uint32_t, bool, void (*)(void *), void *, uint32_t *, uint64_t *) __attribute__((weak_import));
+extern "C" int armcpu_spi_share(uint32_t, bool, void (*)(void *), void *, uint32_t *, uint64_t *) __attribute__((weak_import));
+extern "C" void armcpu_spi_mask(uint32_t, bool) __attribute__((weak_import));
 extern "C" volatile uint32_t native_wifi_stats[29];
 extern "C" volatile uint32_t native_wifi_mhi[16];
 extern "C" volatile int native_gpu_addon_stage;
@@ -126,7 +128,12 @@ void dmaSync(void *, const struct qbt_dma_buffer *buffer, size_t bytes, bool dev
 uint32_t srd(void *, uint32_t reg) { return bt.smmu.va[reg / 4]; }
 void swr(void *, uint32_t reg, uint32_t value) { bt.smmu.va[reg / 4] = value; barrier(); }
 void irqMask(void *, bool masked) {
-    if (!bt.serial_irq || !bt.gic.va) return;
+    if (!bt.serial_irq) return;
+    if (armcpu_spi_mask) {
+        armcpu_spi_mask(SM8250_UART6_INTID, masked);
+        return;
+    }
+    if (!bt.gic.va) return;
     const uint32_t word = (SM8250_UART6_INTID / 32u) * 4u;
     const uint32_t bit = 1u << (SM8250_UART6_INTID % 32u);
     bt.gic.va[((masked ? 0x180u : 0x100u) + word) / 4u] = bit;
@@ -546,8 +553,9 @@ int powerOn() {
         bt.serial_irq = true;
         irqMask(nullptr, true);
     }
-    if (!bt.wake_irq && armcpu_spi_attach) {
-        if (armcpu_spi_attach(240, false, rxIrq, nullptr, nullptr, nullptr) == 0)
+    if (!bt.wake_irq) {
+        auto attachWake = armcpu_spi_share ? armcpu_spi_share : armcpu_spi_attach;
+        if (attachWake && attachWake(240, false, rxIrq, nullptr, nullptr, nullptr) == 0)
             bt.wake_irq = true;
     }
     e = loopbackCheck();
@@ -734,7 +742,33 @@ void worker(void *, wait_result_t) {
             if (room > sizeof(tx)) room = sizeof(tx);
             if (room) {
                 uint32_t n = qbt_transport_tx_take(tx, (uint32_t)room);
-                if (n && qbt_transmit(bt.core, tx, n)) e = -EIO;
+                if (n) {
+                    /* Intercept HCI_LE_Read_Periodic_Advertiser_List_Size (0x204a) so QCA6390 does not
+                     * latch into Bluetooth 5.0 Extended Advertising/Scanning-only mode (Vol 4 Part E 3.1.1)
+                     * and reject bluetoothd's legacy advertising/scanning commands (0x2007/0x200b) with 0x0c. */
+                    uint8_t filtered[2048];
+                    uint32_t f_len = 0, off = 0;
+                    while (off < n) {
+                        if (tx[off] == 0x01 && off + 4 <= n) {
+                            uint16_t op = (uint16_t)tx[off + 1] | ((uint16_t)tx[off + 2] << 8);
+                            uint32_t pkt_len = 4u + tx[off + 3];
+                            if (off + pkt_len > n) pkt_len = n - off;
+                            if (op == 0x204a) {
+                                static const uint8_t cc_204a[] = { 0x04, 0x0e, 0x05, 0x01, 0x4a, 0x20, 0x00, 0x00 };
+                                (void)qbt_transport_receive(cc_204a, sizeof(cc_204a));
+                            } else {
+                                memcpy(filtered + f_len, tx + off, pkt_len);
+                                f_len += pkt_len;
+                            }
+                            off += pkt_len;
+                        } else {
+                            memcpy(filtered + f_len, tx + off, n - off);
+                            f_len += n - off;
+                            break;
+                        }
+                    }
+                    if (f_len && qbt_transmit(bt.core, filtered, f_len)) e = -EIO;
+                }
             }
             qbt_step(bt.core);
             struct qbt_info info;

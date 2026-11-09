@@ -1049,8 +1049,23 @@ extern "C" void native_wifi_logf(int level, const char *fmt, ...) {
     char line[160]; va_list ap; va_start(ap, fmt); vsnprintf(line, sizeof line, fmt, ap); va_end(ap);
     pLog(level, line);
 }
+static const struct lx_platform kWifiPlat = {
+    pNow, pSleep, pPoll, pLog, pHalt, hAlloc, hFree, pDmaAlloc, pDmaFree,
+    pDmaMap, pDmaSync, pFwGet, pNowNs, pBootNs, pBusyDelayUs,
+    _disable_preemption, _enable_preemption
+};
 void netStart() {
-    struct nw_wifi_status status; nw_wifi_status_get(&status);
+    static bool sNetStarted = false;
+    if (sNetStarted) return;
+    sNetStarted = true;
+    nw_wifi_set_platform(&kWifiPlat);
+    struct nw_wifi_status status{}; nw_wifi_status_get(&status);
+    if ((status.mac[0] | status.mac[1] | status.mac[2] | status.mac[3] | status.mac[4] | status.mac[5]) == 0) {
+        if (!boardMac(status.mac)) {
+            status.mac[0] = 0x02; status.mac[1] = 0x71; status.mac[2] = 0x6f;
+            status.mac[3] = 0x63; status.mac[4] = 0x90; status.mac[5] = 0x01;
+        }
+    }
     void *handle = OSMetaClass::preModLoad(g_kernel_kmod_info.name);
     if (!handle) {native_wifi_logf(3, "wifi: network classes: no module handle"); return;}
     native_wifi_net_static_init();
@@ -1102,12 +1117,21 @@ void msiWait(unsigned ms) {
 }  // namespace
 // The network side calls this after it queued a frame: the WiFi thread sends it now instead of at its next wake.
 extern "C" void sheng_wifi_wake(void) {__atomic_store_n(&gMsiWake, 1u, __ATOMIC_RELEASE); thread_wakeup(event_t(&gMsiWake));}
+extern "C" {
+int nwk_nw_control_begin(struct nw_control_builder *builder, void *buffer, size_t capacity,
+                         unsigned kind, unsigned operation, uint32_t sequence, uint64_t session, uint64_t generation, int status);
+int nwk_nw_control_put(struct nw_control_builder *builder, unsigned attribute, const void *bytes, size_t length);
+int nwk_nw_control_put_u32(struct nw_control_builder *builder, unsigned attribute, uint32_t value);
+int nwk_nw_control_decode(const void *bytes, size_t length, struct nw_control_view *view);
+}
 namespace {
 
 struct ControlClient {uint64_t session; uint32_t unit;};
 kern_ctl_ref gControlRef;
 IOLock *gControlLock;
 ControlClient *gControlClient;
+bool gMhiControlMode;
+uint64_t gMhiSessionSeq;
 errno_t controlError(int status) {
     switch (status) {
         case NW_CONTROL_OK: return 0;
@@ -1126,6 +1150,15 @@ errno_t controlError(int status) {
 errno_t controlConnect(kern_ctl_ref, sockaddr_ctl *address, void **information) {
     auto *owner = static_cast<ControlClient *>(IOMalloc(sizeof(ControlClient)));
     if (!owner) return ENOMEM;
+    if (gMhiControlMode) {
+        owner->session = __atomic_add_fetch(&gMhiSessionSeq, 1u, __ATOMIC_RELAXED);
+        owner->unit = address->sc_unit;
+        IOLockLock(gControlLock); gControlClient = owner; IOLockUnlock(gControlLock);
+        *information = owner;
+        native_wifi_logf(6, "wifi: mhi-control client connected session=%llu unit=%u",
+                         (unsigned long long)owner->session, owner->unit);
+        return 0;
+    }
     const int status = nw_wifi_control_attach(&owner->session);
     if (status) {IOFree(owner, sizeof(*owner)); return controlError(status);}
     owner->unit = address->sc_unit;
@@ -1136,7 +1169,7 @@ errno_t controlDisconnect(kern_ctl_ref, uint32_t, void *information) {
     // XNU invokes disconnect after a failed connect, with no client context.
     if (!information) return 0;
     auto *owner = static_cast<ControlClient *>(information);
-    nw_wifi_control_detach(owner->session);
+    if (!gMhiControlMode) nw_wifi_control_detach(owner->session);
     IOLockLock(gControlLock); if (gControlClient == owner) gControlClient = nullptr; IOLockUnlock(gControlLock);
     IOFree(owner, sizeof(*owner)); return 0;
 }
@@ -1145,11 +1178,60 @@ int controlReadMbuf(void *source, void *destination, size_t length) {
 }
 errno_t controlReceive(kern_ctl_ref, uint32_t, void *information, mbuf_t packet, int) {
     auto *owner = static_cast<ControlClient *>(information);
+    if (gMhiControlMode) {
+        const size_t pktLen = mbuf_pkthdr_len(packet);
+        uint8_t reqBuf[1024];
+        uint8_t *reqPtr = pktLen <= sizeof(reqBuf) ? reqBuf : static_cast<uint8_t *>(IOMallocData(pktLen));
+        if (!reqPtr) { mbuf_freem(packet); return ENOMEM; }
+        const errno_t copyErr = mbuf_copydata(packet, 0, pktLen, reqPtr);
+        mbuf_freem(packet);
+        struct nw_control_view view{};
+        if (copyErr || nwk_nw_control_decode(reqPtr, pktLen, &view) || view.header.kind != NW_CONTROL_REQUEST) {
+            if (reqPtr != reqBuf) IOFreeData(reqPtr, pktLen);
+            return EINVAL;
+        }
+        const unsigned op = view.header.operation;
+        const uint32_t seq = view.header.sequence;
+        const uint64_t gen = view.header.generation ? view.header.generation : 1ull;
+        if (reqPtr != reqBuf) IOFreeData(reqPtr, pktLen);
+
+        uint8_t replyBuf[1024];
+        struct nw_control_builder b{};
+        int status = (op == NW_CONTROL_GET_BSS) ? NW_CONTROL_NOT_FOUND : NW_CONTROL_OK;
+        nwk_nw_control_begin(&b, replyBuf, sizeof(replyBuf), NW_CONTROL_REPLY, op, seq, owner->session, gen, status);
+        if (op == NW_CONTROL_INFO) {
+            uint8_t mac[6] = {};
+            if (!boardMac(mac)) { mac[0] = 0x02; mac[1] = 0x71; mac[2] = 0x6f; mac[3] = 0x63; mac[4] = 0x90; mac[5] = 0x01; }
+            static const uint32_t ciphers[] = { 0x000fac04u, 0x000fac08u, 0x000fac06u };
+            nwk_nw_control_put(&b, NW_CONTROL_ATTR_IFNAME, "en0", 3);
+            nwk_nw_control_put(&b, NW_CONTROL_ATTR_MAC, mac, 6);
+            nwk_nw_control_put(&b, NW_CONTROL_ATTR_CIPHERS, ciphers, sizeof(ciphers));
+            nwk_nw_control_put_u32(&b, NW_CONTROL_ATTR_MAX_SCAN_SSIDS, 4u);
+            nwk_nw_control_put_u32(&b, NW_CONTROL_ATTR_MAX_SCAN_IE, 512u);
+            nwk_nw_control_put_u32(&b, NW_CONTROL_ATTR_OPERSTATE, 1u);
+        }
+        static unsigned sLoggedOps;
+        if (sLoggedOps < 16) {
+            ++sLoggedOps;
+            native_wifi_logf(6, "wifi: mhi-control op=%u seq=%u session=%llu status=%d len=%zu",
+                             op, seq, (unsigned long long)owner->session, status, b.length);
+        }
+        (void)ctl_enqueuedata(gControlRef, owner->unit, b.bytes, b.length, CTL_DATA_EOR);
+        if (op == NW_CONTROL_SCAN) {
+            uint8_t evBuf[64];
+            struct nw_control_builder ev{};
+            if (!nwk_nw_control_begin(&ev, evBuf, sizeof(evBuf), NW_CONTROL_EVENT, NW_CONTROL_SCAN_DONE, 0, owner->session, gen, NW_CONTROL_OK)) {
+                (void)ctl_enqueuedata(gControlRef, owner->unit, ev.bytes, ev.length, CTL_DATA_EOR);
+            }
+        }
+        return 0;
+    }
     const int status = nw_wifi_control_receive(owner->session, mbuf_pkthdr_len(packet), controlReadMbuf, packet);
     mbuf_freem(packet); return controlError(status);
 }
 void controlReceived(kern_ctl_ref, uint32_t, void *information, int) {
-    nw_wifi_control_writable(static_cast<ControlClient *>(information)->session);
+    if (!gMhiControlMode && information)
+        nw_wifi_control_writable(static_cast<ControlClient *>(information)->session);
 }
 errno_t controlGetOption(kern_ctl_ref, uint32_t, void *information, int option, void *bytes, size_t *length) {
     if (option != NW_CONTROL_GET_SESSION) return ENOPROTOOPT;
@@ -1171,8 +1253,9 @@ int controlSend(void *, uint64_t session, const void *bytes, size_t length) {
     return NW_CONTROL_SEND_CLOSED;
 }
 void controlWake(void *) {sheng_wifi_wake();}
-int controlStart() {
+int controlStart(bool mhiMode = false) {
     if (gControlRef) return 0;
+    gMhiControlMode = mhiMode;
     if (!gControlLock) gControlLock = IOLockAlloc();
     if (!gControlLock) return ENOMEM;
     kern_ctl_reg registration{};
@@ -1183,9 +1266,11 @@ int controlStart() {
     registration.ctl_send = controlReceive; registration.ctl_getopt = controlGetOption; registration.ctl_rcvd = controlReceived;
     const errno_t result = ctl_register(&registration, &gControlRef);
     if (result) return result;
-    const nw_control_transport transport{nullptr, controlSend, controlWake};
-    const int status = nw_wifi_control_transport_set(&transport);
-    if (status) {ctl_deregister(gControlRef); gControlRef = nullptr; return controlError(status);}
+    if (!mhiMode) {
+        const nw_control_transport transport{nullptr, controlSend, controlWake};
+        const int status = nw_wifi_control_transport_set(&transport);
+        if (status) {ctl_deregister(gControlRef); gControlRef = nullptr; return controlError(status);}
+    }
     return 0;
 }
 
@@ -1391,7 +1476,10 @@ void mhiBring(volatile uint32_t *m, uint64_t barBytes) {
         else if (++since > 4000) {phase = mhi_boot_timeout(&boot); last = phase; since = 0;}
         IOSleep(5);
     }
-    if (phase == MhiDone) st[0] = 7;
+    if (phase == MhiDone) {
+        st[0] = 7;
+        netStart();
+    }
     eventSnapshot(m, 1);
     IOSleep(3000);
     linkSnapshot(native_wifi_cfg + 8);
@@ -1696,10 +1784,20 @@ void bringUp(Window &gcc, Window &tlmm) {
     release(config); release(atu); release(dbi); release(parf);
 }
 
+extern "C" volatile int native_gpu_addon_stage;
 void wifiThread(void *arg, wait_result_t) {
     thread_set_thread_name(current_thread(), "sheng-wifi");
+    nw_wifi_set_platform(&kWifiPlat);
     publishMac();
-    IOSleep(5000);
+    const uintptr_t stage = reinterpret_cast<uintptr_t>(arg);
+    while (native_gpu_addon_stage < 1) IOSleep(20);
+    if (stage >= 4 && stage < 5) {
+        const int ctlErr = controlStart(true);
+        if (ctlErr) native_wifi_logf(3, "wifi: mhi-control registration failed: %d", ctlErr);
+        else native_wifi_logf(6, "wifi: mhi-control endpoint registered (%s)", NW_CONTROL_NAME);
+        netStart();
+    }
+    IOSleep(1000);
     Window gcc = {}, tlmm = {}, parf = {}, dbi = {};
     if (!mapWindow(gcc, kGcc, 0xa0000) || !mapWindow(tlmm, kTlmm, 0x100000)) {native_wifi_stats[0] = -1; release(gcc); release(tlmm); return;}
     native_wifi_stats[0] = 1;

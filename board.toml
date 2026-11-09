@@ -140,6 +140,9 @@ DEVICE_MODEL = "j716f"
 [adt.defaults.u32]
 vmm-present = 1
 sleep-disabled = 1
+# The kernel is built with CONFIG_VNODES=1024 (xsmall), so desiredvnodes clips to 1024; the desktop keeps about 1950 vnodes live and
+# vnode jetsam then kills daemons several times a second. XNU reads this value before it clips.
+"kern.maxvnodes" = 78848
 
 [adt.chosen.u32]
 kernel-ctrr-to-be-enabled = 0
@@ -177,17 +180,13 @@ kernel_args = [
   "sheng-smp=1",
   "armcpu-self-ipi=1",
   "armcpu-spi-ipi=1",
-  "armcpu-edge=1",
   "armcpu-diagnostics=1",
   "dk=0",
-  "validation_disables=0x10",
   "kt_fixed_zones=120",
   "sheng-pmgr=2",
   "-no_slto_panic",
   "ml-timeout-lock-panic-scale=40",
   "native-ufs-root=1",
-  "use_contiguous_hint=0",
-  "root-unverified=1",
   "sheng-data-persist=2",
   "-apfs_shared_datavolume",
   "sheng-disable-watchdogd=1",
@@ -224,6 +223,11 @@ kernel_args = [
   "pipa-buttons=1",
   "pipa-wd=0",
   "sheng-wifi=4",
+  "sheng-bluetooth=1",
+  "pipa-gpu-dcvs=1",
+  "sheng-backlight=1",
+  "owner-staged-apps=1",
+  "appsync=1",
 ]
 tools = true
 panic_screen = true
@@ -239,6 +243,12 @@ text_fixups = [
   "BTAudioHALPlugin,38bec,ffc300d1f44f01a9,000080d2c0035fd6",
   "dyld_shared_cache_arm64.11,34f3b84,979701944914d794,e0031faa1f2003d5",
 ]
+[payload.install]
+title = "Install and boot"
+confirm = "ERASE all iPadOS user data and install again?"
+confirm_titles = ["Erase Data, skip Hello, boot", "Erase Data, show Hello, boot"]
+confirm_args = ["sheng-data-reset=1", "sheng-data-reset=2"]
+
 [payload.adt]
 chip_id = "8011"
 unique_chip_id = "required"
@@ -248,6 +258,7 @@ dram_size = "0x140000000"
 psci_method = "smc"
 ipad_identity = true
 packed_data_ramdisk = true
+persistent_data = true
 root_match_volume_uuid = "04769D26-2CA0-4825-B443-E2E5F88300F2"
 
 [bootimg]

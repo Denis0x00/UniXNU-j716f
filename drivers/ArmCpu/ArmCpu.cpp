@@ -2,6 +2,7 @@
 #include <IOKit/IOCPU.h>
 #include <IOKit/IODeviceTreeSupport.h>
 #include <IOKit/IOMemoryDescriptor.h>
+#include <IOKit/IOLocks.h>
 #include <libkern/c++/OSData.h>
 #include <libkern/c++/OSSymbol.h>
 #include <machine/machine_routines.h>
@@ -206,11 +207,24 @@ static void noteRegistered (void)
 // Group 1 non-secure, priority 0xa0, the given trigger and routed to the boot CPU (GICD_IROUTER, affinity routing is on),
 // then enabled. The handler runs in the primary interrupt context, before the EOI, and must clear a level source.
 // An SPI without a handler is counted and disabled instead of being acknowledged forever.
-#define ARMCPU_SPI_SLOTS 16
+#define ARMCPU_SPI_SLOTS 24
 struct ArmCpuSpi {uint32_t id; void (*handler) (void *); void *context; volatile uint64_t count;};
 static ArmCpuSpi gSpi[ARMCPU_SPI_SLOTS];
+static uint32_t gSpiRoutes[1024];
 static volatile uint32_t gSpiUsed = 0;
 static uint64_t gBootAffinity = 0;
+static IOLock *gSpiRegistrationLock;
+static IOLock *spiRegistrationLock (void)
+{
+  IOLock *lock = __atomic_load_n (&gSpiRegistrationLock, __ATOMIC_ACQUIRE);
+  if (lock != nullptr) { return lock; }
+  IOLock *candidate = IOLockAlloc ();
+  if (candidate == nullptr) { return nullptr; }
+  if (!__atomic_compare_exchange_n (&gSpiRegistrationLock, &lock, candidate, false, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)) {
+    IOLockFree (candidate); return lock;
+  }
+  return candidate;
+}
 extern "C" {
 volatile uint64_t armcpu_spi_unhandled = 0;
 volatile uint32_t armcpu_spi_unhandled_id = 0;
@@ -225,6 +239,21 @@ volatile uint32_t armcpu_spi_handled_id = 0;
 // 10-tick minimum.
 volatile int32_t armcpu_timer_ahead[8];
 volatile uint32_t armcpu_timer_short[8];
+}
+static bool spiDispatch (uint32_t intid)
+{
+  bool handled = false;
+  if (intid < 32 || intid >= 1024) { return false; }
+  uint32_t routes = __atomic_load_n (&gSpiRoutes[intid], __ATOMIC_ACQUIRE);
+  while (routes) {
+    const uint32_t slot = __builtin_ctz (routes); routes &= routes - 1;
+    ArmCpuSpi &spi = gSpi[slot];
+    spi.count = spi.count + 1;
+    armcpu_spi_handled = armcpu_spi_handled + 1;
+    armcpu_spi_handled_id = intid;
+    spi.handler (spi.context); handled = true;
+  }
+  return handled;
 }
 
 IOService *ArmCpu::probe (IOService *provider, SInt32 *score)
@@ -647,7 +676,7 @@ void ArmCpu::interrupt (void)
       armcpu_irq_phase=0;break;
     }
     ++drained;
-    if(diagnosePower && drained>128)panic("ArmCpu: IRQ drain exceeds 128 id=%llx timer=%llu IPI=%llu",id,armcpu_timer_interrupts,armcpu_ipi_interrupts);
+    if(diagnosePower && drained>1000000)panic("ArmCpu: IRQ drain exceeds 1000000 id=%llx timer=%llu IPI=%llu",id,armcpu_timer_interrupts,armcpu_ipi_interrupts);
     if ((id & 0xffffff) == gTimerIntid) {
       armcpu_timer_interrupts = armcpu_timer_interrupts + 1;
       armcpu_core_timer[logicalId & 7] = armcpu_core_timer[logicalId & 7] + 1;
@@ -676,17 +705,8 @@ void ArmCpu::interrupt (void)
       armcpu_irq_phase = 5;
     } else {
       const uint32_t intid = static_cast<uint32_t> (id & 0xffffff);
-      ArmCpuSpi *spi = nullptr;
-      const uint32_t used = __atomic_load_n (&gSpiUsed, __ATOMIC_ACQUIRE);
-      for (uint32_t slot = 0; intid >= 32 && slot < used && spi == nullptr; slot++) {
-        if (gSpi[slot].id == intid) { spi = &gSpi[slot]; }
-      }
-      if (spi != nullptr) {
-        armcpu_irq_phase = 7;
-        spi->count = spi->count + 1;
-        armcpu_spi_handled = armcpu_spi_handled + 1;
-        armcpu_spi_handled_id = intid;
-        spi->handler (spi->context);
+      armcpu_irq_phase = 7;
+      if (spiDispatch (intid)) {
       } else if (intid >= 32 && gDist != 0) {
         armcpu_spi_unhandled = armcpu_spi_unhandled + 1;
         armcpu_spi_unhandled_id = intid;
@@ -874,8 +894,8 @@ const OSSymbol *ArmCpu::getCPUName (void)
 }
 
 // Readback after configuration: bit 0 group 1, bit 1 enabled, bit 2 edge, bits 8..15 priority; IROUTER separately.
-extern "C" IOReturn armcpu_spi_attach (uint32_t intid, bool edge, void (*handler) (void *), void *context,
-                                       uint32_t *readback, uint64_t *router)
+static IOReturn spiAttachUnlocked (uint32_t intid, bool edge, void (*handler) (void *), void *context,
+                                   uint32_t *readback, uint64_t *router)
 {
   if (gDist == 0 || armcpu_gic_ready == 0 || handler == nullptr) { return kIOReturnNotReady; }
   const unsigned interrupts = ((read32 (gDist, 4) & 31) + 1) * 32;
@@ -895,6 +915,7 @@ extern "C" IOReturn armcpu_spi_attach (uint32_t intid, bool edge, void (*handler
   *reinterpret_cast<volatile uint64_t *> (gDist + 0x6000 + 8 * intid) = gBootAffinity;
   gSpi[used] = {intid, handler, context, 0};
   __atomic_store_n (&gSpiUsed, used + 1, __ATOMIC_RELEASE);
+  __atomic_fetch_or (&gSpiRoutes[intid], 1U << used, __ATOMIC_RELEASE);
   __asm__ volatile ("dsb sy" ::: "memory");
   write32 (gDist, 0x100 + word, bit); // ISENABLER
   if (readback != nullptr) {
@@ -903,6 +924,52 @@ extern "C" IOReturn armcpu_spi_attach (uint32_t intid, bool edge, void (*handler
                 (static_cast<uint32_t> (*reinterpret_cast<volatile uint8_t *> (gDist + 0x400 + intid)) << 8);
   }
   if (router != nullptr) { *router = *reinterpret_cast<volatile uint64_t *> (gDist + 0x6000 + 8 * intid); }
+  return kIOReturnSuccess;
+}
+
+extern "C" IOReturn armcpu_spi_attach (uint32_t intid, bool edge, void (*handler) (void *), void *context,
+                                       uint32_t *readback, uint64_t *router)
+{
+  IOLock *lock = spiRegistrationLock ();
+  if (lock == nullptr) { return kIOReturnNoResources; }
+  IOLockLock (lock);
+  IOReturn result = spiAttachUnlocked (intid, edge, handler, context, readback, router);
+  IOLockUnlock (lock); return result;
+}
+
+// Level summary sources acknowledge their own pin/peripheral status. Keep all
+// handlers until platform shutdown, so IRQ dispatch needs no locks or allocation.
+extern "C" IOReturn armcpu_spi_share (uint32_t intid, void (*handler) (void *), void *context)
+{
+  if (gDist == 0 || !armcpu_gic_ready || handler == nullptr || intid < 32 || intid >= 1020) { return kIOReturnBadArgument; }
+  IOLock *lock = spiRegistrationLock ();
+  if (lock == nullptr) { return kIOReturnNoResources; }
+  IOLockLock (lock);
+  const uint32_t used = __atomic_load_n (&gSpiUsed, __ATOMIC_ACQUIRE);
+  bool found = false; IOReturn result = kIOReturnSuccess;
+  for (uint32_t slot = 0; slot < used; ++slot) {
+    if (gSpi[slot].id != intid) { continue; }
+    found = true;
+    if (gSpi[slot].handler == handler && gSpi[slot].context == context) { IOLockUnlock (lock); return kIOReturnSuccess; }
+  }
+  if (!found) { result = spiAttachUnlocked (intid, false, handler, context, nullptr, nullptr); }
+  else if (read32 (gDist, 0xc00 + (intid / 16) * 4) & (2U << ((intid % 16) * 2))) { result = kIOReturnBadArgument; }
+  else if (used >= ARMCPU_SPI_SLOTS) { result = kIOReturnNoResources; }
+  else {
+    gSpi[used] = {intid, handler, context, 0};
+    __atomic_store_n (&gSpiUsed, used + 1, __ATOMIC_RELEASE);
+    __atomic_fetch_or (&gSpiRoutes[intid], 1U << used, __ATOMIC_RELEASE);
+  }
+  IOLockUnlock (lock); return result;
+}
+
+// Usable from primary IRQ context; no lock, allocation or serial-engine access.
+extern "C" IOReturn armcpu_spi_mask (uint32_t intid, bool masked)
+{
+  if (!gDist || !armcpu_gic_ready || intid < 32 || intid >= 1020) { return kIOReturnNotReady; }
+  if (!__atomic_load_n (&gSpiRoutes[intid], __ATOMIC_ACQUIRE)) { return kIOReturnNotFound; }
+  write32 (gDist, (masked ? 0x180U : 0x100U) + (intid / 32) * 4, 1U << (intid % 32));
+  __asm__ volatile ("dsb sy" ::: "memory");
   return kIOReturnSuccess;
 }
 

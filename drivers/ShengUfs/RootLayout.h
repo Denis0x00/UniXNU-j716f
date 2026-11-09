@@ -16,6 +16,8 @@ struct RootLayout {
   uint32_t gptHeaderCrc, gptEntriesCrc, gptEntryCount;
   uint32_t windows;
   RootWindow window[4];
+  uint32_t objects;                       // version 2: data the kernel reads itself (policy tables, firmware)
+  RootWindow object[4];
   uint32_t manifestStatus;                // 0 ok, 1 no manifest magic, 2 bad version/count, 3 hash, 4 bounds, 5 names, 6 overlap, 7 attributes
   uint32_t magic0, magic1;                // first 8 bytes of the partition's first block
   uint32_t ext4Magic;                     // 16 bits at byte 1080 of the partition (0xef53 on Linux ext4)
@@ -158,7 +160,9 @@ static bool findRootLayout (RootLayout *layout, const char **why)
     uint32_t version = le32 (gScratch + 8), n = le32 (gScratch + 12);
     uint64_t imageBytes = le64 (gScratch + 16);
     layout->manifestStatus = 2;
-    if (version == 1 && n && n <= 4) {
+    // Version 1 holds windows only. Version 2 adds data objects (flags 3, 4096-byte blocks), which are read
+    // by the kernel and never published as block devices; a version 1 parser refuses such a manifest.
+    if ((version == 1 && n && n <= 4) || (version == 2 && n && n <= 8)) {
       SHA256_CTX context;
       uint8_t digest[32];
       SHA256_Init (&context);
@@ -172,12 +176,14 @@ static bool findRootLayout (RootLayout *layout, const char **why)
         for (uint32_t index = 0; index < n && bounds; index++) {
           const uint8_t *entry = gScratch + 24 + 128 * index;
           uint64_t offset = le64 (entry + 32), size = le64 (entry + 40);
-          if ((offset & 4095) || offset < 4096 || (size & 511) || !size || offset >= imageBytes ||
+          const bool isWindow = le32 (entry + 48) == 512 && le32 (entry + 52) == 1;
+          const bool isObject = version == 2 && le32 (entry + 48) == 4096 && le32 (entry + 52) == 3;
+          if ((offset & 4095) || offset < 4096 || (isWindow && (size & 511)) || !size || offset >= imageBytes ||
               size > imageBytes - offset || ((size + 4095) & ~4095ULL) > imageBytes - offset) {
             bounds = false;
             break;
           }
-          if (le32 (entry + 48) != 512 || le32 (entry + 52) != 1) {
+          if ((!isWindow && !isObject) || (isWindow && layout->windows == 4) || (isObject && layout->objects == 4)) {
             layout->manifestStatus = 7; bounds = false; break;
           }
           unsigned length = 0;
@@ -185,8 +191,8 @@ static bool findRootLayout (RootLayout *layout, const char **why)
           if (!length || length == 32 || entry[length] != 0) {
             layout->manifestStatus = 5; bounds = false; break;
           }
-          for (uint32_t prior = 0; prior < index; ++prior) {
-            const RootWindow &other = layout->window[prior];
+          for (uint32_t prior = 0; prior < layout->windows + layout->objects; ++prior) {
+            const RootWindow &other = prior < layout->windows ? layout->window[prior] : layout->object[prior - layout->windows];
             if (!strcmp (reinterpret_cast<const char *> (entry), other.name)) {
               layout->manifestStatus = 5; bounds = false; break;
             }
@@ -197,16 +203,22 @@ static bool findRootLayout (RootLayout *layout, const char **why)
             }
           }
           if (!bounds) break;
-          memcpy (layout->window[index].name, entry, 32);
-          layout->window[index].name[31] = 0;
-          layout->window[index].offset = offset;
-          layout->window[index].size = size;
-          memcpy (layout->window[index].sha256, entry + 56, 32);
+          RootWindow &slot = isWindow ? layout->window[layout->windows++] : layout->object[layout->objects++];
+          memcpy (slot.name, entry, 32);
+          slot.name[31] = 0;
+          slot.offset = offset;
+          slot.size = size;
+          memcpy (slot.sha256, entry + 56, 32);
+        }
+        if (bounds && !layout->windows) {
+          layout->manifestStatus = 7;
+          bounds = false;
         }
         if (bounds) {
-          layout->windows = n;
           layout->imageBytes = imageBytes;
           layout->manifestStatus = 0;
+        } else {
+          layout->windows = layout->objects = 0;
         }
       }
     }

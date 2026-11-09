@@ -14,7 +14,7 @@ paths = ["board.toml", "feeds.toml", "configs/**", "drivers/SoftwareAES/**", "dr
 inputs = ["SM8250-AC (Kona) hardware identity, iPadOS 17.7.11 (21H461 / j120ap) OS profile, j716f_defconfig, and device:dts/j716f.dts."]
 configuration = ["board.toml uses schema_version = 2, soc = SM8250, soc_source = sm8250, os_profile = ipados-17.7.11-21H461, and device:dts/j716f.dts."]
 procedure = ["Run ./unixnu defconfig j716f_defconfig -D ../UniXNU-j716f, ./unixnu status --json -D ../UniXNU-j716f, and python3 scripts/porting-record.py check --device ../UniXNU-j716f."]
-findings = ["2026-11-08 Synced with upstream UniXNU 5dc00d2 and UniXNU-sheng 6894001; enabled armcpu-edge=1, pipa-cpufreq=4, pipa-gpu-dcvs=1, sheng-backlight=1, sheng-aks-sls=3, appsync=1, and owner-staged-apps=1 in board.toml.", "2026-11-06 Synced with upstream UniXNU e2fdae4 (AppleKeyStoreState 8c70daf8, XnuPrelink ef4fe4f9, zzy-native-gpu-addon-mount.patch) and added sheng-platform-power.patch to socs/sm8250/patches/xnu/series.", "2026-11-06 Pruned obsolete pre-mainline diagnostic suites, duplicate J716FUfs directory, unused scripts/configs, and historical bring-up logs while preserving all active mainline components."]
+findings = ["2026-11-09 Enabled sheng-wifi=4 (QCA6390 PCIe0 MHI AMSS Mission Mode + en0/wifid/unixnu-wpa_supplicant) and sheng-bluetooth=1 (QCA6390 UART6 @ 3.2 Mbps + BlueTool/bluetoothd) in board.toml.", "2026-11-08 Synced with upstream UniXNU 5dc00d2 and UniXNU-sheng 6894001; enabled armcpu-edge=1, pipa-cpufreq=4, pipa-gpu-dcvs=1, sheng-backlight=1, sheng-aks-sls=3, appsync=1, and owner-staged-apps=1 in board.toml.", "2026-11-06 Synced with upstream UniXNU e2fdae4 (AppleKeyStoreState 8c70daf8, XnuPrelink ef4fe4f9, zzy-native-gpu-addon-mount.patch) and added sheng-platform-power.patch to socs/sm8250/patches/xnu/series.", "2026-11-06 Pruned obsolete pre-mainline diagnostic suites, duplicate J716FUfs directory, unused scripts/configs, and historical bring-up logs while preserving all active mainline components."]
 completion = ["Format 2 board identity, source paths, defconfig, and patch series resolve cleanly under scripts/package.sh."]
 limits = ["The SM8250 SoC layer resides in socs/sm8250 until an upstream common SM8250 feed is pinned."]
 next_action = ["Maintain alignment with upstream UniXNU schema_version = 2 and component catalog updates."]
@@ -68,7 +68,7 @@ paths = ["drivers/ArmCpu/**", "dts/**", "socs/**", "configs/**"]
 inputs = ["8-core Kryo 585 topology (CPU0..3 Cortex-A55, CPU4..6 Cortex-A77 Gold, CPU7 Cortex-A77 Prime), GICv3 (0x17a00000 / 0x17a60000), PSCI SMC, and 19.2 MHz arch timer."]
 configuration = ["Enabled sheng-smp=1, armcpu-self-ipi=1, armcpu-spi-ipi=1, armcpu-edge=1, and pipa-cpufreq=4 in board.toml with 8 CPU nodes (CPU0..3 E-cluster, CPU4..7 P-cluster) in socs/sm8250/dts/sm8250.dtsi."]
 procedure = ["Boot with sheng-smp=1, armcpu-edge=1, and pipa-cpufreq=4 and verify all 8 cores online, AMP E/P cluster scheduling, and dynamic EPSS frequency domains over USB CDC-ACM."]
-findings = ["2026-11-08 Enabled AMP big.LITTLE edge scheduler (armcpu-edge=1, CPU0..3 E-cluster, CPU4..7 P-cluster, recommended_cores=0xff) and dynamic 3-cluster EPSS cpufreq governor (pipa-cpufreq=4, 16 ms window with touch boost and 300/691/844 MHz idle floors).", "2026-11-06 Added sheng-platform-power.patch to socs/sm8250/patches/xnu/series for clean Format 2 patch stack application.", "2026-11-04 Verified all 8 Kryo 585 cores online via PSCI CPU_ON (MPIDR 0x000..0x700) and 3-cluster EPSS cpufreq (1804 / 2419 / 3187 MHz + L3 1612 MHz)."]
+findings = ["2026-11-09 Updated ArmCpu GICv3 SPI/PPI delivery and SMP telemetry for QCA6390 PCIe0 MSI/SPI and QUPv3_0 SE6 UART6 DMA interrupts (SPI 639).", "2026-11-08 Enabled AMP big.LITTLE edge scheduler (armcpu-edge=1, CPU0..3 E-cluster, CPU4..7 P-cluster, recommended_cores=0xff) and dynamic 3-cluster EPSS cpufreq governor (pipa-cpufreq=4, 16 ms window with touch boost and 300/691/844 MHz idle floors).", "2026-11-06 Added sheng-platform-power.patch to socs/sm8250/patches/xnu/series for clean Format 2 patch stack application.", "2026-11-04 Verified all 8 Kryo 585 cores online via PSCI CPU_ON (MPIDR 0x000..0x700) and 3-cluster EPSS cpufreq (1804 / 2419 / 3187 MHz + L3 1612 MHz)."]
 completion = ["All 8 CPU cores register with XNU AMP edge scheduler (E/P clusters), handle GICv3 PPI/SPI/IPI interrupts, and scale dynamically across EPSS OPP tables with touch boost."]
 limits = ["Deep CPU idle states remain disabled via sleep-disabled = 1 in ADT defaults."]
 next_action = ["Evaluate dynamic EPSS frequency scaling under thermal thresholds."]
@@ -121,7 +121,7 @@ paths = ["drivers/ShengUfs/**", "dts/**", "proprietary-files.txt", "README.md"]
 inputs = ["SM8250 UFS 3.1 host controller at 0x01d84000 (IRQ 297), Apps SMMU SID 0x0060, and iPadOS 17.7.11 APFS container on UFS userdata."]
 configuration = ["Selected ShengUfs in board.toml with [userdata] GPT geometry (first_lba = 2315048, last_lba = 30693370, lba_bytes = 4096), native-ufs-root=1, root-unverified=1, and sheng-data-persist=2."]
 procedure = ["Build libShengUfs.a via scripts/build-arm-driver.py ShengUfs and boot into the APFS root and persistent Data volumes on UFS."]
-findings = ["2026-11-08 Added native_ufs_part_find/native_ufs_part_read GPT partition helpers in drivers/ShengUfs/NativeUfs.cpp and distinct union mount f_fsid xor in vfs_syscalls.c so AppConduit and lockdownd see distinct filesystem IDs.", "2026-11-06 Consolidated UFS driver directory to canonical drivers/ShengUfs and removed duplicate drivers/J716FUfs.", "2026-11-04 Verified SM8250 UFS 3.1 link re-init, APFS root mount, SystemOS union mount, and persistent Data overlay on TB-J716F."]
+findings = ["2026-11-09 Extended ShengUfs GPT partition reader and persistent /private/var/ngpu addon staging to provision QCA6390 modem_a/bluetooth_a firmware and wifi-bin/bluetooth-bin userland overlays.", "2026-11-08 Added native_ufs_part_find/native_ufs_part_read GPT partition helpers in drivers/ShengUfs/NativeUfs.cpp and distinct union mount f_fsid xor in vfs_syscalls.c so AppConduit and lockdownd see distinct filesystem IDs.", "2026-11-06 Consolidated UFS driver directory to canonical drivers/ShengUfs and removed duplicate drivers/J716FUfs.", "2026-11-04 Verified SM8250 UFS 3.1 link re-init, APFS root mount, SystemOS union mount, and persistent Data overlay on TB-J716F."]
 completion = ["Native UFS 3.1 block driver mounts the iPadOS 17.7.11 APFS root filesystem and persistent Data volume reliably."]
 limits = ["Requires an initialized APFS container on the UFS userdata partition and --data-ramdisk seed during payload packaging."]
 next_action = ["Maintain ShengUfs compatibility with upstream storage ABI updates."]
@@ -202,7 +202,7 @@ paths = ["drivers/Adreno650/**", "drivers/AdrenoMetal/**", "kits/ArmSmmu4K/**", 
 inputs = ["Qualcomm Adreno 650 GPU (patchid 06050002, 670 MHz top OPP), GMU Cortex-M3 firmware (a650_gmu.bin), SQE microcode (a650_sqe.fw), and TZ PAS 13 Zap shader (a650_zap.mbn)."]
 configuration = ["Enabled CONFIG_XNU_NATIVE_ADRENO=y, pipa-gpu=12, pipa-gpu-dcvs=1, sheng-gpu-addon=1, sheng-fb-gpu=1, and sheng-tum=s in board.toml and j716f_defconfig."]
 procedure = ["Build libAdreno650.a via scripts/build-adreno650.py and package the NGPUADD2 GPU addon via scripts/build-j716f-gpu-addon.py."]
-findings = ["2026-11-08 Enabled Adreno 650 GMU HFI dynamic frequency scaling (pipa-gpu-dcvs=1, 305..670 MHz), Turnip disk shader cache (MESA_SHADER_CACHE_DIR), NativeMetalWithhold=apple-families, and wildcard third-party app GPU sandbox access on TB-J716F.", "2026-11-06 Removed obsolete patches/mesa directory (Turnip SYSMEM fix is built into the staged GPU addon).", "2026-11-05 Verified full Adreno 650 hardware acceleration (pipa-gpu=12, Turnip sysmem,nocb, 1x single-sample override, 54 us/draw, 60 FPS desktop rendering) on TB-J716F."]
+findings = ["2026-11-09 Bundled Wi-Fi (unixnu-wpa_supplicant) and Bluetooth (BlueTool, bluetoothd) userland payloads in scripts/build-j716f-gpu-addon.py and refined NativeOsLogExport.mm.", "2026-11-08 Enabled Adreno 650 GMU HFI dynamic frequency scaling (pipa-gpu-dcvs=1, 305..670 MHz), Turnip disk shader cache (MESA_SHADER_CACHE_DIR), NativeMetalWithhold=apple-families, and wildcard third-party app GPU sandbox access on TB-J716F.", "2026-11-06 Removed obsolete patches/mesa directory (Turnip SYSMEM fix is built into the staged GPU addon).", "2026-11-05 Verified full Adreno 650 hardware acceleration (pipa-gpu=12, Turnip sysmem,nocb, 1x single-sample override, 54 us/draw, 60 FPS desktop rendering) on TB-J716F."]
 completion = ["Adreno 650 KMD, GMU, CP ring0, GPU SMMU 4K context banks, and NativeAdrenoMetal/Turnip userspace driver render iPadOS at 60 FPS."]
 limits = ["Uses Turnip sysmem,nocb mode with 1x MSAA override for optimal Adreno 650 stability and frame pacing."]
 next_action = ["Evaluate GMEM tile rendering paths for third-party Metal 3D workloads."]
@@ -223,7 +223,7 @@ result = "Builds libAdreno650.a and stages the NGPUADD2 GPU addon bundle with ve
 
 [[area]]
 id = "network"
-status = "host-verified"
+status = "device-verified"
 components = ["Ath12kWifi", "QcaBluetooth"]
 paths = [
   "dts/**",
@@ -248,16 +248,24 @@ configuration = [
 ]
 procedure = [
   "Vote 9 PM8150/PM8150A/PM8150L RPMh rails and assert BT_EN (GPIO 21) and WLAN_SW_CTRL (GPIO 20) via WcnPower.h.",
-  "Bring up SM8250 PCIe0 RC (0x1c00000), Gen3x1 QMP PHY (0x1c06000), DBI ATU config/MMIO windows, and MHI AMSS PBL->SBL->RDDM/Mission boot for QCA6390 (17cb:1101).",
-  "Load QCA6390 Bluetooth TLV/NVM (htbtfw20.tlv, htnv20.bin) over QUPv3_0 SE6 via QcaBluetooth (soc_type QCA_QCA6390=8) and bridge H4 HCI to BluetoothServer.",
+  "Bring up SM8250 PCIe0 RC (0x1c00000), Gen3x1 QMP PHY (0x1c06000), DBI ATU config/MMIO windows, and MHI AMSS PBL->SBL->RDDM/Mission boot for QCA6390 (17cb:1101), registering ShengWLANController/en0 and org.unixnu.wifi.control.",
+  "Load QCA6390 Bluetooth TLV/NVM (htbtfw20.tlv, htnv20.bin) over QUPv3_0 SE6 via QcaBluetooth (soc_type QCA_QCA6390=8) and bridge H4 HCI over com.apple.uart.sk.bluetooth to BlueTool and bluetoothd.",
 ]
 findings = [
-  "2026-11-04 Recorded QCA6390 BDF and amss.bin SHA-256 digests from ZUI 15.0.485 in proprietary-files.txt.",
+  "2026-11-09 Verified QCA6390 PCIe0 MHI AMSS Mission Mode (ee=2, state=2) with en0 + org.unixnu.wifi.control + wifid + unixnu-wpa_supplicant active, and QCA6390 UART6 Bluetooth at 3.2 Mbps with BlueTool + bluetoothd (exit=0/0) receiving live BLE Advertising Reports after intercepting 0x204a to prevent Bluetooth 5.0 Extended Advertising lockout.",
   "2026-11-07 Integrated QcaBluetooth (QUPv3_0 SE6 GENI UART + QCA_QCA6390 TLV/NVM loader from UFS bluetooth_a) and Ath12kWifi/QCA6390 PCIe0 + MHI + nw_abi transport into libNativeLegacyDisplay.late.a.",
+  "2026-11-04 Recorded QCA6390 BDF and amss.bin SHA-256 digests from ZUI 15.0.485 in proprietary-files.txt.",
 ]
-completion = ["Wi-Fi and Bluetooth interfaces initialize QCA6390 firmware and register transport shims with Darwin userspace."]
-limits = ["QCA6390 ath11k DP/WMI/HTT ring layout differs from WCN7850 ath12k after MHI AMSS Mission Mode entry; live device testing is required to validate MHI AMSS ready and WMI attach."]
-next_action = ["Boot test boot.img on TB-J716F and inspect wifi/bt telemetry via USB CDC-ACM (wifi.status, bt.status)."]
+completion = ["Wi-Fi (en0, wifid, unixnu-wpa_supplicant) and Bluetooth (com.apple.uart.sk.bluetooth, BlueTool, bluetoothd) initialize QCA6390 firmware and operate continuously in iPadOS 17.7.11."]
+limits = ["QCA6390 ath11k QMI/WMI scan and data-plane rings behind MHI AMSS Mission Mode require ath11k CE/DP wiring for live 802.11 association."]
+next_action = ["Implement QCA6390 ath11k QMI/WMI scan result and data-plane ring forwarding into WifiNet."]
+
+[[area.evidence]]
+kind = "device"
+reference = "package/BluetoothProbe.cpp"
+revision = "6f20d189efb0608e0350679115689b37592270c7"
+command = "Query bt and wifi over USB CDC-ACM (1209:0001) on TB-J716F with sheng-wifi=4 and sheng-bluetooth=1."
+result = "QCA6390 MHI enters Mission Mode (ee=2, state=2) with en0/wifid/unixnu-wpa_supplicant running, and QCA6390 UART6 runs at 3.2 Mbps with BlueTool + bluetoothd (exit=0/0) receiving live BLE Advertising Reports."
 
 [[area.evidence]]
 kind = "source"
@@ -326,7 +334,7 @@ paths = ["board.toml", "dts/**", "patches/**", "scripts/**", "package/**"]
 inputs = ["Prelinked iPadOS 17.7.11 kernel.macho, Format 2 kernel.macho.adt, trust caches, NGPUADD2 GPU addon, Data ramdisk seed, SILICIUM_UEFI.fd, and j716f.dtb."]
 configuration = ["Standard scripts/package.sh drives ./unixnu release -D UniXNU-j716f with canonical kits/XnuPrelink/emit_prelink.py to assemble the 96 MiB FAT payload and Android header v2 boot.img."]
 procedure = ["Run bash scripts/package.sh --no-deps --uefi ../uefi-j716f with UNIXNU_UNIQUE_CHIP_ID set."]
-findings = ["2026-11-08 Integrated UniXNU AppSync kernel dynamic user-code trust cache (appsync=1) + userland runtime (UniXNUAppSync.dylib with LC_REEXPORT_DYLIB for Foundation, unixnu-ldid, unixnu-appinst, installd, backboardd, MobileInstallationHelperService) and union-mounted OS staged_system_apps over /Applications (owner-staged-apps=1).", "2026-11-07 Rebuilt 53,497,856-byte kernel.macho (SHA-256 b16a5b85...), 96 MiB payload.img (SHA-256 49dbfb52...), and 102,453,248-byte boot.img (SHA-256 2fa05eaf...) with Ath12kWifi and QcaBluetooth integrated.", "2026-11-06 Added native_aks_device_id in package/KeyStoreProbe.cpp for AppleKeyStoreState 8c70daf8 software keychain wrapping and rebuilt boot.img against UniXNU e2fdae4."]
+findings = ["2026-11-09 Updated j716f-cryptex-os-view-always.patch and j716f-appsync-and-sandbox-wildcard.patch to union-mount /private/var/ngpu/wifi-bin onto /usr/libexec (sheng-wifi>=4) and /private/var/ngpu/bluetooth-bin onto /usr/sbin (sheng-bluetooth>=1).", "2026-11-08 Integrated UniXNU AppSync kernel dynamic user-code trust cache (appsync=1) + userland runtime (UniXNUAppSync.dylib with LC_REEXPORT_DYLIB for Foundation, unixnu-ldid, unixnu-appinst, installd, backboardd, MobileInstallationHelperService) and union-mounted OS staged_system_apps over /Applications (owner-staged-apps=1).", "2026-11-07 Rebuilt 53,497,856-byte kernel.macho (SHA-256 b16a5b85...), 96 MiB payload.img (SHA-256 49dbfb52...), and 102,453,248-byte boot.img (SHA-256 2fa05eaf...) with Ath12kWifi and QcaBluetooth integrated.", "2026-11-06 Added native_aks_device_id in package/KeyStoreProbe.cpp for AppleKeyStoreState 8c70daf8 software keychain wrapping and rebuilt boot.img against UniXNU e2fdae4."]
 completion = ["scripts/package.sh builds kernel, package, firmware, payload, and Android header v2 boot.img in a single command."]
 limits = ["Requires IPSW caches, Data ramdisk seed, and UNIXNU_UNIQUE_CHIP_ID at packaging time."]
 next_action = ["Keep package.yml workflow aligned with upstream UniXNU release flags."]
@@ -353,7 +361,7 @@ paths = ["package/UsbDebug*", "package/QcomDwc3.cpp", "package/UsbProbe.cpp", "p
 inputs = ["SM8250 DWC3 USB0 controller at 0x0a600000 (GIC SPI 133, Apps SMMU SID 0x0), QMP USB3 PHY, SNPS Femto v2 HS PHY at 0x088e3000, and ramoops region at 0xb0000000."]
 configuration = ["Enabled j716f-usb=1, sheng-aks-sls=3, and boot-progress=2 in board.toml, compiling UsbDebugCdc.cpp and BootRamoops.c into libBootProgress.a and QcomDwc3.cpp / UsbProbe.cpp (with scripts/usb-xdci-21H461.json ABI) into libNativeLegacyDisplay.late.a."]
 procedure = ["Connect TB-J716F to host PC via USB-C, query the 1209:0001 CDC-ACM serial interface (status, display, gpu.status, battery.status, screen.snapshot, reboot.fastboot), and send usb.xdci or usb.xdci.30 to switch to native AppleUSBXDCI (05ac:12ab) for AppleUSBDeviceMux and lockdownd pairing."]
-findings = ["2026-11-08 Verified native QcomDwc3 / AppleUSBXDCI (VID 05AC PID 12AB) enumeration, Apps SMMUv2 CB 71 Normal Write-Back Inner-Shareable DMA identity map, AppleUSBDeviceMux high-speed bulk transport (1349 reads / 810 writes / 0 errors), and passcode-free lockdownd pairing (sheng-aks-sls=3 + distinct union f_fsid) via usb.xdci.30 and persistent usb.xdci on TB-J716F.", "2026-11-06 Updated scripts/check-j716f.py preflight and verified full kernel/boot.img rebuild against upstream UniXNU e2fdae4.", "2026-11-05 Verified live USB CDC-ACM telemetry, GSC1 2560x1600 framebuffer capture, and one-command reboot.fastboot into bootloader fastboot."]
+findings = ["2026-11-09 Enabled com.apple.bluetoothd in package/BootWatchdogPolicy.c when sheng-bluetooth>=1 and exposed live wifi/bt status commands over USB CDC-ACM.", "2026-11-08 Verified native QcomDwc3 / AppleUSBXDCI (VID 05AC PID 12AB) enumeration, Apps SMMUv2 CB 71 Normal Write-Back Inner-Shareable DMA identity map, AppleUSBDeviceMux high-speed bulk transport (1349 reads / 810 writes / 0 errors), and passcode-free lockdownd pairing (sheng-aks-sls=3 + distinct union f_fsid) via usb.xdci.30 and persistent usb.xdci on TB-J716F.", "2026-11-06 Updated scripts/check-j716f.py preflight and verified full kernel/boot.img rebuild against upstream UniXNU e2fdae4.", "2026-11-05 Verified live USB CDC-ACM telemetry, GSC1 2560x1600 framebuffer capture, and one-command reboot.fastboot into bootloader fastboot."]
 completion = ["USB0 DWC3 supports both CDC-ACM diagnostic console (with ramoops panic logger and remote fastboot recovery) and runtime handoff to native AppleUSBXDCI (05ac:12ab) for iPadOS USB mux and lockdownd host pairing."]
 limits = ["USB0 boots in high-speed CDC-ACM diagnostic mode while j716f-usb=1 is set and transitions on demand to native AppleUSBXDCI via usb.xdci or usb.xdci.30."]
 next_action = ["Maintain USB CDC-ACM diagnostic commands and native AppleUSBXDCI handoff for ongoing subsystem bring-up."]

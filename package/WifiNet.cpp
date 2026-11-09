@@ -200,9 +200,14 @@ int drain_disconnect() {
 }
 void visible_status(nw_wifi_status &st) {
   nw_wifi_status_get(&st);
+  if ((st.mac[0] | st.mac[1] | st.mac[2] | st.mac[3] | st.mac[4] | st.mac[5]) == 0) {
+    memcpy(st.mac, gMac, 6);
+  }
   if (!gPower || gLinkSuppressed) {
     st.state = NW_STA_IDLE; st.ssid_len = 0; memset(st.ssid, 0, sizeof st.ssid);
     memset(st.bssid, 0, sizeof st.bssid); st.freq_mhz = 0; st.signal_dbm = 0;
+  } else if (st.state == NW_STA_OFF) {
+    st.state = __atomic_load_n(&gScanning, __ATOMIC_ACQUIRE) ? NW_STA_SCANNING : NW_STA_IDLE;
   }
 }
 
@@ -469,7 +474,12 @@ int apple80211(bool set, apple80211req &rq) {
         gScanning = 1; gScanCursor = 0; gResultsShown = 24; uint64_t at; clock_interval_to_deadline(2000, kMillisecondScale, &at); thread_call_enter_delayed(gCachedScan, at); return 0; }
       gScanning = 1; gScanCursor = 0; gResultsShown = 0;
       int result = nw_wifi_scan(ssidLength && ssidLength <= 32 ? ssid : nullptr, ssidLength <= 32 ? ssidLength : 0);
-      if (result) { __atomic_store_n(&gScanning, 0u, __ATOMIC_RELEASE); return ENETDOWN; }
+      if (result) {
+        if (!gCachedScan) gCachedScan = thread_call_allocate(cached_scan_done, nullptr);
+        uint64_t at; clock_interval_to_deadline(500, kMillisecondScale, &at);
+        thread_call_enter_delayed(gCachedScan, at);
+        return 0;
+      }
       sheng_wifi_wake(); return 0; }
     case kAssociate: {
       assoc_parameters a{};

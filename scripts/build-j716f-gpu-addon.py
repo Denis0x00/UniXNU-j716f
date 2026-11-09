@@ -228,6 +228,8 @@ def main() -> int:
         ],
         'com.apple.springboard.launchapplications': True,
         'com.apple.frontboard.launchapplications': True,
+        'com.apple.springboard.opensensitiveurl': True,
+        'com.apple.frontboard.opensensitiveurl': True,
     }))
     daemon = out / 'adrenoprobed'
     subprocess.run([
@@ -280,7 +282,7 @@ def main() -> int:
         extra_cdhashes.append(wpa_cdhash)
         extra_files.append(('wifi-bin/unixnu-wpa_supplicant', 0o755, wpa_path.read_bytes()))
         extra_files.append(('etc/wifi/wpa_supplicant.conf', 0o644, (wifi_dir / 'wpa_supplicant.conf').read_bytes()))
-        if os.environ.get('UNIXNU_WIFI_DAEMON_PLIST') == '1':
+        if os.environ.get('UNIXNU_WIFI_DAEMON_PLIST', '1') != '0' and (wifi_dir / 'org.unixnu.wifi.supplicant.plist').is_file():
             extra_files.append(('daemons/org.unixnu.wifi.supplicant.plist', 0o644, (wifi_dir / 'org.unixnu.wifi.supplicant.plist').read_bytes()))
 
     if (appsync_dir / 'lib/UniXNUAppSync.dylib').is_file():
@@ -359,11 +361,13 @@ def main() -> int:
             subprocess.run(['codesign', '--verify', '--strict', str(appinst_out)], check=True)
         appsync_bins = (
             'lib/UniXNUAppSync.dylib',
+            'lib/libunixnu-ldid.dylib',
             'libexec/unixnu-ldid',
             'libexec/unixnu-appinst',
             'libexec/installd',
             'libexec/backboardd',
             'helper/com.apple.MobileInstallationHelperService',
+            'coreservices/SpringBoard.app/SpringBoard',
         )
         for rel in appsync_bins:
             bpath = appsync_dir / rel
@@ -372,7 +376,7 @@ def main() -> int:
             bdetail = subprocess.run(['codesign', '--display', '--verbose=4', str(bpath)], capture_output=True, text=True, check=True).stderr
             bcdhash = re.search(r'^CDHash=([a-f0-9]{40})$', bdetail, re.M)[1]
             extra_cdhashes.append(bcdhash)
-        for subdir in ('lib', 'libexec', 'helper'):
+        for subdir in ('lib', 'libexec', 'helper', 'coreservices'):
             sdir = appsync_dir / subdir
             if not sdir.is_dir():
                 continue
@@ -380,7 +384,7 @@ def main() -> int:
                 if not p.is_file():
                     continue
                 rel = p.relative_to(appsync_dir).as_posix()
-                mode = 0o755 if rel in appsync_bins else 0o644
+                mode = 0o755 if (rel in appsync_bins or p.name == 'SpringBoardDiagnosticExtension') else 0o644
                 extra_files.append(('appsync/' + rel, mode, p.read_bytes()))
         if (wifi_dir / 'unixnu-wpa_supplicant').is_file():
             extra_files.append(('appsync/libexec/unixnu-wpa_supplicant', 0o755, (wifi_dir / 'unixnu-wpa_supplicant').read_bytes()))

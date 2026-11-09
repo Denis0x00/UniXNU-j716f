@@ -31,7 +31,7 @@ diff --git a/bsd/kern/kern_exec.c b/bsd/kern/kern_exec.c
 +		    "/usr/sbin/notifyd", "/usr/sbin/BlueTool", &native_bt_addon_stage, &native_bt_addon_status);
 +		printf("[bluetooth-runtime] executables=%d/%d\n", native_bt_addon_stage, native_bt_addon_status);
 +	}
-+	if (PE_parse_boot_argn("sheng-wifi", &wifi_enabled, sizeof(wifi_enabled)) && wifi_enabled >= 5) {
++	if (PE_parse_boot_argn("sheng-wifi", &wifi_enabled, sizeof(wifi_enabled)) && wifi_enabled >= 4) {
 +		static const char wifi_source[] = "/private/var/ngpu/wifi-bin", wifi_point[] = "/usr/libexec";
 +		native_gpu_addon_mount(p, scratch, 0x800, wifi_source, sizeof(wifi_source), wifi_point, sizeof(wifi_point),
 +		    "/usr/libexec/launchd_cache_loader", "/usr/libexec/unixnu-wpa_supplicant", &native_wifi_addon_stage, &native_wifi_addon_status);
@@ -75,7 +75,7 @@ diff --git a/bsd/kern/kern_event.c b/bsd/kern/kern_event.c
 diff --git a/bsd/kern/kern_exit.c b/bsd/kern/kern_exit.c
 --- a/bsd/kern/kern_exit.c
 +++ b/bsd/kern/kern_exit.c
-@@ -1494,16 +1494,29 @@
+@@ -1494,16 +1494,27 @@
  /*
   * NOTE: exit_with_reason drops a reference on the passed exit_reason
   */
@@ -98,8 +98,6 @@ diff --git a/bsd/kern/kern_exit.c b/bsd/kern/kern_exit.c
 +		    (((uint64_t)(uint32_t)rv & 0xffffULL) << 16) |
 +		    (((uint64_t)ns & 0xffULL) << 32) |
 +		    ((code & 0xffffffULL) << 40);
-+		printf("[bt-exit] %s[%d] rv=0x%x reason=%u/0x%llx\n",
-+		    p->p_comm, proc_getpid(p), rv, ns, (unsigned long long)code);
 +	}
 +
  #if DEVELOPMENT || DEBUG

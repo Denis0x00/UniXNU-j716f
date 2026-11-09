@@ -27,7 +27,7 @@ static const char lite_jobs[]=
  "com.apple.fairplayd.A2,com.apple.passd,com.apple.mobile.obliteration,com.apple.coreduetd,"
  "com.apple.PerfPowerServices,com.apple.PerfPowerServicesExtended,com.apple.perfpowermetricd,com.apple.siriinferenced,"
  "com.apple.siriknowledged,com.apple.siriactionsd,com.apple.duetexpertd,com.apple.modelcatalogd,"
- "com.apple.bluetoothd,com.apple.cameracaptured";
+ "com.apple.cameracaptured";
 
 static char policy[2048],jobs[200];
 volatile int sheng_watchdog_policy_status=-1;
@@ -172,6 +172,7 @@ int sheng_boot_watchdog_policy(void *process, uint64_t scratch) {
  PE_parse_boot_argn("sheng-disable-watchdogd",&enabled,sizeof(enabled));
  if(!PE_parse_boot_argn("sheng-disable-jobs",jobs,sizeof(jobs)))jobs[0]=0;jobs[sizeof(jobs)-1]=0;
  int lite=0;PE_parse_boot_argn("sheng-lite",&lite,sizeof(lite));if(lite!=1)lite=0;
+ int bt=0;PE_parse_boot_argn("sheng-bluetooth",&bt,sizeof(bt));
  if(enabled!=1)enabled=0;
  for(const char *c=jobs;*c;++c)if(!((*c>='a'&&*c<='z')||(*c>='A'&&*c<='Z')||(*c>='0'&&*c<='9')||*c=='.'||*c=='-'||*c=='_'||*c==','))return EINVAL;
  int setup=0,reset=0;
@@ -188,7 +189,10 @@ int sheng_boot_watchdog_policy(void *process, uint64_t scratch) {
  if(!enabled && !jobs[0] && !lite)return 0;
  policy[0]=0;strlcat(policy,policy_head,sizeof(policy));
  if(enabled)strlcat(policy,policy_watchdogd,sizeof(policy));
- if(lite)for(const char *c=lite_jobs;*c;) {if((error=append_job(&c)))return error;}
+ if(lite) {
+  for(const char *c=lite_jobs;*c;) {if((error=append_job(&c)))return error;}
+  if(bt<1) {const char *bt_job="com.apple.bluetoothd";if((error=append_job(&bt_job)))return error;}
+ }
  for(const char *c=jobs;*c;) {if((error=append_job(&c)))return error;}
  strlcat(policy,policy_tail,sizeof(policy));
  const char *directory="/private/var/db/com.apple.xpc.launchd";
