@@ -52,7 +52,7 @@ names = (v.CALLER_NAME, v.CALLEE_NAME, '_bsd_autoconf', initialize, log,
 functions = {name: function(name) for name in names + v.BRINGUP_NAMES + v.RUNTIME_NAMES + v.OWNER_NAMES + (v.POWER_NAME,)}
 power_symbols = {}
 for fragment in ('actualContext', 'mapPage', 'readRegister', 'unmapPage', 'logEvent'):
-    hits = [name for name in image.names if name.startswith('__ZN12_GLOBAL__N_1') and fragment in name]
+    hits = [name for name in image.names if name.startswith('__ZN12_GLOBAL__N_1' + str(len(fragment)) + fragment)]
     v.require(len(hits) == 1, 'Need unique Power binding function: ' + fragment)
     power_symbols[fragment] = hits[0]
 for fragment in ('3run', '7address', '12registerName', '10resultName'):

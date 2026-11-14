@@ -10,7 +10,7 @@ this document describes the overall release boundary.
 | UEFI UI | Menu, power/volume selection, QR export and redraw tested | Further firmware changes need regression testing |
 | Early XNU | CPU0, VM, IOKit core/configuration/matching, BSD autoconf and pre-root reached | Root lookup, mount and userspace |
 | r30 storage bridge | Registration runs after successful IOKitBSDInit | Power/clock observations, HCI readiness, SMMU/DMA ownership, transport and block publication |
-| r31 GCC experiment | Synthetic policy tests, nine-TU compile, official kernel/prelink build and host verification passed | Image acceptance and tablet per-register log |
+| r31 GCC experiment | Official kernel/prelink and Linux/Windows image verification passed, including seven rejection cases on each host; only boot_b flashed; user reports approximately six-second return to the r31 menu | Complete retained Power log and register values; MMIO success, UFS block I/O and root mounting remain unproven |
 | UFS command and slot core | Offline command whitelist, state/ownership interfaces and board adapters | Live resource/ownership providers and qualified UFS I/O |
 | Goodix/GENI | Stock-based parsing and bounded FIFO/transaction work, synthetic tests | Live clocks/pins/reset/IRQ/engine grant, transport, orientation and HID |
 | Display | Resource reservation/handoff and provider code, host tests | Actual reservation proof, framebuffer display publication and graphics |

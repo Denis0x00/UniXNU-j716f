@@ -16,8 +16,13 @@ register observations to the storage path. Fresh host compilation exposed an
 XNU declaration hidden by `MACH_KERNEL_PRIVATE`; the source now declares its
 verified `get_preemption_level` C ABI without enabling that global flag. The
 nine-TU compile, official kernel/prelink build and host verification have passed.
-Image acceptance and tablet execution remain pending at this snapshot. A
-successful map does not establish readable hardware. The probe has no external
+The r31 image passed the Linux and Windows verifiers, including seven rejection
+cases on each host, and deployment wrote only `boot_b`. The user reports that
+selecting Start XNU returned to the r31 menu after approximately six seconds.
+The complete retained Power log has not yet been supplied: register values,
+successful MMIO reads, UFS block I/O and root mounting remain unproven. This
+observed return alone does not qualify the Power probe. A successful map does
+not establish readable hardware. The probe has no external
 abort containment and does not access HCI/SMMU, issue DMA, publish storage or
 mount root. Do not promote a six-second diagnostic reset to a storage-success
 claim; inspect the retained per-register log.
