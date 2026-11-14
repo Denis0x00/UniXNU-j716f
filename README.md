@@ -19,13 +19,17 @@ nine-TU compile, official kernel/prelink build and host verification have passed
 The r31 image passed the Linux and Windows verifiers, including seven rejection
 cases on each host, and deployment wrote only `boot_b`. The user reports that
 selecting Start XNU returned to the r31 menu after approximately six seconds.
-The complete retained Power log has not yet been supplied: register values,
-successful MMIO reads, UFS block I/O and root mounting remain unproven. This
-observed return alone does not qualify the Power probe. A successful map does
-not establish readable hardware. The probe has no external
-abort containment and does not access HCI/SMMU, issue DMA, publish storage or
-mount root. Do not promote a six-second diagnostic reset to a storage-success
-claim; inspect the retained per-register log.
+The retained XNU log now reports `captured`, eleven attempted/completed GCC
+reads, `valid=0x7ff`, and one map/unmap. Ten raw register values are recoverable.
+The retention importer reports three corrupt records and missing sequences
+13, 51 and 72; this is an internal retained-record integrity gap, not merely a
+missing QR page. Sequence 72 contains the unavailable AHB raw result, which
+must not be reconstructed from the `ahb-readable=1` summary hint. The surviving
+values show the GDSC power-on bit set, reset deasserted and AXI enabled; lane
+clock values do not establish a working UFS link. This is GCC observation
+evidence, not verification of all eleven raw values or HCI/SMMU access, DMA,
+UFS block I/O or root mounting. The probe has no external abort containment.
+The raw device log remains private and is not included in this source export.
 
 ## Source organization
 
@@ -56,7 +60,12 @@ claimed by this source update.
 
 See the [Data runner guide](README-data-runner.md) for its manual/tag trigger,
 fixed Apple inputs, APFS validation, output preservation and installation UUID
-contract. The first macOS job and actual Data creation are still pending.
+contract. The repaired macOS [run 43597879267](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/43597879267)
+successfully created and validated a fresh Data seed. Its retained artifact
+passed independent byte/provenance verification on Windows and the Linux VM;
+those host checks did not themselves execute APFS. The same seed is preserved
+for subsequent builds. Kernel UUID binding, payload integration and a successful
+device mount are still pending.
 
 ## Reconstruct a build workspace
 

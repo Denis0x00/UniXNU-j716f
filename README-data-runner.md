@@ -64,6 +64,8 @@ python3 scripts/ci/verify_data_seed.py <downloaded-artifact-directory>
 
 首轮 [GitHub macOS job 43596100796](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/43596100796) 已实际运行：原始 OS 下载与 SHA256、信任缓存捆绑、只读根卷 UUID/版本检查通过，随后在官方 APFS 容器发现阶段失败；清理成功，未发布 Data seed。失败日志没有保留当时的 APFS 拓扑，不能断言根因已经完全确定。
 
-兼容修订通过 26 项纯字节/设备归属拒绝测试，并针对固定 Git blob 验证了源码锁与唯一发现段替换。测试夹具不执行真实磁盘命令，不能代替下一轮 macOS preflight。只有新 job 产生成功 artifact 后才能填入实际 Data UUID 和宣称 APFS 主机校验通过。
+兼容修订通过 26 项纯字节/设备归属拒绝测试，并针对固定 Git blob 验证了源码锁与唯一发现段替换。
+
+第二轮 [GitHub macOS job 43597879267](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/43597879267) 已成功完成，源码提交 `dcc352f4c4e5ae465758b0e6176d7345045223b9`。空白 APFS 预检和正式 Data 创建、扩容、只读挂载、`diskutil verifyVolume`、清理及产物上传均通过。正式产物已经在 Windows 与 Linux VM 保存并通过独立字节/来源验收；实际 Data UUID 和哈希保存在该 artifact 的 provenance 与本地接收回执中，后续构建必须复用。逻辑容量 16 GiB，packed 文件 1,052,800 字节。此结果不表示内核已绑定 Data UUID，也不表示 TB-J716F 已挂载 Data 或启动 iPadOS 用户态。
 
 GitHub 行为参考：[workflow 语法](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)、[checkout](https://github.com/actions/checkout)、[artifact 上传](https://github.com/actions/upload-artifact)。
