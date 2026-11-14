@@ -1,0 +1,19 @@
+# Preparation draft: iPadOS 17.7.11 / 21H461, generic arm64, SM8250.
+# Source/compiler/ABI validation remains pending. Only CPU0 is enabled in DTS.
+CONFIG_XNU_SOURCE_CORECRYPTO14=y
+CONFIG_XNU_SOURCE_PTHREAD=y
+CONFIG_XNU_ARM_DT_PLATFORM=y
+CONFIG_XNU_ARMCPU=y
+CONFIG_XNU_CRYPTO_BOOTSTRAP="prelinked"
+# CONFIG_XNU_ARMVIRT_PLATFORM is not set
+# CONFIG_XNU_NATIVE_UFS is not set
+# CONFIG_XNU_NATIVE_ADRENO is not set
+# CONFIG_XNU_NATIVE_LEGACY_DISPLAY is not set
+# CONFIG_XNU_NATIVE_MOBILE_DISPLAY is not set
+# CONFIG_XNU_BOOT_PROGRESS is not set
+# CONFIG_XNU_SHENG_PMGR is not set
+# CONFIG_XNU_OWNER_DATA_MOUNT is not set
+# CONFIG_XNU_OWNER_CACHE_MOUNT is not set
+
+# Use the device-tree panic region; do not access the BCM2837 fixed address.
+CONFIG_XNU_DT_PANIC_REGION=y

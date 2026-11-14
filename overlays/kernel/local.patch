@@ -1,0 +1,696 @@
+diff --git a/docs/drivers/sheng-ufs.md b/docs/drivers/sheng-ufs.md
+index da92372..f7fc193 100644
+--- a/docs/drivers/sheng-ufs.md
++++ b/docs/drivers/sheng-ufs.md
+@@ -33,7 +33,154 @@ For the arm64e public-source build path and its current linking/runtime limits,
+ 
+ ## Command path
+ 
+-Up to 32 commands run at once, one per command slot. The request list sits on a
++### Local SM8250 preparation
++
++The local TB-J716F adaptation checkout, `work/ShengUfs-sm8250`, adds
++host-testable helpers and a restricted command path, with board adapters in the
++device repository. They are not selected by `NativeUfs` or the flashed TB-J716F
++boot path. The independent `j716f-host-ufs-adapter` target has completed the
++official kernel build and static verification described below.
++The `UfsPlatform.h` / `UfsObservation.h`
++observer requires an exact SM8250 identity and established
++read-access grant, checks power/reset/bus clocks, and reads only a fixed set of
++GCC/HCI/SMMU-ID registers. It does not follow firmware list pointers or issue
++register writes, UIC commands or DMA. Expected SIDs are source facts, not a
++measurement of firmware ownership.
++
++The separate grouped planner requires a complete validated stream/context
++snapshot and an explicit common owner grant. It checks both SIDs together and
++revalidates the captured snapshot; it supplies no actual lock or MMIO commit.
++Its `planInto` entry uses caller-retained output storage instead of a full
++`Plan` stack temporary. It rejects overlapping inputs without changing the
++output, so callers must check the returned error. The board handoff transaction
++retains separate planning and revalidation workspaces. The value-returning
++`plan` and the `revalidate` helper, which uses a full local plan, remain available
++for host consumers and are not used by this transaction.
++
++`ReadCommandPolicy.h` validates the final request packet and PRD against a
++five-command allowlist: NOP, the power-mode attribute read, TEST UNIT READY,
++READ CAPACITY(10), and READ(10). It requires the fixed one-slot DMA layout and
++exact tag, LUN, direction and transfer length. READ(10) is limited to one
++4 KiB block from an explicit known-block allowlist after capacity discovery;
++writes, arbitrary queries and other SCSI commands are rejected. Response
++validation checks OCS, response type, tag/LUN, status, residual and sense data.
++The policy itself allocates nothing and performs no MMIO or DMA.
++
++`RestrictedUfs.h` supplies a non-copyable single-slot state machine. It enforces
++NOP → power-mode check → TEST UNIT READY → READ CAPACITY(10) → allowed reads,
++retains the accepted request and context, and calls the shared owner's readiness
++and DMA gates before submission. Polling has both a time limit and a poll-count
++limit. At most two retries are allowed, only after a validated completed SCSI
++BUSY or TASK SET FULL response; all attempts share the original budget.
++Doorbell zero alone is not completion. Ambiguous prepare/acknowledge/ring
++failures, in-flight timeouts and invalid completions enter quarantine and retain
++the resource claim. A software halt is not proof that the hardware queue stopped.
++The board adapter described below implements the `Port` callbacks for MMIO,
++cache maintenance and owned-buffer preparation. Its host-model verification
++does not establish a working hardware transport.
++
++The board-side `socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.h` and
++`AppsSmmuOwner.cpp` define 13 C ABI functions backed by one implementation
++translation unit. The software owner provides bounded, nonblocking metadata
++and transaction gates, exact resource claims, monotonic lease tokens, and
++publication/queue/DMA lifecycle checks without allocation or MMIO. Acquisition
++requires an explicitly installed board handoff with a nonzero authorization
++reference and attestations of valid exclusive authority, a stopped queue and
++idle DMA for the exact controller/SMMU/SID/slot/bank/DMA tuple. The owner cannot
++establish those hardware facts or infer firmware/TZ ownership from unused
++contexts. The independent target links exactly one implementation; later
++integrations must preserve that requirement.
++
++Release requires a stopped queue, known-idle DMA and no partial publication.
++A published mapping retains its claim for the same tuple to reacquire; only an
++explicitly confirmed unpublish permits removing it. Quarantine releases the CPU
++transaction lease but permanently retains the resource claim until reboot or
++platform shutdown. There is no recovery/reset API. Tokens are capabilities for
++trusted callers and must not be shared concurrently. If quarantine encounters
++metadata contention or a stale token, the state machine remains terminal and
++does not free the existing resources or lease.
++
++The existing `NativeUfs.cpp` command path and `AppsSmmuLock.h` are unchanged and
++do not use this owner or policy. The observer and grouped planner remain pure
++helpers; ownership and hardware publication belong to the separate board
++transaction. No `--observer` or `--platform` build option exists.
++
++From the adaptation workspace root on the Linux build host, use a manifest
++pinning the source, owner, runner and prepared ABI inputs, with fresh output
++directories:
++
++```sh
++python3 analysis/tools/check_shengufs_restricted.py \
++  --workspace "$PWD" --manifest /path/to/input-manifest.json \
++  --output /path/to/fresh-host-check
++python3 analysis/tools/build_shengufs_restricted.py \
++  --workspace "$PWD" --manifest /path/to/input-manifest.json \
++  --output /path/to/fresh-arm-check
++```
++
++The host runner covers the policy, state machine and multi-TU/thread owner tests
++with ASan/UBSan, plus the preceding observer/planner and root-path regressions.
++The ARM runner builds the official `build-arm-driver.py ShengUfs` archive and
++separate ABI bridge/owner objects, then checks a relocatable link and all 13
++owner symbols. Each run records its input manifest and verification results.
++An object link is not a kernel link, and none of these checks
++qualifies register access, DMA, block reads or root mounting on TB-J716F.
++
++#### Board adapter and current verification
++
++The board's `Sm8250Platform` now implements `Sm8250UfsHandoff`, `Sm8250UfsHci`
++and `Sm8250UfsRuntime`. Handoff requires actual register-access, SMMU-visibility,
++exclusive-authority and DMA evidence, including exclusion of external writers
++and proof that old transactions are drained. It captures and revalidates the
++complete visible stream/context set, publishes the granted dual-SID routes,
++and leaves the already stopped host queue stopped. It neither stops unknown
++firmware queues nor performs cold initialization, PHY/ICE/TCU, UIC or global
++SMMU programming.
++
++The HCI adapter installs one owned request list, submits only slot 0, and
++implements descriptor preparation, bounded polling, response checks and cache
++maintenance for the restricted command chain. Runtime provides the IOKit
++contiguous allocation, register mappings and ARM64 cache/barrier operations.
++Its startup entry only marks registration; trusted platform calls must separately
++authorize allocation and activation with actual handoff evidence. Published or
++quarantined DMA and mappings remain retained even after a confirmed queue stop.
++
++Stock TB-J716F ZUI 15.0.485 DTB0/DTBO1 resources have been independently checked
++against the original images. Expected SIDs and GCC branch offsets remain Linux
++source references. These inputs do not prove live register accessibility,
++firmware/TZ ownership or the required handoff facts.
++
++The 2026-11-13 ASan/UBSan host run passed 28 HCI scenarios and 148 callback
++failures, 67 handoff scenarios and 500 callback failures, and 11 integrated
++pipeline scenarios, plus prior regressions. The pipeline combines the actual
++handoff, HCI, command-state and owner modules with modeled MMIO and separate
++CPU/device DMA views; it does not insert synthetic owner-ready transitions.
++The workspace runner is `analysis/tools/check_sm8250_ufs_adapter.py`, and this
++run is recorded in `analysis/ufs-adapter-20261113/host-result.json` with input
++hashes. It does not execute the IOKit Runtime, access hardware or use QEMU.
++
++The independent target completed the official kernel bootstrap, nine archive
++recipes, native kernel link and ordinary ARM64 prelink. The build and static
++acceptance reports are `analysis/host-ufs-adapter-20261113/kernel-03.json` and
++`verification-03.json`. All 20 owner/Runtime exports are unique in the native
++and prelinked outputs, with their code preserved. Machine-code checks confirm
++that the startup entry only stores its registration flag, without MMIO or
++allocator calls. The maximum analyzed internal call chain is 5376 bytes of
++stack, including conservative internal callback sets. External XNU/IOKit frames
++and interrupt nesting are excluded, so this is not a bound on the complete
++running kernel stack.
++
++Build and static acceptance do not establish runtime execution. The adapter
++is not enabled on the tablet; the production archive recipe, root publication
++and persistent storage path remain unchanged. Actual TB-J716F register access,
++DMA, known-block reads, IOStorage/root integration and iPadOS userland are still
++unqualified. All 14 device porting areas, including storage, remain `planned`
++pending the corresponding hardware evidence.
++
++### Reference SM8550 runtime
++
++The existing `NativeUfs` implementation runs up to 32 commands at once, one per
++command slot. The request list sits on a
+ write-combined page of its own. Completion uses the controller interrupt with
+ hybrid polling: a wait polls for 200 microseconds, then sleeps. Page-aligned
+ buffers are transferred by zero-copy DMA of up to 1 MiB per command. On the
+diff --git a/docs/reference/boot-configuration.md b/docs/reference/boot-configuration.md
+index 947d9f0..42ce639 100644
+--- a/docs/reference/boot-configuration.md
++++ b/docs/reference/boot-configuration.md
+@@ -286,16 +286,55 @@ Within a key, any listed value matches. Across keys, every key must match.
+ 
+ ## Menu behavior
+ 
++Normal builds use the following rules:
++
+ | Condition | Result |
+ | --- | --- |
+-| Input device present | Countdown runs to the timeout |
+-| No input device | `fallback_timeout` applies |
++| Nonnegative timeout | Countdown runs to `timeout`; zero selects the default immediately |
+ | Negative timeout with input | Waits for a key |
+ | Negative timeout without input | `fallback_timeout` applies |
+-| Failed boot | Returns to the menu without a countdown |
++| Failed boot | Returns without a countdown when input exists; otherwise `fallback_timeout` applies |
+ 
+ The menu shows the configuration source, the entry list, the injection summary and the first error.
+ 
++### Diagnostic firmware hold
++
++`PcdUniXNUDiagnosticMenuHold` defaults to `FALSE`. A board can explicitly enable
++it for diagnostic firmware in its DSC:
++
++```ini
++[PcdsFixedAtBuild]
++  gUniXNUPkgTokenSpaceGuid.PcdUniXNUDiagnosticMenuHold|TRUE
++```
++
++Rebuild the firmware and its boot image using the
++[UEFI integration workflow](/porting/uefi-firmware). The enabled mode displays
++`Diagnostic hold` and keeps the menu visible until an explicit selection. This
++firmware policy covers built-in and loaded configurations, the Tools submenu,
++and menu re-entry after a payload returns. A loaded `unixnu.toml` cannot override
++it through `timeout`, `fallback_timeout`, or `rotate`.
++
++The highlight does not rotate. Missing input and input errors keep the menu
++waiting. Timer or event failures cannot select an entry automatically because
++this mode uses neither timer events nor `WaitForKey`: each poll first calls
++`Stall(100000)` for a requested 100 ms delay, then checks the current `ConIn` and
++reads a key if available. A console that appears later can still accept input.
++Physical input handles are not enumerated in this mode; the initial `input` log
++field reports only whether a `ConIn` callback is available.
++Existing navigation and explicit selection keys retain their behavior, including
++the ability to choose XNU, Tools, Return to firmware, Restart, or Power off.
++Escape alone does not exit the menu.
++
++The older `PcdUniXNUBuiltinMenuWaitForInput` only changes built-in configuration
++settings and retains the normal fallback timeout when input is absent. Use the
++diagnostic hold PCD when an unattended diagnostic menu must remain visible.
++
++Host tests exercise the actual menu loop with simulated firmware services.
++Physical input and real delay timing remain unverified until a device test.
++The mode depends on working `Stall` and `ReadKeyStroke` implementations; it does
++not change confirmation dialogs or a tool plugin's internal loop. If no input
++works, use the device's physical reset and bootloader recovery procedure.
++
+ ## Next steps
+ 
+ - [Payload](/concepts/payload)
+diff --git a/docs/zh/drivers/sheng-ufs.md b/docs/zh/drivers/sheng-ufs.md
+index e85aeb4..f0650aa 100644
+--- a/docs/zh/drivers/sheng-ufs.md
++++ b/docs/zh/drivers/sheng-ufs.md
+@@ -29,7 +29,123 @@ arm64e 的公开源码构建方法及当前链接、运行时限制见[公开源
+ 
+ ## 命令路径
+ 
+-最多同时执行 32 条命令，每条命令占一个槽。请求列表位于单独的写合并页。
++### 本地 SM8250 适配准备
++
++本地 TB-J716F 适配 checkout `work/ShengUfs-sm8250` 新增可在主机测试的
++辅助模块与受限命令路径，设备仓库也已实现板级 adapter。
++它们未接入 `NativeUfs` 或已刷入的 TB-J716F 启动路径；独立
++`j716f-host-ufs-adapter` 目标已完成下述官方内核构建与静态验收。
++`UfsPlatform.h` / `UfsObservation.h` 观察器要求精确匹配
++SM8250 身份并提供已建立的读取许可；检查供电、复位及总线时钟后，仅读取固定的
++GCC/HCI/SMMU-ID 寄存器。它不追踪固件列表指针，不写寄存器、不发 UIC 命令、
++不分配 DMA。预期 SID 是源码事实，不代表已测的固件所有权。
++
++独立双 SID 规划器要求完整且已验证的 stream/context 快照和显式共同 owner 授权，
++整组检查并重验快照；它不提供实际共享锁或 MMIO 提交。
++`planInto` 将结果写入调用者保留的工作区，避免在小型内核栈上创建完整 `Plan`
++临时对象。输入与输出重叠时，在修改输出前拒绝，因此调用者必须检查返回的错误值。
++板级 handoff 事务分别保留规划与重验工作区。返回完整对象的 `plan` 和内部使用
++完整局部 plan 的 `revalidate` 仍供主机调用者使用，本事务不调用这两个辅助接口。
++
++`ReadCommandPolicy.h` 对最终请求包和 PRD 执行五种命令的白名单校验：NOP、
++读取电源模式属性、TEST UNIT READY、READ CAPACITY(10) 和 READ(10)。
++它要求固定的单槽 DMA 布局，以及精确的 tag、LUN、方向和传输长度。
++READ(10) 必须在完成容量发现后，从显式已知块白名单读取单个 4 KiB 块；
++写命令、任意查询及其他 SCSI 命令均被拒绝。响应校验覆盖 OCS、响应类型、
++tag/LUN、状态、残余长度和 sense 数据。策略本身不分配内存，也不执行 MMIO 或 DMA。
++
++`RestrictedUfs.h` 提供不可复制的单槽状态机，强制按照 NOP → 电源模式检查 →
++TEST UNIT READY → READ CAPACITY(10) → 白名单读取的顺序执行，保留已接受的
++请求和上下文，并在提交前调用共享 owner 的就绪与 DMA 检查。
++轮询同时受时间上限和次数上限约束；仅完整验证已完成的 SCSI BUSY 或
++TASK SET FULL 响应后才允许重试，最多两次，所有尝试共享最初的预算。
++doorbell 为零本身不代表完成。准备描述符、确认完成事件或敲门铃的结果不明、命令提交后超时、
++完成响应无效等情况会进入隔离并保留资源声明。软件停止状态不证明硬件队列已停止。
++下述板级 adapter 已实现 `Port` 的 MMIO、缓存维护和自有缓冲区准备回调，
++其主机模型验证尚不代表硬件传输已可用。
++
++板侧 `socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.h` 和
++`AppsSmmuOwner.cpp` 定义 13 个 C ABI 接口，状态由单个实现编译单元持有。
++该软件 owner 提供有界、非阻塞的元数据与事务门控、精确资源声明、单调递增的
++租约 token，以及 publication/queue/DMA 生命周期检查，不分配内存、不访问 MMIO。
++获取租约前必须显式安装板级 handoff：含非零授权引用，并针对精确的
++controller/SMMU/SID/slot/bank/DMA 组合声明有效独占权限、队列已停和 DMA 空闲。
++owner 自身无法建立这些硬件事实，也不能从未使用的上下文推断固件或 TZ 所有权。
++独立目标已只链接一份实现，后续内核接入也必须保持这一要求。
++
++释放要求队列已停、DMA 已知空闲且不存在部分发布。已发布的映射仍保留资源声明，
++供同一组合再次获取；只有显式确认取消发布后，才允许移除声明。
++隔离释放 CPU 事务租约，但永久保留资源声明，直到重启或平台关闭；没有恢复或
++reset API。token 是可信调用者使用的软件能力凭据，持有者不得并发共享。
++如果隔离调用遇到元数据竞争或过期 token，状态机仍保持终止状态，不释放现有资源或租约。
++
++现有 `NativeUfs.cpp` 命令路径和 `AppsSmmuLock.h` 未改动，也未使用新 owner 或策略。
++观察器和双 SID 规划器仍是纯辅助模块；所有权与硬件映射发布由独立板级事务负责。
++目前没有 `--observer` 或 `--platform` 构建参数。
++
++在 Linux 构建主机的适配工作区根目录，使用固定源码、owner、runner 和已准备 ABI
++输入的 manifest，并指定全新的输出目录：
++
++```sh
++python3 analysis/tools/check_shengufs_restricted.py \
++  --workspace "$PWD" --manifest /path/to/input-manifest.json \
++  --output /path/to/fresh-host-check
++python3 analysis/tools/build_shengufs_restricted.py \
++  --workspace "$PWD" --manifest /path/to/input-manifest.json \
++  --output /path/to/fresh-arm-check
++```
++
++主机 runner 使用 ASan/UBSan 检查策略、状态机和跨编译单元/线程 owner 测试，
++并运行此前的观察器、规划器和根路径回归。ARM runner 构建官方
++`build-arm-driver.py ShengUfs` archive 及独立 ABI bridge/owner 对象，再检查
++可重定位链接和全部 13 个 owner 符号。每次执行记录对应的输入 manifest 和验证结果。
++对象链接不等于内核链接；这些检查均不代表 TB-J716F 的寄存器访问、DMA、块读取
++或 root 挂载已通过实机验收。
++
++#### 板级 adapter 与当前验证范围
++
++板侧 `Sm8250Platform` 已实现 `Sm8250UfsHandoff`、`Sm8250UfsHci` 和
++`Sm8250UfsRuntime`。handoff 要求真实的寄存器访问、SMMU 可见性、独占权限与 DMA
++证据，包括排除外部写入者以及旧事务已经排空的证明。事务采集并重验完整可见的
++stream/context 集合，只发布获授权的双 SID 路由，保持原本已停止的主机队列停止。
++它不停止状态未知的固件队列，不执行冷初始化，也不编程 PHY/ICE/TCU、UIC 或
++全局 SMMU 控制寄存器。
++
++HCI adapter 安装一个自有请求列表，仅提交槽 0，并为受限命令链实现描述符准备、
++有界轮询、响应检查和缓存维护。Runtime 提供 IOKit 连续物理内存分配、寄存器映射
++以及 ARM64 缓存与屏障操作。启动入口只登记状态；可信平台调用必须携带真实
++handoff 证据，分别授权分配与激活。已发布或隔离的 DMA 与映射始终保留，
++即使已确认队列停止也不释放。
++
++TB-J716F ZUI 15.0.485 的 DTB0/DTBO1 资源已与原始镜像独立核对。
++预期 SID 与 GCC 分支偏移仍来自 Linux 源码参考；这些输入不能证明当前寄存器
++可访问、固件/TZ 所有权或所要求的 handoff 事实。
++
++2026-11-13 的 ASan/UBSan 主机检查通过了 28 个 HCI 场景及 148 次回调故障注入、
++67 个 handoff 场景及 500 次回调故障注入、11 个集成 pipeline 场景，以及此前回归。
++pipeline 使用真实 handoff、HCI、命令状态机和 owner 模块，配合 MMIO 模型及
++分离的 CPU/设备 DMA 视图；没有人为插入 owner-ready 状态转换。
++工作区 runner 为 `analysis/tools/check_sm8250_ufs_adapter.py`，本次结果及输入哈希
++记录于 `analysis/ufs-adapter-20261113/host-result.json`。该检查不执行 IOKit Runtime，
++不访问实机，也未使用 QEMU。
++
++独立目标已完成官方 kernel bootstrap、九项 archive 配方、native 内核链接和
++普通 ARM64 prelink。构建与静态验收报告分别为
++`analysis/host-ufs-adapter-20261113/kernel-03.json` 和 `verification-03.json`。
++20 个 owner/Runtime 导出在 native 与 prelink 产物中均唯一，代码保持一致。
++机器码检查确认启动入口只写入注册标志，不调用 MMIO 或分配器。分析得到的最大
++内部调用链栈用量为 5376 字节，包含保守建模的内部回调集合，但不包含外部
++XNU/IOKit 栈帧和中断嵌套，因此不代表完整运行内核的栈上限。
++
++构建与静态验收通过不代表已经运行。该 adapter 未在平板上启用，生产 archive
++配方、根设备发布和持久存储路径保持不变。TB-J716F 的实际寄存器访问、DMA、
++已知块读取、IOStorage/root 集成和 iPadOS 用户态均尚未通过实机验收；
++包含存储在内的全部 14 个设备移植领域仍为 `planned`，等待对应硬件证据。
++
++### 参考 SM8550 运行时
++
++现有 `NativeUfs` 实现最多同时执行 32 条命令，每条命令占一个槽。
++请求列表位于单独的写合并页。
+ 命令完成使用控制器中断加混合轮询：等待先轮询 200 微秒，再睡眠。页对齐缓冲区
+ 走零拷贝 DMA，每条命令最多 1 MiB。在参考板型上，每项读取测试都不低于主线
+ Linux 驱动，见 [UFS 性能](/zh/porting/ufs#performance)。
+diff --git a/docs/zh/reference/boot-configuration.md b/docs/zh/reference/boot-configuration.md
+index 91bbc9d..66f242b 100644
+--- a/docs/zh/reference/boot-configuration.md
++++ b/docs/zh/reference/boot-configuration.md
+@@ -286,16 +286,46 @@ match 键：
+ 
+ ## 菜单行为
+ 
++普通构建使用以下规则：
++
+ | 条件 | 结果 |
+ | --- | --- |
+-| 有输入设备 | 倒计时到超时 |
+-| 无输入设备 | 使用 `fallback_timeout` |
++| 超时非负 | 按 `timeout` 倒计时；零表示立即选择默认项 |
+ | 负超时且有输入 | 等待按键 |
+ | 负超时且无输入 | 使用 `fallback_timeout` |
+-| 启动失败 | 返回菜单，不再倒计时 |
++| 启动失败 | 有输入设备时返回菜单且不再倒计时；否则使用 `fallback_timeout` |
+ 
+ 菜单显示配置来源、菜单项、注入摘要和第一条错误。
+ 
++### 诊断固件等待模式
++
++`PcdUniXNUDiagnosticMenuHold` 默认为 `FALSE`。设备可以在 DSC 中显式启用它，
++用于诊断固件：
++
++```ini
++[PcdsFixedAtBuild]
++  gUniXNUPkgTokenSpaceGuid.PcdUniXNUDiagnosticMenuHold|TRUE
++```
++
++按照 [UEFI 集成流程](/zh/porting/uefi-firmware)重新构建固件及其启动镜像。
++启用后，菜单显示 `Diagnostic hold`，直到用户明确选择才执行菜单项。
++这项固件策略同时覆盖内置配置、加载的配置、Tools 子菜单和 payload 返回后的菜单。
++加载的 `unixnu.toml` 无法通过 `timeout`、`fallback_timeout` 或 `rotate` 覆盖它。
++
++高亮项保持不动。缺少输入设备或读取输入出错时，菜单继续等待。
++此模式不使用计时器事件或 `WaitForKey`，因此这些服务出错不会自动选择菜单项：
++每轮先调用 `Stall(100000)` 请求等待 100 ms，再检查当前 `ConIn`，可用时读取按键。
++稍后出现的控制台仍可以接管输入。此模式不枚举物理输入句柄；初始日志中的 `input`
++仅表示是否存在可调用的 `ConIn` 读取接口。原有导航和明确选择按键保持有效，可以选择 XNU、
++Tools、返回固件、重启或关机。仅按 Escape 不会退出菜单。
++
++较早的 `PcdUniXNUBuiltinMenuWaitForInput` 只调整内置配置，缺少输入设备时仍保留
++普通的回退倒计时。需要诊断菜单在无人操作时持续显示，应使用新的诊断等待 PCD。
++
++主机测试使用模拟固件服务运行实际菜单循环。物理按键和真实等待时序仍需实机验证。
++该模式依赖正常工作的 `Stall` 和 `ReadKeyStroke`，不改变确认对话框或工具插件内部的
++循环。如果没有可用输入，需要通过设备物理复位和 bootloader 恢复流程退出。
++
+ ## 下一步
+ 
+ - [启动负载](/zh/concepts/payload)
+diff --git a/package/UniXNUPkg/Library/UniXNULib/Config.c b/package/UniXNUPkg/Library/UniXNULib/Config.c
+index ed39c6b..bc8d487 100644
+--- a/package/UniXNUPkg/Library/UniXNULib/Config.c
++++ b/package/UniXNUPkg/Library/UniXNULib/Config.c
+@@ -1580,6 +1580,11 @@ UniXNUConfigLoad (
+     if (!EFI_ERROR (Status)) {
+       ApplyRoot (Config, Root);
+       TomlFree (Root);
++      if (PcdGetBool (PcdUniXNUBuiltinMenuWaitForInput)) {
++        Config->Timeout       = -1;
++        Config->RotateSeconds = 0;
++        UniXNULog ("config: built-in diagnostic menu waits for input");
++      }
+     }
+ 
+     if (AddFallbackLoaders (Config, ImageHandle) == 0) {
+diff --git a/package/UniXNUPkg/Library/UniXNULib/Menu.c b/package/UniXNUPkg/Library/UniXNULib/Menu.c
+index e3e4619..7fac689 100644
+--- a/package/UniXNUPkg/Library/UniXNULib/Menu.c
++++ b/package/UniXNUPkg/Library/UniXNULib/Menu.c
+@@ -7,6 +7,10 @@
+   - Any key press stops both the countdown and the rotation.
+   - The countdown always boots the default entry; rotation is display only.
+ 
++  PcdUniXNUDiagnosticMenuHold is an opt-in firmware diagnostic override. It
++  disables automatic selection for every config and polls input with Stall,
++  including when no physical input or working timer event is available.
++
+   Copyright (c) 2026, UniXNU contributors. All rights reserved.
+   SPDX-License-Identifier: BSD-2-Clause-Patent
+ **/
+@@ -100,6 +104,7 @@ UniXNUMenuRun (
+   UINTN          Previous;
+   UINTN          Index;
+   BOOLEAN        HasInput;
++  BOOLEAN        DiagnosticHold;
+   BOOLEAN        UserActive;
+   INTN           RemainingMs;
+   UINTN          RotateMs;
+@@ -107,11 +112,15 @@ UniXNUMenuRun (
+   INTN           LastShownSecond;
+   UINTN          Count;
+ 
+-  Count    = Config->EntryCount;
+-  Selected = Config->DefaultIndex;
+-  HasInput = (CountInputDevices () > 0);
++  Count          = Config->EntryCount;
++  Selected       = Config->DefaultIndex;
++  DiagnosticHold = PcdGetBool (PcdUniXNUDiagnosticMenuHold);
++  HasInput       = DiagnosticHold ? ((gST->ConIn != NULL) && (gST->ConIn->ReadKeyStroke != NULL))
++                                 : (CountInputDevices () > 0);
+ 
+-  if (!Countdown) {
++  if (DiagnosticHold) {
++    RemainingMs = -1;
++  } else if (!Countdown) {
+     RemainingMs = HasInput ? -1 : (INTN)Config->FallbackTimeout * 1000;
+   } else if (Config->Timeout < 0) {
+     RemainingMs = HasInput ? -1 : (INTN)Config->FallbackTimeout * 1000;
+@@ -119,8 +128,8 @@ UniXNUMenuRun (
+     RemainingMs = Config->Timeout * 1000;
+   }
+ 
+-  RotateMs = Config->RotateSeconds * 1000;
+-  if (!HasInput && (RotateMs == 0)) {
++  RotateMs = DiagnosticHold ? 0 : Config->RotateSeconds * 1000;
++  if (!DiagnosticHold && !HasInput && (RotateMs == 0)) {
+     RotateMs = DEFAULT_ROTATE_SEC * 1000;
+   }
+ 
+@@ -132,7 +141,8 @@ UniXNUMenuRun (
+   UniXNUUiDrawStatus (
+     Ui,
+     1,
+-    HasInput ? L"Up/Down: select    Enter: boot    1-9: boot entry    Esc: stop timer"
++    DiagnosticHold ? L"Diagnostic hold: Up/Down selects; Enter/1-9 runs; no automatic boot"
++    : HasInput ? L"Up/Down: select    Enter: boot    1-9: boot entry    Esc: stop timer"
+              : L"No input device: the default entry boots when the timer ends"
+     );
+   if (Ui->Notice[0] != L'\0') {
+@@ -148,23 +158,32 @@ UniXNUMenuRun (
+     HasInput ? "yes" : "no",
+     (UINT32)RotateMs
+     );
++  if (DiagnosticHold) {
++    UniXNULog (
++      "menu: diagnostic hold enabled; input reflects ConIn callback availability; enumeration skipped; explicit key selection required; poll %u ms",
++      TICK_MS
++      );
++  }
+ 
+   if (RemainingMs == 0) {
+     UniXNULog ("menu: timeout 0, booting default");
+     return Config->DefaultIndex;
+   }
+ 
+-  Status = gBS->CreateEvent (EVT_TIMER, TPL_CALLBACK, NULL, NULL, &Timer);
+-  if (EFI_ERROR (Status)) {
+-    return Config->DefaultIndex;
+-  }
++  Timer      = NULL;
++  EventCount = 0;
++  if (!DiagnosticHold) {
++    Status = gBS->CreateEvent (EVT_TIMER, TPL_CALLBACK, NULL, NULL, &Timer);
++    if (EFI_ERROR (Status)) {
++      return Config->DefaultIndex;
++    }
+ 
+-  gBS->SetTimer (Timer, TimerPeriodic, EFI_TIMER_PERIOD_MILLISECONDS (TICK_MS));
++    gBS->SetTimer (Timer, TimerPeriodic, EFI_TIMER_PERIOD_MILLISECONDS (TICK_MS));
+ 
+-  EventCount = 0;
+-  Events[EventCount++] = Timer;
+-  if (gST->ConIn != NULL) {
+-    Events[EventCount++] = gST->ConIn->WaitForKey;
++    Events[EventCount++] = Timer;
++    if (gST->ConIn != NULL) {
++      Events[EventCount++] = gST->ConIn->WaitForKey;
++    }
+   }
+ 
+   UserActive      = FALSE;
+@@ -173,14 +192,31 @@ UniXNUMenuRun (
+   for ( ; ;) {
+     INTN  Second = (RemainingMs < 0) ? -1 : (RemainingMs + 999) / 1000;
+ 
+-    if (Second != LastShownSecond) {
++    if (!DiagnosticHold && (Second != LastShownSecond)) {
+       DrawCountdown (Ui, Config, RemainingMs, HasInput);
+       LastShownSecond = Second;
+     }
+ 
+-    Status = gBS->WaitForEvent (EventCount, Events, &Signaled);
+-    if (EFI_ERROR (Status)) {
+-      break;
++    if (DiagnosticHold) {
++      //
++      // Do not depend on WaitForKey, physical-device enumeration or timer
++      // events during bring-up. Recheck ConIn each pass so a console that
++      // appears later can still take over. Errors keep the menu visible.
++      // Stall bounds polling even for a broken or absent input protocol.
++      //
++      gBS->Stall (TICK_MS * 1000);
++      if ((gST->ConIn == NULL) || (gST->ConIn->ReadKeyStroke == NULL) ||
++          EFI_ERROR (gST->ConIn->ReadKeyStroke (gST->ConIn, &Key)))
++      {
++        continue;
++      }
++
++      Signaled = 1;
++    } else {
++      Status = gBS->WaitForEvent (EventCount, Events, &Signaled);
++      if (EFI_ERROR (Status)) {
++        break;
++      }
+     }
+ 
+     Previous = Selected;
+@@ -202,7 +238,7 @@ UniXNUMenuRun (
+         }
+       }
+     } else {
+-      if (EFI_ERROR (gST->ConIn->ReadKeyStroke (gST->ConIn, &Key))) {
++      if (!DiagnosticHold && EFI_ERROR (gST->ConIn->ReadKeyStroke (gST->ConIn, &Key))) {
+         continue;
+       }
+ 
+@@ -242,8 +278,11 @@ UniXNUMenuRun (
+     }
+   }
+ 
+-  gBS->SetTimer (Timer, TimerCancel, 0);
+-  gBS->CloseEvent (Timer);
++  if (Timer != NULL) {
++    gBS->SetTimer (Timer, TimerCancel, 0);
++    gBS->CloseEvent (Timer);
++  }
++
+   return Selected;
+ }
+ 
+diff --git a/package/UniXNUPkg/Library/UniXNULib/UniXNULib.inf b/package/UniXNUPkg/Library/UniXNULib/UniXNULib.inf
+index 7a395a8..83925de 100644
+--- a/package/UniXNUPkg/Library/UniXNULib/UniXNULib.inf
++++ b/package/UniXNUPkg/Library/UniXNULib/UniXNULib.inf
+@@ -69,3 +69,5 @@
+ [Pcd]
+   gUniXNUPkgTokenSpaceGuid.PcdUniXNUDebugLevel
+   gUniXNUPkgTokenSpaceGuid.PcdUniXNUConfigPath
++  gUniXNUPkgTokenSpaceGuid.PcdUniXNUBuiltinMenuWaitForInput
++  gUniXNUPkgTokenSpaceGuid.PcdUniXNUDiagnosticMenuHold
+diff --git a/package/UniXNUPkg/UniXNUPkg.dec b/package/UniXNUPkg/UniXNUPkg.dec
+index bdf8d38..6c2244c 100644
+--- a/package/UniXNUPkg/UniXNUPkg.dec
++++ b/package/UniXNUPkg/UniXNUPkg.dec
+@@ -50,3 +50,14 @@
+ 
+   ## ASCII model name reported by menu plugins that export device files.
+   gUniXNUPkgTokenSpaceGuid.PcdUniXNUDeviceModel|"UniXNU"|VOID*|0x00000004
++
++  ## Keep the built-in diagnostic menu still and wait for input. A valid
++  #  external configuration keeps its own timeout and rotation settings.
++  #  Without an input device, the menu retains its fallback timeout.
++  gUniXNUPkgTokenSpaceGuid.PcdUniXNUBuiltinMenuWaitForInput|FALSE|BOOLEAN|0x00000005
++
++  ## Diagnostic firmware only: every menu waits for an explicit selection,
++  #  including loaded configurations and menus with no input device. Polls
++  #  ConIn every 100 ms using Stall; never falls back to automatic selection
++  #  on missing input or a timer/event failure. Normal builds leave FALSE.
++  gUniXNUPkgTokenSpaceGuid.PcdUniXNUDiagnosticMenuHold|FALSE|BOOLEAN|0x00000006
+diff --git a/scripts/unixnu/bootimg.py b/scripts/unixnu/bootimg.py
+index de568f8..9dae1c2 100644
+--- a/scripts/unixnu/bootimg.py
++++ b/scripts/unixnu/bootimg.py
+@@ -16,9 +16,10 @@ from pathlib import Path
+ from .config import load_toml
+ from .util import Error, log, run, sha256_file, tool
+ 
+-DEFAULTS = {'header_version': 0, 'base': 0, 'kernel_offset': 0x8000, 'tags_offset': 0x1e00000, 'pagesize': 4096}
++DEFAULTS = {'header_version': 0, 'base': 0, 'kernel_offset': 0x8000, 'tags_offset': 0x1e00000,
++            'dtb_offset': 0x1f00000, 'pagesize': 4096}
+ MKBOOTIMG_FLAGS = ('base', 'kernel_offset', 'tags_offset', 'pagesize', 'header_version', 'os_version',
+-                   'os_patch_level', 'ramdisk_offset', 'second_offset', 'cmdline')
++                   'os_patch_level', 'ramdisk_offset', 'second_offset', 'dtb_offset', 'cmdline')
+ 
+ 
+ def compile_shim(uefi, base, size, requires_header, scratch):
+@@ -91,7 +92,7 @@ def build(ctx, uefi, fd, dtb, ramdisk=None, output=None):
+         scratch = Path(scratch_name)
+         shim = compile_shim(uefi, base, size, requires_header, scratch)
+         tree = patch_dtb(Path(dtb).read_bytes(), ctx.board.get('bootimg', {}).get('dtb_node', []), scratch)
+-        if tree[:4] != b'\xd0\x0d\xfe\xed' or struct.unpack_from('>I', tree, 4)[0] != len(tree):
++        if len(tree) < 8 or tree[:4] != b'\xd0\x0d\xfe\xed' or struct.unpack_from('>I', tree, 4)[0] != len(tree):
+             raise Error('invalid compiled device tree')
+         combined = shim + firmware
+         # [bootimg.image] kernel_compression selects the kernel encoding. The
+@@ -112,6 +113,12 @@ def build(ctx, uefi, fd, dtb, ramdisk=None, output=None):
+             ramdisk_path = scratch / 'ramdisk'
+             ramdisk_path.write_bytes(b'')
+         command = ['python3', mkbootimg, '--kernel', kernel_path, '--ramdisk', ramdisk_path, '-o', out]
++        if image['header_version'] == 2:
++            # v2 also carries a separate, page-aligned DTB. Use the same patched
++            # tree as the kernel suffix rather than relying on mkbootimg inference.
++            dtb_path = scratch / 'device.dtb'
++            dtb_path.write_bytes(tree)
++            command += ['--dtb', dtb_path]
+         for key in MKBOOTIMG_FLAGS:
+             if key in image:
+                 command += [f'--{key}', str(image[key])]
+@@ -129,6 +136,8 @@ def verify(path, combined, tree, ramdisk_path, image, compression='gzip'):
+     data = Path(path).read_bytes()
+     if data[:8] != b'ANDROID!':
+         raise Error('boot image magic missing')
++    if len(data) < 48:
++        raise Error('boot image header is truncated')
+     # header_version sits at offset 40 in both the v0 and the v3/v4 layouts.
+     version = struct.unpack_from('<I', data, 40)[0]
+     if version != image['header_version']:
+@@ -149,6 +158,25 @@ def verify(path, combined, tree, ramdisk_path, image, compression='gzip'):
+             raise Error('boot image load addresses do not match the requested offsets')
+         start = page
+         ramdisk_start = page * (1 + -(-kernel_size // page))
++    dtb_report = {}
++    if version == 2:
++        if len(data) < 1660:
++            raise Error('boot image v2 header is truncated')
++        recovery_size, recovery_offset, header_size = struct.unpack_from('<IQI', data, 1632)
++        # This builder supplies neither a second stage nor a recovery DTBO.
++        if recovery_size or recovery_offset or header_size != 1660:
++            raise Error('boot image v2 header does not match the requested layout')
++        dtb_size, dtb_address = struct.unpack_from('<IQ', data, 1648)
++        if dtb_size != len(tree) or not dtb_size:
++            raise Error('boot image v2 device tree size differs')
++        if dtb_address != image['base'] + image.get('dtb_offset', DEFAULTS['dtb_offset']):
++            raise Error('boot image v2 device tree address does not match the requested offset')
++        dtb_start = ramdisk_start + page * (-(-ramdisk_size // page))
++        if len(data) < dtb_start + page * (-(-dtb_size // page)):
++            raise Error('boot image v2 device tree or its page padding is truncated')
++        if data[dtb_start:dtb_start + dtb_size] != tree:
++            raise Error('boot image v2 device tree bytes differ')
++        dtb_report = {'dtb_bytes': dtb_size, 'dtb_address': hex(dtb_address), 'dtb_file_offset': dtb_start}
+     kernel = data[start:start + kernel_size]
+     if compression == 'gzip':
+         unpacker = zlib.decompressobj(16 + zlib.MAX_WBITS)
+@@ -159,4 +187,4 @@ def verify(path, combined, tree, ramdisk_path, image, compression='gzip'):
+     if data[ramdisk_start:ramdisk_start + ramdisk_size] != Path(ramdisk_path).read_bytes():
+         raise Error('ramdisk bytes differ')
+     return {'kernel_sha256': hashlib.sha256(kernel).hexdigest(), 'ramdisk_bytes': ramdisk_size,
+-            'header_version': version, 'kernel_address': hex(kernel_address), 'tags_address': hex(tags)}
++            'header_version': version, 'kernel_address': hex(kernel_address), 'tags_address': hex(tags), **dtb_report}

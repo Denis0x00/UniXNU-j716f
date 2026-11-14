@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+"""Independent r11 bootstrap-scale return checkpoint byte contract.
+
+Standard library only; never calls the upstream patcher, VM or a device.
+The expected digest was derived from original bytes and these instructions
+before official generation. It is not a runtime or complete-boot assertion.
+"""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import struct
+import sys
+
+sys.dont_write_bytecode = True
+from prepare_r6_followup import MachO, branch, target, paint, ENTRY, FIRST_CPU, MMU, POST_MMU, CAVES
+
+KERNEL_SHA = '7970051f50e280b50e42f5ed372ea095dc8646a36fb92e4716f85349bd6118f2'
+KERNEL_BYTES = 51085312
+EXPECTED_KERNEL_SHA = '4fc2c247215fdb64b5aa2f07082e297300e12fe9c105200a9e16df12b9342af5'
+CALLER_NAME, CALLEE_NAME = '_kernel_bootstrap', '_scale_setup'
+CALLER_VA, CALLER_END = 0xfffffff0072c7ae4, 0xfffffff0072c8220
+CALLEE_VA, CALLEE_END = 0xfffffff0072c8220, 0xfffffff0072c8370
+RETURN_RET = 0xfffffff0076e9014
+RETURN_CHAIN = (('_scale_setup', CALLEE_VA, CALLEE_END, 0xfffffff0072c8300),
+                ('_bsd_scale_setup', 0xfffffff007476eb8, 0xfffffff0074771d0, 0xfffffff00747709c),
+                ('_bsd_exec_setup', 0xfffffff0076e8f98, 0xfffffff0076e905c, 0xfffffff0076e9008))
+CALL_SITE, ORIGINAL_CALL_WORD = 0xfffffff0072c7b0c, 0x940001c5
+OLD_R10_SITE = 0xfffffff0072c7b08
+OLD_FIQ_SITE, OLD_R7_SITE, OLD_R8_SITE = 0xfffffff0079e09d0, 0xfffffff0079e0a70, 0xfffffff00741bd38
+MACHINE_TAIL_B = 0xfffffff00741bd40
+RESET_SETTINGS = {
+    'entry_probe_reset_delay': 6,
+    'entry_probe_reset_after': CALLEE_NAME,
+    'entry_probe_reset_in': CALLER_NAME,
+    'entry_probe_reset_occurrence': 1,
+    'entry_probe_reset_before': False,
+}
+
+def require(ok, message):
+    if not ok:
+        raise ValueError(message)
+
+def sha(raw):
+    return hashlib.sha256(raw).hexdigest()
+
+def original_layout(raw):
+    require(len(raw)==KERNEL_BYTES and sha(raw)==KERNEL_SHA, 'Expected frozen uninstrumented DT-panic kernel')
+    image=MachO(raw)
+    require(image.entry==ENTRY, 'Wrong Mach-O entry')
+    for name,low,high in ((CALLER_NAME,CALLER_VA,CALLER_END),(CALLEE_NAME,CALLEE_VA,CALLEE_END)):
+        require(name not in image.ambiguous_names and image.names.get(name)==low and image.end(name)==high,
+                'Changed or ambiguous selected symbol: '+name)
+        require({n for n,v in image.names.items() if v==low}=={name}, 'Selected symbol has an address alias')
+    calls=[va for va in range(CALLER_VA,CALLER_END,4)
+           if image.word(va)&0xfc000000==0x94000000 and
+           target(image.word(va),va,0x94000000)==CALLEE_VA]
+    require(calls==[CALL_SITE] and image.word(CALL_SITE)==ORIGINAL_CALL_WORD,
+            'Expected unique first scale_setup BL inside kernel_bootstrap')
+    # scale_setup and bsd_scale_setup return through restored-LR tail calls.
+    # The actual RET belongs to bsd_exec_setup, not to scale_setup itself.
+    for index,(name,low,high,epilogue) in enumerate(RETURN_CHAIN):
+        require(name not in image.ambiguous_names and image.names.get(name)==low and image.end(name)==high,
+                'Return-chain function boundary changed: '+name)
+        require({n for n,v in image.names.items() if v==low}=={name}, 'Return-chain address alias')
+        last=branch(epilogue+12,RETURN_CHAIN[index+1][1]) if index+1<len(RETURN_CHAIN) else 0xd65f03c0
+        require(image.body(epilogue,16)==struct.pack('<4I',0xa9427bfd,0xa9414ff4,0x9100c3ff,last),
+                'Return-chain frame/LR restoration changed: '+name)
+    require(image.word(RETURN_RET)==0xd65f03c0, 'Final bsd_exec_setup RET changed')
+    require(image.word(MACHINE_TAIL_B)==0x17faaf69 and
+            target(image.word(MACHINE_TAIL_B),MACHINE_TAIL_B,0x14000000)==CALLER_VA,
+            'machine_startup tail-B to kernel_bootstrap changed')
+    require(image.word(ENTRY)==branch(ENTRY,FIRST_CPU) and image.word(MMU)==0xd5181000 and
+            image.word(POST_MMU)==0xd2a00600, 'Original entry/MMU markers changed')
+    for va in CAVES.values():
+        require(image.body(va,96)==bytes(96), 'Original probe cave is not empty')
+        require([(s,n) for s,n,start,size in image.sections if start<=va and va+96<=start+size]
+                ==[('__TEXT_EXEC','__text')], 'Cave outside expected executable section')
+    require(image.word(OLD_R10_SITE)==0x97ff834a and
+            target(image.word(OLD_R10_SITE),OLD_R10_SITE,0x94000000)==image.names['_printf'],
+            'Preceding printf boundary changed')
+    return image
+
+def expected_regions(image):
+    """Expected AArch64 bytes derived independently of upstream assembly."""
+    cave=CAVES[4]
+    words=[branch(cave,CALLEE_VA,True),
+           0xd53be021,0x580001c2,0x8b020022,
+           0xd5033fdf,0xd53be021,0xeb02003f,0x54ffffa3,
+           0x52800120,0x72b08000,0xaa1f03e1,0xaa1f03e2,0xaa1f03e3,
+           0xd4000003,0xd503205f,0x17ffffff]
+    require(words[0]==0x97fabf00 and branch(CALL_SITE,cave)==0x140542c5,
+            'Independent branch requirement changed')
+    reset=(struct.pack('<16I',*words)+struct.pack('<Q',115200000)).ljust(96,b'\0')
+    return [(ENTRY,struct.pack('<I',branch(ENTRY,CAVES[1]))),
+            (MMU,struct.pack('<I',branch(MMU,CAVES[2]))),
+            (CALL_SITE,struct.pack('<I',branch(CALL_SITE,cave))),
+            (CAVES[1],paint(1)),(CAVES[2],paint(2)),(cave,reset)]
+
+def derive_expected(original):
+    """In-memory reference only; never a payload input or official build output."""
+    image=original_layout(original)
+    derived=bytearray(original)
+    for va,raw in expected_regions(image):
+        offset=image.offset(va,len(raw))
+        derived[offset:offset+len(raw)]=raw
+    require(sha(derived)==EXPECTED_KERNEL_SHA, 'Independent full digest requirement changed')
+    return bytes(derived)
+
+def probe_readback(original,patched):
+    image=original_layout(original)
+    require(len(patched)==KERNEL_BYTES, 'Diagnostic kernel length changed')
+    candidate=MachO(patched)
+    require(candidate.entry==image.entry and candidate.names==image.names and
+            patched[:image.header_end]==original[:image.header_end], 'Kernel metadata changed')
+    regions=[]
+    for va,expected in expected_regions(image):
+        offset=image.offset(va,len(expected))
+        require(patched[offset:offset+len(expected)]==expected,
+                'Exact hook/cave sequence differs at '+hex(va))
+        regions.append((offset,offset+len(expected),va))
+    cursor,changed=0,0
+    counts=[]
+    for low,high,va in sorted(regions):
+        require(low>=cursor and patched[cursor:low]==original[cursor:low], 'Bytes changed outside allowed hook/cave regions')
+        count=sum(a!=b for a,b in zip(patched[low:high],original[low:high]))
+        counts.append({'va':hex(va),'file_start':hex(low),'file_end':hex(high),'changed_bytes':count})
+        changed+=count;cursor=high
+    require(patched[cursor:]==original[cursor:], 'Kernel tail changed outside allowed regions')
+    require(candidate.body(CAVES[3],96)==bytes(96) and candidate.word(POST_MMU)==image.word(POST_MMU),
+            'Stage 3 stop must remain disabled')
+    for va in (OLD_FIQ_SITE,OLD_R7_SITE,OLD_R8_SITE,OLD_R10_SITE):
+        require(candidate.word(va)==image.word(va), 'An earlier r6/r7/r8/r10 stop leaked into r11')
+    preserved={}
+    for name in ('_printf','_vprintf_internal','_machine_startup','_machine_conf','_scale_setup',
+                 '_bsd_scale_setup','_bsd_exec_setup','_vm_mem_bootstrap','_PE_create_console','_fiq_context_init','_panic','_panic_trap_to_debugger'):
+        low,high=image.names[name],image.end(name)
+        require(candidate.body(low,high-low)==image.body(low,high-low), 'Preserved function changed: '+name)
+        preserved[name]={'start':hex(low),'end':hex(high),'sha256':sha(candidate.body(low,high-low))}
+    require(changed==192 and sha(patched)==EXPECTED_KERNEL_SHA,
+            'Kernel differs from independently precomputed complete byte requirements')
+    return {'status':'passed-host-byte-verification','sha256':sha(patched),'bytes':len(patched),
+            'changed_bytes':changed,'caller':CALLER_NAME,'callee':CALLEE_NAME,
+            'caller_range':[hex(CALLER_VA),hex(CALLER_END)],'callee_range':[hex(CALLEE_VA),hex(CALLEE_END)],
+            'call_site':hex(CALL_SITE),'original_call_word':hex(ORIGINAL_CALL_WORD),'occurrence':1,
+            'hook_word':'0x140542c5','cave_first_bl_word':'0x97fabf00',
+            'callee_return_via':{
+                'tail_calls':['_scale_setup','_bsd_scale_setup','_bsd_exec_setup'],
+                'normal_ret_va':hex(RETURN_RET),'ret_is_in':'_bsd_exec_setup',
+                'tail_call_epilogues_verified':True},
+            'reset_probe':True,'reset_stage':4,'reset_before':False,'reset_after_callee_returns':True,
+            'reset_delay_seconds':6,'timebase_hz':19200000,'delay_ticks':115200000,
+            'counter':'CNTPCT_EL0','reset_function':'0x84000009','conduit':'SMC #0',
+            'stage3_disabled':True,'r6_r7_r8_r10_early_hooks_restored':True,
+            'stage1_stage2_exact_words_verified':True,'all_other_bytes_identical':True,
+            'header_and_symbols_unchanged':True,'preserved_functions':preserved,
+            'permitted_regions':counts,'original_sp_and_argument_registers_preserved_before_call':True,
+            'return_address_change':'scale_setup tail chain restores cave+4 as return LR; original next instruction is not resumed',
+            'expected_digest_origin':'Independent instruction derivation before official generation',
+            'hardware_tested':False,
+            'scope':'After scale_setup/bsd_scale_setup/bsd_exec_setup normal return chain only; VM bootstrap/IOKit/root/userland remain unproved'}
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('original',type=Path)
+    parser.add_argument('candidate',type=Path)
+    parser.add_argument('--report',type=Path)
+    args=parser.parse_args()
+    result=probe_readback(args.original.read_bytes(),args.candidate.read_bytes())
+    if args.report:
+        with args.report.open('x',encoding='utf-8',newline='\n') as stream:
+            json.dump(result,stream,indent=2);stream.write('\n')
+    print(json.dumps(result,indent=2))

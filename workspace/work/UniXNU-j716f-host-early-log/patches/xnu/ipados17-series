@@ -1,0 +1,8 @@
+# iPadOS 17.7.11 / 21H461 selection reviewed against UniXNU 0e2fb2bcdf11.
+# Keep both required upstream prelink patches in their original order.
+# zzz-boot-progress.patch assumes sheng_pmgr_run in bsd_init.c and embeds a
+# sheng watchdog policy. CONFIG_XNU_BOOT_PROGRESS is disabled on this draft;
+# do not import SM8550 power code just to apply an unused diagnostic patch.
+# Re-review the OS series when changing UniXNU or enabling boot progress.
+component:XnuPrelink/patches/xnu-10063.141.1-security-init.patch
+component:XnuPrelink/patches/xnu-10063.141.1-sparse-index.patch

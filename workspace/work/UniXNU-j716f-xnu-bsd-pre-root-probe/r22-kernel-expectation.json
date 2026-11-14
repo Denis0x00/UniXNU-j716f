@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "status": "independently-frozen",
+  "parser_source_sha256": "8ff6044aeeb96bcfbb62857af58e7ad798b50154d5c37ad54d6ddc673c51f030",
+  "original": {
+    "sha256": "a3ee72bd9bc06ffa6caa0269b50ba6fe67772458978eaefc563e01e708aa39f9",
+    "bytes": 51105792
+  },
+  "layout": {
+    "entry": "0xfffffff007418488",
+    "first_cpu": "0xfffffff00741a05c",
+    "mmu": "0xfffffff00741a350",
+    "post_mmu": "0xfffffff00741a370",
+    "caves": {
+      "1": "0xfffffff007418500",
+      "2": "0xfffffff007418560",
+      "3": "0xfffffff0074185c0",
+      "4": "0xfffffff007418620"
+    },
+    "caller": {
+      "name": "_PE_init_iokit",
+      "start": "0xfffffff0079a6448",
+      "end": "0xfffffff0079a6850",
+      "sha256": "bede64a3978e43802969ca84293438b5a39883a6a6d51cc0e0c9fb77f3f3d5a1"
+    },
+    "callee": {
+      "name": "_InitIOKit",
+      "start": "0xfffffff0078e6a38",
+      "end": "0xfffffff0078e6b38",
+      "sha256": "9ac6cf6fee28d6f23d02e44f2bcc9f0f9302c249d108207ab708fa74fe9175c0"
+    },
+    "call_site": "0xfffffff0079a67e0",
+    "original_call_word": "0x97fd0096",
+    "argument": {
+      "adrp_va": "0xfffffff0079a67d8",
+      "adrp_word": "0xf0ffc2c8",
+      "load_va": "0xfffffff0079a67dc",
+      "load_word": "0xf9466100",
+      "storage_va": "0xfffffff007201cc0",
+      "pe_state_va": "0xfffffff007201c28",
+      "device_tree_offset": 152,
+      "saved_x0_va": "0xfffffff0078e6a48",
+      "saved_x0_word": "0xaa0003f3"
+    },
+    "direct_return": {
+      "va": "0xfffffff0078e6b18",
+      "word": "0xd65f03c0",
+      "restore_words": [
+        "0xa9427bfd",
+        "0xa9414ff4",
+        "0x9100c3ff"
+      ]
+    },
+    "optional_tail": {
+      "va": "0xfffffff0078e6b08",
+      "word": "0xd61f0000",
+      "restore_words": [
+        "0xa9427bfd",
+        "0xa9414ff4",
+        "0x9100c3ff"
+      ]
+    },
+    "configure_call": {
+      "va": "0xfffffff0079a67e4",
+      "word": "0x97fd00d5",
+      "target_va": "0xfffffff0078e6b38"
+    },
+    "console": {
+      "name": "_PE_create_console",
+      "start": "0xfffffff0079a6c40",
+      "end": "0xfffffff0079a6e04",
+      "sha256": "2874740119ae9b5c673082687e19fc26683224ed229bfef2d6309479afea8bad"
+    }
+  },
+  "reset_settings": {
+    "entry_probe_reset_delay": 6,
+    "entry_probe_reset_after": "_InitIOKit",
+    "entry_probe_reset_in": "_PE_init_iokit",
+    "entry_probe_reset_occurrence": 1,
+    "entry_probe_reset_before": false
+  },
+  "expected": {
+    "sha256": "ce937069799a1a16532d1f241f48992ef0ce72c10df3f38af945472a6f80ac6f",
+    "changed_bytes": 194
+  },
+  "review": {
+    "new_uninstrumented_build_verified": true,
+    "early_log_source_and_binary_verified": true,
+    "layout_and_return_paths_reviewed": true,
+    "independent_expected_bytes_reviewed": true,
+    "source_crypto_seal_not_changed_by_probe": true
+  },
+  "protocol_header_sha256": "d871825f16e72b3923420b3c0aa54e5d5a2291e5c0272d582ce05f9a22a86d16",
+  "source_patch_sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708",
+  "review_evidence": {
+    "analysis/xnu-early-log-r22-planning/independent-binary-review.json": {
+      "sha256": "9532be73a3cedf3e4f68b3c1be0086c38fe7ec29dceb706448a0074796315bbc",
+      "bytes": 14397
+    },
+    "analysis/xnu-early-log-r22-planning/review_new_kernel.py": {
+      "sha256": "a7172449930d6449c7daa7bc6f2c3f1d52ce1b2b0f2b8a7c68db031ccd785292",
+      "bytes": 11176
+    },
+    "analysis/xnu-early-log-r22-planning/early-log-binary-review.json": {
+      "sha256": "0b59bdf8ce78257632fd6aef6983ba02d60b14589ddee2a9b01c398bb25e31b7",
+      "bytes": 3458
+    },
+    "analysis/xnu-early-log-r22-planning/early-log-binary-discovery.json": {
+      "sha256": "cf9290a88b0c5508342cb170c1c83d986f81dfad7f6f8cc35fd8eeca13cd7cd7",
+      "bytes": 145161
+    },
+    "analysis/xnu-early-log-r22-planning/review_early_log_binary.py": {
+      "sha256": "e05493e59b1cd0d6eb7b1851f99db508845271630c3799bf4638f83ced5e6a79",
+      "bytes": 9810
+    },
+    "analysis/early-xnu-log-20261114/xnu-compile-evidence/manifest.json": {
+      "sha256": "5ce14500db1c1db752d00ffdda6b40488286d873b93e9aa371cb04ae0228cfff",
+      "bytes": 69703
+    },
+    "analysis/early-xnu-log-20261114/xnu-compile-evidence/evidence.tar.gz": {
+      "sha256": "bb4d9c6c09501cffbaec990a84b31b2ab71508780be64c22a9c065cfce5dd559",
+      "bytes": 181243
+    },
+    "analysis/early-xnu-log-20261114/xnu-integration/overlay-manifest.json": {
+      "sha256": "799bfed086dbbc81bb2e15464c06805d0d9cf6f45df697a1147893e4e8802e73",
+      "bytes": 1709
+    },
+    "analysis/early-xnu-log-20261114/xnu-integration/gate-final.linux.json": {
+      "sha256": "a737e9dcee456e98f90a71de94c3da4e8ea669fe4a7fe9147b50f7db2b6335be",
+      "bytes": 1873
+    },
+    "artifacts/j716f-host-early-log-20261114/verification.json": {
+      "sha256": "5b8b585eb6c64f2afad232bc24615b83c3b73c0213d6439ccccbbc9650d324b1",
+      "bytes": 15578
+    }
+  }
+}

@@ -1,0 +1,6 @@
+# Paths are relative to this file. No firmware, payload or tablet inputs.
+[build]
+device = "."
+out = "../../UniXNU/out-host-ufs-adapter-20261113"
+kernelcache = "../../UniXNU/out/ipsw/21H461/kernelcache.decompressed"
+jobs = 1

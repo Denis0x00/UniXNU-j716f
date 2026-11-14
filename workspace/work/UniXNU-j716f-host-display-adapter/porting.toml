@@ -1,0 +1,245 @@
+schema_version = 1
+
+[device]
+name = "j716f-host-display-adapter"
+soc = "SM8250"
+os_profile = "ipados-17.7.11-21H461"
+summary = "Independent host resource-provider integration only; no active display or hardware qualification."
+
+[[area]]
+id = "configuration"
+status = "planned"
+components = ["ArmDTPlatform", "SoftwareAES", "XnuPrelink"]
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."
+
+[[area]]
+id = "firmware"
+status = "planned"
+components = ["DarwinBoot"]
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."
+
+[[area]]
+id = "cpu"
+status = "planned"
+components = ["ArmCpu"]
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."
+
+[[area]]
+id = "memory"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."
+
+[[area]]
+id = "storage"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."
+
+[[area]]
+id = "display"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."
+
+[[area]]
+id = "input"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."
+
+[[area]]
+id = "gpu"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."
+
+[[area]]
+id = "network"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."
+
+[[area]]
+id = "audio"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."
+
+[[area]]
+id = "power"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."
+
+[[area]]
+id = "packaging"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."
+
+[[area]]
+id = "diagnostics"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."
+
+[[area]]
+id = "sensors"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "configs/**", "scripts/**", "docs/**"]
+inputs = ["Stock ZUI 15.0.485 and existing GOP facts are references, not current-boot ownership."]
+configuration = ["CPU0, ordinary arm64, 4 KiB; restricted provider archive plus the original eight recipes."]
+procedure = ["Official host build, same-source core tests and actual linked-entry audit; results recorded outside frozen inputs."]
+findings = ["Source preparation does not establish compilation or runtime success."]
+completion = ["New source and host evidence must precede any separately identified physical trial."]
+limits = ["No NativeLegacyDisplay/swap/OS display service, no framebuffer activation or hardware qualification."]
+next_action = ["Finish independent host integration and retain r6 for the next onsite observation."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Restricted integration scope and external reports; hardware status remains planned."

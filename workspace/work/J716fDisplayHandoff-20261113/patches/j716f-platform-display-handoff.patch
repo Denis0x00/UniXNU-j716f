@@ -1,0 +1,58 @@
+J716F independent host target: record display allocator exclusion after the
+complete virtual platform configure() succeeds. Resource validation failure
+must not change the existing platform start result. The new archive supplies
+the one symbol; no boot argument itself grants ownership.
+
+The retained stock GOP reservation must also survive later VM adoption.
+Reject a colliding whole vm_page_create request before any page is released;
+silently skipping pages would corrupt reclaim callers' accounting.
+
+diff --git a/iokit/Kernel/IOPlatformExpert.cpp b/iokit/Kernel/IOPlatformExpert.cpp
+--- a/iokit/Kernel/IOPlatformExpert.cpp
++++ b/iokit/Kernel/IOPlatformExpert.cpp
+@@ -126,6 +126,8 @@ IOPlatformExpert::attach( IOService * provider )
+ 	return true;
+ }
+ 
++extern "C" void j716f_display_handoff_platform_ready(IOService *platform);
++
+ bool
+ IOPlatformExpert::start( IOService * provider )
+ {
+@@ -190,7 +192,11 @@ IOPlatformExpert::start( IOService * provider )
+ 	PE_parse_boot_argn("enforce_platform_action_safety", &gEnforcePlatformActionSafety,
+ 	    sizeof(gEnforcePlatformActionSafety));
+ 
+-	return configure(provider);
++	const bool configured = configure(provider);
++	if (configured) {
++		j716f_display_handoff_platform_ready(this);
++	}
++	return configured;
+ }
+ 
+ bool
+diff --git a/osfmk/vm/vm_resident.c b/osfmk/vm/vm_resident.c
+--- a/osfmk/vm/vm_resident.c
++++ b/osfmk/vm/vm_resident.c
+@@ -1714,6 +1714,20 @@ vm_page_create(
+ 	ppnum_t         phys_page;
+ 	vm_page_t       m;
+ 
++	/* J716F dedicated target: keep the stock display reservation through reboot.
++	 * Validate the whole request before making any pages available. A partial
++	 * release or silent skip would invalidate ml_static_mfree accounting.
++	 * This policy is independent of any resource-validation boot argument.
++	 */
++	if (PAGE_SHIFT != 12) {
++		panic("J716F display reservation requires 4 KiB pages");
++	}
++	if (start < end && start < (ppnum_t)(0x9e400000ULL >> PAGE_SHIFT) &&
++	    end > (ppnum_t)(0x9c000000ULL >> PAGE_SHIFT)) {
++		panic("J716F display reservation overlaps VM page adoption: %x..%x",
++		    start, end);
++	}
++
+ 	for (phys_page = start;
+ 	    phys_page < end;
+ 	    phys_page++) {

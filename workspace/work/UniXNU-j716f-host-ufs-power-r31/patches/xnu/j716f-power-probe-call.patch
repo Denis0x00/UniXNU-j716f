@@ -1,0 +1,11 @@
+--- a/bsd/kern/bsd_init.c
++++ b/bsd/kern/bsd_init.c
+@@ -1310,6 +1310,8 @@ bsd_autoconf(void)
+ 	if (result == KERN_SUCCESS) {
+ 		extern void j716f_storage_bringup_init(void);
++		extern unsigned int j716f_storage_power_probe(void);
+ 		j716f_storage_bringup_init();
++		(void)j716f_storage_power_probe();
+ 	} else {
+ 		printf("[J716F storage] registration skipped; IOKitBSDInit failed\n");
+ 	}

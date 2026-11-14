@@ -1,0 +1,13 @@
+schema_version = 2
+
+[soc]
+name = "sm8250"
+description = "Local SM8250 preparation snapshot; qualification pending"
+source_repository = "https://github.com/Denis0x00/UniXNU-j716f"
+source_revision = "bf2d0f32f706adbe414551e452f1426ed7c4bd19"
+# Original subdirectory: socs/sm8250. Local edits are recorded in README.md.
+# Current board evidence: 2026-11-11 Android runtime FDT, DTB0/DTBO1.
+# Old DTBO8 wording is historical and must not be used for this device.
+
+[components]
+include = []

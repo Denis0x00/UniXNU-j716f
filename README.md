@@ -1,100 +1,108 @@
-# UniXNU-j716f
+# UniXNU for Lenovo TB-J716F — current bring-up sources
 
-Lenovo Xiaoxin Pad Pro 2021 (`TB-J716F`, SM8250-AC / Kona) device support for UniXNU (`iPadOS 17.7.11` Build `21H461`).
+This repository records the current **TB-J716F / Snapdragon 870 (SM8250) /
+iPadOS 17.7.11 (21H461), ordinary arm64** bring-up. It contains source and
+reconstruction instructions, not a ready-to-install iPadOS image.
 
-Firmware repository: [uefi-j716f](https://github.com/Denis0x00/uefi-j716f)  
-Specification: [UniXNU Porting Guide](https://unixnu.com/zh/porting/)
+The measured r30s path reaches BSD initialization after `IOKitBSDInit`, registers
+the storage interface, and stops at the diagnostic boundary before root lookup.
+The firmware menu, volume/power navigation, QR logger, retained early XNU logs,
+and CPU0 initialization have tablet evidence. This does **not** establish UFS
+I/O, APFS root mounting, writable Data, launchd, SpringBoard, touch/HID, graphics
+acceleration, or a working iPadOS desktop.
 
-## Device Specifications
+**r31 is an opt-in experiment**, adding eleven fixed read-only GCC power/clock
+register observations to the storage path. Fresh host compilation exposed an
+XNU declaration hidden by `MACH_KERNEL_PRIVATE`; the source now declares its
+verified `get_preemption_level` C ABI without enabling that global flag. The
+nine-TU compile, official kernel/prelink build and host verification have passed.
+Image acceptance and tablet execution remain pending at this snapshot. A
+successful map does not establish readable hardware. The probe has no external
+abort containment and does not access HCI/SMMU, issue DMA, publish storage or
+mount root. Do not promote a six-second diagnostic reset to a storage-success
+claim; inspect the retained per-register log.
 
-- **Device**: Lenovo Xiaoxin Pad Pro 2021 (`TB-J716F` / `j716f`)
-- **SoC**: Qualcomm SM8250-AC (Snapdragon 870)
-- **CPU**: 8-core Kryo 585 (1x Cortex-A77 @ 3.2 GHz + 3x Cortex-A77 @ 2.42 GHz + 4x Cortex-A55 @ 1.8 GHz)
-- **GPU**: Qualcomm Adreno 650 (`06050002`, 670 MHz top OPP, GMU + SQE + TZ PAS 13 Zap shader)
-- **Display**: 11.5" 2560x1600 90 Hz OLED (`0x9c000000` UEFI GOP scanout, scale 2x)
-- **Touch**: Goodix `GT7386` 10-point multi-touch over QUPv3 SE11 I2C (`0x00990000`, addr `0x5d`)
-- **DRAM**: 6 GiB LPDDR4X (`0x80000000` - `0x200000000`)
-- **Storage**: UFS 3.1 host controller at `0x01D84000` (APFS OS + SystemOS volumes)
-- **Target OS**: iPadOS 17.7.11 (Build `21H461`, device class `j120ap`)
+## Source organization
 
-## Hardware Support Status
+The original workspace paths are intentional: frozen recipes, component feeds,
+and source manifests use them. This repository root is an export container,
+**not** itself an official `-D` device target.
 
-| Subsystem | Status | Notes |
-| --- | --- | --- |
-| Boot & XNU Kernel | Device-verified | UEFI (`uefi-j716f`) -> DarwinBoot -> XNU ARM64 VM + IOKit -> iPadOS 17.7.11 desktop |
-| CPU & SMP | Device-verified | All 8 Kryo 585 cores online (`sheng-smp=1`) + AMP big.LITTLE E/P edge scheduler (`armcpu-edge=1`) + dynamic 3-cluster EPSS `cpufreq` (`pipa-cpufreq=4`, touch boost + `300 / 691 / 844 MHz` idle floors) |
-| GPU Acceleration | Device-verified | Native `Adreno650` KMD (`pipa-gpu=12`) + GMU HFI dynamic DCVS (`pipa-gpu-dcvs=1`, `305..670 MHz`) + `NativeAdrenoMetal` / Turnip (`sysmem,nocb`, `MESA_SHADER_CACHE_DIR`, `54 us/draw`) |
-| Display & Brightness | Device-verified | 2560x1600 BGRX8888 GOP framebuffer + GPU hardware scanout blitter (`sheng-fb-gpu=1`) + `AppleARMBacklight` (`sheng-backlight=1`) & `copy_rows` compute brightness slider + lock/wake power re-arm |
-| Touch & Buttons | Device-verified | Goodix `GT7386` multi-touch (`j716f-touch=1`, rolling `0..255` tracking-ID slot mapper) + PM8150/PM8150B PON keys (`pipa-buttons=1`) |
-| Storage & System Apps | Device-verified | SM8250 native UFS (`ShengUfs`) mounting iPadOS 17.7.11 APFS container + persistent Data volume + `owner-staged-apps=1` built-in system apps + `appsync=1` dynamic user-code trust & IPA installer |
-| Battery Gauge | Device-verified | PM8150B FG / SMB5 SPMI battery gauge (`NativeBattery`, `IOPMPowerSource` SoC, open-circuit voltage fallback, current, charging state) |
-| USB Diagnostics & Native Apple USB | Device-verified | DWC3 USB0 (`0x0A600000`) CDC-ACM console (`1209:0001`, `GSC1` screen capture, `reboot.fastboot`) + runtime switch (`usb.xdci` / `usb.xdci.30`) to native `QcomDwc3` / `AppleUSBXDCI` (`05ac:12ab`, `AppleUSBDeviceMux`, `lockdownd` pairing) |
-| Wi-Fi & Bluetooth | Device-verified | QCA6390 PCIe0 + MHI AMSS Mission Mode (`Ath12kWifi`, `sheng-wifi=4`, `en0` + `wifid` + `unixnu-wpa_supplicant`) and QUPv3_0 SE6 GENI UART @ 3.2 Mbps (`QcaBluetooth`, `sheng-bluetooth=1`, `BlueTool` + `bluetoothd` + live BLE advertising RX) |
-| Audio | Planned | WCD938x / WSA881x ADSP Q6AFE audio planned |
+- `workspace/work/UniXNU-j716f-host-storage-r30`: measured registration baseline.
+- `workspace/work/UniXNU-j716f-host-ufs-power-r31`: experimental r31 kernel target.
+- `workspace/work/UniXNU-j716f-xnu-{storage-r30,ufs-power-r31}`: image definitions.
+- `workspace/work/J716fStorageBringup-*`, `ShengUfs-sm8250`, and the targets'
+  `socs/sm8250`: storage interfaces, command policy, slot state, MMIO/DMA and
+  shared ownership work. Many operations still require unprovided live grants.
+- `workspace/work/J716f{GeniBackend,Goodix,TouchTransaction,GopAdapter,DisplayHandoff}-*`:
+  offline research and synthetic host tests. These are **not enabled** by the
+  current storage target. Historical host targets remain independent experiments.
+- `workspace/work/ArmCpu-j716f-iokit-cpu0-20261114`: CPU0 source override.
+- `workspace/work/J716fEarlyLog-20261114`: public retention protocol and decoder.
+- `workspace/analysis`: authored builders/verifiers and synthetic tests only;
+  historical runtime evidence and private analysis outputs are intentionally absent.
+- `pins/`, `overlays/`: source hashes, exact upstream core revisions and local
+  source changes, including the IOKit `AAPL,phandle` correction.
 
-## Repository Layout
+The Data-only macOS workflow is independent of the Linux kernel/firmware build.
+Creating an APFS Data seed on a runner does not mount it on the tablet and does
+not qualify the board's storage driver. Full macOS kernel/image migration is not
+claimed by this source update.
 
-```text
-UniXNU-j716f/
-├── board.toml                           # Format 2 board specification
-├── porting.toml                         # Porting progress and hardware verification record
-├── feeds.toml                           # Shared dependencies and upstream commits
-├── proprietary-files.txt                # Vendor firmware SHA-256 manifest (ZUI 15.0.485)
-├── configs/
-│   └── j716f_defconfig                  # Kernel build configuration
-├── dts/
-│   └── j716f.dts                        # Device Tree Source (Format 2)
-├── drivers/
-│   ├── Adreno650/                       # SM8250 Adreno 650 kernel driver + staged AGXAccelerator
-│   ├── AdrenoMetal/                     # Metal-to-Turnip userspace bridge & plugin sources
-│   ├── ArmCpu/                          # ARM64 SMP & interrupt controller driver
-│   ├── GopFramebuffer/                  # Display framebuffer & GPU scanout hand-off driver
-│   ├── ShengHidInput/                   # Multi-touch & physical button HID injection driver
-│   └── ShengUfs/                        # SM8250 UFS 3.1 host controller driver
-├── kits/
-│   └── ArmSmmu4K/                       # Qualcomm ARM SMMU v2 4K context bank kit
-├── package/                             # Board probes (GPU, GMU, Touch, Battery, Buttons, USB CDC-ACM)
-├── patches/
-│   └── xnu/                             # Upstream XNU kernel patch series
-└── scripts/
-    ├── build-adreno650.py               # Archive builder for libAdreno650.a
-    ├── build-gop-legacy-display.py      # Archive builder for GopFramebuffer + GPU presenter
-    ├── build-j716f-gpu-addon.py         # GPU userspace bundle & firmware addon packager
-    ├── check-j716f.py                   # Platform preflight validator & DTB stager
-    └── package.sh                       # Standard UniXNU release packaging entrypoint
-```
+See the [Data runner guide](README-data-runner.md) for its manual/tag trigger,
+fixed Apple inputs, APFS validation, output preservation and installation UUID
+contract. The first macOS job and actual Data creation are still pending.
 
-## Building & Verification
+## Reconstruct a build workspace
 
-In the root of the UniXNU tree:
+Python 3.11+ and Git are needed to export sources. Choose a **new** directory:
 
 ```sh
-# 1. Select board defconfig
-./unixnu defconfig j716f_defconfig -D ../UniXNU-j716f
-
-# 2. Inspect dependency status
-./unixnu status --json -D ../UniXNU-j716f
-
-# 3. Verify porting record
-python3 scripts/porting-record.py check --device ../UniXNU-j716f
-
-# 4. Standard release build
-./scripts/package.sh
+python3 scripts/export_workspace.py --destination /absolute/new/j716f-workspace --fetch-core
+cd /absolute/new/j716f-workspace
 ```
 
-## Flashing & USB Diagnostics
+The helper preserves `work/` and `analysis/`, verifies the source manifest, checks
+out both pinned official cores, applies their separate patches and adds their
+source tests. It refuses to overwrite an existing destination and never flashes
+a device. Fetches need network access and sufficient disk space. Without
+`--fetch-core`, it exports local source only for inspection.
 
-Always flash **Slot B (`boot_b`)** via `fastbootd` so Slot A remains untouched:
+For r31 on the prepared Linux host with its toolchain in `/opt/unixnu-linux`, use
+the official CLI wrapper from the **exported workspace root**:
 
 ```sh
-fastboot reboot fastboot
-fastboot set_active b
-fastboot flash boot_b boot.img
-fastboot reboot
+python3 work/UniXNU-j716f-host-ufs-power-r31/scripts/host.py defconfig
+python3 work/UniXNU-j716f-host-ufs-power-r31/scripts/host.py fetch
+python3 work/UniXNU-j716f-host-ufs-power-r31/scripts/host.py status
+python3 work/UniXNU-j716f-host-ufs-power-r31/scripts/host.py tree
+python3 work/UniXNU-j716f-host-ufs-power-r31/scripts/host.py kernel
+python3 work/UniXNU-j716f-host-ufs-power-r31/scripts/host.py prelink
 ```
 
-Once booted with `j716f-usb=1`, the tablet enumerates as a USB CDC-ACM serial port (`1209:0001`, serial `J716FDBG01`) supporting live telemetry (`status`, `display`, `gpu.status`, `battery.status`), `GSC1` framebuffer capture (`screen.snapshot`), warm reboot directly back to Fastboot (`reboot.fastboot`), and runtime handoff (`usb.xdci.30` or persistent `usb.xdci`) to the native `QcomDwc3` / `AppleUSBXDCI` stack (`05ac:12ab`, `AppleUSBDeviceMux` + `lockdownd` host pairing).
+These are build entry points, **not a claim that the export is independently
+build-qualified**. Follow [build prerequisites](docs/reconstruction.md) first.
+The kernel/prelink steps require the user-provided original 21H461 kernelcache
+at `UniXNU/out/ipsw/21H461/kernelcache.decompressed`. The wrapper checks its hash.
+Apple sources/headers and the Linux cross toolchain are separate dependencies.
+
+Image packaging additionally needs the locally built early-log UEFI/BootShim,
+the user's normalized stock DTB, original trust cache, private identity input,
+and a newly reviewed kernel expectation. They are not included here. Historical
+analysis wrappers retain their original paths and evidence requirements; never
+fabricate a missing receipt or reuse an older kernel's addresses to satisfy them.
+
+Read [status and source provenance](docs/status-and-provenance.md) and
+[reconstruction limitations](docs/reconstruction.md). Upstream workflow and
+device definitions remain the reference:
+[UniXNU](https://github.com/UniXNU/UniXNU),
+[building](https://github.com/UniXNU/UniXNU/blob/main/docs/building.md),
+[device porting](https://github.com/UniXNU/UniXNU/tree/main/docs/porting).
 
 ## License
 
-BSD-2-Clause-Patent, see [LICENSE](LICENSE).
+Retain the original notices and per-file SPDX identifiers. The root `LICENSE`
+is the upstream UniXNU BSD-2-Clause-Patent license; it does not replace licenses
+of third-party dependencies or relabel the BSD-2-Clause touch/GENI sources.
+See [license provenance](docs/licenses.md). Proprietary ROM, IPSW, kernelcache,
+precompiled firmware, system images and private logs are not distributed here.

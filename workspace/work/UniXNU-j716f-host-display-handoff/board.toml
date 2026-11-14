@@ -1,0 +1,31 @@
+schema_version = 2
+
+[board]
+# Concrete kernel/prelink build target only, not a completed hardware port.
+example = false
+name = "j716f-host-display-handoff"
+kit = "j716f-host-display-handoff"
+soc = "SM8250"
+soc_source = "sm8250"
+os_profile = "ipados-17.7.11-21H461"
+description = "TB-J716F current-boot framebuffer exclusion checks and resource registration; host only"
+
+[components]
+include = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "XnuPrelink", "DarwinBoot"]
+
+[kernel]
+defconfig = "j716f_host_display_handoff_defconfig"
+config_fragments = ["arch:configs/common.config", "soc:configs/sm8250.config", "os:configs/ipados.config"]
+patch_series = ["arch:patches/xnu/series", "device:patches/xnu/ipados17-series", "device:patches/xnu/series"]
+archives = ["build-corecrypto-14.py", "build-corecrypto-14.py --namespace", "component:ArmDTPlatform", "component:ArmCpu", "component:SoftwareAES", "build-software-aes-bindings.py", "build-mockfs-fixture.py", "build-libpthread-kernel.py", "build-j716f-display-handoff.py"]
+# The original eight recipes precede the new board resource-provider archive.
+
+[device_tree]
+source = "device:dts/j716f.dts"
+include_dirs = ["soc:dts"]
+
+[package]
+unixnu = "../../UniXNU"
+
+[package.defconfig]
+"ipados-17.7.11-21H461" = "j716f_host_display_handoff_defconfig"

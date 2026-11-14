@@ -1,0 +1,6 @@
+[build]
+device = "."
+out = "../../UniXNU/out-early-log-firmware-20261114"
+uefi = "../uefi-j716f-early-log"
+target = "DEBUG"
+jobs = 2

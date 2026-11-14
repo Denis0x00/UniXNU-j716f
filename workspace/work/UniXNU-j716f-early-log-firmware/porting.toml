@@ -1,0 +1,245 @@
+schema_version = 1
+
+[device]
+name = "j716f-early-log-firmware"
+soc = "SM8250"
+os_profile = "ipados-17.7.11-21H461"
+summary = "Independent display-ownership firmware build; no device qualification."
+
+[[area]]
+id = "configuration"
+status = "planned"
+components = ["ArmDTPlatform", "SoftwareAES", "XnuPrelink"]
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["This target builds a candidate for exclusive graphics ownership while preserving RAM logs; hardware qualification remains pending."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."
+
+[[area]]
+id = "firmware"
+status = "planned"
+components = ["DarwinBoot"]
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["Official build firmware passed; FD 7340032 bytes, SHA-256 4a04f13e77067732533821c39ba575a61babd46d5791ce801c67e9c0b8386dcb."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."
+
+[[area]]
+id = "cpu"
+status = "planned"
+components = ["ArmCpu"]
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["This target builds a candidate for exclusive graphics ownership while preserving RAM logs; hardware qualification remains pending."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."
+
+[[area]]
+id = "memory"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["This target builds a candidate for exclusive graphics ownership while preserving RAM logs; hardware qualification remains pending."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."
+
+[[area]]
+id = "storage"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["This target builds a candidate for exclusive graphics ownership while preserving RAM logs; hardware qualification remains pending."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."
+
+[[area]]
+id = "display"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["Real-source host fixture reproduced 42372 changed menu pixels with the old serial writer and zero with the candidate; 65 candidate checks passed under ASan/UBSan. This does not establish the unique cause or fix of the observed tablet obstruction."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."
+
+[[area]]
+id = "input"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["This target builds a candidate for exclusive graphics ownership while preserving RAM logs; hardware qualification remains pending."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."
+
+[[area]]
+id = "gpu"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["This target builds a candidate for exclusive graphics ownership while preserving RAM logs; hardware qualification remains pending."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."
+
+[[area]]
+id = "network"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["This target builds a candidate for exclusive graphics ownership while preserving RAM logs; hardware qualification remains pending."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."
+
+[[area]]
+id = "audio"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["This target builds a candidate for exclusive graphics ownership while preserving RAM logs; hardware qualification remains pending."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."
+
+[[area]]
+id = "power"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["This target builds a candidate for exclusive graphics ownership while preserving RAM logs; hardware qualification remains pending."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."
+
+[[area]]
+id = "packaging"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["This target builds a candidate for exclusive graphics ownership while preserving RAM logs; hardware qualification remains pending."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."
+
+[[area]]
+id = "diagnostics"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["Real-source host fixture reproduced 42372 changed menu pixels with the old serial writer and zero with the candidate; 65 candidate checks passed under ASan/UBSan. This does not establish the unique cause or fix of the observed tablet obstruction."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."
+
+[[area]]
+id = "sensors"
+status = "planned"
+components = []
+paths = ["README.md", "board.toml", "scripts/**"]
+inputs = ["TB-J716F stock ZUI 15.0.485 and existing source/physical evidence belong to the main port; this target has no new physical evidence."]
+configuration = ["Independent target, output and UEFI tree; only official build firmware is exposed by scripts/firmware.py."]
+procedure = ["Resolve the independent target, build firmware, validate source identity and host rendering/ownership tests."]
+findings = ["This target builds a candidate for exclusive graphics ownership while preserving RAM logs; hardware qualification remains pending."]
+completion = ["Future candidate-specific physical evidence is required before marking any hardware capability qualified."]
+limits = ["No boot image, tablet operation, QEMU, new XNU run or peripheral activation in this target."]
+next_action = ["Retain the independently verified FD; observe deployed r6 first, then qualify this firmware in a separately identified future image."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Scope and external host results are linked; no device verification claimed."

@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "xnu_revision": "d8b80295118ef25ac3a784134bcf95cd8e88109f",
+  "resolved_source_sha256": {
+    "osfmk/arm64/arm_vm_init.c": "372d0449a312dc4391aa1e6b5adee35dd2a87b4c7beb0000954a3d84808493e3",
+    "osfmk/arm/pmap.h": "88dfe539e4b866555986ab65c5d4cd85ed6a3d47baf40e8eebee157a810e6972",
+    "osfmk/vm/vm_resident.c": "51861ebab15d26786b1aed317b8f65ed67a73235fa1378398927a06212fe2277",
+    "pexpert/arm/pe_init.c": "b0a16fd068f06e8bd4f91cc1b64ddd751ad65ecaf3d80f5540882d1e97f69d5e",
+    "pexpert/pexpert/arm64/boot.h": "163109e86604a31d7c6f880b4c96bfdecfa110d737f48417adb8e6e5fce0773c",
+    "iokit/Kernel/IOPlatformExpert.cpp": "7d51e4e5461821cdc4975c9052fda78026a9fdbe4d6f991d4a082314aaed9bc5",
+    "iokit/IOKit/IODeviceMemory.h": "13127f899ead3da37394532afa6011b817f8b2070d1b3ea806db47b0cf2bccc9",
+    "osfmk/arm/pmap/pmap.c": "e9c9caaffb8df5dfa3f840ef113fc159a0497fdddef9150bdaf4b9df44986653",
+    "osfmk/arm/pmap/pmap_data.c": "d8f49737617307a9fc36b7cbe776eaa1f468fc2f6ecb23934d362f5432ebddbb",
+    "osfmk/arm/pmap/pmap_internal.h": "daa9ad0f842a8ef383b3f806c0fcf41c1220e5a2c2526caa35788aebd59e3418",
+    "osfmk/arm/pmap/pmap.h": "0e08e561df74ee4cf838cda9c95838e588d1d90f16cb5531b57aec08f0be4c7c",
+    "osfmk/arm/pmap/pmap_data.h": "50f8cdf2472f2ce8c74c922188cbe099201633df37fc5a13dd8b191e0f22b292",
+    "osfmk/mach/vm_param.h": "8fd18ed05b56d29bc485b1d014db681502de18100d5978d3da15398bd46b02c3",
+    "osfmk/mach/arm/vm_param.h": "bf5f061604a02780b13838200ed9c3388c0ffe0631bd85337c49f3b3a1cd3466",
+    "osfmk/mach/arm/vm_types.h": "b2deb6cfadc2972a42f698b1822393d240f96c1f91426f4f087e0cffc367225d",
+    "osfmk/arm/pmap_public.h": "0716ef308dd3b3b0cbf0185264eee6fe22223292dcd77b216565fa0cd8902b17"
+  },
+  "scope": "Exact accepted iPadOS17 resolved source plus one platform start patch; not a general XNU ABI contract."
+}

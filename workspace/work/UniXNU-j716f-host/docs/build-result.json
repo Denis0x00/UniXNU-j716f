@@ -1,0 +1,269 @@
+{
+  "build": {
+    "mode": "kernel",
+    "attempt": 1,
+    "started": "2026-11-12T04:46:22.515130+00:00",
+    "status": "passed",
+    "commands": [
+      {
+        "argv": [
+          "/usr/bin/python3",
+          "/home/test/unixnu-work/work/UniXNU-j716f-host/scripts/host.py",
+          "kernel"
+        ],
+        "cwd": "/home/test/unixnu-work",
+        "log": "/home/test/unixnu-work/analysis/host-kernel-20261112/kernel-01-official-build.log",
+        "started": "2026-11-12T04:46:22.611788+00:00",
+        "exit_code": 0,
+        "finished": "2026-11-12T04:57:45.592192+00:00"
+      }
+    ],
+    "output": "/home/test/unixnu-work/UniXNU/out-host/j716f-host/ipados-17.7.11-21H461/j716f_host",
+    "device_actions": false,
+    "upstream_revision": "0e2fb2bcdf11b104d28b0d4aae4f77a7945e3de5",
+    "kernelcache_sha256": "f18b4df865405f2a287b84977d7aca745e056d656d9fc9df1662970ce2969de7",
+    "preparation_report": "/home/test/unixnu-work/analysis/host-kernel-20261112/prepare-02.json",
+    "artifacts": [
+      {
+        "path": "/home/test/unixnu-work/UniXNU/out-host/j716f-host/ipados-17.7.11-21H461/j716f_host/tree/build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/mach.development.bcm2837.unstripped.noctf",
+        "bytes": 18187952,
+        "sha256": "2613a98043e05c291c80e7cd73ed26c4128715b38941eda27510b77823e3e111"
+      },
+      {
+        "path": "/home/test/unixnu-work/UniXNU/out-host/j716f-host/ipados-17.7.11-21H461/j716f_host/kernel/kernel.macho",
+        "bytes": 51032064,
+        "sha256": "62215d029ca1b96f5c140abf2fb435e97da8b3ae3574ef10b568a0b8a980f3e8"
+      }
+    ],
+    "finished": "2026-11-12T04:57:45.669693+00:00"
+  },
+  "verification": {
+    "schema_version": 1,
+    "started_utc": "2026-11-12T04:59:13.352883+00:00",
+    "status": "passed",
+    "scope": "Read-only host candidate verification; no emission, compilation, runtime ABI qualification or device action",
+    "root": "/home/test/unixnu-work",
+    "report": "/home/test/unixnu-work/analysis/host-kernel-20261112/verification-01.json",
+    "checks": [
+      {
+        "name": "input_identity_and_report",
+        "passed": true,
+        "ordinary_prelink": true,
+        "slide": -16777216,
+        "missing_stubbed_fields": "Not present in the ordinary ARM64 report; not interpreted as zero counts"
+      },
+      {
+        "name": "macho_headers_and_segments",
+        "passed": true,
+        "magic": "0xfeedfacf",
+        "cpu": "0x0100000c",
+        "subtype": 0,
+        "file_type": "MH_EXECUTE"
+      },
+      {
+        "name": "roots_closure_and_bundle_metadata",
+        "passed": true,
+        "roots": [
+          "com.apple.AppleFSCompression.AppleFSCompressionTypeZlib",
+          "com.apple.driver.AppleARMPlatform",
+          "com.apple.driver.AppleARMWatchdogTimer",
+          "com.apple.driver.AppleAudioClockLibs",
+          "com.apple.driver.AppleEffaceableStorage",
+          "com.apple.driver.AppleIISController",
+          "com.apple.driver.AppleM2ScalerCSCDriver",
+          "com.apple.driver.AppleMobileFileIntegrity",
+          "com.apple.driver.ApplePMGR",
+          "com.apple.driver.IODARTFamily",
+          "com.apple.filesystems.apfs",
+          "com.apple.iokit.CoreAnalyticsFamily",
+          "com.apple.iokit.IOAVFamily",
+          "com.apple.iokit.IOAudio2Family",
+          "com.apple.iokit.IOCECFamily",
+          "com.apple.iokit.IOCryptoAcceleratorFamily",
+          "com.apple.iokit.IOGPUFamily",
+          "com.apple.iokit.IOHDCPFamily",
+          "com.apple.iokit.IOMobileGraphicsFamily",
+          "com.apple.iokit.IOReportFamily",
+          "com.apple.iokit.IOSlowAdaptiveClockingFamily",
+          "com.apple.iokit.IOStorageFamily",
+          "com.apple.iokit.IOSurface",
+          "com.apple.kec.Libm",
+          "com.apple.kec.corecrypto",
+          "com.apple.kext.AppleMatch",
+          "com.apple.kext.CoreTrust",
+          "com.apple.security.AppleImage4",
+          "com.apple.security.sandbox",
+          "com.apple.iokit.IOHIDFamily",
+          "com.apple.iokit.IOHIDEventDriver"
+        ],
+        "executable_components": [
+          "com.apple.AppleFSCompression.AppleFSCompressionTypeZlib",
+          "com.apple.driver.AppleARMPlatform",
+          "com.apple.driver.AppleARMWatchdogTimer",
+          "com.apple.driver.AppleAudioClockLibs",
+          "com.apple.driver.AppleEffaceableStorage",
+          "com.apple.driver.AppleIISController",
+          "com.apple.driver.AppleM2ScalerCSCDriver",
+          "com.apple.driver.AppleMobileFileIntegrity",
+          "com.apple.driver.ApplePMGR",
+          "com.apple.driver.IODARTFamily",
+          "com.apple.filesystems.apfs",
+          "com.apple.iokit.CoreAnalyticsFamily",
+          "com.apple.iokit.IOAVFamily",
+          "com.apple.iokit.IOAudio2Family",
+          "com.apple.iokit.IOCECFamily",
+          "com.apple.iokit.IOCryptoAcceleratorFamily",
+          "com.apple.iokit.IOGPUFamily",
+          "com.apple.iokit.IOHDCPFamily",
+          "com.apple.iokit.IOHIDFamily",
+          "com.apple.iokit.IOMobileGraphicsFamily",
+          "com.apple.iokit.IOReportFamily",
+          "com.apple.iokit.IOSlowAdaptiveClockingFamily",
+          "com.apple.iokit.IOStorageFamily",
+          "com.apple.iokit.IOSurface",
+          "com.apple.kec.Libm",
+          "com.apple.kec.corecrypto",
+          "com.apple.kext.AppleMatch",
+          "com.apple.kext.CoreTrust",
+          "com.apple.security.AppleImage4",
+          "com.apple.security.sandbox"
+        ],
+        "codeless_components": [
+          "com.apple.iokit.IOHIDEventDriver"
+        ],
+        "kernel_interfaces": [
+          "com.apple.kpi.bsd",
+          "com.apple.kpi.dsep",
+          "com.apple.kpi.iokit",
+          "com.apple.kpi.libkern",
+          "com.apple.kpi.mach",
+          "com.apple.kpi.private",
+          "com.apple.kpi.unsupported"
+        ]
+      },
+      {
+        "name": "pointer_table_native_symbol_bindings_and_candidate_readback",
+        "passed": true,
+        "pointer_counts": {
+          "kernel": 42532,
+          "component": 26762
+        },
+        "total": 69294,
+        "unique_original_kernel_targets": 1794
+      },
+      {
+        "name": "module_headers_entrypoints_and_original_executable_bytes",
+        "passed": true,
+        "executable_hashes": {
+          "com.apple.AppleFSCompression.AppleFSCompressionTypeZlib": "8c9a78bbe81e9b2ac3f70eaa80eaff7d8ef92b1261ba6a43b72ddeb74e7c0ffe",
+          "com.apple.driver.AppleARMPlatform": "6af4faa236f7adc0d297d99eae53ce7590bc250b76647619128c62c8165df052",
+          "com.apple.driver.AppleARMWatchdogTimer": "fe9b7ca78df85b0a8292f3e8130e658b53ecb987da76f8e3bae7722f37df5173",
+          "com.apple.driver.AppleAudioClockLibs": "de978de09106b5edfb22a07eb6e5a6d0f28f6f4a0501c52150ab0d8dae6e73cd",
+          "com.apple.driver.AppleEffaceableStorage": "5c57407704dc07825e8c48db8a49d4e8c5400877916f20f99104c3f22c9b7d75",
+          "com.apple.driver.AppleIISController": "a9513a3b9197d6ce1627b7d9838860debfda5278cc6ad0d32ab301666a1a969d",
+          "com.apple.driver.AppleM2ScalerCSCDriver": "6f82831a3134fca5b9a479b7576c9a8bfcacc4dd9e344b70de77859a0fe9f4d0",
+          "com.apple.driver.AppleMobileFileIntegrity": "a1088aaabc259418ed503d08df29b6146470b8c962696c688122a1f60a141db6",
+          "com.apple.driver.ApplePMGR": "2c433279d004803b7ef02948e550ad6b77aa3f84b02a06a357e00fa738310a99",
+          "com.apple.driver.IODARTFamily": "edbad6b23c82ab1a2c15ee4cb04f49db059ee7ba76304bcc940e0e03219d0f68",
+          "com.apple.filesystems.apfs": "3192441dae74abc0d82e9069447194934598c1c63d2dacba0fb8599eef9996d7",
+          "com.apple.iokit.CoreAnalyticsFamily": "d78b58a1c2bcb4f95e04b7b17e7f70e3f802766c33f891e6ff96d347905e9085",
+          "com.apple.iokit.IOAVFamily": "67b14c98432c7f66442061000a61fb24392fd6ca91a221fb30fb693a6b7f24a7",
+          "com.apple.iokit.IOAudio2Family": "9cca009c0d3fd20c2e5fbf5013ee5d8c28db789dedd904bd5f6e2b797da39ea0",
+          "com.apple.iokit.IOCECFamily": "d2d5581e4c0ef0c5924cd9f7316d9ff97132591a59bbd9cfa5f31219ee7a61cc",
+          "com.apple.iokit.IOCryptoAcceleratorFamily": "ea3a832e7aa88a2d7bfeb57736c11075e4ec025c0c93596eb19d918f5d8e20d5",
+          "com.apple.iokit.IOGPUFamily": "d372b021ff816aaf6f2e3ca991d0f88d2322af0e06e6bb739740f5d6d5f23b35",
+          "com.apple.iokit.IOHDCPFamily": "b163969cb98e15b819e4a13dce83a850a566d55ee16e6f2cb7ff1c87d5afd50c",
+          "com.apple.iokit.IOHIDFamily": "7e4c5104814f2e773d5be13d092dec53ee44ba5a61a81264b229780406e86b72",
+          "com.apple.iokit.IOMobileGraphicsFamily": "2e044ee68c1650397e1435234ca6459206262e4c7ed709cb7131c6f664f9bd9b",
+          "com.apple.iokit.IOReportFamily": "2465da11391ec3d57efe3dca172ad4203190dceda88bbc1132de4ef93255a282",
+          "com.apple.iokit.IOSlowAdaptiveClockingFamily": "e99d0157c00969fcf4b59b79c8b9cbfd28f65a1778c4b0733af301b94c912607",
+          "com.apple.iokit.IOStorageFamily": "852b7846a9039c58fde08478416080af38ffcd5b47c08c889b28497f5f5b4061",
+          "com.apple.iokit.IOSurface": "6f30c4fccca429b53281ceb298de8cdd4d4dd67deabbe800d436a9d27e1e9dc9",
+          "com.apple.kec.Libm": "fd77a8fc1d5a23aba7c2bd389f7b0915d70ffc23d53ac33c7f4fce30a960b6c3",
+          "com.apple.kec.corecrypto": "317834f75174c1ef1ae9214fd45293dc7f8c6c1a51bde7f287bac139ac7a74a1",
+          "com.apple.kext.AppleMatch": "26262d55a2b25deaa8d02577a8b74a7b9cb42bade1a9efb06a3ff6ba0f95f4b6",
+          "com.apple.kext.CoreTrust": "10063b23097d34244ded39f3d7991bef6a933f3a2b36bcfa511585031c6d4ec0",
+          "com.apple.security.AppleImage4": "94eee9bff8da89bb6cd12c5c8ba0c3e2ec186783f26a2e14a8c8dba0046c1290",
+          "com.apple.security.sandbox": "2f79896751bf9eb1f78b0a13ffeb50acd0c27acdb19bbdf15908a4f6c13e2788"
+        },
+        "modules": 30
+      },
+      {
+        "name": "sparse_index_security_initializer_kcid_and_coalesced_geometry",
+        "passed": true,
+        "sparse_index_abi": 1,
+        "sparse_headers": 30,
+        "amfi_candidate_address": "0xfffffff004ab4ae0"
+      },
+      {
+        "name": "qualification_boundaries_and_inline_data",
+        "passed": true,
+        "known_inline_data_ranges": 10,
+        "emitter_pc_relative_encodings_preserved": 260779
+      },
+      {
+        "name": "inputs_unchanged_during_verification",
+        "passed": true
+      }
+    ],
+    "device_actions": false,
+    "build_inputs_modified": false,
+    "sources": {
+      "UniXNU": "0e2fb2bcdf11b104d28b0d4aae4f77a7945e3de5",
+      "XnuPrelink": "440589b0c31625f17edf363e24b3c82c51c70bb9",
+      "native_prelink.py_sha256": "5bd80b8c63deec29b747c28253e02308a56d5f8cdb37c9d315e7c8af7012d017",
+      "emit_prelink.py_sha256": "07ac0cbd44dc81deb51bd579eb1ae8d26c5c38022eb3e577662b16111e83f95b",
+      "verifier_sha256": "8c816ae91444d11b9f147f16ab21c4af76e79e0fbfa0f48efc9066bff2236f96"
+    },
+    "inputs": {
+      "native": {
+        "path": "/home/test/unixnu-work/UniXNU/out-host/j716f-host/ipados-17.7.11-21H461/j716f_host/tree/build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/mach.development.bcm2837.unstripped.noctf",
+        "sha256": "2613a98043e05c291c80e7cd73ed26c4128715b38941eda27510b77823e3e111",
+        "bytes": 18187952
+      },
+      "candidate": {
+        "path": "/home/test/unixnu-work/UniXNU/out-host/j716f-host/ipados-17.7.11-21H461/j716f_host/kernel/kernel.macho",
+        "sha256": "62215d029ca1b96f5c140abf2fb435e97da8b3ae3574ef10b568a0b8a980f3e8",
+        "bytes": 51032064
+      },
+      "original": {
+        "path": "/home/test/unixnu-work/UniXNU/out/ipsw/21H461/kernelcache.decompressed",
+        "sha256": "f18b4df865405f2a287b84977d7aca745e056d656d9fc9df1662970ce2969de7",
+        "bytes": 46415872
+      },
+      "status": {
+        "path": "/home/test/unixnu-work/analysis/host-kernel-20261112/status.json",
+        "sha256": "bbf434632c30f8e89555d72bc6fd42022742d350c445d6f01f4cc349db837f0a"
+      },
+      "emitter_report": {
+        "path": "/home/test/unixnu-work/UniXNU/out-host/j716f-host/ipados-17.7.11-21H461/j716f_host/kernel/kernel.json",
+        "sha256": "b2681a0439a8ba37bee10ae2410520778e430c28e8bacf6c04b4f9ddbe5ea54b"
+      }
+    },
+    "qualification_markers": {
+      "images_modified": false,
+      "instruction_relocation_complete": false,
+      "abi_qualified": false,
+      "loadable": false,
+      "register_dataflow_qualified": false,
+      "source_inputs_modified": false,
+      "runtime_qualified": false
+    },
+    "limitations": [
+      "No runtime ABI, C++ vtable/structure/call compatibility, register dataflow, hardware handoff or boot qualification.",
+      "The emitter PC-relative inventory count is recorded, not independently re-decoded by this verifier.",
+      "The ordinary ARM64 format has no missing/stubbed fields; actual selected pointer sites and unique native export bindings were verified instead.",
+      "AMFI initializer range and native version markers do not prove runtime policy behavior; code preservation does not prove AES request semantics."
+    ],
+    "finished_utc": "2026-11-12T04:59:14.617885+00:00"
+  },
+  "host_target_input_hashes": {
+    "board.toml": "be308f5befddcf5074368b46b4e74fd0f48357caaf59a1e97600cb4553323d80",
+    "configs/j716f_host_defconfig": "0a61da192fc1ee06cb54bb778c420c30a2ccc5ff4ead40158581ead6e3ca5620",
+    "feeds.toml": "3ee5354f97663adefe6df3462fbabf0d735eb2dd1c9291b1bc5a95b5af904e48",
+    "unixnu.lock": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9",
+    "build-inputs.toml": "404def8921dd50a1d6b1f86769951f116351d1f783b8b9b662de5dfa710a37ab",
+    "scripts/host.py": "f656b5b27c90589cf93081dfccdb3fdb02fce72faf758f64187d96a9299d7c5c",
+    "docs/host-source-manifest.json": "f15690291f3c10717f72d0b56631ceb34d2270f760bf7e9da006423dad3e14d8"
+  }
+}

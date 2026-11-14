@@ -1,0 +1,50 @@
+/dts-v1/;
+/include/ "sm8250.dtsi"
+
+/ {
+    model = "Lenovo Xiaoxin Pad Pro 2021 TB-J716F";
+    compatible = "lenovo,j716f", "qcom,sm8250";
+
+    // Android runtime FDT: DTB index 0 + DTBO index 1, batch 20261111-231708.
+    // The common ADT converter accepts exactly ONE enabled contiguous memory
+    // range. Keep the low bank here as inventory, disabled for that converter.
+    memory@80000000 {
+        device_type = "memory";
+        reg = <0x0 0x80000000 0x0 0x3cc00000>;
+        status = "disabled";
+    };
+
+    // Candidate high bank: 5 GiB; NOT the physical SKU capacity or a verified
+    // XNU allocation. The device is 6 GiB class with a 52 MiB gap below this bank.
+    // UEFI heap/FD/guard and loader allocations must be subtracted/owned later.
+    memory@c0000000 {
+        device_type = "memory";
+        reg = <0x0 0xc0000000 0x1 0x40000000>;
+        status = "okay";
+    };
+
+    reserved-memory {
+        #address-cells = <2>;
+        #size-cells = <2>;
+        ranges;
+
+        // Exact stock/runtime reservation, not the old 1 MiB assumption.
+        boot_log: boot-log@b0000000 {
+            reg = <0x0 0xb0000000 0x0 0x00080000>;
+            no-map;
+        };
+    };
+};
+
+// Stage one is single-core. Keep measured affinities in the SoC DTSI.
+&cpu1 { status = "disabled"; };
+&cpu2 { status = "disabled"; };
+&cpu3 { status = "disabled"; };
+&cpu4 { status = "disabled"; };
+&cpu5 { status = "disabled"; };
+&cpu6 { status = "disabled"; };
+&cpu7 { status = "disabled"; };
+
+// This is an XNU hardware-description draft, NOT the Android boot image FDT.
+// Other firmware reservations, GOP, UFS/SMMU and peripheral providers are
+// deliberately pending. Their measured facts live in docs/hardware-baseline.md.

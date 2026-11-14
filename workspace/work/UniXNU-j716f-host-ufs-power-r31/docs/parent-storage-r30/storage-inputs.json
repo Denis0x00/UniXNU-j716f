@@ -1,0 +1,260 @@
+{
+  "schema_version": 1,
+  "scope": "new host target only; runtime storage authorization is absent",
+  "translation_units": [
+    "socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.cpp",
+    "socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.cpp",
+    "socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.cpp",
+    "socs/sm8250/kits/Sm8250Platform/Sm8250UfsDiagnostics.cpp",
+    "socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.cpp",
+    "component:J716fStorageBringup/J716fStorageBringup.cpp",
+    "component:J716fStorageBringup/J716fStorageKernel.cpp"
+  ],
+  "native_ufs_cpp_compiled": false,
+  "files": {
+    ".gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "AGENTS.md": {
+      "bytes": 833,
+      "sha256": "b915ada60d952bc736f0e5b65a585a8e617df1db4a9008d10e2b75763383c12d"
+    },
+    "board.toml": {
+      "bytes": 1281,
+      "sha256": "21f955639ef3cd15ee1b892b95aef6da88fcaade8413f25d16ce272d240b05bb"
+    },
+    "build-inputs.toml": {
+      "bytes": 225,
+      "sha256": "164d401a8cd5c609aa196663d4748eed562a0c5e13b89e5bdd033c0f289f91ba"
+    },
+    "configs/j716f_host_storage_r30_defconfig": {
+      "bytes": 950,
+      "sha256": "9b992c843c0429d3949ef38a7413086cbb1f955b349c8b2450fd2c74e8de29c1"
+    },
+    "docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "docs/parent-iokit-cpu0/armcpu-cpu0-separators.patch": {
+      "bytes": 2151,
+      "sha256": "a8819171d0cda86205cbb4f4bf1e880c7329e3b36eb6586a896fcd019a7a4909"
+    },
+    "docs/parent-iokit-cpu0/cpu0-source-delta.json": {
+      "bytes": 1788,
+      "sha256": "f0914d4201f71bf275659356dffd3b2189cd946a8565a46089d734bc84d8691b"
+    },
+    "docs/source-provenance.json": {
+      "bytes": 4946,
+      "sha256": "84bf78026204326548678109d03ee3a4176d2869b8907117b883b8ccac383bcc"
+    },
+    "drivers/ShengUfs/ReadCommandPolicy.h": {
+      "bytes": 12409,
+      "sha256": "38417c0343641fbc5d981757b3a0fed6ecdce87f1d3ccf754821e65f2ed16c81"
+    },
+    "drivers/ShengUfs/RestrictedUfs.h": {
+      "bytes": 13167,
+      "sha256": "0db331f3be2ae57e93b0d44b184d7e49aaf9da92e6f4e295d24c47fb42c2c0a5"
+    },
+    "drivers/ShengUfs/SmmuGroupPlan.h": {
+      "bytes": 16058,
+      "sha256": "54becb15f60969933971583c93752ae864718cafae213d9af58ba6a513da968a"
+    },
+    "drivers/ShengUfs/UfsObservation.h": {
+      "bytes": 5999,
+      "sha256": "c9418b706655f808ba0e853a4769278e1018288e102c1442973f000babcf0016"
+    },
+    "drivers/ShengUfs/UfsPlatform.h": {
+      "bytes": 2917,
+      "sha256": "734aaf274bb9e081135da40830663993ba64a18ba2631aa2b7f0ce918c159164"
+    },
+    "dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "feeds.toml": {
+      "bytes": 644,
+      "sha256": "687919cd945257fd19956cbe68a2aaf9d76b13949add079af9a6c5e5d47cd2bd"
+    },
+    "package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "patches/xnu/j716f-earlylog-console.patch": {
+      "bytes": 25956,
+      "sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708"
+    },
+    "patches/xnu/j716f-storage-dependency.patch": {
+      "bytes": 972,
+      "sha256": "3c7eb833d43439841835a88af1a811f041e7820c5db83b0bab50a73a4bce8754"
+    },
+    "patches/xnu/j716f-storage-init.patch": {
+      "bytes": 874,
+      "sha256": "62b6135a95f434d549feb7897feb6641ccef23e02831b11b396a8030186d5691"
+    },
+    "patches/xnu/j716f-verbose-text-console.patch": {
+      "bytes": 687,
+      "sha256": "9ff9d62bc25a0d9944a815daa42f262dd03a1ec65d1663d8ba00e93dc585b95f"
+    },
+    "patches/xnu/series": {
+      "bytes": 200,
+      "sha256": "ba968c6900c1190916792b2cc0a4c0a5b713ab5e656f54b86b15d8cadd31a795"
+    },
+    "porting.toml": {
+      "bytes": 15434,
+      "sha256": "0960f6e2dc909849dd2a5049494b6e148762ac2db1f191d0c287445bcf14cb40"
+    },
+    "README.md": {
+      "bytes": 2092,
+      "sha256": "1e7da1686ae77caa84b40d58b7dd58935f001443af3bc63a48e977d222a7e1a2"
+    },
+    "scripts/build-j716f-storage-r30.py": {
+      "bytes": 14483,
+      "sha256": "87a1878cb463630dc050f09a2b1f5b0b2c0b98720337da4d46299cffc81df095"
+    },
+    "scripts/host.py": {
+      "bytes": 2382,
+      "sha256": "8916f0f6acea33ef88773096c1af4507fa935b09b24fc56890126c7251298b63"
+    },
+    "socs/sm8250/configs/sm8250.config": {
+      "bytes": 118,
+      "sha256": "9310627f0f0dc4c61dfd667de7526b684a5b025c56c2c6eae1b58388a2c14ce3"
+    },
+    "socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1264,
+      "sha256": "0aad19072382bf609e03c9fcc119f50ad2affbb4a7688abc826588c080200727"
+    },
+    "socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.cpp": {
+      "bytes": 10704,
+      "sha256": "00d18841d655dcd517e183bce18049a43248bd5d139301a0a2b8f5ae6293617b"
+    },
+    "socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.h": {
+      "bytes": 3722,
+      "sha256": "69e399842ebbde0baa27e49d29cde7fc38363987e8e4303e9234518ae469708f"
+    },
+    "socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3331,
+      "sha256": "4594be664bb8ba4cf86db5c75a8bee498bc91c49743ac994eb67493bc5a782ec"
+    },
+    "socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1815,
+      "sha256": "466713ab0b38e090d7e1e26d667972d27b0fdd56886b365b8b9f942fc71b8e1a"
+    },
+    "socs/sm8250/kits/Sm8250Platform/Sm8250UfsDiagnostics.cpp": {
+      "bytes": 6993,
+      "sha256": "5b025993951701dce374505aebc238d6f78f2262a12a3c3ef09fc94131e5e62d"
+    },
+    "socs/sm8250/kits/Sm8250Platform/Sm8250UfsDiagnostics.h": {
+      "bytes": 2833,
+      "sha256": "112e0bc868fe781556084e20fac754ebd5b070195ce3224b43cff50023cdf6e2"
+    },
+    "socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.cpp": {
+      "bytes": 14856,
+      "sha256": "027317ab0fe88927daf5ea658dd73897eef0b6f635d8e8259fc4bc64eed0e97a"
+    },
+    "socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.h": {
+      "bytes": 4149,
+      "sha256": "771721b76e57429f4fbc3b855e0ccda1c9c96b052e25ed6e5a7e56dc0c65ddd8"
+    },
+    "socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.cpp": {
+      "bytes": 12706,
+      "sha256": "34b7fdfd45a8d06228694ff18207ea8494976662a7b073bd94c96f468cbafe4b"
+    },
+    "socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.h": {
+      "bytes": 2605,
+      "sha256": "07efaaa3f6e4ec1414c0fc1dc68daa97fd24d888f30d89bfcd963f14aee5d154"
+    },
+    "socs/sm8250/kits/Sm8250Platform/Sm8250UfsIo.h": {
+      "bytes": 994,
+      "sha256": "bc42f674a40382fc684217be9ad200d6273d55854555bce55eef96510bbe6771"
+    },
+    "socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.cpp": {
+      "bytes": 21027,
+      "sha256": "46d8f245364a1de2597262885f911384ad742fd682565a5bc76f2619ac59aaf0"
+    },
+    "socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.h": {
+      "bytes": 3102,
+      "sha256": "402fee10b3f5e6b61255546b94b8d9a9243ddc5fcc7667c3c595d43574ddc562"
+    },
+    "socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "socs/sm8250/patches/xnu/series": {
+      "bytes": 188,
+      "sha256": "665dbe8e1327c79c26b29c190111f7d023a73518d324380f62072399b6bad027"
+    },
+    "socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    }
+  },
+  "component_files": {
+    "AGENTS.md": {
+      "bytes": 1011,
+      "sha256": "74bd220daa12eb04dc6487a9f37eaae62b0da57ddd514d2984aeeabfcaf2d203"
+    },
+    "freeze.py": {
+      "bytes": 2465,
+      "sha256": "295c76bdaacb27d655c4149187e0d87e46b71acf0ddb11d971b9cf747c767be3"
+    },
+    "J716fStorageBringup.cpp": {
+      "bytes": 12128,
+      "sha256": "e1b6110e0cdf751c389d97bdb15e7824cfeccbe81d3391d277496efb3391a888"
+    },
+    "J716fStorageBringup.h": {
+      "bytes": 4274,
+      "sha256": "b3ffc26d8bc16ea35668b654cd5927fda3978d4bb413a2fa9ee8e8a333f7a37b"
+    },
+    "J716fStorageKernel.cpp": {
+      "bytes": 3522,
+      "sha256": "b68938b056e89afb8b0ce4de7f429d95ee39a153bdeca1133dc6c833db41ea42"
+    },
+    "README.md": {
+      "bytes": 6408,
+      "sha256": "8905ccd49501496a4aab3ceb44dfe49222dc120dc7eb02913b6f441847281232"
+    },
+    "source-manifest.json": {
+      "bytes": 7539,
+      "sha256": "d69de980cb42b12fe47683cc2687cdf9ef322fcfbbe1caf4c2767e272d6a9918"
+    },
+    "tests/run.py": {
+      "bytes": 3468,
+      "sha256": "fb1e394b6e2a464c37d994406821da110501d14097d833d41ec5ef8966537a7f"
+    },
+    "tests/StorageBringup.cpp": {
+      "bytes": 10573,
+      "sha256": "5d82f1ebc694f8d0839c1b03fa7159fbfb4d558cf221e73761197b177341e0f7"
+    }
+  },
+  "component_source_manifest": {
+    "bytes": 7539,
+    "sha256": "d69de980cb42b12fe47683cc2687cdf9ef322fcfbbe1caf4c2767e272d6a9918"
+  },
+  "old_adapter": "work/UniXNU-j716f-host-ufs-observation",
+  "parent_target_unchanged": true
+}

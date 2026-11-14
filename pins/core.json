@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "cores": [
+    {
+      "name": "kernel",
+      "workspace_path": "UniXNU",
+      "repository": "https://github.com/UniXNU/UniXNU.git",
+      "revision": "7b730b231746667d8b7f54746c2c1ce45852611c",
+      "patch": "overlays/kernel/local.patch",
+      "patch_sha256": "9d71158785a67f4c33032033fc66205b98347ff52bf056e1c3fc432835ab0244",
+      "overlay_files": [
+        {
+          "path": "package/UniXNUPkg/Test/Menu/README.md",
+          "bytes": 3105,
+          "sha256": "1d66de32765f7a1b0739ed0f28c719001f4947da08db313901c8064ec018325a"
+        },
+        {
+          "path": "package/UniXNUPkg/Test/Menu/menu_harness.c",
+          "bytes": 12431,
+          "sha256": "5d1f644e275878a76dccb2e7372c5731f1be4d117014b6a59b9ff940c8892ea9"
+        },
+        {
+          "path": "package/UniXNUPkg/Test/Menu/menu_shim.h",
+          "bytes": 2604,
+          "sha256": "b18f440adc9eca1960b8370f07c9c4eaec0c5571b2e9a5348488c578010eb056"
+        },
+        {
+          "path": "package/UniXNUPkg/Test/Menu/test_menu.py",
+          "bytes": 2419,
+          "sha256": "07b5bfdec4e535e6ef334c3ddb3ba14305069b89db5366553ce779454f41b753"
+        },
+        {
+          "path": "scripts/unixnu/test_bootimg.py",
+          "bytes": 10547,
+          "sha256": "373a39c1cde71960333b9fd1b642669810592f28f91df82d6b7c8ec7c1ba4d27"
+        }
+      ],
+      "submodules": [
+        {
+          "path": "drivers/Adreno740",
+          "revision": "54b41b8f59e90a167f6f75160739c5f825945fbc"
+        },
+        {
+          "path": "drivers/AdrenoMetal",
+          "revision": "73d582fd4d5772b1f5fa83581a25077a16f2b6cd"
+        },
+        {
+          "path": "drivers/AppleKeyStoreState",
+          "revision": "6ff4f11d8fdf853351f8d98e1bbe1373fb8da2e6"
+        },
+        {
+          "path": "drivers/ArmCpu",
+          "revision": "d90e457b8392623853ec85c860feef546c767621"
+        },
+        {
+          "path": "drivers/ArmDTPlatform",
+          "revision": "e8bd8d5de395c6cbc00d762c1bef57dbd15a448d"
+        },
+        {
+          "path": "drivers/ArmVirtPlatform",
+          "revision": "d1423a8bceac4be0478a93d9173587111c040084"
+        },
+        {
+          "path": "drivers/DarwinBoot",
+          "revision": "5243c68ec332a227fe3680cd5da6d5a0e127035c"
+        },
+        {
+          "path": "drivers/GopFramebuffer",
+          "revision": "b0d812d578efa2acb005b66f73168891719af09a"
+        },
+        {
+          "path": "drivers/QcomBaseband",
+          "revision": "dd0199cf3300764ed52b23f4a47761f91fab21a2"
+        },
+        {
+          "path": "drivers/QcomGeniSpi",
+          "revision": "eac47baefe6a5d2368a70351e6ad1b6361bedbe2"
+        },
+        {
+          "path": "drivers/RamBlock",
+          "revision": "737f6dae119ef11990e77dc06bcead945098865e"
+        },
+        {
+          "path": "drivers/SoftwareAES",
+          "revision": "da07dd5c7d62bbe960f5bd4fe7789574d3a49d8c"
+        },
+        {
+          "path": "drivers/VirtioMmioBlock",
+          "revision": "4e1013eb8c45077b57f8d38d61b389fe899ea1c3"
+        },
+        {
+          "path": "drivers/VirtioMmioConsole",
+          "revision": "70253216890b2afcaa6333948726f896f84fc757"
+        },
+        {
+          "path": "kits/AdrenoFirmware",
+          "revision": "20ad3d7aca14bd46aecab6335c780f5413fa054b"
+        },
+        {
+          "path": "kits/AdrenoPM4",
+          "revision": "282606b528b2595bc4274ea7490b62b323f35a5f"
+        },
+        {
+          "path": "kits/AirNir",
+          "revision": "b356371a74cd158c2902f4886f373ebb0f833a36"
+        },
+        {
+          "path": "kits/ArmSmmu4K",
+          "revision": "83969cd874503e65997ff7639f7dcf3d0a92cd17"
+        },
+        {
+          "path": "kits/VerifiedRoot",
+          "revision": "974f043d0c71ba2e60331483a41c6c6d35274ee3"
+        },
+        {
+          "path": "kits/XnuPrelink",
+          "revision": "440589b0c31625f17edf363e24b3c82c51c70bb9"
+        }
+      ]
+    },
+    {
+      "name": "payload",
+      "workspace_path": "work/UniXNU-core-adt-phandle-r23",
+      "repository": "https://github.com/UniXNU/UniXNU.git",
+      "revision": "7d85ede80092050f4d87f72ac7229bb605ce07fb",
+      "patch": "overlays/payload/local.patch",
+      "patch_sha256": "7df4ad44b55e0464dfe5f1342c1bc2c79db2edc4f157c097649cd7fad68b315c",
+      "overlay_files": [
+        {
+          "path": "package/UniXNUPkg/Test/Menu/README.md",
+          "bytes": 3105,
+          "sha256": "1d66de32765f7a1b0739ed0f28c719001f4947da08db313901c8064ec018325a"
+        },
+        {
+          "path": "package/UniXNUPkg/Test/Menu/menu_harness.c",
+          "bytes": 12431,
+          "sha256": "5d1f644e275878a76dccb2e7372c5731f1be4d117014b6a59b9ff940c8892ea9"
+        },
+        {
+          "path": "package/UniXNUPkg/Test/Menu/menu_shim.h",
+          "bytes": 2604,
+          "sha256": "b18f440adc9eca1960b8370f07c9c4eaec0c5571b2e9a5348488c578010eb056"
+        },
+        {
+          "path": "package/UniXNUPkg/Test/Menu/test_menu.py",
+          "bytes": 2419,
+          "sha256": "07b5bfdec4e535e6ef334c3ddb3ba14305069b89db5366553ce779454f41b753"
+        },
+        {
+          "path": "scripts/unixnu/test_bootimg.py",
+          "bytes": 10547,
+          "sha256": "373a39c1cde71960333b9fd1b642669810592f28f91df82d6b7c8ec7c1ba4d27"
+        }
+      ],
+      "submodules": [
+        {
+          "path": "drivers/Adreno740",
+          "revision": "54b41b8f59e90a167f6f75160739c5f825945fbc"
+        },
+        {
+          "path": "drivers/AdrenoMetal",
+          "revision": "73d582fd4d5772b1f5fa83581a25077a16f2b6cd"
+        },
+        {
+          "path": "drivers/AppleKeyStoreState",
+          "revision": "6ff4f11d8fdf853351f8d98e1bbe1373fb8da2e6"
+        },
+        {
+          "path": "drivers/ArmCpu",
+          "revision": "d90e457b8392623853ec85c860feef546c767621"
+        },
+        {
+          "path": "drivers/ArmDTPlatform",
+          "revision": "e8bd8d5de395c6cbc00d762c1bef57dbd15a448d"
+        },
+        {
+          "path": "drivers/ArmVirtPlatform",
+          "revision": "d1423a8bceac4be0478a93d9173587111c040084"
+        },
+        {
+          "path": "drivers/DarwinBoot",
+          "revision": "5243c68ec332a227fe3680cd5da6d5a0e127035c"
+        },
+        {
+          "path": "drivers/GopFramebuffer",
+          "revision": "b0d812d578efa2acb005b66f73168891719af09a"
+        },
+        {
+          "path": "drivers/QcomBaseband",
+          "revision": "dd0199cf3300764ed52b23f4a47761f91fab21a2"
+        },
+        {
+          "path": "drivers/QcomGeniSpi",
+          "revision": "eac47baefe6a5d2368a70351e6ad1b6361bedbe2"
+        },
+        {
+          "path": "drivers/RamBlock",
+          "revision": "737f6dae119ef11990e77dc06bcead945098865e"
+        },
+        {
+          "path": "drivers/SoftwareAES",
+          "revision": "da07dd5c7d62bbe960f5bd4fe7789574d3a49d8c"
+        },
+        {
+          "path": "drivers/VirtioMmioBlock",
+          "revision": "4e1013eb8c45077b57f8d38d61b389fe899ea1c3"
+        },
+        {
+          "path": "drivers/VirtioMmioConsole",
+          "revision": "70253216890b2afcaa6333948726f896f84fc757"
+        },
+        {
+          "path": "kits/AdrenoFirmware",
+          "revision": "20ad3d7aca14bd46aecab6335c780f5413fa054b"
+        },
+        {
+          "path": "kits/AdrenoPM4",
+          "revision": "282606b528b2595bc4274ea7490b62b323f35a5f"
+        },
+        {
+          "path": "kits/AirNir",
+          "revision": "b356371a74cd158c2902f4886f373ebb0f833a36"
+        },
+        {
+          "path": "kits/ArmSmmu4K",
+          "revision": "83969cd874503e65997ff7639f7dcf3d0a92cd17"
+        },
+        {
+          "path": "kits/VerifiedRoot",
+          "revision": "974f043d0c71ba2e60331483a41c6c6d35274ee3"
+        },
+        {
+          "path": "kits/XnuPrelink",
+          "revision": "440589b0c31625f17edf363e24b3c82c51c70bb9"
+        }
+      ]
+    }
+  ]
+}

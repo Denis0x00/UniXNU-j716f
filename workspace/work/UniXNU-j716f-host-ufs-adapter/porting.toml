@@ -1,0 +1,245 @@
+schema_version = 1
+
+[device]
+name = "j716f-host-ufs-adapter"
+soc = "SM8250"
+os_profile = "ipados-17.7.11-21H461"
+summary = "Independent host kernel/prelink target derived from the TB-J716F draft; no image assembly or device verification. Build results are recorded separately."
+
+[[area]]
+id = "configuration"
+status = "planned"
+components = ["ArmDTPlatform","ArmCpu","SoftwareAES","XnuPrelink","DarwinBoot"]
+paths = ["board.toml","feeds.toml","unixnu.lock","configs/**","patches/**","socs/**","scripts/**","docs/**"]
+inputs = ["Pinned arm64 iPadOS 17.7.11/21H461 sources; 58 original patches plus two device patches; eight original archive recipes plus one adapter recipe."]
+configuration = ["example=false only for the concrete host kernel/prelink scope; fixed-command wrapper and independent out-host-ufs-adapter-20261113 root; CONFIG_XNU_DT_PANIC_REGION=y; frozen adapter archive force-loaded; late registration-only init."]
+procedure = ["Use official defconfig/fetch/status/tree/build kernel; bootstrap records precede archive builders, final link and prelink."]
+findings = ["This target retains the DT panic option and adds a frozen UFS adapter archive; source preparation is not build or runtime verification."]
+completion = ["Actual native kernel/prelink artifacts with pinned inputs and complete logs."]
+limits = ["Independent new kernel build and verification are pending. Runtime ABI and device behavior remain unqualified."]
+next_action = ["Run official kernel build, verify compile flag and new machine code, then archive independently."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."
+
+[[area]]
+id = "firmware"
+status = "planned"
+components = []
+paths = ["docs/**","README.md"]
+inputs = ["TB-J716F Android hardware baseline and the parent full-port record; no runtime qualification in this host target."]
+configuration = ["No device-execution, peripheral-enablement or storage-write step is part of this target."]
+procedure = ["Keep hardware facts separate from compilation evidence; perform runtime adaptation in the full-port target."]
+findings = ["Host compilation cannot establish this hardware subsystem works."]
+completion = ["Subsystem-specific runtime evidence belongs to the full-port record."]
+limits = ["This independent host build has no runtime validation. Hardware status remains planned."]
+next_action = ["Continue the full-port adaptation after the required host or device inputs are available."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."
+
+[[area]]
+id = "cpu"
+status = "planned"
+components = []
+paths = ["docs/**","README.md"]
+inputs = ["TB-J716F Android hardware baseline and the parent full-port record; no runtime qualification in this host target."]
+configuration = ["No device-execution, peripheral-enablement or storage-write step is part of this target."]
+procedure = ["Keep hardware facts separate from compilation evidence; perform runtime adaptation in the full-port target."]
+findings = ["Host compilation cannot establish this hardware subsystem works."]
+completion = ["Subsystem-specific runtime evidence belongs to the full-port record."]
+limits = ["This independent host build has no runtime validation. Hardware status remains planned."]
+next_action = ["Continue the full-port adaptation after the required host or device inputs are available."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."
+
+[[area]]
+id = "memory"
+status = "planned"
+components = []
+paths = ["docs/**","README.md"]
+inputs = ["TB-J716F Android hardware baseline and the parent full-port record; no runtime qualification in this host target."]
+configuration = ["No device-execution, peripheral-enablement or storage-write step is part of this target."]
+procedure = ["Keep hardware facts separate from compilation evidence; perform runtime adaptation in the full-port target."]
+findings = ["Host compilation cannot establish this hardware subsystem works."]
+completion = ["Subsystem-specific runtime evidence belongs to the full-port record."]
+limits = ["This independent host build has no runtime validation. Hardware status remains planned."]
+next_action = ["Continue the full-port adaptation after the required host or device inputs are available."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."
+
+[[area]]
+id = "storage"
+status = "planned"
+components = []
+paths = ["docs/**","README.md"]
+inputs = ["TB-J716F Android hardware baseline and the parent full-port record; no runtime qualification in this host target."]
+configuration = ["No device-execution, peripheral-enablement or storage-write step is part of this target."]
+procedure = ["Keep hardware facts separate from compilation evidence; perform runtime adaptation in the full-port target."]
+findings = ["Host compilation cannot establish this hardware subsystem works."]
+completion = ["Subsystem-specific runtime evidence belongs to the full-port record."]
+limits = ["This independent host build has no runtime validation. Hardware status remains planned."]
+next_action = ["Continue the full-port adaptation after the required host or device inputs are available."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."
+
+[[area]]
+id = "display"
+status = "planned"
+components = []
+paths = ["docs/**","README.md"]
+inputs = ["TB-J716F Android hardware baseline and the parent full-port record; no runtime qualification in this host target."]
+configuration = ["No device-execution, peripheral-enablement or storage-write step is part of this target."]
+procedure = ["Keep hardware facts separate from compilation evidence; perform runtime adaptation in the full-port target."]
+findings = ["Host compilation cannot establish this hardware subsystem works."]
+completion = ["Subsystem-specific runtime evidence belongs to the full-port record."]
+limits = ["This independent host build has no runtime validation. Hardware status remains planned."]
+next_action = ["Continue the full-port adaptation after the required host or device inputs are available."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."
+
+[[area]]
+id = "input"
+status = "planned"
+components = []
+paths = ["docs/**","README.md"]
+inputs = ["TB-J716F Android hardware baseline and the parent full-port record; no runtime qualification in this host target."]
+configuration = ["No device-execution, peripheral-enablement or storage-write step is part of this target."]
+procedure = ["Keep hardware facts separate from compilation evidence; perform runtime adaptation in the full-port target."]
+findings = ["Host compilation cannot establish this hardware subsystem works."]
+completion = ["Subsystem-specific runtime evidence belongs to the full-port record."]
+limits = ["This independent host build has no runtime validation. Hardware status remains planned."]
+next_action = ["Continue the full-port adaptation after the required host or device inputs are available."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."
+
+[[area]]
+id = "gpu"
+status = "planned"
+components = []
+paths = ["docs/**","README.md"]
+inputs = ["TB-J716F Android hardware baseline and the parent full-port record; no runtime qualification in this host target."]
+configuration = ["No device-execution, peripheral-enablement or storage-write step is part of this target."]
+procedure = ["Keep hardware facts separate from compilation evidence; perform runtime adaptation in the full-port target."]
+findings = ["Host compilation cannot establish this hardware subsystem works."]
+completion = ["Subsystem-specific runtime evidence belongs to the full-port record."]
+limits = ["This independent host build has no runtime validation. Hardware status remains planned."]
+next_action = ["Continue the full-port adaptation after the required host or device inputs are available."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."
+
+[[area]]
+id = "network"
+status = "planned"
+components = []
+paths = ["docs/**","README.md"]
+inputs = ["TB-J716F Android hardware baseline and the parent full-port record; no runtime qualification in this host target."]
+configuration = ["No device-execution, peripheral-enablement or storage-write step is part of this target."]
+procedure = ["Keep hardware facts separate from compilation evidence; perform runtime adaptation in the full-port target."]
+findings = ["Host compilation cannot establish this hardware subsystem works."]
+completion = ["Subsystem-specific runtime evidence belongs to the full-port record."]
+limits = ["This independent host build has no runtime validation. Hardware status remains planned."]
+next_action = ["Continue the full-port adaptation after the required host or device inputs are available."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."
+
+[[area]]
+id = "audio"
+status = "planned"
+components = []
+paths = ["docs/**","README.md"]
+inputs = ["TB-J716F Android hardware baseline and the parent full-port record; no runtime qualification in this host target."]
+configuration = ["No device-execution, peripheral-enablement or storage-write step is part of this target."]
+procedure = ["Keep hardware facts separate from compilation evidence; perform runtime adaptation in the full-port target."]
+findings = ["Host compilation cannot establish this hardware subsystem works."]
+completion = ["Subsystem-specific runtime evidence belongs to the full-port record."]
+limits = ["This independent host build has no runtime validation. Hardware status remains planned."]
+next_action = ["Continue the full-port adaptation after the required host or device inputs are available."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."
+
+[[area]]
+id = "power"
+status = "planned"
+components = []
+paths = ["docs/**","README.md"]
+inputs = ["TB-J716F Android hardware baseline and the parent full-port record; no runtime qualification in this host target."]
+configuration = ["No device-execution, peripheral-enablement or storage-write step is part of this target."]
+procedure = ["Keep hardware facts separate from compilation evidence; perform runtime adaptation in the full-port target."]
+findings = ["Host compilation cannot establish this hardware subsystem works."]
+completion = ["Subsystem-specific runtime evidence belongs to the full-port record."]
+limits = ["This independent host build has no runtime validation. Hardware status remains planned."]
+next_action = ["Continue the full-port adaptation after the required host or device inputs are available."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."
+
+[[area]]
+id = "packaging"
+status = "planned"
+components = []
+paths = ["docs/**","README.md"]
+inputs = ["TB-J716F Android hardware baseline and the parent full-port record; no runtime qualification in this host target."]
+configuration = ["No device-execution, peripheral-enablement or storage-write step is part of this target."]
+procedure = ["Keep hardware facts separate from compilation evidence; perform runtime adaptation in the full-port target."]
+findings = ["Host compilation cannot establish this hardware subsystem works."]
+completion = ["Subsystem-specific runtime evidence belongs to the full-port record."]
+limits = ["This independent host build has no runtime validation. Hardware status remains planned."]
+next_action = ["Continue the full-port adaptation after the required host or device inputs are available."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."
+
+[[area]]
+id = "diagnostics"
+status = "planned"
+components = []
+paths = ["docs/**","README.md"]
+inputs = ["TB-J716F Android hardware baseline and the parent full-port record; no runtime qualification in this host target."]
+configuration = ["No device-execution, peripheral-enablement or storage-write step is part of this target."]
+procedure = ["Keep hardware facts separate from compilation evidence; perform runtime adaptation in the full-port target."]
+findings = ["Host compilation cannot establish this hardware subsystem works."]
+completion = ["Subsystem-specific runtime evidence belongs to the full-port record."]
+limits = ["This independent host build has no runtime validation. Hardware status remains planned."]
+next_action = ["Continue the full-port adaptation after the required host or device inputs are available."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."
+
+[[area]]
+id = "sensors"
+status = "planned"
+components = []
+paths = ["docs/**","README.md"]
+inputs = ["TB-J716F Android hardware baseline and the parent full-port record; no runtime qualification in this host target."]
+configuration = ["No device-execution, peripheral-enablement or storage-write step is part of this target."]
+procedure = ["Keep hardware facts separate from compilation evidence; perform runtime adaptation in the full-port target."]
+findings = ["Host compilation cannot establish this hardware subsystem works."]
+completion = ["Subsystem-specific runtime evidence belongs to the full-port record."]
+limits = ["This independent host build has no runtime validation. Hardware status remains planned."]
+next_action = ["Continue the full-port adaptation after the required host or device inputs are available."]
+[[area.evidence]]
+kind = "source"
+reference = "README.md"
+result = "Documents the explicit host-only scope; no build or device success is inferred from target creation."

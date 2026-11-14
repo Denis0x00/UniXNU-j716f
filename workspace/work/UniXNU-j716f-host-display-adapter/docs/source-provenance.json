@@ -1,0 +1,133 @@
+{
+  "template": {
+    "repository": "https://github.com/UniXNU/UniXNU",
+    "revision": "6b24c06ce487e8c48105b7b4635d0d97f7ec6cdd",
+    "path": "examples/device"
+  },
+  "soc": {
+    "repository": "https://github.com/Denis0x00/UniXNU-j716f",
+    "revision": "bf2d0f32f706adbe414551e452f1426ed7c4bd19",
+    "path": "socs/sm8250",
+    "selection": "explicit local source; legacy patches not selected",
+    "files": [
+      {
+        "path": "configs/sm8250.config",
+        "source_sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac",
+        "local_sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac",
+        "modified": false
+      },
+      {
+        "path": "dts/sm8250.dtsi",
+        "source_sha256": "33dbe5a274519f225a22aacb32e36fd0d4a9f9b5cd10a060fb48822a3ea2cee7",
+        "local_sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8",
+        "modified": true
+      },
+      {
+        "path": "kits/Sm8250Platform/AppsSmmuLock.h",
+        "source_sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476",
+        "local_sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476",
+        "modified": false
+      },
+      {
+        "path": "kits/Sm8250Platform/Sm8250GeniUart.c",
+        "source_sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9",
+        "local_sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9",
+        "modified": false
+      },
+      {
+        "path": "kits/Sm8250Platform/Sm8250GeniUart.h",
+        "source_sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72",
+        "local_sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72",
+        "modified": false
+      },
+      {
+        "path": "patches/xnu/native-smp-secondary.patch",
+        "source_sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c",
+        "local_sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c",
+        "modified": false
+      },
+      {
+        "path": "patches/xnu/native-smp-type-clusters.patch",
+        "source_sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7",
+        "local_sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7",
+        "modified": false
+      },
+      {
+        "path": "patches/xnu/series",
+        "source_sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af",
+        "local_sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af",
+        "modified": false
+      },
+      {
+        "path": "soc.toml",
+        "source_sha256": "a19c35ae91a037aa94719e922db46103725745b5bf5f4aad6b7e5e797b10e7c7",
+        "local_sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01",
+        "modified": true
+      }
+    ]
+  },
+  "hardware": {
+    "batch": "20261111-231708",
+    "directory_from_device_root": "../../analysis/device/20261111-231708",
+    "dtb_index": 0,
+    "dtbo_index": 1,
+    "evidence": [
+      {
+        "file": "running.dtb",
+        "sha256": "7d9010b68772351dfd054c147bdc97f7da3254149ff4fd020dad4f1bfa22ce52",
+        "bytes": 711130
+      },
+      {
+        "file": "device-tree.tar",
+        "sha256": "16f98a5efd1517e7bd94979b504697e2cbe146e5f3835fbeddd27feee99ec767",
+        "bytes": 31037952
+      },
+      {
+        "file": "memory-storage-audit.json",
+        "sha256": "d705085a3b6e6813d634f89d6f6ace2d1b1ed8f932aa3a9661841724005d25ce",
+        "bytes": 95858
+      },
+      {
+        "file": "memory-storage-audit.md",
+        "sha256": "a79213f479797f1d5ec62c15bf55819ee6a806b48bb208927a84d3f5b7a5e141",
+        "bytes": 9046
+      },
+      {
+        "file": "input-display-audit.md",
+        "sha256": "1adcbd72533596c0114dc364323fe1cdf856ae968eadd888ad3273b598c8c1a2",
+        "bytes": 8462
+      },
+      {
+        "file": "chip-details.txt",
+        "sha256": "daada88a8280e01c46322723e437868c3c4035acc2e597dd3e9922c858fd366b",
+        "bytes": 806
+      },
+      {
+        "file": "sensor-list.txt",
+        "sha256": "3cf280f50507f2e8230ccd7f6292cf857e35427876a907831e9117a385e6152e",
+        "bytes": 14242
+      },
+      {
+        "file": "audio-bindings.txt",
+        "sha256": "ea095e27d9f7a0575ffc25c7dd732e3a72379dfe1218d946c50f87cdfd2cf27b",
+        "bytes": 3115
+      },
+      {
+        "file": "bus-network.txt",
+        "sha256": "ed9ad42dfccce2ed3c82ee0e32eb7a0942ca57b1e354dbbd170147b8cfe34a67",
+        "bytes": 515
+      },
+      {
+        "file": "hardware-props.txt",
+        "sha256": "b2168e1ce9105800adef4c010763396f0df4bede9b46bb2a46442bbaa64fb81d",
+        "bytes": 825
+      },
+      {
+        "file": "battery.txt",
+        "sha256": "0f85bfe181e4697424c5b9b3ab9afc65f2804f7b9c59e475ce2cc969dbca08b8",
+        "bytes": 173
+      }
+    ]
+  },
+  "status": "preparation only; no build or boot verification"
+}

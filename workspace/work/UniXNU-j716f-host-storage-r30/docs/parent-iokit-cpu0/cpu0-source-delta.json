@@ -1,0 +1,48 @@
+{
+  "base_target": "work/UniXNU-j716f-host-early-log",
+  "base_armcpu_revision": "d90e457b8392623853ec85c860feef546c767621",
+  "base_armcpu_sha256": "6fedbb45f78690e6c5d50c9f371491f8bb45bac0f676ec23dd87507dd1adf02d",
+  "modified_armcpu_sha256": "f2e4ae0d47fdf838b21004f7e500ac3aa145f4197f2a4ee3bfad9909bdce09e2",
+  "compiled_source_files_changed": [
+    "ArmCpu.cpp"
+  ],
+  "template_occurrences_changed": 6,
+  "replacements": [
+    {
+      "scope": "counter",
+      "before": "\"isb; mrs %0, cntvct_el0\"",
+      "after": "\"isb\\n\\tmrs %0, cntvct_el0\"",
+      "occurrences": 1
+    },
+    {
+      "scope": "enableGic.SRE",
+      "before": "\"msr icc_sre_el1, %0; isb\"",
+      "after": "\"msr icc_sre_el1, %0\\n\\tisb\"",
+      "occurrences": 1
+    },
+    {
+      "scope": "interrupt.EOI",
+      "before": "\"msr icc_eoir1_el1, %0; isb\" :: \"r\" (id)",
+      "after": "\"msr icc_eoir1_el1, %0\\n\\tisb\" :: \"r\" (id)",
+      "occurrences": 1
+    },
+    {
+      "scope": "enableCPUTimeBase",
+      "before": "\"msr cntv_ctl_el0, %0; isb\"",
+      "after": "\"msr cntv_ctl_el0, %0\\n\\tisb\"",
+      "occurrences": 1
+    },
+    {
+      "scope": "enableGic.group1+quiesceCPU.group1",
+      "before": "\"msr icc_igrpen1_el1, %0; dsb sy; isb\"",
+      "after": "\"msr icc_igrpen1_el1, %0\\n\\tdsb sy\\n\\tisb\"",
+      "occurrences": 2
+    }
+  ],
+  "reverse_reconstruction_matches_all_original_bytes": true,
+  "no_diagnostic_sources_or_worker_added": true,
+  "earlylog_patch_sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708",
+  "review": "analysis/offline-driver-followup-20261113/cpu-asm-reachability-review.md",
+  "actual_baseline_source_record": "analysis/xnu-iokit-matching-runtime-r26-20261114/source-record.json",
+  "compile_and_runtime_verified": false
+}

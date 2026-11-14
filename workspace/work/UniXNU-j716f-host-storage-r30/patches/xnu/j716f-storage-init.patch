@@ -1,0 +1,28 @@
+--- a/bsd/kern/bsd_init.c
++++ b/bsd/kern/bsd_init.c
+@@ -993,6 +993,8 @@
+ 	net_init_run();
+ #endif /* NETWORKING */
+ 
++	printf("[J716F boot] BSD pre-root reached; inittodr next; root lookup not reached\n");
++
+ 	bsd_init_kprintf("calling inittodr\n");
+ 	inittodr(0);
+ 
+@@ -1302,6 +1304,16 @@ bsd_autoconf(void)
+ 	extern void native_legacy_display_late_probe(void);
+ 	native_legacy_display_late_probe();
+ #endif
++	/* Interface registration only. Live ownership/MMIO/DMA evidence must be
++	 * supplied separately; a successful IOKitBSDInit return is not a grant.
++	 */
++	printf("[J716F boot] IOKitBSDInit returned result=0x%x\n", (unsigned int)result);
++	if (result == KERN_SUCCESS) {
++		extern void j716f_storage_bringup_init(void);
++		j716f_storage_bringup_init();
++	} else {
++		printf("[J716F storage] registration skipped; IOKitBSDInit failed\n");
++	}
+ 	return result;
+ }
+ 

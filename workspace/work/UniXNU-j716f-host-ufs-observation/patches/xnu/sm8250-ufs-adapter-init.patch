@@ -1,0 +1,15 @@
+--- a/bsd/kern/bsd_init.c
++++ b/bsd/kern/bsd_init.c
+@@ -1293,5 +1293,12 @@ bsd_autoconf(void)
+ 	native_legacy_display_late_probe();
+ #endif
++	/* Registration only: no MMIO, DMA allocation or fabricated handoff.
++	 * A separate platform caller must supply verified access evidence.
++	 */
++	if (result == KERN_SUCCESS) {
++		extern void sm8250_ufs_adapter_init(void);
++		sm8250_ufs_adapter_init();
++	}
+ 	return result;
+ }
+ 

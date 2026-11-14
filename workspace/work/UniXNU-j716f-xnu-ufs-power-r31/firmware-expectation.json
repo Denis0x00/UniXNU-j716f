@@ -1,0 +1,631 @@
+{
+  "schema_version": 1,
+  "status": "independently-frozen",
+  "protocol_header_sha256": "d871825f16e72b3923420b3c0aa54e5d5a2291e5c0272d582ce05f9a22a86d16",
+  "artifacts": {
+    "SILICIUM_UEFI.fd": {
+      "bytes": 7340032,
+      "sha256": "f45f81be07b83062b6e8a24c8e531eaf7d8c00bfadfddfbae66c5048cfe7a2b9"
+    },
+    "J716fEarlyLogProbe.efi": {
+      "bytes": 19456,
+      "sha256": "42fe2f42085aee507efe1ceb151026934dd740a3b440c3d5da062ab3f234e108"
+    }
+  },
+  "review": {
+    "actual_base_matches_r9": true,
+    "source_overlay_verified": true,
+    "protocol_and_firmware_host_tests_passed": true,
+    "actual_fv_modules_reviewed": true,
+    "recovery_before_jlog_initialization_reviewed": true,
+    "ram_ownership_mapping_reviewed": true,
+    "probe_load_options_reviewed": true
+  },
+  "review_evidence": {
+    "analysis/early-xnu-log-20261114/firmware-integration/decoder-tests.windows.json": {
+      "bytes": 587,
+      "sha256": "cff2b219694ceeacc09de0ee2a0b952cebe6252e45c689d2d41e4e058f8011f0"
+    },
+    "analysis/early-xnu-log-20261114/firmware-integration/host-03/export.log": {
+      "bytes": 234,
+      "sha256": "f17a1fcffd9276736129a3d7bd319cd13407a27e3e0b245966dbee07c14d4cac"
+    },
+    "analysis/early-xnu-log-20261114/firmware-integration/host-03/result.json": {
+      "bytes": 2694,
+      "sha256": "4c081da46deca5d6d2b12d87f8196db3e5ec6b1eefffc2e4b453f6030377c596"
+    },
+    "analysis/early-xnu-log-20261114/firmware-integration/host-03/wrap.log": {
+      "bytes": 108565,
+      "sha256": "9a416056995268c0e9f60c011a3620695ca21190d7e7b2bd8bf1a10645441f8a"
+    },
+    "analysis/early-xnu-log-20261114/firmware-integration/overlay-manifest.json": {
+      "bytes": 6566,
+      "sha256": "6f0b63a312be960153fb2121b5ec96e68ab5a639be9e0f31a1641773b349d59e"
+    },
+    "analysis/early-xnu-log-20261114/firmware-overlay-applied.json": {
+      "bytes": 5186,
+      "sha256": "afbce3e3777bcdc001a017995b131827c7d4c8158434c87b856024baed8c7297"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/binary-review.json": {
+      "bytes": 9059,
+      "sha256": "0946ae9894860e8a18171390bbaf18721ece9f98d5bf432f200881ba53b540fe"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/fd-extraction.json": {
+      "bytes": 51093,
+      "sha256": "d7611d1b926d1f725767be6df823c8620acc9e84855c4d7bde5380710fabcf12"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/freeze_review.py": {
+      "bytes": 11917,
+      "sha256": "d7b8c75c5a808a4d2a204ef0df6aba565093e16e465c34e727214554c0913754"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/identity-evidence-index.json": {
+      "bytes": 34962,
+      "sha256": "b37702b3a8066108417c87f31cbe9cd949c4f8b8ec04e6ca8c77ce614f7a5d59"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/identity-review.json": {
+      "bytes": 4336,
+      "sha256": "33ecf57bbcb43cf125bf13aaaf9a95968bfa3220bdf6808b17525b0125f147a7"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/machine-code-windows.json": {
+      "bytes": 279018,
+      "sha256": "31f9bb62a606afe0f1d65095c4d286f41b301beb5d374e415f52956350902307"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/review_firmware.py": {
+      "bytes": 13955,
+      "sha256": "0aa9b7b8f363b402665f3ff7b8005a1fb51739aeb6500d71f54f4233f6632fbd"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/review_supplemental.py": {
+      "bytes": 1838,
+      "sha256": "f84578c5060f4d3b52b939e86e427bd01ffb9137052e6170a7f6fb37d1307e11"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/supplemental-machine-code.json": {
+      "bytes": 41112,
+      "sha256": "893cc26b5586177df919982e94f7dd789c00473f0c55a0c38df09792c7a7aac8"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/symbols.json": {
+      "bytes": 76311,
+      "sha256": "119a2f10e346eae71c805cbe34cabff109001c4ef45312f2b9183c53d2a65dea"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/artifacts/J716fEarlyLogProbe.efi": {
+      "bytes": 19456,
+      "sha256": "42fe2f42085aee507efe1ceb151026934dd740a3b440c3d5da062ab3f234e108"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/artifacts/SILICIUM_UEFI.fd": {
+      "bytes": 7340032,
+      "sha256": "f45f81be07b83062b6e8a24c8e531eaf7d8c00bfadfddfbae66c5048cfe7a2b9"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/AdvancedLogDxe.efi": {
+      "bytes": 34816,
+      "sha256": "6c7099be703f80212607f6e64f7755aeee6ae12b2148fde2810dd5ce9ef61ac2"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/DxeCore.efi": {
+      "bytes": 173568,
+      "sha256": "47162c7f54152d95bf47a699da96e7fdfcf72b16042738f535d11fb75f54c361"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/J716fEarlyLogProbe.efi": {
+      "bytes": 19456,
+      "sha256": "42fe2f42085aee507efe1ceb151026934dd740a3b440c3d5da062ab3f234e108"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/J716fHandoffDiagnosticsDxe.efi": {
+      "bytes": 29696,
+      "sha256": "3978743fb41eab2aea00f0da2f1b5113e5fd662a565cf1c7c16769c346981c5e"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/J716fIoConsoleBdsDxe.efi": {
+      "bytes": 20480,
+      "sha256": "5dfd9e62b542b49b380607801d98f4628427ede5a049c32b88aabea9dfb82ddd"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Application/J716fEarlyLogProbe/J716fEarlyLogProbe/DEBUG/AutoGen.c": {
+      "bytes": 19640,
+      "sha256": "b308a2454b404aac7a2665857ee89ef18f1ddaa5aaa482c900b56392ff83673e"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Application/J716fEarlyLogProbe/J716fEarlyLogProbe/DEBUG/AutoGen.h": {
+      "bytes": 2580,
+      "sha256": "84f6cf5eb3d7707fc97b506ca57313d361b8e5123cca715043830d14b75ff6e9"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Application/J716fEarlyLogProbe/J716fEarlyLogProbe/DEBUG/J716fEarlyLogProbe.dll": {
+      "bytes": 19456,
+      "sha256": "eda873a32db5c2346f0f7b8e536d7cc62602d4050786a7ed7e7b475615f1db6e"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Application/J716fEarlyLogProbe/J716fEarlyLogProbe/DEBUG/J716fEarlyLogProbe.efi": {
+      "bytes": 19456,
+      "sha256": "42fe2f42085aee507efe1ceb151026934dd740a3b440c3d5da062ab3f234e108"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Application/J716fEarlyLogProbe/J716fEarlyLogProbe/DEBUG/J716fEarlyLogProbe.map": {
+      "bytes": 29891,
+      "sha256": "5042b7982e842fa5adab4a6c648aeede9f09386e1fe10d1ca8e2e8f58c435e67"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Application/J716fEarlyLogProbe/J716fEarlyLogProbe/OUTPUT/J716fEarlyLogProbe.efi": {
+      "bytes": 19456,
+      "sha256": "42fe2f42085aee507efe1ceb151026934dd740a3b440c3d5da062ab3f234e108"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Application/J716fEarlyLogProbe/J716fEarlyLogProbe/OUTPUT/J716fEarlyLogProbe.map": {
+      "bytes": 29891,
+      "sha256": "5042b7982e842fa5adab4a6c648aeede9f09386e1fe10d1ca8e2e8f58c435e67"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Application/J716fEarlyLogProbe/J716fEarlyLogProbe/OUTPUT/object_files.lst": {
+      "bytes": 340,
+      "sha256": "fced3e85d067cbf6d260747405775a6f0e940bf53cd176563f29f1b394c1c941"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Application/J716fEarlyLogProbe/J716fEarlyLogProbe/OUTPUT/static_library_files.lst": {
+      "bytes": 3734,
+      "sha256": "f2584bea691215f6c5c4563e854bf1eae9a2decbda481aaa7cf5ac0c3c5f0cb1"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fHandoffDiagnosticsDxe/J716fHandoffDiagnosticsDxe/DEBUG/AutoGen.c": {
+      "bytes": 20341,
+      "sha256": "4edcdabb44e53ac443996f8ccea74b478d805f6b4f58aec04135d0f7a2ff9740"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fHandoffDiagnosticsDxe/J716fHandoffDiagnosticsDxe/DEBUG/AutoGen.h": {
+      "bytes": 2710,
+      "sha256": "051073e0f5a2a9eb3c5442a31445185c3032397c5cb99e38a088ba341f4a4b25"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fHandoffDiagnosticsDxe/J716fHandoffDiagnosticsDxe/DEBUG/J716fHandoffDiagnosticsDxe.dll": {
+      "bytes": 29696,
+      "sha256": "e66721cdd019a423c26c2f556f340b234dd332dbc57e49270a06bdab31f5b08d"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fHandoffDiagnosticsDxe/J716fHandoffDiagnosticsDxe/DEBUG/J716fHandoffDiagnosticsDxe.efi": {
+      "bytes": 29696,
+      "sha256": "3978743fb41eab2aea00f0da2f1b5113e5fd662a565cf1c7c16769c346981c5e"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fHandoffDiagnosticsDxe/J716fHandoffDiagnosticsDxe/DEBUG/J716fHandoffDiagnosticsDxe.map": {
+      "bytes": 41143,
+      "sha256": "327de6475904305cd7720184400814bc40bfaf5bd72334a21c19f6f042fd2b57"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fHandoffDiagnosticsDxe/J716fHandoffDiagnosticsDxe/OUTPUT/J716fHandoffDiagnosticsDxe.efi": {
+      "bytes": 29696,
+      "sha256": "3978743fb41eab2aea00f0da2f1b5113e5fd662a565cf1c7c16769c346981c5e"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fHandoffDiagnosticsDxe/J716fHandoffDiagnosticsDxe/OUTPUT/J716fHandoffDiagnosticsDxe.map": {
+      "bytes": 41143,
+      "sha256": "327de6475904305cd7720184400814bc40bfaf5bd72334a21c19f6f042fd2b57"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fHandoffDiagnosticsDxe/J716fHandoffDiagnosticsDxe/OUTPUT/object_files.lst": {
+      "bytes": 558,
+      "sha256": "2964c3764c31a28544b919be632e41e501e09e7705b0468992a62b21c5bdf141"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fHandoffDiagnosticsDxe/J716fHandoffDiagnosticsDxe/OUTPUT/static_library_files.lst": {
+      "bytes": 3522,
+      "sha256": "4377966be65b519d09518618f05fbd512d92ebea50dcb570257d5eff1c2f19f1"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fIoConsoleBdsDxe/J716fIoConsoleBdsDxe/DEBUG/AutoGen.c": {
+      "bytes": 20768,
+      "sha256": "0eaa3f88a7dcc03b11e4c78ea0483fee31c534575f5e6a91c297a7fe49c68196"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fIoConsoleBdsDxe/J716fIoConsoleBdsDxe/DEBUG/AutoGen.h": {
+      "bytes": 3459,
+      "sha256": "0abcbcd64cf881840f4d513fe142923f0ad694aabb5781a1f77f28cb69213ae2"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fIoConsoleBdsDxe/J716fIoConsoleBdsDxe/DEBUG/J716fIoConsoleBdsDxe.dll": {
+      "bytes": 20480,
+      "sha256": "f30a1c87291310383eec85bfd15a48aecf2085fc154be28420800af28e49195e"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fIoConsoleBdsDxe/J716fIoConsoleBdsDxe/DEBUG/J716fIoConsoleBdsDxe.efi": {
+      "bytes": 20480,
+      "sha256": "5dfd9e62b542b49b380607801d98f4628427ede5a049c32b88aabea9dfb82ddd"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fIoConsoleBdsDxe/J716fIoConsoleBdsDxe/DEBUG/J716fIoConsoleBdsDxe.map": {
+      "bytes": 41931,
+      "sha256": "d91440c6269fc0c298ad2d39e8930f660fd205c8a7dfce6a23426b56add1f1a5"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fIoConsoleBdsDxe/J716fIoConsoleBdsDxe/OUTPUT/J716fIoConsoleBdsDxe.efi": {
+      "bytes": 20480,
+      "sha256": "5dfd9e62b542b49b380607801d98f4628427ede5a049c32b88aabea9dfb82ddd"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fIoConsoleBdsDxe/J716fIoConsoleBdsDxe/OUTPUT/J716fIoConsoleBdsDxe.map": {
+      "bytes": 41931,
+      "sha256": "d91440c6269fc0c298ad2d39e8930f660fd205c8a7dfce6a23426b56add1f1a5"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fIoConsoleBdsDxe/J716fIoConsoleBdsDxe/OUTPUT/object_files.lst": {
+      "bytes": 339,
+      "sha256": "ddca6106ab328225e24711f9c4f1a27e29fd4cd7da9eb5aef45dc235fa89f0a1"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/j716fPkg/Drivers/J716fIoConsoleBdsDxe/J716fIoConsoleBdsDxe/OUTPUT/static_library_files.lst": {
+      "bytes": 3517,
+      "sha256": "4a11736dde2562181f26089868b89ca91fbe39c4575c94bc34582c3ab0dca174"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/MdeModulePkg/Core/Dxe/DxeMain/DEBUG/AutoGen.c": {
+      "bytes": 42128,
+      "sha256": "d992a3f00d4b9f80f9b6e710228470b8b42d3a94bca8b3d93ae90e00b8b05521"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/MdeModulePkg/Core/Dxe/DxeMain/DEBUG/AutoGen.h": {
+      "bytes": 11368,
+      "sha256": "b8fff9296365ace70d0c3b19f6e75d079d6c90ee2a5c91fe0368e4cb1fa84001"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/MdeModulePkg/Core/Dxe/DxeMain/DEBUG/DxeCore.dll": {
+      "bytes": 173568,
+      "sha256": "7fab1a9342aacb3cf22ae8490c25c456a4388a7b17bd30662be4b36b656e863a"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/MdeModulePkg/Core/Dxe/DxeMain/DEBUG/DxeCore.efi": {
+      "bytes": 173568,
+      "sha256": "47162c7f54152d95bf47a699da96e7fdfcf72b16042738f535d11fb75f54c361"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/MdeModulePkg/Core/Dxe/DxeMain/DEBUG/DxeCore.map": {
+      "bytes": 254707,
+      "sha256": "d83ea8506d506c54f991fb2ebd1bddf153584c5b6604f39ef84dbde2c81a4bb0"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/MdeModulePkg/Core/Dxe/DxeMain/OUTPUT/DxeCore.efi": {
+      "bytes": 173568,
+      "sha256": "47162c7f54152d95bf47a699da96e7fdfcf72b16042738f535d11fb75f54c361"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/MdeModulePkg/Core/Dxe/DxeMain/OUTPUT/DxeCore.map": {
+      "bytes": 254707,
+      "sha256": "d83ea8506d506c54f991fb2ebd1bddf153584c5b6604f39ef84dbde2c81a4bb0"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/MdeModulePkg/Core/Dxe/DxeMain/OUTPUT/object_files.lst": {
+      "bytes": 5077,
+      "sha256": "e18eb34fb527d4141328ac5215605dcd594e708a853c5b5f8e4e19cd0a0eba94"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/MdeModulePkg/Core/Dxe/DxeMain/OUTPUT/static_library_files.lst": {
+      "bytes": 7538,
+      "sha256": "427bc4050b0078238eb9dc34896e60ce691ebc2ec0900de6751a2117a0261eb1"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/Sec.efi": {
+      "bytes": 118784,
+      "sha256": "4b9c960c4530d565f028a9c5ab4a2272d674d24ffa4d68fbdcf632256a62797f"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/SiliciumPkg/Sec/Sec/DEBUG/AutoGen.c": {
+      "bytes": 25448,
+      "sha256": "90424498c5c6764953efb959e44315d194b1094b6741d7d80c3958a3b4ef20fe"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/SiliciumPkg/Sec/Sec/DEBUG/AutoGen.h": {
+      "bytes": 5688,
+      "sha256": "3aefa096bd1ee0ecf25b4d68f25a15c5d16077bac65feddc6396a3577940b216"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/SiliciumPkg/Sec/Sec/DEBUG/Sec.dll": {
+      "bytes": 77824,
+      "sha256": "e02444a1065a1741d9532362c228bc44efad8fb49b6d6c468ca4455f61d3bb71"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/SiliciumPkg/Sec/Sec/DEBUG/Sec.dll.map": {
+      "bytes": 101111,
+      "sha256": "a6ff3d432ad5eed38d8dbcb35a814af383193872a0b7a349d591710a8c38dc59"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/SiliciumPkg/Sec/Sec/DEBUG/Sec.efi": {
+      "bytes": 118784,
+      "sha256": "4b9c960c4530d565f028a9c5ab4a2272d674d24ffa4d68fbdcf632256a62797f"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/SiliciumPkg/Sec/Sec/DEBUG/Sec.map": {
+      "bytes": 99341,
+      "sha256": "96dcb1396e7050e9c70aa0b917e3159500ebbff614e50001cb1a9bc86dd8d2f4"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/SiliciumPkg/Sec/Sec/OUTPUT/object_files.lst": {
+      "bytes": 793,
+      "sha256": "2fa9c0e42b012082deed8df08230e4f4260c1a741bd52a3482b8b969abda27a8"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/SiliciumPkg/Sec/Sec/OUTPUT/Sec.dll.map": {
+      "bytes": 101111,
+      "sha256": "a6ff3d432ad5eed38d8dbcb35a814af383193872a0b7a349d591710a8c38dc59"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/SiliciumPkg/Sec/Sec/OUTPUT/Sec.efi": {
+      "bytes": 118784,
+      "sha256": "4b9c960c4530d565f028a9c5ab4a2272d674d24ffa4d68fbdcf632256a62797f"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/SiliciumPkg/Sec/Sec/OUTPUT/Sec.map": {
+      "bytes": 99341,
+      "sha256": "96dcb1396e7050e9c70aa0b917e3159500ebbff614e50001cb1a9bc86dd8d2f4"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/SiliciumPkg/Sec/Sec/OUTPUT/static_library_files.lst": {
+      "bytes": 6589,
+      "sha256": "4574d011e177acfea2bf69287278d5eb173726cbff1255c95328a714915c26e2"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNU.efi": {
+      "bytes": 95744,
+      "sha256": "62638e73cd4e5cacac4f90fae450693f515766d0f839a716dd5c447e02b97f9e"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Application/UniXNU/UniXNU/DEBUG/AutoGen.c": {
+      "bytes": 24545,
+      "sha256": "f511ba41a4b35641b927531db41bffcafbdbc9991fcb0178fc1ff36e9cffb500"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Application/UniXNU/UniXNU/DEBUG/AutoGen.h": {
+      "bytes": 3168,
+      "sha256": "12f2d42a870dcbd30e26a179ecb803253b0a03c904939c26dd8e9e6cf50e80b3"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Application/UniXNU/UniXNU/DEBUG/UniXNU.dll": {
+      "bytes": 95744,
+      "sha256": "a4e1bf968a1c334f4a7e9d06adf82c624b523c5180c0b78aa94166cad07d34f5"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Application/UniXNU/UniXNU/DEBUG/UniXNU.efi": {
+      "bytes": 95744,
+      "sha256": "62638e73cd4e5cacac4f90fae450693f515766d0f839a716dd5c447e02b97f9e"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Application/UniXNU/UniXNU/DEBUG/UniXNU.map": {
+      "bytes": 139062,
+      "sha256": "8f359aa47ff10df5a051a628ad1fa4da711353fa8217cab613cab9285e560cf3"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Application/UniXNU/UniXNU/OUTPUT/object_files.lst": {
+      "bytes": 282,
+      "sha256": "8c622ee2e7485add06c9532f6ff96e401090790ad85239acc68db307a30469c0"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Application/UniXNU/UniXNU/OUTPUT/static_library_files.lst": {
+      "bytes": 3156,
+      "sha256": "728c2ca824f12865d9e82e66da7dee95e1411acabfa18b0dea327da974df376b"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Application/UniXNU/UniXNU/OUTPUT/UniXNU.efi": {
+      "bytes": 95744,
+      "sha256": "62638e73cd4e5cacac4f90fae450693f515766d0f839a716dd5c447e02b97f9e"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Application/UniXNU/UniXNU/OUTPUT/UniXNU.map": {
+      "bytes": 139062,
+      "sha256": "8f359aa47ff10df5a051a628ad1fa4da711353fa8217cab613cab9285e560cf3"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Driver/AdvancedLogDxe/AdvancedLogDxe/DEBUG/AdvancedLogDxe.dll": {
+      "bytes": 34816,
+      "sha256": "ca1ece66bd32bf12319a5aea4db2c61781411b71a733d0fb9ff7eaab7dfd9fba"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Driver/AdvancedLogDxe/AdvancedLogDxe/DEBUG/AdvancedLogDxe.efi": {
+      "bytes": 34816,
+      "sha256": "6c7099be703f80212607f6e64f7755aeee6ae12b2148fde2810dd5ce9ef61ac2"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Driver/AdvancedLogDxe/AdvancedLogDxe/DEBUG/AdvancedLogDxe.map": {
+      "bytes": 42466,
+      "sha256": "aedce8685996a68893d9f6b39ebcc771abc6aab3b1dddd79738dce8adb12ef15"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Driver/AdvancedLogDxe/AdvancedLogDxe/DEBUG/AutoGen.c": {
+      "bytes": 20462,
+      "sha256": "4fac2fa9cbc12b4dcf574b72d54e4a65ee11d1c2eb6347a8dcd297c36cc136ef"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Driver/AdvancedLogDxe/AdvancedLogDxe/DEBUG/AutoGen.h": {
+      "bytes": 3260,
+      "sha256": "273dd7241a1231c72d8198608351bffbc724c6e870a6ce87108078a7e0a81281"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Driver/AdvancedLogDxe/AdvancedLogDxe/OUTPUT/AdvancedLogDxe.efi": {
+      "bytes": 34816,
+      "sha256": "6c7099be703f80212607f6e64f7755aeee6ae12b2148fde2810dd5ce9ef61ac2"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Driver/AdvancedLogDxe/AdvancedLogDxe/OUTPUT/AdvancedLogDxe.map": {
+      "bytes": 42466,
+      "sha256": "aedce8685996a68893d9f6b39ebcc771abc6aab3b1dddd79738dce8adb12ef15"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Driver/AdvancedLogDxe/AdvancedLogDxe/OUTPUT/object_files.lst": {
+      "bytes": 312,
+      "sha256": "29e18893657ea0b1e2f1ef8bfd329321c690b952c070f64248bd5e3a3126e489"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/AARCH64/UniXNUPkg/Driver/AdvancedLogDxe/AdvancedLogDxe/OUTPUT/static_library_files.lst": {
+      "bytes": 3724,
+      "sha256": "b0765ea4c11224542b462ee1f6d8026f40b497788d9257abb63c1abdf7cf3168"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/build/FV/Ffs/9AFFB503-E643-4141-8B90-17E8588B1D35Sec/9AFFB503-E643-4141-8B90-17E8588B1D35Te.raw": {
+      "bytes": 114344,
+      "sha256": "c69ba92d6e0efd5f1e685e704c4f1d808a47dd2b23639178c9df68ec26f1a871"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/collection.json": {
+      "bytes": 49790,
+      "sha256": "348b96e82a2db5a1a0320bafe0c97bae0216e27446833a0e1dd1d355b037b712"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/records/build_firmware_host.py": {
+      "bytes": 6965,
+      "sha256": "3083925d78975cd16a0a261356074968adeba7fdfe420a852161bc03a1079a9a"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/records/firmware-overlay-applied.json": {
+      "bytes": 5083,
+      "sha256": "8f5033169c271c87687639e667d7ed82ee453807d0478a0f260015d2ce866a48"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/records/firmware-source-copy.json": {
+      "bytes": 371177,
+      "sha256": "898712ab20d6623703278ec490fe4e175faa7e3911ff89a4e09ab6254c702c36"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/records/menu-build-02.json": {
+      "bytes": 7475,
+      "sha256": "85dee1deae5d652824bcd560ea1acac614210af0c6b25f5cc1ccc440760d0949"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/records/overlay-manifest.json": {
+      "bytes": 6566,
+      "sha256": "6f0b63a312be960153fb2121b5ec96e68ab5a639be9e0f31a1641773b349d59e"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Common/Mu/AdvLoggerPkg/Include/AdvancedLoggerInternal.h": {
+      "bytes": 8415,
+      "sha256": "b3b90d9c791cc13daf540bcab416a2ded8e4b97789eef3203b951d5d4e1d32f1"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Common/Mu/AdvLoggerPkg/Include/Library/AdvancedLoggerAccessLib.h": {
+      "bytes": 6745,
+      "sha256": "c8d76b9f402adb9b7ab15d66d9d3d8da712ca33e3c2b6851a78b22d346e89b06"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Common/Mu/AdvLoggerPkg/Library/AdvancedLoggerAccessLib/AdvancedLoggerAccessLib.c": {
+      "bytes": 19894,
+      "sha256": "77cfbe4de82ea32e2e7b24b74f875decac92103484ba579b91976b976542a3e2"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Common/Mu/AdvLoggerPkg/Library/AdvancedLoggerHdwPortLib/AdvancedLoggerHdwPortLib.c": {
+      "bytes": 1839,
+      "sha256": "206bf3e39e1e128ab740d7aa3cc8729cd061c6bef414bcfd2c8f7060cffe5bb4"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Common/Mu/AdvLoggerPkg/Library/AdvancedLoggerLib/AdvancedLoggerCommon.c": {
+      "bytes": 7589,
+      "sha256": "e6eccabda63d825b85b3bb3624825a05fdc6df9f7630cedf692a75ac7716b518"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Common/Mu/AdvLoggerPkg/Library/AdvancedLoggerLib/AdvancedLoggerHwPort.c": {
+      "bytes": 1252,
+      "sha256": "4fd01bcf3732a0db28323a48599958220b34debff0a253123b3759f20cb8305c"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Common/Mu/AdvLoggerPkg/Library/AdvancedLoggerLib/Dxe/AdvancedLoggerLib.c": {
+      "bytes": 3573,
+      "sha256": "b62b0cf4d43e923f5f9c1dfb753eb526a803ca80a850dbb171ed7239e884eb29"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Common/Mu/AdvLoggerPkg/Library/AdvancedLoggerLib/DxeCore/AdvancedLoggerLib.c": {
+      "bytes": 14654,
+      "sha256": "807bb8af43c20a5e88b62b51e98db38d8056d5d9ca8ca530bf8e35ef4a77561b"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Application/J716fEarlyLogProbe/J716fEarlyLogProbe.c": {
+      "bytes": 6201,
+      "sha256": "1fa679c51a705ad81dab94e461bb1218cd23b7158a44bcdafe40d810fa2e9f72"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Application/J716fEarlyLogProbe/J716fEarlyLogProbe.inf": {
+      "bytes": 564,
+      "sha256": "aaffa7c517f4f14b3cfd6ce01b2e4ac25add26dc7a66ce015eefce7e790cb5ea"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Drivers/J716fHandoffDiagnosticsDxe/J716fEarlyLogImport.c": {
+      "bytes": 3371,
+      "sha256": "4894d28d972d62bcd3f2e0632b0ab009c44dfe70b46d1bfd5d17774aab15702e"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Drivers/J716fHandoffDiagnosticsDxe/J716fHandoffDiagnostics.c": {
+      "bytes": 21166,
+      "sha256": "a4fb8281da72435f970ef038ffa4618099624c7d65df50c572aaf9489b988c6d"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Drivers/J716fHandoffDiagnosticsDxe/J716fHandoffDiagnosticsDxe.inf": {
+      "bytes": 870,
+      "sha256": "98f6ea5cd77885651060e1f7eb07455bebb98003de016ac94fe8e4ef7856282c"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Drivers/J716fIoConsoleBdsDxe/J716fIoConsoleBds.c": {
+      "bytes": 6912,
+      "sha256": "b46c66c0e35c88800b033419b36fce33c5f34f168e79df85b9cc984b5ec86401"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Include/J716fEarlyLog.h": {
+      "bytes": 16638,
+      "sha256": "d871825f16e72b3923420b3c0aa54e5d5a2291e5c0272d582ce05f9a22a86d16"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Include/J716fEarlyLogHob.h": {
+      "bytes": 603,
+      "sha256": "5328942829f9ceca5ef9b2b750556899d136c84987382c3c2f05c9c50e009def"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Include/J716fEarlyLogRegion.h": {
+      "bytes": 708,
+      "sha256": "7d2d0d99db7f2d64d4ed60342017c74f09f68c482ad6672b454054fca78d7353"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Include/J716fEarlyLogText.h": {
+      "bytes": 3766,
+      "sha256": "06fd9123f29c1da7637edd483794939d73febe1b6822ffbaeec39fb03fe6209b"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/j716f.dsc": {
+      "bytes": 6241,
+      "sha256": "20e042637bae7aa2dbc6ca58d7e00e62365322dcb202319265f9506c6b97e2a9"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/j716f.fdf": {
+      "bytes": 2374,
+      "sha256": "576d5efb304d646b4c409e543deddc46b54556d85ee79e81126a16699acb310b"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/J716fEarlyLog.dec": {
+      "bytes": 295,
+      "sha256": "84485812344a74a50ffe07b5b94be2a4c12d616620b6aebb5d4092beb1e240b0"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Library/J716fEarlyLogSecLib/J716fEarlyLogSecLib.c": {
+      "bytes": 1594,
+      "sha256": "98ffc42601169b9f1251c19288889e46757e2f0ed915f9ed74045fb2dd470c95"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Library/J716fEarlyLogSecLib/J716fEarlyLogSecLib.inf": {
+      "bytes": 434,
+      "sha256": "b425600dd9d5d6c972c6b40339d2b6cde4ab6cc2ece5e6eaf705cd4098a1d52b"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Library/J716fFrameBufferSerialPortLib/FrameBufferSerialPortLib.c": {
+      "bytes": 15069,
+      "sha256": "2670f5381aa0098be224e1b720b14ffc1dc31e65f0a7ccfc15afd532ed32a722"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Library/J716fRamLogLib/DisplayOwnership.h": {
+      "bytes": 682,
+      "sha256": "8ea631c5e1bc0b05ed393cd2ddf0441a02f4d57e1399c5a8c5bfb12643b42303"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Library/J716fRamLogLib/J716fRamLogLib.c": {
+      "bytes": 6969,
+      "sha256": "cc468f7c3d151e57acfd126f06faa4f5665e2c08b698c86f9bba7ed2df36869b"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Library/J716fRamLogLib/J716fRamLogLib.inf": {
+      "bytes": 575,
+      "sha256": "de3d9cb34996190645c9af523e1d94593b24807e71b819c6acca77d7377e35aa"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Platforms/Lenovo/j716fPkg/Library/MemoryMapLib/MemoryMapLib.c": {
+      "bytes": 5209,
+      "sha256": "22b33ddfc23c6878e2ed6fdc708a400867b029e2b12e4a182722480c333a01ef"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Silicon/Silicium/SiliciumPkg/Include/Library/EarlyLogSecLib.h": {
+      "bytes": 366,
+      "sha256": "bc031d2190bab656ccdc9025c447a6ee7028057054eac3df16e9bafbe5764c2d"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Silicon/Silicium/SiliciumPkg/Library/EarlyLogSecLibNull/EarlyLogSecLibNull.c": {
+      "bytes": 166,
+      "sha256": "7eff9d7868cd46db58fb8c24852858dbc58ac8acb7bf72e3e3bebff986031516"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Silicon/Silicium/SiliciumPkg/Library/EarlyLogSecLibNull/EarlyLogSecLibNull.inf": {
+      "bytes": 273,
+      "sha256": "742c8267a8d74a6a34a8330125d831cb3f32dd8578d23ca1e2b0230506f642c0"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Silicon/Silicium/SiliciumPkg/Sec/AArch64/ModuleEntryPoint.S": {
+      "bytes": 2012,
+      "sha256": "cee1f559006be5d9cda8d37433d09e1f7f0ea498bc4870b9dfac51a8ded533ae"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Silicon/Silicium/SiliciumPkg/Sec/Sec.c": {
+      "bytes": 8411,
+      "sha256": "f7574db38e420962ebce8061d3e40e53ed6b9831546ca9b6d4d24598c930a843"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Silicon/Silicium/SiliciumPkg/Sec/Sec.inf": {
+      "bytes": 1580,
+      "sha256": "a5c887a0429d900ba7571c7aeaf27920ef94cf71121c9e93c94e6c8015668695"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Silicon/Silicium/SiliciumPkg/SiliciumPkg.dec": {
+      "bytes": 3068,
+      "sha256": "28af351b7933eb703b48fba338177c264758fb4e09d4c09d8acf3a2b7328e214"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/Silicon/Silicium/SiliciumPkg/SiliciumPkg.dsc.inc": {
+      "bytes": 20387,
+      "sha256": "3d6179c680fdd8b5f00ecb25e064abd22283caa8a7d1aa830725fe04c0f8f708"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/UniXNUPkg/Driver/AdvancedLogDxe/AdvancedLogDxe.c": {
+      "bytes": 16208,
+      "sha256": "aa76c504a222cb79982dee09ab3cb913b33382da19cf07c68b99ddd9cf9d3745"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/UniXNUPkg/Driver/AdvancedLogDxe/AdvancedLogDxe.inf": {
+      "bytes": 1212,
+      "sha256": "77dced57e7fad55121dbab8241db5bf92e2f31e396925bac91b65d2e5649b2de"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/UniXNUPkg/Library/UniXNULib/Main.c": {
+      "bytes": 4898,
+      "sha256": "2ef56f687d207b09a8fe1d67699f16581cb87166af8897b56d613d6458ec6290"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/UniXNUPkg/Library/UniXNULib/Menu.c": {
+      "bytes": 14643,
+      "sha256": "c354ed4ac95d3ab8f82ff7af0dd317ba10e53cdc55f3fae0c44f75162fa93518"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/vm-build-evidence-02/sources/UniXNUPkg/Library/UniXNULib/Ui.c": {
+      "bytes": 27007,
+      "sha256": "7f5a2773424a5a8cc68c12d061744ffd80c2847aa6595625740f41e0b5ea6792"
+    },
+    "analysis/early-xnu-log-20261114/firmware-source-copy.json": {
+      "bytes": 371177,
+      "sha256": "898712ab20d6623703278ec490fe4e175faa7e3911ff89a4e09ab6254c702c36"
+    },
+    "analysis/early-xnu-log-20261114/menu-build-02.json": {
+      "bytes": 7475,
+      "sha256": "85dee1deae5d652824bcd560ea1acac614210af0c6b25f5cc1ccc440760d0949"
+    },
+    "analysis/menu-ownership-r9-review-20261113/packaged-helper-fixture/fd-evidence/UniXNU/package/UniXNUPkg/Library/UniXNULib/Main.c": {
+      "bytes": 4898,
+      "sha256": "2ef56f687d207b09a8fe1d67699f16581cb87166af8897b56d613d6458ec6290"
+    },
+    "analysis/menu-ownership-r9-review-20261113/packaged-helper-fixture/fd-evidence/UniXNU/package/UniXNUPkg/Library/UniXNULib/Menu.c": {
+      "bytes": 14643,
+      "sha256": "c354ed4ac95d3ab8f82ff7af0dd317ba10e53cdc55f3fae0c44f75162fa93518"
+    },
+    "analysis/menu-ownership-r9-review-20261113/packaged-helper-fixture/fd-evidence/UniXNU/package/UniXNUPkg/Library/UniXNULib/Ui.c": {
+      "bytes": 27007,
+      "sha256": "7f5a2773424a5a8cc68c12d061744ffd80c2847aa6595625740f41e0b5ea6792"
+    },
+    "analysis/menu-ownership-r9-review-20261113/vm-build-evidence/sources/Platforms/Lenovo/j716fPkg/Drivers/J716fIoConsoleBdsDxe/J716fIoConsoleBds.c": {
+      "bytes": 6912,
+      "sha256": "b46c66c0e35c88800b033419b36fce33c5f34f168e79df85b9cc984b5ec86401"
+    },
+    "analysis/menu-ownership-r9-review-20261113/vm-build-evidence/sources/Platforms/Lenovo/j716fPkg/Library/J716fFrameBufferSerialPortLib/FrameBufferSerialPortLib.c": {
+      "bytes": 15069,
+      "sha256": "2670f5381aa0098be224e1b720b14ffc1dc31e65f0a7ccfc15afd532ed32a722"
+    },
+    "analysis/menu-ownership-r9-review-20261113/vm-build-evidence/sources/Platforms/Lenovo/j716fPkg/Library/J716fRamLogLib/DisplayOwnership.h": {
+      "bytes": 682,
+      "sha256": "8ea631c5e1bc0b05ed393cd2ddf0441a02f4d57e1399c5a8c5bfb12643b42303"
+    },
+    "analysis/early-xnu-log-20261114/firmware-review/evidence-index.json": {
+      "sha256": "dff3ecfc2ff1029c9bca22ac8ff1ab3cce16f550d9185736e7982de403517278",
+      "bytes": 35739
+    },
+    "analysis/tools/verify_xnu_early_log_firmware.py": {
+      "sha256": "89bc2d80ce2c756947f1911d395972e4231a40358af23d0fd12027ebadb0c1d2",
+      "bytes": 7958
+    },
+    "analysis/tools/test_xnu_early_log_firmware.py": {
+      "sha256": "5817099d64b5fa29eb1778d9d5857930a63169872856d030211fafb11b954e92",
+      "bytes": 5285
+    },
+    "analysis/early-xnu-log-20261114/r22-firmware-contract-tests-02.json": {
+      "sha256": "ed90b1c77832c74c6026302b295fcf345a92056200ebdf425aa5e20a48479876",
+      "bytes": 2749
+    }
+  },
+  "actual_build_review": "analysis/early-xnu-log-20261114/firmware-review/binary-review.json",
+  "source_overlay_manifest": "analysis/early-xnu-log-20261114/firmware-integration/overlay-manifest.json",
+  "host_test_report": "analysis/early-xnu-log-20261114/firmware-integration/host-03/result.json",
+  "hardware_tested": false,
+  "retention_qualified": false
+}

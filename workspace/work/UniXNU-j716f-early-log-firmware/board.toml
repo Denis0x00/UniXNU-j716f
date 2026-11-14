@@ -1,0 +1,91 @@
+schema_version = 2
+
+[board]
+# Concrete experimental package/firmware/payload inputs; NOT a verified boot port.
+# scripts/images.py limits this host assembly scope. Combined boot layout is pending.
+example = false
+name = "j716f-early-log-firmware"
+kit = "j716f-early-log-firmware"
+soc = "SM8250"
+soc_source = "sm8250"
+os_profile = "ipados-17.7.11-21H461"
+description = "TB-J716F experimental host image assembly; kernel entry and boot layout unverified"
+
+[components]
+# Minimal template foundation only; peripheral/archive integration is pending.
+include = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "XnuPrelink", "DarwinBoot"]
+
+[kernel]
+defconfig = "j716f_early_log_firmware_defconfig"
+config_fragments = ["arch:configs/common.config", "soc:configs/sm8250.config", "os:configs/ipados.config"]
+# The copied SoC SMP/Edge/power series is intentionally NOT selected yet.
+# BOOT_PROGRESS is disabled; the upstream OS diagnostic patch assumes sheng PMGR.
+# Keep the two OS prelink patches through the reviewed board-owned selection.
+patch_series = ["arch:patches/xnu/series", "device:patches/xnu/ipados17-series", "device:patches/xnu/series"]
+
+[device_tree]
+source = "device:dts/j716f.dts"
+include_dirs = ["soc:dts"]
+
+[firmware]
+# Companion ../uefi-j716f has the reviewed menu/loader/RAM-disk integration.
+config = "j716f"
+dsc = "Platforms/Lenovo/j716fPkg/j716f.dsc"
+fd = "Build/j716fPkg/{target}_CLANGPDB/FV/SILICIUM_UEFI.fd"
+submodules = ["Common/Mu", "Common/Mu_OEM_Sample"]
+packages = ["{uefi}", "{uefi}/Platforms/Lenovo", "{uefi}/Common/Mu", "{uefi}/Common/Mu_OEM_Sample", "{edk2}", "{uefi}/Silicon/Qualcomm", "{uefi}/Silicon/Silicium", "{tree}/package", "{tree}/drivers/DarwinBoot"]
+# Shared package/firmware edk2 comes from the pinned main feed; see README.md.
+# No old check-j716f.py preflight, vendor extraction or legacy Mu patches.
+
+[firmware.defines]
+# Enables the diagnostic hold PCD for built-in, loaded and Tools menus.
+# Final host/device evidence: docs/host-protection.md; default shared PCD is FALSE.
+DEVICE_MODEL = "j716f"
+ENABLE_SECUREBOOT = 0
+J716F_MENU_DIAGNOSTIC = 1
+
+[bootimg]
+# build-inputs.toml selects the previously verified normalized DTB0+DTBO1.
+# The current header's nominal ramdisk/DTB ranges overlap with this payload;
+# do not assemble/flash a combined XNU boot image before its layout is resolved.
+
+[bootimg.image]
+# Stock-format facts; remaining load offsets must match reviewed BootShim/UEFI.
+header_version = 2
+pagesize = 4096
+
+[userdata]
+# Geometry only. This DOES NOT allocate userdata to UniXNU or authorize writes.
+first_lba = 2315048
+last_lba = 30693370
+lba_bytes = 4096
+
+[payload]
+volume = "J716FENTRY"
+# Concrete FAT size; measured content and partition budget are checked separately.
+size_mib = 80
+loader = "firmware"
+title = "TB-J716F XNU entry diagnostic (experimental)"
+kernel_args = ["-v", "serial=3"]
+timeout = -1
+tools = true
+panic_screen = true
+# Diagnostic firmware enforces explicit selection through its hold PCD.
+# Timeout -1 alone still uses no-input fallback in ordinary/default firmware.
+# No UFS root, data-persistence, install/reset menu, GPU, Wi-Fi, or power toggles.
+# The owned window below is an explicit HOST candidate, not live allocation proof.
+
+[payload.adt]
+chip_id = "8011"
+unique_chip_id = "required"
+psci_method = "smc"
+# Default-sized contiguous allocation request; must be reviewed against live EFI map.
+# No excluded/outside tables: current iPadOS series has no qualified consumer.
+owned_memory_size = 0x10000000
+
+[package]
+unixnu = "../../UniXNU"
+boot_partition_bytes = 100663296
+
+[package.defconfig]
+"ipados-17.7.11-21H461" = "j716f_early_log_firmware_defconfig"

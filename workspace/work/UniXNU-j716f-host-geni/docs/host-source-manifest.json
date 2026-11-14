@@ -1,0 +1,188 @@
+{
+  "origin": "work/UniXNU-j716f-host-dt-panic",
+  "upstream_revision": "7d85ede80092050f4d87f72ac7229bb605ce07fb",
+  "inputs": {
+    "work/UniXNU-j716f-host-geni/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-geni/AGENTS.md": {
+      "bytes": 494,
+      "sha256": "47d77f25345a3a0ef2417781d578c0597da9543721f8c6ee51476e0b22a43141"
+    },
+    "work/UniXNU-j716f-host-geni/board.toml": {
+      "bytes": 1238,
+      "sha256": "542a8fdec8896a93b9f7fb58d104ea9deae84628ca58f1d2e6d811a851adb42a"
+    },
+    "work/UniXNU-j716f-host-geni/build-inputs.toml": {
+      "bytes": 218,
+      "sha256": "b642b57a98da782fdedb8de017cce1942f287a9d22cb4a410e93556af878a122"
+    },
+    "work/UniXNU-j716f-host-geni/feeds.toml": {
+      "bytes": 326,
+      "sha256": "3ee5354f97663adefe6df3462fbabf0d735eb2dd1c9291b1bc5a95b5af904e48"
+    },
+    "work/UniXNU-j716f-host-geni/porting.toml": {
+      "bytes": 14691,
+      "sha256": "c23b3db8ab64c33811818bfa15643fdc33988c0817c6c18bdda46a49e1b0e8e7"
+    },
+    "work/UniXNU-j716f-host-geni/README.md": {
+      "bytes": 1076,
+      "sha256": "70ccf5b9fc42b5b48125cdd5f5f04616eda6befa5500b40ea9b66279f1758eec"
+    },
+    "work/UniXNU-j716f-host-geni/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host-geni/configs/j716f_host_geni_defconfig": {
+      "bytes": 861,
+      "sha256": "d98ad01e0cf66d1805cbe66e526af1918813187570168f4491790ce6a88cac5c"
+    },
+    "work/UniXNU-j716f-host-geni/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-geni/docs/source-provenance.json": {
+      "bytes": 4946,
+      "sha256": "84bf78026204326548678109d03ee3a4176d2869b8907117b883b8ccac383bcc"
+    },
+    "work/UniXNU-j716f-host-geni/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-geni/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-geni/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-geni/scripts/build-j716f-geni.py": {
+      "bytes": 491,
+      "sha256": "b6e183d7b2029afb97fb2675e8e67b3e42954a2610fb2df658898e96f6f14aee"
+    },
+    "work/UniXNU-j716f-host-geni/scripts/host.py": {
+      "bytes": 2241,
+      "sha256": "0c5639b1d8bcbc53cfca0857063d54a5eaffd384aee945f1b0c6a405ac41e7f4"
+    },
+    "work/UniXNU-j716f-host-geni/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-geni/patches/xnu/j716f-geni-archive-dependency.patch": {
+      "bytes": 953,
+      "sha256": "ada1cca57278c744ad6bfc4b5a1c7ab1b88d3fc27883a16293623241eb250857"
+    },
+    "work/UniXNU-j716f-host-geni/patches/xnu/series": {
+      "bytes": 36,
+      "sha256": "d5f9629155706614f21207e97c5a5ac5e6e8e58c8e42c9f51e248208b19f62ae"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1315,
+      "sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3420,
+      "sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1865,
+      "sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/patches/xnu/series": {
+      "bytes": 192,
+      "sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af"
+    },
+    "work/J716fGoodix-20261113/J716fGoodix.c": {
+      "bytes": 4633,
+      "sha256": "3f4fff348903b1a82488e06066794d4880fccb49bd8fcd1a755bda3a6d438b0c"
+    },
+    "work/J716fGoodix-20261113/J716fGoodix.h": {
+      "bytes": 2516,
+      "sha256": "34ac4ecc4466a9d2271627d237372262b322306901e134caf35ae730a7a65b3e"
+    },
+    "work/J716fGoodix-20261113/README.md": {
+      "bytes": 7380,
+      "sha256": "0571ed59fdb73a29555136e92a049a9995fd6499722cd4ff538154633674030d"
+    },
+    "work/J716fTouchTransaction-20261113/J716fTouchTransaction.c": {
+      "bytes": 9449,
+      "sha256": "23493972f0bfd80b40639961635cb105e9e4168828229e35ebbe245cd206619d"
+    },
+    "work/J716fTouchTransaction-20261113/J716fTouchTransaction.h": {
+      "bytes": 4753,
+      "sha256": "440184102baa5687a35fe92c8ee50a35bca5162cc300ab581000b835fc1b62a8"
+    },
+    "work/J716fTouchTransaction-20261113/README.md": {
+      "bytes": 8572,
+      "sha256": "65888534d2315c1b27313c3498eaa0c139e4cd9966d647102fc9e2b73799042c"
+    },
+    "work/J716fGeniBackend-20261113/J716fGeniBackend.c": {
+      "bytes": 19463,
+      "sha256": "a50129e7cda026d73a40c2e9891281458fa8b1014f584a89c5f25f4146a5f93a"
+    },
+    "work/J716fGeniBackend-20261113/J716fGeniBackend.h": {
+      "bytes": 5771,
+      "sha256": "0c3399fd103dbee9b12c3b9e79617fc104330b52fbf67bf0c5e99f6ccf2bf873"
+    },
+    "work/J716fGeniBackend-20261113/J716fGeniBridge.c": {
+      "bytes": 3928,
+      "sha256": "b40c671df5649a914ff0b27251a45e5ee1e4fb51fe4011e7070d785707c64398"
+    },
+    "work/J716fGeniBackend-20261113/J716fGeniMmio.c": {
+      "bytes": 3923,
+      "sha256": "4b4e6d246568c8e18d128b082ebc05257ecfce783a466996ab823480c8e0b3f7"
+    },
+    "work/J716fGeniBackend-20261113/J716fGeniMmio.h": {
+      "bytes": 1514,
+      "sha256": "5e215e47a0418582401bd66b79ec4b486da45fe89a755c609e3a4f9806f9beb4"
+    },
+    "work/J716fGeniBackend-20261113/README.md": {
+      "bytes": 11108,
+      "sha256": "f765a9bb568373e461f3293dbda649045e0584897d0344da99e4e0e5ce1be6df"
+    },
+    "work/J716fGeniBackend-20261113/scripts/build.py": {
+      "bytes": 5856,
+      "sha256": "4f78c091e05f751ec847f3cba6d4346092adaee548f9196bc475613e74c07699"
+    },
+    "work/J716fGeniBackend-20261113/tests/test_backend.c": {
+      "bytes": 19657,
+      "sha256": "b8d3e34c1532ee166b2098da558b572d53f1ac7ba36579714608822905253ced"
+    },
+    "work/J716fGeniBackend-20261113/tests/test_mmio.c": {
+      "bytes": 4793,
+      "sha256": "cc5bff2051025b7725af33d18ce78b54c0722cd4e06a6773621d07a26586feff"
+    }
+  },
+  "runtime_qualified": false,
+  "automatic_activation": false,
+  "prepare_only": false,
+  "effective_config_delta_from_dt_panic": {
+    "XNU_EXTRA_LD_ARCHIVES": "-Wl,-force_load,{tree}/build/j716f-geni/libJ716fGeniBackend.a"
+  }
+}

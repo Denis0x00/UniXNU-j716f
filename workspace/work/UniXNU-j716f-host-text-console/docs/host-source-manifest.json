@@ -1,0 +1,121 @@
+{
+  "origin": "Independent text-console target; original DT panic target preserved",
+  "upstream_revision": "7d85ede80092050f4d87f72ac7229bb605ce07fb",
+  "effective_config_delta_from_dt_panic": {},
+  "source_delta": "One PE_create_console -v text-mode patch",
+  "reference_revision": "bf2d0f32f706adbe414551e452f1426ed7c4bd19",
+  "inputs": {
+    "work/UniXNU-j716f-host-text-console/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-text-console/AGENTS.md": {
+      "bytes": 518,
+      "sha256": "d828139b4ee685a138b20af6adc63b05618bcf1c4b65d02dcae50924482a14d4"
+    },
+    "work/UniXNU-j716f-host-text-console/board.toml": {
+      "bytes": 985,
+      "sha256": "cff6a84b97c142ecaee547345a6407e49e09837d23455fd5fac7e7956ea64a37"
+    },
+    "work/UniXNU-j716f-host-text-console/build-inputs.toml": {
+      "bytes": 226,
+      "sha256": "df3e1f35b1fb9bd1487b73fed230773354c1924e55f221e173c46791edae280d"
+    },
+    "work/UniXNU-j716f-host-text-console/configs/j716f_host_text_console_defconfig": {
+      "bytes": 767,
+      "sha256": "62adbce2cd5c90eff2bb63c1f7ce200e7b0df5dd6d69bebb0dd125c7a66ada8d"
+    },
+    "work/UniXNU-j716f-host-text-console/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-text-console/docs/source-provenance.json": {
+      "bytes": 5079,
+      "sha256": "49d3435f3bfb574df3294b323a57b0314fa3b98fa350afcf4f8a1c7985011a53"
+    },
+    "work/UniXNU-j716f-host-text-console/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-text-console/feeds.toml": {
+      "bytes": 326,
+      "sha256": "3ee5354f97663adefe6df3462fbabf0d735eb2dd1c9291b1bc5a95b5af904e48"
+    },
+    "work/UniXNU-j716f-host-text-console/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-text-console/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-text-console/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-text-console/patches/xnu/j716f-verbose-text-console.patch": {
+      "bytes": 687,
+      "sha256": "9ff9d62bc25a0d9944a815daa42f262dd03a1ec65d1663d8ba00e93dc585b95f"
+    },
+    "work/UniXNU-j716f-host-text-console/patches/xnu/series": {
+      "bytes": 113,
+      "sha256": "2642fc8292ad40f1b2f0581bafac13d048a51290c492a261232516964e987ab5"
+    },
+    "work/UniXNU-j716f-host-text-console/porting.toml": {
+      "bytes": 14598,
+      "sha256": "e72c7598b01852b7226f5d16266c5f6ac268b8c874a2e03c553258d6821d6372"
+    },
+    "work/UniXNU-j716f-host-text-console/README.md": {
+      "bytes": 1506,
+      "sha256": "99b84fb6a2a0fc424e423a25be5b304f4d8353943c38a382b3219760babb9a88"
+    },
+    "work/UniXNU-j716f-host-text-console/scripts/host.py": {
+      "bytes": 2273,
+      "sha256": "71ac944ad73a517e8cc79fbbb266f1267949f1fed9dcabccefd1400deda9403d"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1315,
+      "sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3420,
+      "sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1865,
+      "sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/patches/xnu/series": {
+      "bytes": 192,
+      "sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-text-console/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    }
+  }
+}

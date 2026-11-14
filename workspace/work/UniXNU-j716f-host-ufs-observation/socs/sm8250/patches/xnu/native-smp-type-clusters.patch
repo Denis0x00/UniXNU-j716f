@@ -1,0 +1,191 @@
+diff --git a/pexpert/pexpert/arm64/board_config.h b/pexpert/pexpert/arm64/board_config.h
+index 0519589..de8c096 100644
+--- a/pexpert/pexpert/arm64/board_config.h
++++ b/pexpert/pexpert/arm64/board_config.h
+@@ -157,6 +157,16 @@
+ 
+ #endif  /* ARM64_BOARD_CONFIG_VMAPPLE */
+ 
++#ifdef ARM64_BOARD_CONFIG_BCM2837
++/*
++ * Up to two clusters (native-smp-type-clusters.patch): a device tree whose cpu nodes carry cluster-type "E" and
++ * "P" (pipa: Cortex-A55 and Cortex-A77) gets a processor set of each type and the Edge scheduler; one
++ * without cluster-type has a single cluster, as before.
++ */
++#undef MAX_CPU_CLUSTERS
++#define MAX_CPU_CLUSTERS               2
++#define __ARM_AMP__                    1
++#endif  /* ARM64_BOARD_CONFIG_BCM2837 */
+ 
+ #ifndef HAS_UNCORE_CTRS
+ #undef UNCORE_VERSION
+diff --git a/osfmk/kern/sched_clutch.c b/osfmk/kern/sched_clutch.c
+index e459195..97ccfee 100644
+--- a/osfmk/kern/sched_clutch.c
++++ b/osfmk/kern/sched_clutch.c
+@@ -1112,6 +1112,31 @@ sched_clutch_bucket_init(
+ 	queue_init(&clutch_bucket->scb_thread_timeshare_queue);
+ }
+ 
++#if CONFIG_SCHED_EDGE
++/*
++ * Preferences without a performance controller. Every bucket group starts out preferring the boot cluster
++ * (pset0), and only CLPC changes that. Where the boot cluster is an E cluster, the default edges (no E->P
++ * migration or steal) would then keep every thread off the P cores. Once all clusters are up
++ * (sched_edge_cpu_init_completed), the fixed-priority bucket and the timeshare buckets above utility prefer
++ * the first P cluster, utility and background the first E cluster: the thread groups that exist then get
++ * these preferences the way CLPC sets them (thread_group_set_default_preferred_clusters), and later ones
++ * start out with them.
++ */
++static uint32_t sched_edge_default_preferred_cluster[TH_BUCKET_SCHED_MAX];
++static bool sched_edge_default_preferences_ready;
++
++/*
++ * Fixed priority, UI and user-initiated threads that prefer the P cluster neither migrate nor get stolen to
++ * the E cluster. Cortex-A55 cores run at a fraction of Cortex-A77 speed, so such a thread waits for (or
++ * preempts lower work on) a P core instead.
++ */
++static bool
++sched_edge_ui_bucket_stays_on_p(cluster_type_t from, cluster_type_t to, sched_bucket_t bucket)
++{
++	return from == CLUSTER_TYPE_P && to == CLUSTER_TYPE_E && bucket < TH_BUCKET_SHARE_DF;
++}
++#endif /* CONFIG_SCHED_EDGE */
++
+ /*
+  * sched_clutch_bucket_group_init()
+  *
+@@ -1135,7 +1160,13 @@ sched_clutch_bucket_group_init(
+ 
+ 	os_atomic_store(&clutch_bucket_group->scbg_timeshare_tick, 0, relaxed);
+ 	os_atomic_store(&clutch_bucket_group->scbg_pri_shift, INT8_MAX, relaxed);
+-	os_atomic_store(&clutch_bucket_group->scbg_preferred_cluster, pset0.pset_cluster_id, relaxed);
++	uint32_t preferred_cluster = pset0.pset_cluster_id;
++#if CONFIG_SCHED_EDGE
++	if (os_atomic_load(&sched_edge_default_preferences_ready, acquire)) {
++		preferred_cluster = sched_edge_default_preferred_cluster[bucket];
++	}
++#endif /* CONFIG_SCHED_EDGE */
++	os_atomic_store(&clutch_bucket_group->scbg_preferred_cluster, preferred_cluster, relaxed);
+ 	/*
+ 	 * All thread groups should be initialized to be interactive; this allows the newly launched
+ 	 * thread groups to fairly compete with already running thread groups.
+@@ -3927,6 +3958,9 @@ sched_edge_cluster_can_steal(
+ 		/* Always allow stealing from homogeneous clusters */
+ 		return true;
+ 	} else {
++		if (sched_edge_ui_bucket_stays_on_p(candidate_pset->pset_type, idle_pset->pset_type, (sched_bucket_t)highest_runnable_bucket)) {
++			return false;
++		}
+ 		/* Use the load metrics for highest runnable bucket since that would be stolen next */
+ 		int32_t candidate_load = sched_edge_cluster_load_metric(candidate_pset, (sched_bucket_t)highest_runnable_bucket);
+ 		return candidate_load > 0;
+@@ -4172,6 +4206,9 @@ sched_edge_candidate_evaluate(
+ 
+ 	sched_clutch_edge *edge = preferred_pset->sched_edges;
+ 	if (edge[cluster_id].sce_migration_allowed == false) {
++		return false;
++	}
++	if (sched_edge_ui_bucket_stays_on_p(preferred_cluster_type, pset_type_for_id(cluster_id), thread->th_sched_bucket)) {
+ 		return false;
+ 	}
+ 	uint32_t dst_load = shared_rsrc_thread ? (uint32_t)sched_pset_cluster_shared_rsrc_load(dst_pset, shared_rsrc_type) : sched_edge_cluster_load_metric(dst_pset, thread->th_sched_bucket);
+@@ -4870,10 +4907,10 @@ sched_edge_cpu_init_completed(void)
+ 				bitmap_clear(src_pset->native_psets, dst_cluster_id);
+ 				sched_edge_config_set(src_cluster_id, dst_cluster_id, (sched_clutch_edge){.sce_migration_weight = 64, .sce_migration_allowed = 1, .sce_steal_allowed = 1});
+ 			} else {
+-				/* E->P edge config */
++				/* E->P edge config; an idle P core may steal E work, as no controller moves thread groups */
+ 				bitmap_set(src_pset->foreign_psets, dst_cluster_id);
+ 				bitmap_clear(src_pset->native_psets, dst_cluster_id);
+-				sched_edge_config_set(src_cluster_id, dst_cluster_id, (sched_clutch_edge){.sce_migration_weight = 0, .sce_migration_allowed = 0, .sce_steal_allowed = 0});
++				sched_edge_config_set(src_cluster_id, dst_cluster_id, (sched_clutch_edge){.sce_migration_weight = 0, .sce_migration_allowed = 0, .sce_steal_allowed = 1});
+ 			}
+ 			bool clusters_local = (ml_get_die_id(src_cluster_id) == ml_get_die_id(dst_cluster_id));
+ 			if (clusters_local) {
+@@ -4888,6 +4925,31 @@ sched_edge_cpu_init_completed(void)
+ 		pset_unlock(src_pset);
+ 	}
+ 	splx(s);
++
++	/* The preferences without a performance controller (sched_edge_clutch_bucket_group_preferred_cluster) */
++	int e_cluster = -1, p_cluster = -1;
++	for (int cluster_id = 0; cluster_id < sched_edge_max_clusters; cluster_id++) {
++		processor_set_t pset = pset_array[cluster_id];
++		if (pset == PROCESSOR_SET_NULL) {
++			continue;
++		}
++		if (pset->pset_type == CLUSTER_TYPE_E && e_cluster < 0) {
++			e_cluster = cluster_id;
++		} else if (pset->pset_type == CLUSTER_TYPE_P && p_cluster < 0) {
++			p_cluster = cluster_id;
++		}
++	}
++	if (e_cluster < 0 || p_cluster < 0) {
++		/* One cluster type only: every bucket keeps the boot cluster, as before */
++		return;
++	}
++	for (int bucket = 0; bucket < TH_BUCKET_SCHED_MAX; bucket++) {
++		sched_edge_default_preferred_cluster[bucket] =
++		    (bucket == TH_BUCKET_SHARE_UT || bucket == TH_BUCKET_SHARE_BG) ? (uint32_t)e_cluster : (uint32_t)p_cluster;
++	}
++	os_atomic_store(&sched_edge_default_preferences_ready, true, release);
++	extern void thread_group_set_default_preferred_clusters(uint32_t *tg_bucket_preferred_cluster);
++	thread_group_set_default_preferred_clusters(sched_edge_default_preferred_cluster);
+ }
+ 
+ static bool
+diff --git a/osfmk/kern/thread_group.c b/osfmk/kern/thread_group.c
+index 5ef63c9..25d2919 100644
+--- a/osfmk/kern/thread_group.c
++++ b/osfmk/kern/thread_group.c
+@@ -1332,6 +1332,23 @@ sched_perfcontrol_thread_group_preferred_clusters_set(void *machine_data, uint32
+ 	sched_edge_tg_preferred_cluster_change(tg, tg_bucket_preferred_cluster, options);
+ }
+ 
++/*
++ * Without a performance controller (native-smp-type-clusters.patch): every thread group that exists when all
++ * clusters are up gets the scheduler's default per-bucket preferences the way CLPC sets them, with its
++ * runnable threads moved to their new preferred cluster. Called once, from sched_edge_cpu_init_completed().
++ */
++void thread_group_set_default_preferred_clusters(uint32_t *tg_bucket_preferred_cluster);
++void
++thread_group_set_default_preferred_clusters(uint32_t *tg_bucket_preferred_cluster)
++{
++	struct thread_group *tg;
++	lck_mtx_lock(&tg_lock);
++	qe_foreach_element(tg, &tg_queue, tg_queue_chain) {
++		sched_edge_tg_preferred_cluster_change(tg, tg_bucket_preferred_cluster, SCHED_PERFCONTROL_PREFERRED_CLUSTER_MIGRATE_RUNNABLE);
++	}
++	lck_mtx_unlock(&tg_lock);
++}
++
+ void
+ sched_perfcontrol_edge_cpu_rotation_bitmasks_set(uint32_t cluster_id, uint64_t preferred_bitmask, uint64_t migration_bitmask)
+ {
+diff --git a/osfmk/kern/processor.c b/osfmk/kern/processor.c
+index c69d246..a80f2c8 100644
+--- a/osfmk/kern/processor.c
++++ b/osfmk/kern/processor.c
+@@ -1716,3 +1716,21 @@ sched_perfcontrol_inherit_recommendation_from_tg(__unused perfcontrol_class_t pe
+ }
+ 
+ #endif /* defined(__arm64__) */
++
++/*
++ * Board CPU governor helper: a CPU's idle time so far in mach absolute time units (recount brings it up to now
++ * while the CPU idles), for board code that cannot see struct processor. 0 for a CPU number without a processor.
++ */
++uint64_t sheng_cpu_idle_mach(int cpu);
++uint64_t
++sheng_cpu_idle_mach(int cpu)
++{
++	processor_t p = cpu_to_processor(cpu);
++	if (p == PROCESSOR_NULL) {
++		return 0;
++	}
++	struct recount_usage usage = {};
++	uint64_t idle = 0;
++	recount_processor_usage(&p->pr_recount, &usage, &idle);
++	return idle;
++}

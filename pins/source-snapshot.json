@@ -1,0 +1,3562 @@
+{
+  "schema_version": 1,
+  "files": {
+    "analysis/display-handoff-chain-20261113/audit_chain.py": {
+      "bytes": 10674,
+      "sha256": "0b0aa2f7f795fcce951dc8044fbe3a30253afa854451a9abe0e94c0bb2d81e17"
+    },
+    "analysis/geni-backend-20261113/check_preserved.py": {
+      "bytes": 1072,
+      "sha256": "37da76b0ae0909666775e1fe373e1c229a2f5195b42cd09cf058f169805a94e7"
+    },
+    "analysis/geni-backend-20261113/collect_artifacts.py": {
+      "bytes": 2407,
+      "sha256": "0eb3b9a261fdf01f2c3a4873face00340ccd7170c6b4aa668ed6f22ad934d77b"
+    },
+    "analysis/geni-backend-20261113/finalize.py": {
+      "bytes": 3403,
+      "sha256": "b748d1148532acf28ead5f4ae1395cc11cbe70a24e4c1ce8b053e9b16bb8bda3"
+    },
+    "analysis/geni-backend-20261113/freeze_inputs.py": {
+      "bytes": 1618,
+      "sha256": "645274bdc502fcc136940dfd22ed6f860959d85543468d2d43ba698c80d919e5"
+    },
+    "analysis/geni-backend-20261113/prepare_target.py": {
+      "bytes": 5869,
+      "sha256": "b6104e7871e738089127635dec7b969dfa1edbe22f2139557a0552b4c392d1dc"
+    },
+    "analysis/geni-backend-20261113/run_host.py": {
+      "bytes": 3677,
+      "sha256": "cfaf004f74f32f120656806126f1572af708188da61c169791ac182ef34deaa0"
+    },
+    "analysis/geni-backend-20261113/verify_delivery.py": {
+      "bytes": 947,
+      "sha256": "dea9f400b37a15b7d613cfbb39dcf930d67d16d611068e34456d14fc5a95cd6c"
+    },
+    "analysis/geni-backend-20261113/verify_integration.py": {
+      "bytes": 6267,
+      "sha256": "d976db9f9ba94d0dfd557327aa07396a8479ff47ca3fc8872684532eca61a27b"
+    },
+    "analysis/r30-storage-inputs-20261114/build_storage_image.py": {
+      "bytes": 10079,
+      "sha256": "7487c703d8f4abfeec6e4e981096f98d91b82c354cee246a27f457d7ad93ab8a"
+    },
+    "analysis/r30-storage-inputs-20261114/kernel-review/review_machine.py": {
+      "bytes": 8168,
+      "sha256": "5a37cc521fc7dfe7e5287f9985ef2f7451ab8cfe9492700a2e47447c1c8bde16"
+    },
+    "analysis/r30-storage-inputs-20261114/kernel-target/check_target.py": {
+      "bytes": 5065,
+      "sha256": "7bf9ae9fbe207f0727a78db5ad1ea7bf971a29f11693e0bb42bf6da3fbd6e1b9"
+    },
+    "analysis/r30-storage-inputs-20261114/kernel-target/create_target.py": {
+      "bytes": 3936,
+      "sha256": "cb9cc1c6afbb3fb6dd68cf5f0b98d75256653a1a12c865d78ac5a6a07b35b18a"
+    },
+    "analysis/r30-storage-inputs-20261114/kernel-target/freeze_target.py": {
+      "bytes": 4824,
+      "sha256": "b1ca1d3d48dfd374195167d49922da7e82f8ff77759a15f60debb4fd05558429"
+    },
+    "analysis/r30-storage-inputs-20261114/kernel-target/integrate_target.py": {
+      "bytes": 7514,
+      "sha256": "a3f4ccb0f165ec03ac5f70fe25f24f0bb29db45e46797a8308f4387cd5d62208"
+    },
+    "analysis/r30-storage-inputs-20261114/run_host_storage.py": {
+      "bytes": 19794,
+      "sha256": "54ed2f7ac3c1730b16ec5f8bb3c0dfe89af47622cca83966cabd108100da4164"
+    },
+    "analysis/r30-storage-inputs-20261114/system/prepare_data_seed.py": {
+      "bytes": 5674,
+      "sha256": "9e0587fada80c12f97cdc2a1c855e59586306f2336bace35dcce5fd2419f0fa2"
+    },
+    "analysis/r30-storage-inputs-20261114/system/prepare_inputs.py": {
+      "bytes": 14139,
+      "sha256": "8ba4d68b995b68eb63e8c37acea413ee1d98634fe7f3fab631a7bceb9b518ff1"
+    },
+    "analysis/r30-storage-inputs-20261114/system/test_inputs.py": {
+      "bytes": 4891,
+      "sha256": "aa19d4d08abd83fa771356439ab603dc23b09ce76719fab9a01ee90e5b027797"
+    },
+    "analysis/r30-storage-inputs-20261114/system/test_raw.py": {
+      "bytes": 12665,
+      "sha256": "d2a3b46276a041d1a68edbb2af419ca4faad7fc494596d143c0494bb8f80bac3"
+    },
+    "analysis/r30-storage-inputs-20261114/system/verify_raw.py": {
+      "bytes": 15447,
+      "sha256": "e4fbb2dfd45ebd8cf25241cf17ee65c751be434f4f088941383a1e71e9772580"
+    },
+    "analysis/r30-storage-inputs-20261114/test_storage_image.py": {
+      "bytes": 2415,
+      "sha256": "ace41bc906574184422f9588d58dd89e404ceb5a50d78053f78d80b1321449a2"
+    },
+    "analysis/r30-storage-inputs-20261114/test_storage_kernel.py": {
+      "bytes": 5498,
+      "sha256": "b0539c8785387c779037aaa7caea6c4cf06ee4c351efa443825b7c433b2edea0"
+    },
+    "analysis/r30-storage-inputs-20261114/verify_delivery.py": {
+      "bytes": 2621,
+      "sha256": "0c1b828705e351e5bf5b9895c41836fbad302eb47c6c083c6be37ae473da41d5"
+    },
+    "analysis/r30-storage-inputs-20261114/verify_host_storage.py": {
+      "bytes": 59033,
+      "sha256": "59463256af4ccf2688afbadcde1f63e11409c594405aea7b75f6c20baebe1958"
+    },
+    "analysis/r30-storage-inputs-20261114/verify_storage_image.py": {
+      "bytes": 7823,
+      "sha256": "79f2f7eeed7517c7ab4320c4056f339c843f04a0e383bef9614d8e42d34e7968"
+    },
+    "analysis/r30-storage-inputs-20261114/verify_storage_kernel.py": {
+      "bytes": 20940,
+      "sha256": "325b44d638af14b3eef0ea33f2330e5e8c33c30416ace779d98c4819733c576d"
+    },
+    "analysis/r31-ufs-power-20261114/build_storage_image.py": {
+      "bytes": 10079,
+      "sha256": "6c71425bae1bd65f20a72eddc6c740b407b5c7cba0ac0f96cd2757d158760d85"
+    },
+    "analysis/r31-ufs-power-20261114/kernel-review/review_machine.py": {
+      "bytes": 9408,
+      "sha256": "af202f87e8e714341b4bf0d9d4308954fcb47726d1fc7cecb3c30e1388a66427"
+    },
+    "analysis/r31-ufs-power-20261114/kernel-target/check_target.py": {
+      "bytes": 5594,
+      "sha256": "6c67fcf639403d34e567c8e2ecd2acb0aba4ce810c0ab1a060878d8285ba5a14"
+    },
+    "analysis/r31-ufs-power-20261114/kernel-target/create_target.py": {
+      "bytes": 7349,
+      "sha256": "23ab3ba4355a0103acade97c704e1169351469204d56a965cc16d03ac553595e"
+    },
+    "analysis/r31-ufs-power-20261114/kernel-target/freeze_target.py": {
+      "bytes": 5197,
+      "sha256": "3f5af71007232f871de0ee18f52430a5a849cbfc4856dabc58c533c97f6a0154"
+    },
+    "analysis/r31-ufs-power-20261114/prepare_package_target.py": {
+      "bytes": 4287,
+      "sha256": "d09f0f1b084a40904e86fc0cb0475c79e6735e24324df8faf2ded461a7a69352"
+    },
+    "analysis/r31-ufs-power-20261114/run_host_storage.py": {
+      "bytes": 19958,
+      "sha256": "fe7c678e5b93b18eb2359a2dda35b777393f3dd1a4026e24fc12803e15eeccdf"
+    },
+    "analysis/r31-ufs-power-20261114/test_storage_image.py": {
+      "bytes": 2415,
+      "sha256": "ace41bc906574184422f9588d58dd89e404ceb5a50d78053f78d80b1321449a2"
+    },
+    "analysis/r31-ufs-power-20261114/test_storage_kernel.py": {
+      "bytes": 5777,
+      "sha256": "3b113bbcaa7463f1284f78c2f6a42e4f68974bfdf7a5ac89829e932ff91f5e70"
+    },
+    "analysis/r31-ufs-power-20261114/verify_host_storage.py": {
+      "bytes": 59483,
+      "sha256": "490c45cc9f66b29ee74a2c5dbf5af83107a59be95a26ee9315a20a9d37c18217"
+    },
+    "analysis/r31-ufs-power-20261114/verify_storage_image.py": {
+      "bytes": 7810,
+      "sha256": "7ca5707826a21a455f7e83ff6d3195c95825e29b146406b28eab560d79455b26"
+    },
+    "analysis/r31-ufs-power-20261114/verify_storage_kernel.py": {
+      "bytes": 21623,
+      "sha256": "51204a6ee62e4a315a278ad8d09f4ce86fc3f6d767f2ce05ac9946ee14edf3a8"
+    },
+    "analysis/stock-display-adapter-20261113/audit_exact_metadata.py": {
+      "bytes": 9876,
+      "sha256": "537875db66c4b84ae15ccccbc886fa6237f8a3d8d47653a0ea6daaf3ea515a5e"
+    },
+    "analysis/stock-display-adapter-20261113/audit_stock_inputs.py": {
+      "bytes": 4963,
+      "sha256": "ec2c368a50d5bbe717e639beae15dc045a7db9ff40064866e1f402223666d69d"
+    },
+    "analysis/stock-display-adapter-20261113/test_exact_metadata.py": {
+      "bytes": 3732,
+      "sha256": "2ae0976e560478ed23892a940ff9d62a851930135637fbb21fab290c732ef15e"
+    },
+    "analysis/stock-geni-20261113/audit_stock_geni.py": {
+      "bytes": 15439,
+      "sha256": "17f20535f9e61ea78d94f14a195fa353ff0f4a4f4857fabbab9300178a577efc"
+    },
+    "analysis/stock-goodix-20261113/audit_stock.py": {
+      "bytes": 8250,
+      "sha256": "dac50cb65f888e1adbca60c0fd9fdfd2c5e6e5e5584ce041c72a0adfc405c0b0"
+    },
+    "analysis/stock-goodix-20261113/collect_provenance.py": {
+      "bytes": 11674,
+      "sha256": "097255c1709deb92f0434b1793767fa1cc1d721c62dd953db25b3bb39647ad38"
+    },
+    "analysis/stock-goodix-20261113/test_goodix.c": {
+      "bytes": 8137,
+      "sha256": "8887918780d7951cf1fd52909f57abce6b3c6aa6a233e59d5206b02f46173887"
+    },
+    "analysis/stock-goodix-20261113/verify_manifest.py": {
+      "bytes": 3747,
+      "sha256": "481be5abd737d6af34a2f26cf11dd7d93cf28d7b0885f74fc323f4f01ff592cf"
+    },
+    "analysis/stock-touch-transaction-20261113/stock-ack/audit_stock_ack.py": {
+      "bytes": 13980,
+      "sha256": "da7c560d89b8b1a1c5246d9bb0a34057b056ab8c6713059df23f6d3ad81ff371"
+    },
+    "analysis/stock-touch-transaction-20261113/test_transaction.c": {
+      "bytes": 16971,
+      "sha256": "0d22bdc6d2acd572e37b3fa4dab77ec08e08fdedda7f47c5b4e3c90c012e9b83"
+    },
+    "analysis/stock-touch-transaction-20261113/verify_source.py": {
+      "bytes": 2207,
+      "sha256": "915b6023f06e8176a9f1acce026aa1be1b205e625957affa0761f9ab8f32cf1f"
+    },
+    "analysis/tools/analyze_j716f_firmware_log.py": {
+      "bytes": 10625,
+      "sha256": "5a5c2ec821e9a98145f6d099c7573142bcfeb195994b95a9eb8d3b8d2839640d"
+    },
+    "analysis/tools/analyze_stock_ufs_contract.py": {
+      "bytes": 15293,
+      "sha256": "557395f8143cc389f10b7d0085e97c24d4bc8d5098c186769596ffda9289fd14"
+    },
+    "analysis/tools/analyze_stock_ufs_handoff.py": {
+      "bytes": 15831,
+      "sha256": "bf606b82be104324eca8f2cb896e5a7206709ef072c3646d635780e122c29a0c"
+    },
+    "analysis/tools/analyze_stock_ufs_providers.py": {
+      "bytes": 18960,
+      "sha256": "a6b832ccdfbeaff06a6ee60210de970b04fc66ef29b48faf6712292ad0566f62"
+    },
+    "analysis/tools/check_j716f_display_abi.py": {
+      "bytes": 19820,
+      "sha256": "f9af9805c3affd2f7ac79ca86a1f274905502f560e029e63f5a2fbaeaa8c1f00"
+    },
+    "analysis/tools/check_j716f_ufs_stock_reference.py": {
+      "bytes": 20895,
+      "sha256": "e4b9a906cb1c12310d0cc619540a560cfe767a71fddd5c12dd604122dc445da0"
+    },
+    "analysis/tools/check_shengufs_adaptation.py": {
+      "bytes": 12026,
+      "sha256": "c6f27468e23f96bf1c2574def892651729cd273530e6a2730cc386f88ba22a52"
+    },
+    "analysis/tools/check_shengufs_restricted.py": {
+      "bytes": 7878,
+      "sha256": "9a91735590508bf96cdc2ac1bada4aeadf8370543af2000695e6bef9cb05aa8c"
+    },
+    "analysis/tools/check_sm8250_ufs_adapter.py": {
+      "bytes": 4451,
+      "sha256": "ad2cf8dfdd84f648c9adbddda9a4a6604d8c217c9b15f704b9cf77e0e81458a4"
+    },
+    "analysis/tools/check_ufs_observation.py": {
+      "bytes": 3954,
+      "sha256": "285c2bebfb65d43053f68a6f87d9c9cb2554dd5c73c17b4a16a9bf02adb6430f"
+    },
+    "analysis/tools/check_ufs_observation_pages.py": {
+      "bytes": 4658,
+      "sha256": "dff15145cfeaeda8842512ce1401b10aabacb938c007fb85acfa721879b0f858"
+    },
+    "analysis/tools/check_ufs_observation_preservation.py": {
+      "bytes": 1792,
+      "sha256": "faff181de9defedb9373ad231c0fff30684071f6508fda22860a87c85ee7ef3c"
+    },
+    "analysis/tools/prepare_r6_followup.py": {
+      "bytes": 23764,
+      "sha256": "8ff6044aeeb96bcfbb62857af58e7ad798b50154d5c37ad54d6ddc673c51f030"
+    },
+    "analysis/tools/test_initrd_runtime_verifier.py": {
+      "bytes": 2341,
+      "sha256": "499811cf543333d385758f67a1b2dd521d0cb43532357c785c2b8c0d7d03c92b"
+    },
+    "analysis/tools/test_xnu_adt_phandle_probe.py": {
+      "bytes": 6542,
+      "sha256": "e24dd5f9fba556ce6e984f3e2f326d8c9af0461740de0ee8c4db9ef554b575eb"
+    },
+    "analysis/tools/test_xnu_bootstrap_clock_kernel.py": {
+      "bytes": 3041,
+      "sha256": "080129b43734db27c38ad6b86043e59fa16cbee3576cbb31ebfdb84c583f2e53"
+    },
+    "analysis/tools/test_xnu_bootstrap_iokit_core_kernel.py": {
+      "bytes": 3029,
+      "sha256": "9d664cb4fe373099677123dbcc8894e6ce53b141f5b367a9628ff5f559452991"
+    },
+    "analysis/tools/test_xnu_bootstrap_iokit_kernel.py": {
+      "bytes": 3000,
+      "sha256": "4adf4b69d6423cf1c7388904761811e3c01308d3edfab4d176847fae0aac743a"
+    },
+    "analysis/tools/test_xnu_bootstrap_ipc_kernel.py": {
+      "bytes": 3081,
+      "sha256": "80beffbe40bd00999a408e352ee74502e8df33f4131702530f2ad9e0374e51a2"
+    },
+    "analysis/tools/test_xnu_bootstrap_machine_kernel.py": {
+      "bytes": 3095,
+      "sha256": "f40ac29f5e89535c472b70b9e5ab65fce13c1002b90bd3b3c505c4b8086f2f81"
+    },
+    "analysis/tools/test_xnu_bootstrap_oslog_kernel.py": {
+      "bytes": 3083,
+      "sha256": "60bb27768eeb1dd8f4b211bdd8dfb6657748415b18e4b010fe3106f31de28343"
+    },
+    "analysis/tools/test_xnu_bootstrap_printf_kernel.py": {
+      "bytes": 2877,
+      "sha256": "a82872476b2a94bf504fb0957f0e9f999a8068d8fa3733f3a10a26c899695f8a"
+    },
+    "analysis/tools/test_xnu_bootstrap_scale_kernel.py": {
+      "bytes": 3046,
+      "sha256": "da71f0d3aae018c19e71a25b5b62662990e0f75048c7ba8b771b5a70b29611a6"
+    },
+    "analysis/tools/test_xnu_bootstrap_services_kernel.py": {
+      "bytes": 3072,
+      "sha256": "cbeea0994674c2b8b774252c44336e2a7e8c3209115ea20bd4d67b165647d3bc"
+    },
+    "analysis/tools/test_xnu_bootstrap_thread_kernel.py": {
+      "bytes": 3105,
+      "sha256": "78584d0ae77b0587d94c114c2a54344b8c0f3980a9a16f314849df6c035987d8"
+    },
+    "analysis/tools/test_xnu_bootstrap_vm_kernel.py": {
+      "bytes": 2981,
+      "sha256": "ba444f0995471090e36f6c7c76364845d8768b583da5a930bfdb7004f859a228"
+    },
+    "analysis/tools/test_xnu_bsd_autoconf_kernel.py": {
+      "bytes": 5209,
+      "sha256": "9122be9bde51fcbcaf0416fe4df5a2d7ee77d686a39be67e8cb56a0a27ae083a"
+    },
+    "analysis/tools/test_xnu_bsd_autoconf_probe.py": {
+      "bytes": 6423,
+      "sha256": "0f0102970cc64f279a7ca38d97659c6f55e5d658e5172448dec89673f6b8fc41"
+    },
+    "analysis/tools/test_xnu_bsd_pre_autoconf_kernel.py": {
+      "bytes": 4561,
+      "sha256": "d613c86910d6c172aa95886ca111ff943946f8a8515976317e4043f35ffe7c1f"
+    },
+    "analysis/tools/test_xnu_bsd_pre_autoconf_probe.py": {
+      "bytes": 6505,
+      "sha256": "2bcaa3bbbb31c27e148c16c00b708707f12673e35cd200db1876d6f437316659"
+    },
+    "analysis/tools/test_xnu_bsd_pre_root_kernel.py": {
+      "bytes": 5172,
+      "sha256": "cce9e02dae6aba048334aa8f280074cd30983c482aca3cf2d6517e6c1172aeea"
+    },
+    "analysis/tools/test_xnu_bsd_pre_root_probe.py": {
+      "bytes": 6424,
+      "sha256": "151d4850019285121dfb9095404402feef882569cd5afd5927aa97a780810664"
+    },
+    "analysis/tools/test_xnu_c_init_probe.py": {
+      "bytes": 7830,
+      "sha256": "cd25ebd5f37b93d8e84825fb0f6caa5df7ac81bc3957731f3f30b09a697ca84a"
+    },
+    "analysis/tools/test_xnu_configure_iokit_kernel.py": {
+      "bytes": 4185,
+      "sha256": "e1526c5cad6879d8287428626a05c928b9c2e316fbade642f2d0646cb5e7f92f"
+    },
+    "analysis/tools/test_xnu_configure_iokit_probe.py": {
+      "bytes": 4095,
+      "sha256": "2f00e44d717c06c2bb539d9abbc8e0a97eff9cbf5102f34884956cd82b2f2cb7"
+    },
+    "analysis/tools/test_xnu_cpu_wait_kernel.py": {
+      "bytes": 4448,
+      "sha256": "34e7c9a3a3cc9e09edcd15aa9e700cf012a2b395c2fb9dd9d0006cd4da5b462b"
+    },
+    "analysis/tools/test_xnu_cpu_wait_probe.py": {
+      "bytes": 6409,
+      "sha256": "3302b78e7a57f438a04014b9cc6fc61a85a8bc9b7a836264df378c2acf941072"
+    },
+    "analysis/tools/test_xnu_dt_panic_probe.py": {
+      "bytes": 11451,
+      "sha256": "0dd7743d2ce34d1c939ea26e6a8bcfcce353f36f4d67c629dd96299ee3397dda"
+    },
+    "analysis/tools/test_xnu_early_log_firmware.py": {
+      "bytes": 5285,
+      "sha256": "5817099d64b5fa29eb1778d9d5857930a63169872856d030211fafb11b954e92"
+    },
+    "analysis/tools/test_xnu_early_log_kernel.py": {
+      "bytes": 7362,
+      "sha256": "7cdb1833537e47d52b3a5b676e79d18cf7a46ca83bfbbdd355ecc41b92251ee5"
+    },
+    "analysis/tools/test_xnu_early_log_probe.py": {
+      "bytes": 5647,
+      "sha256": "852df08b2a92675753b771f7b3fefb87ecd7fea0bc493a57d477a3a159e0a3d6"
+    },
+    "analysis/tools/test_xnu_iokit_matching_kernel.py": {
+      "bytes": 5102,
+      "sha256": "5f1bed0bfe76e5ad6f5ff9ab6d401835a073f8a42a12463b98eb38ff6ab19c53"
+    },
+    "analysis/tools/test_xnu_iokit_matching_probe.py": {
+      "bytes": 6376,
+      "sha256": "7edc2698083376e9c9b796988e22d26971324b342ac026e404bd39971d919aef"
+    },
+    "analysis/tools/test_xnu_machine_boundary_probe.py": {
+      "bytes": 6950,
+      "sha256": "5da654088736b2cd3964fe911849213d35bd5ffbd018a2bb91ac34617f7f5099"
+    },
+    "analysis/tools/test_xnu_machine_conf_probe.py": {
+      "bytes": 5848,
+      "sha256": "ea7ff43551d420e9bb3166970b40544938238a2aef926f796a1f849345d14716"
+    },
+    "analysis/tools/test_xnu_machine_lockdown_kernel.py": {
+      "bytes": 4402,
+      "sha256": "a99a94d0846da191f2bf5566c9c1a6d2257022aeee70f42227a55b3525aeca50"
+    },
+    "analysis/tools/test_xnu_machine_lockdown_probe.py": {
+      "bytes": 4424,
+      "sha256": "e7f611d8afca5675c134c9cad5fd12e4b42b3f1c470d7c9a5cf435e91f6e0566"
+    },
+    "analysis/tools/test_xnu_mid_init_probe.py": {
+      "bytes": 8646,
+      "sha256": "b98135bdf95ebdbb01ddc0694299d354f3edd362f9c23f24e6c7da1c6741dcc3"
+    },
+    "analysis/tools/test_xnu_mmu_probe.py": {
+      "bytes": 4152,
+      "sha256": "c83a4b7356e5c9f47a6ccc2d41e68f4a01e21a99cc3e5ad348e0ab9b146cb3bb"
+    },
+    "analysis/tools/test_xnu_next_init_probe.py": {
+      "bytes": 8352,
+      "sha256": "6ebc8b7b589782fd4f4501601e69bd4e2fb3c93820854502e2eef62af65bcd1b"
+    },
+    "analysis/tools/test_xnu_text_console_kernel.py": {
+      "bytes": 7229,
+      "sha256": "8627830573181c2b48d8527bf8aa8043b16e9ec79bff78eb272facb975a77c6d"
+    },
+    "analysis/tools/test_xnu_text_console_probe.py": {
+      "bytes": 4796,
+      "sha256": "502ed8b5c92e7775a48963a84e71083b593edad89d1d4b6ed941377ef9e3aafb"
+    },
+    "analysis/tools/verify_audit_documents.py": {
+      "bytes": 2611,
+      "sha256": "08666ab82b0ff0acd786658e172888bdee17feef3ca314722c271f019c036404"
+    },
+    "analysis/tools/verify_first_payload.py": {
+      "bytes": 23873,
+      "sha256": "907cbedaa0e50332e4bfab836753017a373c4b7b19fa6411ff42594907e18255"
+    },
+    "analysis/tools/verify_host_diagnostics.py": {
+      "bytes": 2759,
+      "sha256": "6bcb6220db6493b39e59d0263619899265ebb39986b45aa5d49144635db2eca5"
+    },
+    "analysis/tools/verify_host_dt_panic.py": {
+      "bytes": 34838,
+      "sha256": "bba001076cbb16bcdbcb12445e3280f15d752c07cee03cd0903ec485b2133359"
+    },
+    "analysis/tools/verify_host_early_log.py": {
+      "bytes": 35854,
+      "sha256": "65f2f56314c9fbf7bbbb2ed8aecf9b87849d108e22abf2409e72f1a168ff5df3"
+    },
+    "analysis/tools/verify_host_iokit_cpu0.py": {
+      "bytes": 39763,
+      "sha256": "e3f8ce61249d44526de077deec04030ca9b866230d1a3732b202077740d3519a"
+    },
+    "analysis/tools/verify_host_kernel.py": {
+      "bytes": 26580,
+      "sha256": "8c816ae91444d11b9f147f16ab21c4af76e79e0fbfa0f48efc9066bff2236f96"
+    },
+    "analysis/tools/verify_host_protection.py": {
+      "bytes": 3625,
+      "sha256": "792c97b6fa9cc2d38caa07a0ec0de78c9f2c2025adef504ff7f926808aab49a1"
+    },
+    "analysis/tools/verify_host_protection_backup.py": {
+      "bytes": 2883,
+      "sha256": "1d01aec1866090cf3eceefc1d7eccfbc8f7346c1fbe3d7e366961e4cdccee014"
+    },
+    "analysis/tools/verify_host_text_console.py": {
+      "bytes": 35308,
+      "sha256": "082556ff801e4595f653f99526ef32343e7e9a8076d13a07da00c16a5f981079"
+    },
+    "analysis/tools/verify_host_ufs_adapter.py": {
+      "bytes": 69304,
+      "sha256": "c0f18afc1ee3e159e543f609696dfeb4ba71e8fc34d0877783a07c66ca5668be"
+    },
+    "analysis/tools/verify_host_ufs_observation.py": {
+      "bytes": 80300,
+      "sha256": "5fd22985d55882adf4557a46d7556c4a18d413d5001874277d6cd2cb1f415e8a"
+    },
+    "analysis/tools/verify_initrd80_probe.py": {
+      "bytes": 17911,
+      "sha256": "89e06dfe58c09da58df07620492be035ee0b73f4e9ae22792fde00c13c70c340"
+    },
+    "analysis/tools/verify_initrd_probe.py": {
+      "bytes": 11439,
+      "sha256": "4388e9bad0c65ceef1e34f9127ac4614e8c8d99c214e67e4a40b98c4762b28c8"
+    },
+    "analysis/tools/verify_initrd_runtime.py": {
+      "bytes": 4741,
+      "sha256": "0aee0064589f425e15b3f1414dd7cb6dd5dc2b4cbbd4e209a6d6b1c2337af163"
+    },
+    "analysis/tools/verify_menu_artifact.py": {
+      "bytes": 9613,
+      "sha256": "cdc92d30720bdb86cd522cffe5728eae9e0c1d43b7354f9cce0ec0bf6ae4b384"
+    },
+    "analysis/tools/verify_menu_ownership_fd_r9.py": {
+      "bytes": 10690,
+      "sha256": "dffce9a2d9e9eec532b7d4ec9fb4a34269fc784d34ed5e305203d641dc4f4967"
+    },
+    "analysis/tools/verify_qr_export_fix_backup.py": {
+      "bytes": 2938,
+      "sha256": "33e360d8fe8385bb0195d7c64431ccc0a9ff211e41e50ca5bf0458763e6c52cd"
+    },
+    "analysis/tools/verify_shengufs_archive.py": {
+      "bytes": 3426,
+      "sha256": "996d911984b985d2f74a4a50dc16eaf086d2ef3d875d2b6472a1ddf6b830610a"
+    },
+    "analysis/tools/verify_xnu_adt_phandle_probe.py": {
+      "bytes": 23024,
+      "sha256": "bc60c5958383d2c0995795292d66549f2dcb85b8df1ef3d0c1dc18811d568e57"
+    },
+    "analysis/tools/verify_xnu_bootstrap_clock_kernel.py": {
+      "bytes": 11476,
+      "sha256": "28b65d320a04a251f679135128f3e2efc11bd13a1a3eafe582f2ce10253104a0"
+    },
+    "analysis/tools/verify_xnu_bootstrap_clock_probe.py": {
+      "bytes": 13659,
+      "sha256": "48903452b37f4dff2ccb0ad1efb431284524e43a9884f340f3e5bda1592df124"
+    },
+    "analysis/tools/verify_xnu_bootstrap_iokit_core_kernel.py": {
+      "bytes": 11938,
+      "sha256": "ccbcf615664c4756a8fd43095b4ce97cc610e0b0dbbcbbcd0906db6ce681b970"
+    },
+    "analysis/tools/verify_xnu_bootstrap_iokit_core_probe.py": {
+      "bytes": 14005,
+      "sha256": "051d7193f7ff539587f2cebf4d6ea940a661d416e812d727b84fa5c217f9d46e"
+    },
+    "analysis/tools/verify_xnu_bootstrap_iokit_kernel.py": {
+      "bytes": 12138,
+      "sha256": "93e83eedeb44a59006c43e2dbf5e5df9d579e0203ec3f5ae2eccca5c759fbcf0"
+    },
+    "analysis/tools/verify_xnu_bootstrap_iokit_probe.py": {
+      "bytes": 13828,
+      "sha256": "36c0ee77cf33d8d7c93248e24a2e0d733cc4b06c9f49468b4fcbf617aec90735"
+    },
+    "analysis/tools/verify_xnu_bootstrap_ipc_kernel.py": {
+      "bytes": 10658,
+      "sha256": "d71a4df97a9995bf7cd48ce476cadf9d5fc3c5e5c2674dcff754c38f1b66dbf6"
+    },
+    "analysis/tools/verify_xnu_bootstrap_ipc_probe.py": {
+      "bytes": 13626,
+      "sha256": "af0f231bc22c5f78e17202cbd1328c65bb9d78290f05bdeb34bcc3f43376f9b9"
+    },
+    "analysis/tools/verify_xnu_bootstrap_machine_kernel.py": {
+      "bytes": 10465,
+      "sha256": "429d117383bcb5aa5a2b0a850765654a4492d6710ccd225cf41b2e0b73edaf69"
+    },
+    "analysis/tools/verify_xnu_bootstrap_machine_probe.py": {
+      "bytes": 13682,
+      "sha256": "ba6e695cb426eeabc312f8dd3edd0ef2a90d408b35f8dad1673fdc159ae6b4fd"
+    },
+    "analysis/tools/verify_xnu_bootstrap_oslog_kernel.py": {
+      "bytes": 10439,
+      "sha256": "ce83bdb66e65bdab3feaeab8755dfad2d3bcb52bb1169437507f85d0a4975bc2"
+    },
+    "analysis/tools/verify_xnu_bootstrap_oslog_probe.py": {
+      "bytes": 13631,
+      "sha256": "d0689cab2a51830d1ef90969b36860c9a8b9a643767ba4033fb9650f78fd4a92"
+    },
+    "analysis/tools/verify_xnu_bootstrap_printf_kernel.py": {
+      "bytes": 9140,
+      "sha256": "7a30e6838c081acd211773578f0f689075b041537514aa468e01c179020045d2"
+    },
+    "analysis/tools/verify_xnu_bootstrap_printf_probe.py": {
+      "bytes": 13149,
+      "sha256": "e376f21ecbd5a53644f1ed0e23035a9456fdf63dff5793a6f785815a63d13e73"
+    },
+    "analysis/tools/verify_xnu_bootstrap_scale_kernel.py": {
+      "bytes": 10187,
+      "sha256": "2c96d0f3104f0e47dd5c61512e5b065e01406e4d2cc5fd91c10e7086dfb4d725"
+    },
+    "analysis/tools/verify_xnu_bootstrap_scale_probe.py": {
+      "bytes": 13510,
+      "sha256": "aab77789d3484be68b2e3bbb1e5a17df52dd5b996b137959125dbd707cc1a0be"
+    },
+    "analysis/tools/verify_xnu_bootstrap_services_kernel.py": {
+      "bytes": 11586,
+      "sha256": "8413881c98b90c4d2d8b8ce33dcfdc80db237fd4c5e5a7238d256faee7f38321"
+    },
+    "analysis/tools/verify_xnu_bootstrap_services_probe.py": {
+      "bytes": 13838,
+      "sha256": "8b879b3ed819d325e134783ab786ac53931bcfb78c94a27467cfa51f9e7aeff8"
+    },
+    "analysis/tools/verify_xnu_bootstrap_thread_kernel.py": {
+      "bytes": 11605,
+      "sha256": "e7e2f1ee00ac8675033034a5f6cdf48a46e0720cd62fd09869d02090a6b2e363"
+    },
+    "analysis/tools/verify_xnu_bootstrap_thread_probe.py": {
+      "bytes": 13686,
+      "sha256": "2ab2d4fff784c8c33754e6b042b68c9be32cde130244312151739007f4b0c2f9"
+    },
+    "analysis/tools/verify_xnu_bootstrap_vm_kernel.py": {
+      "bytes": 9262,
+      "sha256": "e3c728693c58c09c95c66ccb1f14fff067e9139363f0fb3772e593fdf4c7b3ae"
+    },
+    "analysis/tools/verify_xnu_bootstrap_vm_probe.py": {
+      "bytes": 13493,
+      "sha256": "30c4676a6dc5f9c9a5b2dce3b1104e768a9ecff72cbfa898e0ff2cc21dee477d"
+    },
+    "analysis/tools/verify_xnu_bsd_autoconf_kernel.py": {
+      "bytes": 13358,
+      "sha256": "e719ba486a124329278f20ab66de23ff728c1ee9c2b88bf91f43fddf4c5016a1"
+    },
+    "analysis/tools/verify_xnu_bsd_autoconf_probe.py": {
+      "bytes": 21442,
+      "sha256": "bdd3528e945c62a327f328a9ce68ee24ffcf05302519a55a442ab976e5d6e494"
+    },
+    "analysis/tools/verify_xnu_bsd_pre_autoconf_kernel.py": {
+      "bytes": 12853,
+      "sha256": "c5c99f808794de69ba9d205c455d692d54b58bd212d551a26a4d4f2f402d23fd"
+    },
+    "analysis/tools/verify_xnu_bsd_pre_autoconf_probe.py": {
+      "bytes": 21100,
+      "sha256": "d405666f0215179dff8b769879bf493eef9ab37272ebf1431ee1099af8fc8d23"
+    },
+    "analysis/tools/verify_xnu_bsd_pre_root_kernel.py": {
+      "bytes": 13901,
+      "sha256": "c9b37236bc61aa78ade35b37e6a4509fb8ab89f4549773ed27dc0c4a5ed872d9"
+    },
+    "analysis/tools/verify_xnu_bsd_pre_root_probe.py": {
+      "bytes": 21625,
+      "sha256": "2c54b58a2683f02e05246f9564b1f5197bced13e195a8cac9dacce6a98794e99"
+    },
+    "analysis/tools/verify_xnu_c_init_probe.py": {
+      "bytes": 23933,
+      "sha256": "3f398f1bd92dbff326c3e24b624be72887bba3d84aa541acef4992a1ba9278d2"
+    },
+    "analysis/tools/verify_xnu_configure_iokit_kernel.py": {
+      "bytes": 12503,
+      "sha256": "dc1641fe14b3b14c2db83527dc601a94c915994e2b36dc19bd9f2fee4fca9f0f"
+    },
+    "analysis/tools/verify_xnu_configure_iokit_probe.py": {
+      "bytes": 19113,
+      "sha256": "5ec55f99bdd8056b2c5328514601218bd917f7dd4bab0cfbc609c4138d73af3a"
+    },
+    "analysis/tools/verify_xnu_cpu_wait_kernel.py": {
+      "bytes": 13430,
+      "sha256": "f29d9846d093044e95eec346bcfb3a97d2a3ad488103ac2496ca7c019e768051"
+    },
+    "analysis/tools/verify_xnu_cpu_wait_probe.py": {
+      "bytes": 21124,
+      "sha256": "43c9f354199c737cdb4ddff85e732db1904a605e69f593410634486d82cdb03e"
+    },
+    "analysis/tools/verify_xnu_dt_panic_probe.py": {
+      "bytes": 28754,
+      "sha256": "b126fceae6cdfb1f2d9bdc66f46e9fe6e83071350e58c5f731729d7a304e8445"
+    },
+    "analysis/tools/verify_xnu_early_log_firmware.py": {
+      "bytes": 7958,
+      "sha256": "89bc2d80ce2c756947f1911d395972e4231a40358af23d0fd12027ebadb0c1d2"
+    },
+    "analysis/tools/verify_xnu_early_log_kernel.py": {
+      "bytes": 24695,
+      "sha256": "34cbd2a965faa449c05a92ff2ff01012234a14cf81c7c1ecae242924d2220f06"
+    },
+    "analysis/tools/verify_xnu_early_log_probe.py": {
+      "bytes": 16883,
+      "sha256": "0bda3927872d3fbcd63dd640e5e9b59fd68507d2d0e37b2e10b95370a90042ee"
+    },
+    "analysis/tools/verify_xnu_entry.py": {
+      "bytes": 17528,
+      "sha256": "decf907d5f60af92f2ab87fa8dcf0b53342bd2c21dd1ea4d9cf6237823b71a51"
+    },
+    "analysis/tools/verify_xnu_iokit_matching_kernel.py": {
+      "bytes": 17938,
+      "sha256": "40cf8a14cb913ad1c62c9f6511db9b8c887fb2f33997aa09215cfd3bf727cd04"
+    },
+    "analysis/tools/verify_xnu_iokit_matching_probe.py": {
+      "bytes": 20933,
+      "sha256": "3ca82cf3554ba6f2d6505121650c18959e1b5be51c009eda51648ef939a7dcda"
+    },
+    "analysis/tools/verify_xnu_machine_boundary_probe.py": {
+      "bytes": 15580,
+      "sha256": "4457dca1b84f2c7495cd346f58bbc5b5abbb7004d4f777ce6394ebb83a8c4c1d"
+    },
+    "analysis/tools/verify_xnu_machine_conf_probe.py": {
+      "bytes": 18421,
+      "sha256": "24e9a096dc9eb25a2104c728f0a4b9795c4823c9067ed9dd89b4c268de6e73fb"
+    },
+    "analysis/tools/verify_xnu_machine_lockdown_kernel.py": {
+      "bytes": 14263,
+      "sha256": "1b67d9becd283164279d488fe7c2f9e3a61c64b432e99aecb2b298e143a1ae5f"
+    },
+    "analysis/tools/verify_xnu_machine_lockdown_probe.py": {
+      "bytes": 20317,
+      "sha256": "59bd188ad9a8f2ca09cb0f926336165600210041a6e1e13d4c5812b8eccccd57"
+    },
+    "analysis/tools/verify_xnu_menu_ownership_probe.py": {
+      "bytes": 13279,
+      "sha256": "2b8fd8e487067bff1ccea809f617630ed441a385cbaf7f8dd11d817a3946eaca"
+    },
+    "analysis/tools/verify_xnu_mid_init_probe.py": {
+      "bytes": 26742,
+      "sha256": "c47d1af9b39f7ef7a0caa52a2ae6234df2cdf174c28eeaaeed2b67883ce6edc8"
+    },
+    "analysis/tools/verify_xnu_mmu_probe.py": {
+      "bytes": 16112,
+      "sha256": "de70026f3b5bbd15d915da9a1b52b946185c19c0dbde8d9da95e6548ec90286c"
+    },
+    "analysis/tools/verify_xnu_next_init_probe.py": {
+      "bytes": 25415,
+      "sha256": "97c9d617ee2cc05352fa4d3ff3bd2c9bdefcc8fe060fe85d8e11ef80ec96bd34"
+    },
+    "analysis/tools/verify_xnu_text_console_kernel.py": {
+      "bytes": 23056,
+      "sha256": "109a8a98d22f14d571dcb7fdec10ecde77fdafab2e80811184c50edd70ba1e33"
+    },
+    "analysis/tools/verify_xnu_text_console_probe.py": {
+      "bytes": 15874,
+      "sha256": "b90f1ced6d9383cb40003c09ef960b0f01396bdea8dd21bd544125f9505309fc"
+    },
+    "analysis/ufs-observation-20261113/check-host-01.py": {
+      "bytes": 3742,
+      "sha256": "fdf982d92e81c4963232b438b545bedf96d725e123b1c85d79d9d0f043a73da7"
+    },
+    "work/ArmCpu-j716f-diag-20261113/AGENTS.md": {
+      "bytes": 581,
+      "sha256": "c9a41da2c7f662a00ec05e7a89bbb347e6fe6ef8453384e0a809a084ca21eb86"
+    },
+    "work/ArmCpu-j716f-diag-20261113/ArmCpu.cpp": {
+      "bytes": 60870,
+      "sha256": "cc0f9e8aa239c1507b84676614ee78d2390779863ea1df8edcac30313593b404"
+    },
+    "work/ArmCpu-j716f-diag-20261113/Info.plist": {
+      "bytes": 786,
+      "sha256": "e3f8deb8f64851a4ecb7b399d8f2e0ac19142322c255c3176cc2d251b77e4f89"
+    },
+    "work/ArmCpu-j716f-diag-20261113/J716FCpu0DiagCore.h": {
+      "bytes": 5457,
+      "sha256": "9531c130a4715fa6bf6a4fd8207cd3f43ba4ce251289aa0ea597ccc9ca0ec2af"
+    },
+    "work/ArmCpu-j716f-diag-20261113/J716FCpu0DiagRuntime.h": {
+      "bytes": 8983,
+      "sha256": "a8e7bfaf2c3c716430902d0a1ba8f78dab6043f5a9a4ce740b2a3c919fb4f847"
+    },
+    "work/ArmCpu-j716f-diag-20261113/LICENSE": {
+      "bytes": 2724,
+      "sha256": "370e1c48665dc34ca639431a0af1dc2f7418e40cdc3095cd26ca54cee6e8dfb9"
+    },
+    "work/ArmCpu-j716f-diag-20261113/README.md": {
+      "bytes": 6243,
+      "sha256": "d820f469a2f6597de739bbf30442a8f44634f1bc8806180786fbe0488fab1141"
+    },
+    "work/ArmCpu-j716f-iokit-cpu0-20261114/AGENTS.md": {
+      "bytes": 501,
+      "sha256": "3c55896b6dbbb003d44ab0983819ea5f2129427b853c6f51c6330bce5a5dda57"
+    },
+    "work/ArmCpu-j716f-iokit-cpu0-20261114/ArmCpu.cpp": {
+      "bytes": 60166,
+      "sha256": "f2e4ae0d47fdf838b21004f7e500ac3aa145f4197f2a4ee3bfad9909bdce09e2"
+    },
+    "work/ArmCpu-j716f-iokit-cpu0-20261114/Info.plist": {
+      "bytes": 771,
+      "sha256": "32fd6a027cc14b497544626f96ae104cd28af8aa9b9fcbde9ef138a4b3d70547"
+    },
+    "work/ArmCpu-j716f-iokit-cpu0-20261114/LICENSE": {
+      "bytes": 2673,
+      "sha256": "9e18e2c43ae4e51da2d11fd777b5b11056476d6ba395e5e2270467dbf02d0adf"
+    },
+    "work/ArmCpu-j716f-iokit-cpu0-20261114/README.md": {
+      "bytes": 783,
+      "sha256": "9606b98c193af6bd9517dae12bf210ca4346d0eeac96fef2affcb3bbdbaa2c7d"
+    },
+    "work/J716fDisplayHandoff-20261113/AGENTS.md": {
+      "bytes": 510,
+      "sha256": "df2add5503794f37c9e608317111cc333d9e05acaad280cd924e6957f7a71cef"
+    },
+    "work/J716fDisplayHandoff-20261113/README.md": {
+      "bytes": 5675,
+      "sha256": "0f744f0db7e4eaabf06f845e41642cbb6790cf8865cd8ada300755ded4632c99"
+    },
+    "work/J716fDisplayHandoff-20261113/package/J716fDisplayHandoff.cpp": {
+      "bytes": 6191,
+      "sha256": "894567420730db019dad4719df859df0d9e19582a1d632ecc1e19fb69064a26d"
+    },
+    "work/J716fDisplayHandoff-20261113/package/J716fDisplayHandoffCore.h": {
+      "bytes": 2041,
+      "sha256": "323d0f8a1acc225f8e53d289a276fab082a94915e99f0359a523c2c5209189d4"
+    },
+    "work/J716fDisplayHandoff-20261113/package/source-contract.json": {
+      "bytes": 1861,
+      "sha256": "aeb612bc07ce8564eb6609c4f5ddb4ed84faf2cb026ced4cc7c695a75fec422a"
+    },
+    "work/J716fDisplayHandoff-20261113/patches/j716f-platform-display-handoff.patch": {
+      "bytes": 2178,
+      "sha256": "7155e27f268eec1f9ebec37e10ec7d358e7c2c58ccb674ba74be6f7de42a1a3e"
+    },
+    "work/J716fDisplayHandoff-20261113/scripts/build.py": {
+      "bytes": 5255,
+      "sha256": "8df5d2c89c47212c35ce486a823b9214504af54a59c6c54ef86b8dad396664e7"
+    },
+    "work/J716fDisplayHandoff-20261113/tests/handoff_test.cpp": {
+      "bytes": 8266,
+      "sha256": "d5accc45bb0f8373ab45b2a2cbb9f49ef6a8a5148b64d94cf4832f949f508d70"
+    },
+    "work/J716fDisplayHandoff-20261113/tests/run_adoption_tests.py": {
+      "bytes": 3748,
+      "sha256": "8cc2dc83dff8504e0eab0196dba59f7ce41013db597da117bccd47f3a83a02b0"
+    },
+    "work/J716fDisplayHandoff-20261113/tests/run_host_tests.py": {
+      "bytes": 2388,
+      "sha256": "6ff0bd2714bb395a45d6e707f65970ac17436425dcc64f500813f436466e9588"
+    },
+    "work/J716fDisplayHandoff-20261113/tests/vm_adoption_test.c": {
+      "bytes": 2906,
+      "sha256": "19ae8b9385bbd6ace847b8fb9b518c13c52513142481a8d2812bc6f0e6b769f2"
+    },
+    "work/J716fEarlyLog-20261114/AGENTS.md": {
+      "bytes": 1481,
+      "sha256": "63666df0762cecf64a48d28a2688da866de04d23203fdf938f71205905712458"
+    },
+    "work/J716fEarlyLog-20261114/README.md": {
+      "bytes": 7295,
+      "sha256": "431bffdb42a1b9bf0a7025e8022c7e736ae26937d8223feb3b07bc0f6cb8a479"
+    },
+    "work/J716fEarlyLog-20261114/include/J716fEarlyLog.h": {
+      "bytes": 16638,
+      "sha256": "d871825f16e72b3923420b3c0aa54e5d5a2291e5c0272d582ce05f9a22a86d16"
+    },
+    "work/J716fEarlyLog-20261114/tests/decode_early_log.py": {
+      "bytes": 5252,
+      "sha256": "610371ce3979771468d3d23399339538a5f63b1ac27675d6d86bed43d1ae1f79"
+    },
+    "work/J716fEarlyLog-20261114/tests/test_decoder.py": {
+      "bytes": 5334,
+      "sha256": "eff85c126a98f0151280a872887acb8e32b4244b3eab7d92120229ac14577885"
+    },
+    "work/J716fEarlyLog-20261114/tests/test_protocol.c": {
+      "bytes": 11704,
+      "sha256": "e34ca5f54087100b48faf541983cebbe485bd3729bbde96e6b990ac29106db9b"
+    },
+    "work/J716fGeniBackend-20261113/J716fGeniBackend.c": {
+      "bytes": 19463,
+      "sha256": "a50129e7cda026d73a40c2e9891281458fa8b1014f584a89c5f25f4146a5f93a"
+    },
+    "work/J716fGeniBackend-20261113/J716fGeniBackend.h": {
+      "bytes": 5771,
+      "sha256": "0c3399fd103dbee9b12c3b9e79617fc104330b52fbf67bf0c5e99f6ccf2bf873"
+    },
+    "work/J716fGeniBackend-20261113/J716fGeniBridge.c": {
+      "bytes": 3928,
+      "sha256": "b40c671df5649a914ff0b27251a45e5ee1e4fb51fe4011e7070d785707c64398"
+    },
+    "work/J716fGeniBackend-20261113/J716fGeniMmio.c": {
+      "bytes": 3923,
+      "sha256": "4b4e6d246568c8e18d128b082ebc05257ecfce783a466996ab823480c8e0b3f7"
+    },
+    "work/J716fGeniBackend-20261113/J716fGeniMmio.h": {
+      "bytes": 1514,
+      "sha256": "5e215e47a0418582401bd66b79ec4b486da45fe89a755c609e3a4f9806f9beb4"
+    },
+    "work/J716fGeniBackend-20261113/README.md": {
+      "bytes": 11108,
+      "sha256": "f765a9bb568373e461f3293dbda649045e0584897d0344da99e4e0e5ce1be6df"
+    },
+    "work/J716fGeniBackend-20261113/scripts/build.py": {
+      "bytes": 5856,
+      "sha256": "4f78c091e05f751ec847f3cba6d4346092adaee548f9196bc475613e74c07699"
+    },
+    "work/J716fGeniBackend-20261113/tests/test_backend.c": {
+      "bytes": 19657,
+      "sha256": "b8d3e34c1532ee166b2098da558b572d53f1ac7ba36579714608822905253ced"
+    },
+    "work/J716fGeniBackend-20261113/tests/test_mmio.c": {
+      "bytes": 4793,
+      "sha256": "cc5bff2051025b7725af33d18ce78b54c0722cd4e06a6773621d07a26586feff"
+    },
+    "work/J716fGoodix-20261113/J716fGoodix.c": {
+      "bytes": 4633,
+      "sha256": "3f4fff348903b1a82488e06066794d4880fccb49bd8fcd1a755bda3a6d438b0c"
+    },
+    "work/J716fGoodix-20261113/J716fGoodix.h": {
+      "bytes": 2516,
+      "sha256": "34ac4ecc4466a9d2271627d237372262b322306901e134caf35ae730a7a65b3e"
+    },
+    "work/J716fGoodix-20261113/README.md": {
+      "bytes": 7380,
+      "sha256": "0571ed59fdb73a29555136e92a049a9995fd6499722cd4ff538154633674030d"
+    },
+    "work/J716fGopAdapter-20261113/AGENTS.md": {
+      "bytes": 661,
+      "sha256": "a1f8c6a16d7aedf1c44fe72a2479465350cf10d0512fffa5ffd707b7765d3c3a"
+    },
+    "work/J716fGopAdapter-20261113/README.md": {
+      "bytes": 5187,
+      "sha256": "9bd3d7b23b932752e96112132ddca2169f362c5ae807f93a8b1af917af1f641f"
+    },
+    "work/J716fGopAdapter-20261113/package/J716fDisplayCore.h": {
+      "bytes": 3433,
+      "sha256": "972591ff2b62227d630b3918ab1614b17c3a9b2910d08730badc58a31bc63eef"
+    },
+    "work/J716fGopAdapter-20261113/package/J716fGopProvider.cpp": {
+      "bytes": 7122,
+      "sha256": "5873765bef74ca5e5347e07f6a7d59ba0edb4234305b8080a415b07fc76d7438"
+    },
+    "work/J716fGopAdapter-20261113/scripts/build.py": {
+      "bytes": 9740,
+      "sha256": "1edae951f2c6baffd1fb8dd21351df02f99d3cd57bdd3a369b618c60da3282b3"
+    },
+    "work/J716fGopAdapter-20261113/tests/provider_test.cpp": {
+      "bytes": 6598,
+      "sha256": "2f7390ce3c2573089444e96d0186c5795dac1b0426aac61b9b0f7ff3baea103b"
+    },
+    "work/J716fGopAdapter-20261113/tests/run_host_tests.py": {
+      "bytes": 2368,
+      "sha256": "5287f100619bbb9df9fe2df1bb627f6a4be1ab1eb4941220869931e52f130518"
+    },
+    "work/J716fGopAdapter-20261113/tests/shim/IOKitShim.h": {
+      "bytes": 4160,
+      "sha256": "2359a9e0ab99b17d394045060a5f82e4222340026924f932476061cd2099fb85"
+    },
+    "work/J716fStorageBringup-r30/AGENTS.md": {
+      "bytes": 1011,
+      "sha256": "74bd220daa12eb04dc6487a9f37eaae62b0da57ddd514d2984aeeabfcaf2d203"
+    },
+    "work/J716fStorageBringup-r30/J716fStorageBringup.cpp": {
+      "bytes": 12128,
+      "sha256": "e1b6110e0cdf751c389d97bdb15e7824cfeccbe81d3391d277496efb3391a888"
+    },
+    "work/J716fStorageBringup-r30/J716fStorageBringup.h": {
+      "bytes": 4274,
+      "sha256": "b3ffc26d8bc16ea35668b654cd5927fda3978d4bb413a2fa9ee8e8a333f7a37b"
+    },
+    "work/J716fStorageBringup-r30/J716fStorageKernel.cpp": {
+      "bytes": 3522,
+      "sha256": "b68938b056e89afb8b0ce4de7f429d95ee39a153bdeca1133dc6c833db41ea42"
+    },
+    "work/J716fStorageBringup-r30/README.md": {
+      "bytes": 6408,
+      "sha256": "8905ccd49501496a4aab3ceb44dfe49222dc120dc7eb02913b6f441847281232"
+    },
+    "work/J716fStorageBringup-r30/freeze.py": {
+      "bytes": 2465,
+      "sha256": "295c76bdaacb27d655c4149187e0d87e46b71acf0ddb11d971b9cf747c767be3"
+    },
+    "work/J716fStorageBringup-r30/source-manifest.json": {
+      "bytes": 7539,
+      "sha256": "d69de980cb42b12fe47683cc2687cdf9ef322fcfbbe1caf4c2767e272d6a9918"
+    },
+    "work/J716fStorageBringup-r30/tests/StorageBringup.cpp": {
+      "bytes": 10573,
+      "sha256": "5d82f1ebc694f8d0839c1b03fa7159fbfb4d558cf221e73761197b177341e0f7"
+    },
+    "work/J716fStorageBringup-r30/tests/run.py": {
+      "bytes": 3468,
+      "sha256": "fb1e394b6e2a464c37d994406821da110501d14097d833d41ec5ef8966537a7f"
+    },
+    "work/J716fStorageBringup-r31/AGENTS.md": {
+      "bytes": 880,
+      "sha256": "08f0c5bd55f3bbbf35ad6e7faa769cd391db4e1e899edb391145ab65f78660cd"
+    },
+    "work/J716fStorageBringup-r31/J716fStorageBringup.cpp": {
+      "bytes": 12128,
+      "sha256": "e1b6110e0cdf751c389d97bdb15e7824cfeccbe81d3391d277496efb3391a888"
+    },
+    "work/J716fStorageBringup-r31/J716fStorageBringup.h": {
+      "bytes": 4274,
+      "sha256": "b3ffc26d8bc16ea35668b654cd5927fda3978d4bb413a2fa9ee8e8a333f7a37b"
+    },
+    "work/J716fStorageBringup-r31/J716fStorageKernel.cpp": {
+      "bytes": 3522,
+      "sha256": "b68938b056e89afb8b0ce4de7f429d95ee39a153bdeca1133dc6c833db41ea42"
+    },
+    "work/J716fStorageBringup-r31/J716fStoragePower.cpp": {
+      "bytes": 3841,
+      "sha256": "693431c04d12453bd10b40348ad6c560a5e4cd54a9f5a1800598edcce7a54301"
+    },
+    "work/J716fStorageBringup-r31/J716fStoragePower.h": {
+      "bytes": 2153,
+      "sha256": "19ef6002b93ac989f5c4c6d928e27ebccf8eebc846322f7908770e0cfab1a65b"
+    },
+    "work/J716fStorageBringup-r31/J716fStoragePowerKernel.cpp": {
+      "bytes": 6205,
+      "sha256": "087d852d76c2c6bd6d01fd1142312ca0431a5d12d23143f66592636dc37f7936"
+    },
+    "work/J716fStorageBringup-r31/README.md": {
+      "bytes": 5051,
+      "sha256": "c208b6501920324dd309d370f32bb469d57b35d5a0beef76cf796ae88b998278"
+    },
+    "work/J716fStorageBringup-r31/freeze.py": {
+      "bytes": 2869,
+      "sha256": "95332831f614b3f6a45db5c4a86598ad75c48b03de05c67a2196aa1bf0105f23"
+    },
+    "work/J716fStorageBringup-r31/source-manifest.json": {
+      "bytes": 7039,
+      "sha256": "777208ba649d4c8cb13cbc7ebf269a4829ecb64a61d6d9f0f3aaa1283ee1d21b"
+    },
+    "work/J716fStorageBringup-r31/tests/StorageBringup.cpp": {
+      "bytes": 10573,
+      "sha256": "5d82f1ebc694f8d0839c1b03fa7159fbfb4d558cf221e73761197b177341e0f7"
+    },
+    "work/J716fStorageBringup-r31/tests/StoragePower.cpp": {
+      "bytes": 6570,
+      "sha256": "4b166a7710fad7d7db74d4b00f8720a9c1720338f4431057dcf4ec015414bdd2"
+    },
+    "work/J716fStorageBringup-r31/tests/run.py": {
+      "bytes": 3305,
+      "sha256": "48f5a8cf7b6f0a04c2d7305de12f16fed52c8d2aaf8a8da28307a564e3b48bef"
+    },
+    "work/J716fTouchTransaction-20261113/J716fTouchTransaction.c": {
+      "bytes": 9449,
+      "sha256": "23493972f0bfd80b40639961635cb105e9e4168828229e35ebbe245cd206619d"
+    },
+    "work/J716fTouchTransaction-20261113/J716fTouchTransaction.h": {
+      "bytes": 4753,
+      "sha256": "440184102baa5687a35fe92c8ee50a35bca5162cc300ab581000b835fc1b62a8"
+    },
+    "work/J716fTouchTransaction-20261113/README.md": {
+      "bytes": 8572,
+      "sha256": "65888534d2315c1b27313c3498eaa0c139e4cd9966d647102fc9e2b73799042c"
+    },
+    "work/ShengUfs-sm8250/AGENTS.md": {
+      "bytes": 2180,
+      "sha256": "94e9ff4d4d2fd5cf3f1f6ad7995ff3f7d28342121abae3ac354c24d9e296989d"
+    },
+    "work/ShengUfs-sm8250/CompletionWait.h": {
+      "bytes": 2098,
+      "sha256": "db222fb27ef386edc99a60a4e02128796fdfaaf135412fa616f6c49a71a8bc71"
+    },
+    "work/ShengUfs-sm8250/GccUfs.h": {
+      "bytes": 1519,
+      "sha256": "f9269c82d48d61ba90dff90ebdfe9a60553faebbc9f0c7e1a5c4115b2f147dad"
+    },
+    "work/ShengUfs-sm8250/Info.plist": {
+      "bytes": 795,
+      "sha256": "d277a796f3c5a6e74bcaa50dee93b5571993a5326d9454f20763ded66f49f9d1"
+    },
+    "work/ShengUfs-sm8250/LICENSE": {
+      "bytes": 1345,
+      "sha256": "56c7f4c155b10c05b6c154b16af510d44434474001861da606db0437dd0679cd"
+    },
+    "work/ShengUfs-sm8250/NativeUfs.cpp": {
+      "bytes": 151767,
+      "sha256": "108da1e81fc60e66444abe5fbf6e6b102bbcc758e5e70201f88f1b4a364596c7"
+    },
+    "work/ShengUfs-sm8250/README.md": {
+      "bytes": 17340,
+      "sha256": "5f7e15e0ba5d57a71043aff58cd599af82cbbcd0b668c121217de9bcf2335e09"
+    },
+    "work/ShengUfs-sm8250/ReadCommandPolicy.h": {
+      "bytes": 12409,
+      "sha256": "38417c0343641fbc5d981757b3a0fed6ecdce87f1d3ccf754821e65f2ed16c81"
+    },
+    "work/ShengUfs-sm8250/RestrictedUfs.h": {
+      "bytes": 13167,
+      "sha256": "0db331f3be2ae57e93b0d44b184d7e49aaf9da92e6f4e295d24c47fb42c2c0a5"
+    },
+    "work/ShengUfs-sm8250/RootCommands.h": {
+      "bytes": 30534,
+      "sha256": "45063e565c0c450280d7237e7d19255d476c13b1e28628b09b77575f74bebb34"
+    },
+    "work/ShengUfs-sm8250/RootDiagnostics.h": {
+      "bytes": 3236,
+      "sha256": "4ccb8ad4a72b5c0de25cdbf1c34f51de0a08fe770df81b7b83cdd473f58508ff"
+    },
+    "work/ShengUfs-sm8250/RootLayout.h": {
+      "bytes": 10133,
+      "sha256": "c374f964c70d36a10cb925666adf43f7be792f6894f88d2c8390fb3f88101a8c"
+    },
+    "work/ShengUfs-sm8250/RootPublication.h": {
+      "bytes": 3309,
+      "sha256": "3c4821946837c6cfbe8da88a252faa33119ee796e1015c1323de443870ed2682"
+    },
+    "work/ShengUfs-sm8250/RootQueue.h": {
+      "bytes": 2308,
+      "sha256": "03deb70551685c6d902a10ea63907e3ad8f31fcf802cad1f2f24fd6e15d8f24d"
+    },
+    "work/ShengUfs-sm8250/RootTransportLayout.h": {
+      "bytes": 2464,
+      "sha256": "866e8eebf1f5a4dae85629af244cb9779b119c80344f842b4bbb01d92d7649b2"
+    },
+    "work/ShengUfs-sm8250/RootWindowRead.h": {
+      "bytes": 2819,
+      "sha256": "410f3717db910f16131b689681d4371a9e65f63f5b9b582cc084ab126a242c42"
+    },
+    "work/ShengUfs-sm8250/SmmuGroupPlan.h": {
+      "bytes": 16058,
+      "sha256": "54becb15f60969933971583c93752ae864718cafae213d9af58ba6a513da968a"
+    },
+    "work/ShengUfs-sm8250/SmmuTakeover.h": {
+      "bytes": 5913,
+      "sha256": "06654aa7c69300a8cef937846f2d7a23dbdfd065057007be4eefed3f443579b2"
+    },
+    "work/ShengUfs-sm8250/TransferPoll.h": {
+      "bytes": 1138,
+      "sha256": "92bb473174a8d6fe4ef8507576e6d4c8cac771c2518b3fde441d88d4c6b56cbe"
+    },
+    "work/ShengUfs-sm8250/UfsObservation.h": {
+      "bytes": 5999,
+      "sha256": "c9418b706655f808ba0e853a4769278e1018288e102c1442973f000babcf0016"
+    },
+    "work/ShengUfs-sm8250/UfsPlatform.h": {
+      "bytes": 2917,
+      "sha256": "734aaf274bb9e081135da40830663993ba64a18ba2631aa2b7f0ce918c159164"
+    },
+    "work/ShengUfs-sm8250/VerifiedTableCache.h": {
+      "bytes": 7044,
+      "sha256": "8504dbb340be6d56778ed0499b3d821c83e815fb73d1695ba95dc6c6a3716c35"
+    },
+    "work/ShengUfs-sm8250/tests/CompletionWait.cpp": {
+      "bytes": 4946,
+      "sha256": "9a1f90e9cc6dfca5cd41dfab45a47d4c61b8f3135592eb2856a3aaca25f0d626"
+    },
+    "work/ShengUfs-sm8250/tests/PlatformObservation.cpp": {
+      "bytes": 7563,
+      "sha256": "461eadee9496cb9159aaa82f8b1b345faf1d5839c4e0550d31141f54b6b824a0"
+    },
+    "work/ShengUfs-sm8250/tests/ReadCommandPolicy.cpp": {
+      "bytes": 17650,
+      "sha256": "b7791a63af938e14c8f3a187984c5a78eb3ded9f003ca5d2a784adee9c048973"
+    },
+    "work/ShengUfs-sm8250/tests/RestrictedUfs.cpp": {
+      "bytes": 11011,
+      "sha256": "cd23f6f435613614c2a06bb7254c997e3f28477b7ab7b1fe2179fca23dd58a3a"
+    },
+    "work/ShengUfs-sm8250/tests/RootCommands.cpp": {
+      "bytes": 10604,
+      "sha256": "6ba8c1fb786cfd882ee3eacb91948824c81e599784eac5cf884c59ed375c5e4b"
+    },
+    "work/ShengUfs-sm8250/tests/RootCommandsArm64.S": {
+      "bytes": 1022,
+      "sha256": "cf6a0c3f4de99aeec31d4f82c04118798dd3313122fa9b74f49d36348389ff8e"
+    },
+    "work/ShengUfs-sm8250/tests/RootCommandsArm64.cpp": {
+      "bytes": 10974,
+      "sha256": "c33a49ad85fd93e72b6762c91642a933c921ad3991db6ae295a3f30181997ca2"
+    },
+    "work/ShengUfs-sm8250/tests/RootCommandsBridge.cpp": {
+      "bytes": 5302,
+      "sha256": "6d5953e7b2d4b375e5c6efb264dc873610313be1fbffc2e3a3b6ccb1652bba47"
+    },
+    "work/ShengUfs-sm8250/tests/RootDiagnostics.cpp": {
+      "bytes": 3060,
+      "sha256": "8e1cae6f038a7f6a4ce284b81c86e670571bf36550aadeb40e26e88ef795ee0f"
+    },
+    "work/ShengUfs-sm8250/tests/RootLayout.cpp": {
+      "bytes": 6998,
+      "sha256": "43afa58b924fbe70821fc585a9ebf77b8698d52b79950cf3a302efa988b2cc0c"
+    },
+    "work/ShengUfs-sm8250/tests/RootPathBridge.cpp": {
+      "bytes": 2581,
+      "sha256": "9cfc86de425f7be57894decaa4044ca6b9ac3e5c59e4173eb302b4f69d59916d"
+    },
+    "work/ShengUfs-sm8250/tests/RootPublication.cpp": {
+      "bytes": 4790,
+      "sha256": "d996fb6a09d8804dccb579d3441151b6565759c9461450bb75d0124bf6bd4e26"
+    },
+    "work/ShengUfs-sm8250/tests/RootWindowRead.cpp": {
+      "bytes": 4713,
+      "sha256": "b7e224143b5f8e97e6f719f6c07dfb593afba40960277f55d71ac318bff6d6fe"
+    },
+    "work/ShengUfs-sm8250/tests/SmmuGroupPlan.cpp": {
+      "bytes": 18678,
+      "sha256": "f93b587bf68520c2b741b934435cfba0221bbd8e459f30c852194faf6bd15476"
+    },
+    "work/ShengUfs-sm8250/tests/SmmuTakeover.cpp": {
+      "bytes": 5347,
+      "sha256": "b059f4e93e40d0c53cdbd8c113cb183cc467400b8b643823f97d8dbf5dc798ed"
+    },
+    "work/ShengUfs-sm8250/tests/TransferPoll.cpp": {
+      "bytes": 2196,
+      "sha256": "65a1975cb87cdb69443bf1b2038033e4659e76d77d3348b826082f582b8b337c"
+    },
+    "work/ShengUfs-sm8250/tests/VerifiedTableCache.cpp": {
+      "bytes": 9890,
+      "sha256": "2998f9187abe27be8bc421f34461b7494e00df49dded7e30a8f04da034c5b945"
+    },
+    "work/ShengUfs-sm8250/tests/check_arm64_root_commands.py": {
+      "bytes": 6826,
+      "sha256": "03269ff9f1117d831ec4fbd52985e3de32893716615ea4e4bb2733b03a5eccbf"
+    },
+    "work/ShengUfs-sm8250/tests/check_legacy_descriptors.py": {
+      "bytes": 4181,
+      "sha256": "91f0471809dd76da91532bc3d0339bbe3372a4150eb39be3fffd6a025dbb32b8"
+    },
+    "work/ShengUfs-sm8250/tests/check_qemu_root_commands.py": {
+      "bytes": 13843,
+      "sha256": "0f5f1eb7efff3d2af6c258970c78708d25fb365f4a1e05f51f6a7e54c3ad6d2e"
+    },
+    "work/ShengUfs-sm8250/tests/check_root_path_host.py": {
+      "bytes": 2725,
+      "sha256": "2f4121ac97ae57241c9b330b78fe80b299cdf8c705a2a362c982818321d0746a"
+    },
+    "work/ShengUfs-sm8250/tests/root_path_fixture.py": {
+      "bytes": 6905,
+      "sha256": "7b4fe1b321f73b4466cb27de9e2b734406fe5711b2b6ee9c819f840e041abfe2"
+    },
+    "work/UniXNU-j716f-early-log-firmware/AGENTS.md": {
+      "bytes": 282,
+      "sha256": "46584833b4d946f9c40169d90e9143ac1a97dcd34771b9e5f2376b8fecaa83b6"
+    },
+    "work/UniXNU-j716f-early-log-firmware/README.md": {
+      "bytes": 426,
+      "sha256": "80bf1f26a7c05e3bafff9bbe8628a381efb67cfa20daa922074c6b5cdb5be225"
+    },
+    "work/UniXNU-j716f-early-log-firmware/board.toml": {
+      "bytes": 3637,
+      "sha256": "6772ae8609ac7412ac77ebc73faa979f74bbcb0a38997c4a95333183a3140699"
+    },
+    "work/UniXNU-j716f-early-log-firmware/build-inputs.toml": {
+      "bytes": 133,
+      "sha256": "48a5d185a54a2ce8ad3b6bd3458eda9ff14e9f82d7a6d211d4001f5bbb664d56"
+    },
+    "work/UniXNU-j716f-early-log-firmware/configs/j716f_early_log_firmware_defconfig": {
+      "bytes": 660,
+      "sha256": "0a61da192fc1ee06cb54bb778c420c30a2ccc5ff4ead40158581ead6e3ca5620"
+    },
+    "work/UniXNU-j716f-early-log-firmware/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-early-log-firmware/feeds.toml": {
+      "bytes": 326,
+      "sha256": "3ee5354f97663adefe6df3462fbabf0d735eb2dd1c9291b1bc5a95b5af904e48"
+    },
+    "work/UniXNU-j716f-early-log-firmware/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-early-log-firmware/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-early-log-firmware/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-early-log-firmware/patches/xnu/series": {
+      "bytes": 126,
+      "sha256": "526ca1ca1d92ae45eda5c155309f0941af4c641db8d41f44674a8ffbfcb40e32"
+    },
+    "work/UniXNU-j716f-early-log-firmware/porting.toml": {
+      "bytes": 16963,
+      "sha256": "5f4ba37913cfd0cef7f43f58affd9a6cba10315ab7d860c6d1ba90a717c4d59e"
+    },
+    "work/UniXNU-j716f-early-log-firmware/scripts/firmware.py": {
+      "bytes": 1183,
+      "sha256": "7af009e48969400114f05947f6339d394eb3d74ad0c872868f67e449f5b34556"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/README.md": {
+      "bytes": 4027,
+      "sha256": "e7a6a3d7d6217f32db254ff4681c1eeeffb4bb44a8c32a22b93d4a147fbd7216"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/configs/sm8250.config": {
+      "bytes": 118,
+      "sha256": "9310627f0f0dc4c61dfd667de7526b684a5b025c56c2c6eae1b58388a2c14ce3"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1264,
+      "sha256": "0aad19072382bf609e03c9fcc119f50ad2affbb4a7688abc826588c080200727"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.cpp": {
+      "bytes": 10704,
+      "sha256": "00d18841d655dcd517e183bce18049a43248bd5d139301a0a2b8f5ae6293617b"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.h": {
+      "bytes": 3722,
+      "sha256": "69e399842ebbde0baa27e49d29cde7fc38363987e8e4303e9234518ae469708f"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3331,
+      "sha256": "4594be664bb8ba4cf86db5c75a8bee498bc91c49743ac994eb67493bc5a782ec"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1815,
+      "sha256": "466713ab0b38e090d7e1e26d667972d27b0fdd56886b365b8b9f942fc71b8e1a"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/Sm8250UfsDiagnostics.cpp": {
+      "bytes": 6993,
+      "sha256": "5b025993951701dce374505aebc238d6f78f2262a12a3c3ef09fc94131e5e62d"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/Sm8250UfsDiagnostics.h": {
+      "bytes": 2833,
+      "sha256": "112e0bc868fe781556084e20fac754ebd5b070195ce3224b43cff50023cdf6e2"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.cpp": {
+      "bytes": 14856,
+      "sha256": "027317ab0fe88927daf5ea658dd73897eef0b6f635d8e8259fc4bc64eed0e97a"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.h": {
+      "bytes": 4149,
+      "sha256": "771721b76e57429f4fbc3b855e0ccda1c9c96b052e25ed6e5a7e56dc0c65ddd8"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.cpp": {
+      "bytes": 12706,
+      "sha256": "34b7fdfd45a8d06228694ff18207ea8494976662a7b073bd94c96f468cbafe4b"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.h": {
+      "bytes": 2605,
+      "sha256": "07efaaa3f6e4ec1414c0fc1dc68daa97fd24d888f30d89bfcd963f14aee5d154"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/Sm8250UfsIo.h": {
+      "bytes": 994,
+      "sha256": "bc42f674a40382fc684217be9ad200d6273d55854555bce55eef96510bbe6771"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.cpp": {
+      "bytes": 21027,
+      "sha256": "46d8f245364a1de2597262885f911384ad742fd682565a5bc76f2619ac59aaf0"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.h": {
+      "bytes": 3102,
+      "sha256": "402fee10b3f5e6b61255546b94b8d9a9243ddc5fcc7667c3c595d43574ddc562"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/tests/AppsSmmuOwner.cpp": {
+      "bytes": 10850,
+      "sha256": "20d35c6edd1c743d578c600be029abcd03a15ce0ad8becfdc0b85cd14445975b"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/tests/AppsSmmuOwnerPeer.cpp": {
+      "bytes": 547,
+      "sha256": "bab0545934ebf8a2443eed65d01f67240cbc65499cc8facff7a498c1b8897ef4"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/tests/Sm8250UfsDiagnostics.cpp": {
+      "bytes": 16583,
+      "sha256": "0f6d1b3f05c3d164859ed8dc1802c5491be11a906f03c71faaea7d07d2716873"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/tests/Sm8250UfsHandoff.cpp": {
+      "bytes": 12640,
+      "sha256": "dea0b5056ec6b29025dc2bfc7ecc8ee5ad6e83396a989ce57439335e06970d05"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/tests/Sm8250UfsHci.cpp": {
+      "bytes": 13506,
+      "sha256": "43833683f6ed0a4bae69f51bea99ee43206a8409c36e562f968832cff3e40976"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/kits/Sm8250Platform/tests/Sm8250UfsPipeline.cpp": {
+      "bytes": 16050,
+      "sha256": "a59f8f65f4a9176fc374cc1955b4d9fde446ffedeb109867f7ccb3121b22dc37"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/patches/xnu/series": {
+      "bytes": 188,
+      "sha256": "665dbe8e1327c79c26b29c190111f7d023a73518d324380f62072399b6bad027"
+    },
+    "work/UniXNU-j716f-early-log-firmware/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/AGENTS.md": {
+      "bytes": 592,
+      "sha256": "62a625e70b6fd79832f23c50b462b01866f6986eaf254cf3df369424ab29511a"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/README.md": {
+      "bytes": 1034,
+      "sha256": "1c0dea9e6cbd47637b148a0b1e1375980b62ebda656d370802022fd9f7ada07c"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/board.toml": {
+      "bytes": 973,
+      "sha256": "296855bcdb615980d7c125a41a9cbc549b882db33b189e3650ce983dfd49df2b"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/build-inputs.toml": {
+      "bytes": 223,
+      "sha256": "e09f0b96ad24851bf09b02fd18fd884bc00dbaed08a4d7d19aff95a507b058b4"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/configs/j716f_host_cpu0_diag_defconfig": {
+      "bytes": 767,
+      "sha256": "62adbce2cd5c90eff2bb63c1f7ce200e7b0df5dd6d69bebb0dd125c7a66ada8d"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/docs/host-source-manifest.json": {
+      "bytes": 6048,
+      "sha256": "2198d46341a116f6c051b17e525894761592700bad2ff40f43e86c9a540aad22"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/docs/source-provenance.json": {
+      "bytes": 4946,
+      "sha256": "84bf78026204326548678109d03ee3a4176d2869b8907117b883b8ccac383bcc"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/feeds.toml": {
+      "bytes": 477,
+      "sha256": "866b715097157efba2f3d229af46450534ae9c4412b589647124af1d8a6d5eeb"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/patches/xnu/series": {
+      "bytes": 126,
+      "sha256": "526ca1ca1d92ae45eda5c155309f0941af4c641db8d41f44674a8ffbfcb40e32"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/porting.toml": {
+      "bytes": 14530,
+      "sha256": "580efeb7a2b01b0d3c864499adf4642d354af02c42c3feecc3aa2579deee6f41"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/scripts/host.py": {
+      "bytes": 2261,
+      "sha256": "21dd9f3bbc72961509790585c447ebb66a1b6a5c3bd72d4ed12a958d86f4c294"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1315,
+      "sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3420,
+      "sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1865,
+      "sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/patches/xnu/series": {
+      "bytes": 192,
+      "sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host-display-adapter/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-display-adapter/AGENTS.md": {
+      "bytes": 651,
+      "sha256": "2f57b888d290b7fde581b2f29d328d3a33e02271bd5df2ca14653513c2f88b41"
+    },
+    "work/UniXNU-j716f-host-display-adapter/README.md": {
+      "bytes": 1147,
+      "sha256": "bcbdccea9572e96877f3101700f048ee123692964f6c255005ad96ed5ea2d999"
+    },
+    "work/UniXNU-j716f-host-display-adapter/board.toml": {
+      "bytes": 1294,
+      "sha256": "7c01296ba45caba05aae9bd5cf2d2eefee3aff7facf81d28c47e1bc10ee763d7"
+    },
+    "work/UniXNU-j716f-host-display-adapter/build-inputs.toml": {
+      "bytes": 229,
+      "sha256": "60dc93726b37b0cefa89c6d1cece24e272a38dc860a9483df271430e9abfc57c"
+    },
+    "work/UniXNU-j716f-host-display-adapter/configs/j716f_host_display_adapter_defconfig": {
+      "bytes": 756,
+      "sha256": "c5b07f4ba6aa1fa3d8f02371ad416b103412f0f34e5313385cb8a5ca608c28d3"
+    },
+    "work/UniXNU-j716f-host-display-adapter/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-display-adapter/docs/host-source-manifest.json": {
+      "bytes": 7793,
+      "sha256": "fd7796e89c1944aac13294c91a80e33d2c7a25f3ebb8ba4a56e6d856880bdc62"
+    },
+    "work/UniXNU-j716f-host-display-adapter/docs/source-provenance.json": {
+      "bytes": 4946,
+      "sha256": "84bf78026204326548678109d03ee3a4176d2869b8907117b883b8ccac383bcc"
+    },
+    "work/UniXNU-j716f-host-display-adapter/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-display-adapter/feeds.toml": {
+      "bytes": 477,
+      "sha256": "866b715097157efba2f3d229af46450534ae9c4412b589647124af1d8a6d5eeb"
+    },
+    "work/UniXNU-j716f-host-display-adapter/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-display-adapter/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-display-adapter/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-display-adapter/patches/xnu/series": {
+      "bytes": 126,
+      "sha256": "526ca1ca1d92ae45eda5c155309f0941af4c641db8d41f44674a8ffbfcb40e32"
+    },
+    "work/UniXNU-j716f-host-display-adapter/porting.toml": {
+      "bytes": 14695,
+      "sha256": "05ea5ec55c20871d6db3a7d3f6abd4cde641dde1e60ac604876937dc3a9783f4"
+    },
+    "work/UniXNU-j716f-host-display-adapter/scripts/build-j716f-gop-display.py": {
+      "bytes": 790,
+      "sha256": "44320a671f2a87545664c9684db8f3177a8bb536bba509d23c56e25b9799137e"
+    },
+    "work/UniXNU-j716f-host-display-adapter/scripts/host.py": {
+      "bytes": 2285,
+      "sha256": "b612333b905d2b057518a3bf646c4e97a472304964a4fcda40af28511d89fa8c"
+    },
+    "work/UniXNU-j716f-host-display-adapter/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-display-adapter/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-host-display-adapter/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-display-adapter/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1315,
+      "sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476"
+    },
+    "work/UniXNU-j716f-host-display-adapter/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3420,
+      "sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9"
+    },
+    "work/UniXNU-j716f-host-display-adapter/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1865,
+      "sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72"
+    },
+    "work/UniXNU-j716f-host-display-adapter/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-display-adapter/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-display-adapter/socs/sm8250/patches/xnu/series": {
+      "bytes": 192,
+      "sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af"
+    },
+    "work/UniXNU-j716f-host-display-adapter/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-display-adapter/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host-display-handoff/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-display-handoff/AGENTS.md": {
+      "bytes": 566,
+      "sha256": "b07408b4a934c9340781dc3ef4941afd2b4e3fe4baca15497a57a00602a18a80"
+    },
+    "work/UniXNU-j716f-host-display-handoff/README.md": {
+      "bytes": 1114,
+      "sha256": "7ce577632eeae8858d8f8968d46bf9c4037fd112cbd1111f4b4d208f5ce261b3"
+    },
+    "work/UniXNU-j716f-host-display-handoff/board.toml": {
+      "bytes": 1288,
+      "sha256": "a92e9ca652ffcd19dd2580fef20fed9599c8cc23ee8ecbde91a19abd96ac27b9"
+    },
+    "work/UniXNU-j716f-host-display-handoff/build-inputs.toml": {
+      "bytes": 229,
+      "sha256": "dc02756cb5aea04971b641180bda2a394c550db62c90674d25a086bfc91fa5b2"
+    },
+    "work/UniXNU-j716f-host-display-handoff/configs/j716f_host_display_handoff_defconfig": {
+      "bytes": 756,
+      "sha256": "c5b07f4ba6aa1fa3d8f02371ad416b103412f0f34e5313385cb8a5ca608c28d3"
+    },
+    "work/UniXNU-j716f-host-display-handoff/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-display-handoff/docs/host-source-manifest.json": {
+      "bytes": 9974,
+      "sha256": "715e85e7d7846fb37634411f1952b01033e7f3278f765a7f633d662b2f1b1bee"
+    },
+    "work/UniXNU-j716f-host-display-handoff/docs/source-provenance.json": {
+      "bytes": 4946,
+      "sha256": "84bf78026204326548678109d03ee3a4176d2869b8907117b883b8ccac383bcc"
+    },
+    "work/UniXNU-j716f-host-display-handoff/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-display-handoff/feeds.toml": {
+      "bytes": 477,
+      "sha256": "866b715097157efba2f3d229af46450534ae9c4412b589647124af1d8a6d5eeb"
+    },
+    "work/UniXNU-j716f-host-display-handoff/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-display-handoff/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-display-handoff/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-display-handoff/patches/xnu/j716f-platform-display-handoff.patch": {
+      "bytes": 2178,
+      "sha256": "7155e27f268eec1f9ebec37e10ec7d358e7c2c58ccb674ba74be6f7de42a1a3e"
+    },
+    "work/UniXNU-j716f-host-display-handoff/patches/xnu/series": {
+      "bytes": 38,
+      "sha256": "ed1bf8a8464dfcdcb736a2427737d073d15de3d307a0a34db158173f8f53f56a"
+    },
+    "work/UniXNU-j716f-host-display-handoff/porting.toml": {
+      "bytes": 14695,
+      "sha256": "8e3bd54b06388a38a9e51cfd1cc20adc4b5793e32b4c335921a31df74cc9b1b1"
+    },
+    "work/UniXNU-j716f-host-display-handoff/scripts/build-j716f-display-handoff.py": {
+      "bytes": 442,
+      "sha256": "c265430fc4bc074c1270b18b1d90c3ce42edd64e2710465276a988c32a925f39"
+    },
+    "work/UniXNU-j716f-host-display-handoff/scripts/host.py": {
+      "bytes": 2285,
+      "sha256": "b20f1ac63e10611f83c81d3959208102913e5d06c2ad82cef83b55cfbb72bbcc"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1315,
+      "sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3420,
+      "sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1865,
+      "sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/patches/xnu/series": {
+      "bytes": 192,
+      "sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-display-handoff/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host-dt-panic/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-dt-panic/AGENTS.md": {
+      "bytes": 726,
+      "sha256": "9fa1bf93183e4c4fad592ebaf63eb4f17b7da366de2c58d466c1a87b79925392"
+    },
+    "work/UniXNU-j716f-host-dt-panic/README.md": {
+      "bytes": 1654,
+      "sha256": "695cdbaa44f838843babd0877a76b718edcedf3fda35f0dd5e47f0e2a7c7b264"
+    },
+    "work/UniXNU-j716f-host-dt-panic/board.toml": {
+      "bytes": 969,
+      "sha256": "de475eaa0594fc7e201551b997cca7f660ce4cfafe38d0792ee0cffd8bfb9b40"
+    },
+    "work/UniXNU-j716f-host-dt-panic/build-inputs.toml": {
+      "bytes": 222,
+      "sha256": "2f66d31342f86548bc1c05b24ed32e7d092ec1572fd9d7c7c96418a231b3a6ef"
+    },
+    "work/UniXNU-j716f-host-dt-panic/configs/j716f_host_dt_panic_defconfig": {
+      "bytes": 767,
+      "sha256": "62adbce2cd5c90eff2bb63c1f7ce200e7b0df5dd6d69bebb0dd125c7a66ada8d"
+    },
+    "work/UniXNU-j716f-host-dt-panic/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-dt-panic/docs/host-source-manifest.json": {
+      "bytes": 5008,
+      "sha256": "e99c29302aea033b931ece4ba27d23625bee92fb5d90fcc02d8c8994016efe0e"
+    },
+    "work/UniXNU-j716f-host-dt-panic/docs/source-provenance.json": {
+      "bytes": 5079,
+      "sha256": "49d3435f3bfb574df3294b323a57b0314fa3b98fa350afcf4f8a1c7985011a53"
+    },
+    "work/UniXNU-j716f-host-dt-panic/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-dt-panic/feeds.toml": {
+      "bytes": 326,
+      "sha256": "3ee5354f97663adefe6df3462fbabf0d735eb2dd1c9291b1bc5a95b5af904e48"
+    },
+    "work/UniXNU-j716f-host-dt-panic/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-dt-panic/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-dt-panic/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-dt-panic/patches/xnu/series": {
+      "bytes": 126,
+      "sha256": "526ca1ca1d92ae45eda5c155309f0941af4c641db8d41f44674a8ffbfcb40e32"
+    },
+    "work/UniXNU-j716f-host-dt-panic/porting.toml": {
+      "bytes": 14528,
+      "sha256": "36ec78a94e974a84e4c3b21767b8fbe4c019fc2a09d788ba3ec393804ce29f0f"
+    },
+    "work/UniXNU-j716f-host-dt-panic/scripts/host.py": {
+      "bytes": 2257,
+      "sha256": "db33e68aff102610acd28856357441eeb7c970c618ac884453dd8d615f29fcf0"
+    },
+    "work/UniXNU-j716f-host-dt-panic/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-dt-panic/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-host-dt-panic/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-dt-panic/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1315,
+      "sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476"
+    },
+    "work/UniXNU-j716f-host-dt-panic/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3420,
+      "sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9"
+    },
+    "work/UniXNU-j716f-host-dt-panic/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1865,
+      "sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72"
+    },
+    "work/UniXNU-j716f-host-dt-panic/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-dt-panic/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-dt-panic/socs/sm8250/patches/xnu/series": {
+      "bytes": 192,
+      "sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af"
+    },
+    "work/UniXNU-j716f-host-dt-panic/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-dt-panic/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host-early-log/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-early-log/AGENTS.md": {
+      "bytes": 357,
+      "sha256": "deb6a17cf26866de7a97721b5d75d87d3014f693b3325850cdc6a5455a753450"
+    },
+    "work/UniXNU-j716f-host-early-log/README.md": {
+      "bytes": 742,
+      "sha256": "e15f0021355307d67470241c3e84e67f98fb438caa11dab8423b3f2ada6b6aa5"
+    },
+    "work/UniXNU-j716f-host-early-log/board.toml": {
+      "bytes": 973,
+      "sha256": "af0e94076b413c819722aaa3bb73f1724ceaf73e0d01d2605095c2a8e9d0b02b"
+    },
+    "work/UniXNU-j716f-host-early-log/build-inputs.toml": {
+      "bytes": 223,
+      "sha256": "799bb5dd2f24e45acc894a2b7ca31de97de4dd86f7419af2983c53a964518a22"
+    },
+    "work/UniXNU-j716f-host-early-log/configs/j716f_host_early_log_defconfig": {
+      "bytes": 767,
+      "sha256": "62adbce2cd5c90eff2bb63c1f7ce200e7b0df5dd6d69bebb0dd125c7a66ada8d"
+    },
+    "work/UniXNU-j716f-host-early-log/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-early-log/docs/host-source-manifest.json": {
+      "bytes": 5747,
+      "sha256": "7294722f2b2ded4bacb68f8638676ca1e726836eab4e96cded5781d3f77d8a82"
+    },
+    "work/UniXNU-j716f-host-early-log/docs/source-provenance.json": {
+      "bytes": 4946,
+      "sha256": "84bf78026204326548678109d03ee3a4176d2869b8907117b883b8ccac383bcc"
+    },
+    "work/UniXNU-j716f-host-early-log/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-early-log/feeds.toml": {
+      "bytes": 326,
+      "sha256": "3ee5354f97663adefe6df3462fbabf0d735eb2dd1c9291b1bc5a95b5af904e48"
+    },
+    "work/UniXNU-j716f-host-early-log/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-early-log/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-early-log/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-early-log/patches/xnu/j716f-earlylog-console.patch": {
+      "bytes": 25956,
+      "sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708"
+    },
+    "work/UniXNU-j716f-host-early-log/patches/xnu/j716f-verbose-text-console.patch": {
+      "bytes": 687,
+      "sha256": "9ff9d62bc25a0d9944a815daa42f262dd03a1ec65d1663d8ba00e93dc585b95f"
+    },
+    "work/UniXNU-j716f-host-early-log/patches/xnu/series": {
+      "bytes": 142,
+      "sha256": "117f16c7399083ca767825b081a504864ae488bf0f6a55688788e735acb16092"
+    },
+    "work/UniXNU-j716f-host-early-log/porting.toml": {
+      "bytes": 14592,
+      "sha256": "522249f9f5e8ea1f1a7f5c2ae9cdb5d783704434c0af195998eebc1f99fe2266"
+    },
+    "work/UniXNU-j716f-host-early-log/scripts/host.py": {
+      "bytes": 2261,
+      "sha256": "93405da72cc3e3b0e9f46ab8f5359cd553571f07255f817b902e50bccece8d72"
+    },
+    "work/UniXNU-j716f-host-early-log/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-early-log/socs/sm8250/configs/sm8250.config": {
+      "bytes": 118,
+      "sha256": "9310627f0f0dc4c61dfd667de7526b684a5b025c56c2c6eae1b58388a2c14ce3"
+    },
+    "work/UniXNU-j716f-host-early-log/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-early-log/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1264,
+      "sha256": "0aad19072382bf609e03c9fcc119f50ad2affbb4a7688abc826588c080200727"
+    },
+    "work/UniXNU-j716f-host-early-log/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3331,
+      "sha256": "4594be664bb8ba4cf86db5c75a8bee498bc91c49743ac994eb67493bc5a782ec"
+    },
+    "work/UniXNU-j716f-host-early-log/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1815,
+      "sha256": "466713ab0b38e090d7e1e26d667972d27b0fdd56886b365b8b9f942fc71b8e1a"
+    },
+    "work/UniXNU-j716f-host-early-log/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-early-log/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-early-log/socs/sm8250/patches/xnu/series": {
+      "bytes": 188,
+      "sha256": "665dbe8e1327c79c26b29c190111f7d023a73518d324380f62072399b6bad027"
+    },
+    "work/UniXNU-j716f-host-early-log/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-early-log/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host-geni/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-geni/AGENTS.md": {
+      "bytes": 494,
+      "sha256": "47d77f25345a3a0ef2417781d578c0597da9543721f8c6ee51476e0b22a43141"
+    },
+    "work/UniXNU-j716f-host-geni/README.md": {
+      "bytes": 1076,
+      "sha256": "70ccf5b9fc42b5b48125cdd5f5f04616eda6befa5500b40ea9b66279f1758eec"
+    },
+    "work/UniXNU-j716f-host-geni/board.toml": {
+      "bytes": 1238,
+      "sha256": "542a8fdec8896a93b9f7fb58d104ea9deae84628ca58f1d2e6d811a851adb42a"
+    },
+    "work/UniXNU-j716f-host-geni/build-inputs.toml": {
+      "bytes": 218,
+      "sha256": "b642b57a98da782fdedb8de017cce1942f287a9d22cb4a410e93556af878a122"
+    },
+    "work/UniXNU-j716f-host-geni/configs/j716f_host_geni_defconfig": {
+      "bytes": 861,
+      "sha256": "d98ad01e0cf66d1805cbe66e526af1918813187570168f4491790ce6a88cac5c"
+    },
+    "work/UniXNU-j716f-host-geni/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-geni/docs/host-source-manifest.json": {
+      "bytes": 7917,
+      "sha256": "5667571800cd23978bb34113cd2f0772ea3b94e1a851b84bc2ee859e5f9648c4"
+    },
+    "work/UniXNU-j716f-host-geni/docs/source-provenance.json": {
+      "bytes": 4946,
+      "sha256": "84bf78026204326548678109d03ee3a4176d2869b8907117b883b8ccac383bcc"
+    },
+    "work/UniXNU-j716f-host-geni/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-geni/feeds.toml": {
+      "bytes": 326,
+      "sha256": "3ee5354f97663adefe6df3462fbabf0d735eb2dd1c9291b1bc5a95b5af904e48"
+    },
+    "work/UniXNU-j716f-host-geni/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-geni/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-geni/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-geni/patches/xnu/j716f-geni-archive-dependency.patch": {
+      "bytes": 953,
+      "sha256": "ada1cca57278c744ad6bfc4b5a1c7ab1b88d3fc27883a16293623241eb250857"
+    },
+    "work/UniXNU-j716f-host-geni/patches/xnu/series": {
+      "bytes": 36,
+      "sha256": "d5f9629155706614f21207e97c5a5ac5e6e8e58c8e42c9f51e248208b19f62ae"
+    },
+    "work/UniXNU-j716f-host-geni/porting.toml": {
+      "bytes": 14691,
+      "sha256": "c23b3db8ab64c33811818bfa15643fdc33988c0817c6c18bdda46a49e1b0e8e7"
+    },
+    "work/UniXNU-j716f-host-geni/scripts/build-j716f-geni.py": {
+      "bytes": 491,
+      "sha256": "b6e183d7b2029afb97fb2675e8e67b3e42954a2610fb2df658898e96f6f14aee"
+    },
+    "work/UniXNU-j716f-host-geni/scripts/host.py": {
+      "bytes": 2241,
+      "sha256": "0c5639b1d8bcbc53cfca0857063d54a5eaffd384aee945f1b0c6a405ac41e7f4"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1315,
+      "sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3420,
+      "sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1865,
+      "sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/patches/xnu/series": {
+      "bytes": 192,
+      "sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af"
+    },
+    "work/UniXNU-j716f-host-geni/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-geni/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/AGENTS.md": {
+      "bytes": 516,
+      "sha256": "819de1989c71bdc151193743e0164d52cd9806b60bdbd9ad2142c9f82c321a40"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/README.md": {
+      "bytes": 917,
+      "sha256": "b2473a128ca4c3519713f17c540f7205926dd5fa87453be83923ee0fe6deaa9d"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/board.toml": {
+      "bytes": 977,
+      "sha256": "3c5fc0cce95a43bfba5fa03bb76f2d97b249641f8a70e8ce2b028e539bac88b3"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/build-inputs.toml": {
+      "bytes": 224,
+      "sha256": "c373cc6e8d0169aa3831b0ac76e40662da05ca12271f0931044bb9ecdde7412d"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/configs/j716f_host_iokit_cpu0_defconfig": {
+      "bytes": 767,
+      "sha256": "62adbce2cd5c90eff2bb63c1f7ce200e7b0df5dd6d69bebb0dd125c7a66ada8d"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/docs/armcpu-cpu0-separators.patch": {
+      "bytes": 2151,
+      "sha256": "a8819171d0cda86205cbb4f4bf1e880c7329e3b36eb6586a896fcd019a7a4909"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/docs/cpu0-source-delta.json": {
+      "bytes": 1788,
+      "sha256": "f0914d4201f71bf275659356dffd3b2189cd946a8565a46089d734bc84d8691b"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/docs/host-source-manifest.json": {
+      "bytes": 7172,
+      "sha256": "75cb223b3b4e191c3b65d4e8de05900449304241b4dc0024837a963e9fb44978"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/docs/source-provenance.json": {
+      "bytes": 4946,
+      "sha256": "84bf78026204326548678109d03ee3a4176d2869b8907117b883b8ccac383bcc"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/feeds.toml": {
+      "bytes": 471,
+      "sha256": "0f0c29fbc100a57ad6a598b6080bb01cbc9c4582436150478ef475c43b8053f6"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/patches/xnu/j716f-earlylog-console.patch": {
+      "bytes": 25956,
+      "sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/patches/xnu/j716f-verbose-text-console.patch": {
+      "bytes": 687,
+      "sha256": "9ff9d62bc25a0d9944a815daa42f262dd03a1ec65d1663d8ba00e93dc585b95f"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/patches/xnu/series": {
+      "bytes": 142,
+      "sha256": "117f16c7399083ca767825b081a504864ae488bf0f6a55688788e735acb16092"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/porting.toml": {
+      "bytes": 14656,
+      "sha256": "a9f6ebac70aeb4c64e3f810b29b7de6b55eff5553061d6687f08b06341d27d74"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/scripts/host.py": {
+      "bytes": 2265,
+      "sha256": "f6aa789304c4581c2d44975caa8be5c8104e73b635fd331de8401fb07c2a9480"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/socs/sm8250/configs/sm8250.config": {
+      "bytes": 118,
+      "sha256": "9310627f0f0dc4c61dfd667de7526b684a5b025c56c2c6eae1b58388a2c14ce3"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1264,
+      "sha256": "0aad19072382bf609e03c9fcc119f50ad2affbb4a7688abc826588c080200727"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3331,
+      "sha256": "4594be664bb8ba4cf86db5c75a8bee498bc91c49743ac994eb67493bc5a782ec"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1815,
+      "sha256": "466713ab0b38e090d7e1e26d667972d27b0fdd56886b365b8b9f942fc71b8e1a"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/socs/sm8250/patches/xnu/series": {
+      "bytes": 188,
+      "sha256": "665dbe8e1327c79c26b29c190111f7d023a73518d324380f62072399b6bad027"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host-storage-r30/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-storage-r30/AGENTS.md": {
+      "bytes": 833,
+      "sha256": "b915ada60d952bc736f0e5b65a585a8e617df1db4a9008d10e2b75763383c12d"
+    },
+    "work/UniXNU-j716f-host-storage-r30/README.md": {
+      "bytes": 2092,
+      "sha256": "1e7da1686ae77caa84b40d58b7dd58935f001443af3bc63a48e977d222a7e1a2"
+    },
+    "work/UniXNU-j716f-host-storage-r30/board.toml": {
+      "bytes": 1281,
+      "sha256": "21f955639ef3cd15ee1b892b95aef6da88fcaade8413f25d16ce272d240b05bb"
+    },
+    "work/UniXNU-j716f-host-storage-r30/build-inputs.toml": {
+      "bytes": 225,
+      "sha256": "164d401a8cd5c609aa196663d4748eed562a0c5e13b89e5bdd033c0f289f91ba"
+    },
+    "work/UniXNU-j716f-host-storage-r30/configs/j716f_host_storage_r30_defconfig": {
+      "bytes": 950,
+      "sha256": "9b992c843c0429d3949ef38a7413086cbb1f955b349c8b2450fd2c74e8de29c1"
+    },
+    "work/UniXNU-j716f-host-storage-r30/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-storage-r30/docs/host-source-manifest.json": {
+      "bytes": 96077,
+      "sha256": "378ec2c3e2141faa323835a8698a5dcdbd39b2752652422d0bbe87359f6f9e21"
+    },
+    "work/UniXNU-j716f-host-storage-r30/docs/parent-iokit-cpu0/armcpu-cpu0-separators.patch": {
+      "bytes": 2151,
+      "sha256": "a8819171d0cda86205cbb4f4bf1e880c7329e3b36eb6586a896fcd019a7a4909"
+    },
+    "work/UniXNU-j716f-host-storage-r30/docs/parent-iokit-cpu0/cpu0-source-delta.json": {
+      "bytes": 1788,
+      "sha256": "f0914d4201f71bf275659356dffd3b2189cd946a8565a46089d734bc84d8691b"
+    },
+    "work/UniXNU-j716f-host-storage-r30/docs/parent-iokit-cpu0/host-source-manifest.json": {
+      "bytes": 7172,
+      "sha256": "75cb223b3b4e191c3b65d4e8de05900449304241b4dc0024837a963e9fb44978"
+    },
+    "work/UniXNU-j716f-host-storage-r30/docs/source-provenance.json": {
+      "bytes": 4946,
+      "sha256": "84bf78026204326548678109d03ee3a4176d2869b8907117b883b8ccac383bcc"
+    },
+    "work/UniXNU-j716f-host-storage-r30/docs/storage-inputs.json": {
+      "bytes": 10069,
+      "sha256": "b498eb0462700a05484ef85500cbb73fd9c49791dbd8cf1846e57ca8e2b19fd9"
+    },
+    "work/UniXNU-j716f-host-storage-r30/drivers/ShengUfs/ReadCommandPolicy.h": {
+      "bytes": 12409,
+      "sha256": "38417c0343641fbc5d981757b3a0fed6ecdce87f1d3ccf754821e65f2ed16c81"
+    },
+    "work/UniXNU-j716f-host-storage-r30/drivers/ShengUfs/RestrictedUfs.h": {
+      "bytes": 13167,
+      "sha256": "0db331f3be2ae57e93b0d44b184d7e49aaf9da92e6f4e295d24c47fb42c2c0a5"
+    },
+    "work/UniXNU-j716f-host-storage-r30/drivers/ShengUfs/SmmuGroupPlan.h": {
+      "bytes": 16058,
+      "sha256": "54becb15f60969933971583c93752ae864718cafae213d9af58ba6a513da968a"
+    },
+    "work/UniXNU-j716f-host-storage-r30/drivers/ShengUfs/UfsObservation.h": {
+      "bytes": 5999,
+      "sha256": "c9418b706655f808ba0e853a4769278e1018288e102c1442973f000babcf0016"
+    },
+    "work/UniXNU-j716f-host-storage-r30/drivers/ShengUfs/UfsPlatform.h": {
+      "bytes": 2917,
+      "sha256": "734aaf274bb9e081135da40830663993ba64a18ba2631aa2b7f0ce918c159164"
+    },
+    "work/UniXNU-j716f-host-storage-r30/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-storage-r30/feeds.toml": {
+      "bytes": 644,
+      "sha256": "687919cd945257fd19956cbe68a2aaf9d76b13949add079af9a6c5e5d47cd2bd"
+    },
+    "work/UniXNU-j716f-host-storage-r30/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-storage-r30/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-storage-r30/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-storage-r30/patches/xnu/j716f-earlylog-console.patch": {
+      "bytes": 25956,
+      "sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708"
+    },
+    "work/UniXNU-j716f-host-storage-r30/patches/xnu/j716f-storage-dependency.patch": {
+      "bytes": 972,
+      "sha256": "3c7eb833d43439841835a88af1a811f041e7820c5db83b0bab50a73a4bce8754"
+    },
+    "work/UniXNU-j716f-host-storage-r30/patches/xnu/j716f-storage-init.patch": {
+      "bytes": 874,
+      "sha256": "62b6135a95f434d549feb7897feb6641ccef23e02831b11b396a8030186d5691"
+    },
+    "work/UniXNU-j716f-host-storage-r30/patches/xnu/j716f-verbose-text-console.patch": {
+      "bytes": 687,
+      "sha256": "9ff9d62bc25a0d9944a815daa42f262dd03a1ec65d1663d8ba00e93dc585b95f"
+    },
+    "work/UniXNU-j716f-host-storage-r30/patches/xnu/series": {
+      "bytes": 200,
+      "sha256": "ba968c6900c1190916792b2cc0a4c0a5b713ab5e656f54b86b15d8cadd31a795"
+    },
+    "work/UniXNU-j716f-host-storage-r30/porting.toml": {
+      "bytes": 15434,
+      "sha256": "0960f6e2dc909849dd2a5049494b6e148762ac2db1f191d0c287445bcf14cb40"
+    },
+    "work/UniXNU-j716f-host-storage-r30/scripts/build-j716f-storage-r30.py": {
+      "bytes": 14483,
+      "sha256": "87a1878cb463630dc050f09a2b1f5b0b2c0b98720337da4d46299cffc81df095"
+    },
+    "work/UniXNU-j716f-host-storage-r30/scripts/host.py": {
+      "bytes": 2382,
+      "sha256": "8916f0f6acea33ef88773096c1af4507fa935b09b24fc56890126c7251298b63"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/configs/sm8250.config": {
+      "bytes": 118,
+      "sha256": "9310627f0f0dc4c61dfd667de7526b684a5b025c56c2c6eae1b58388a2c14ce3"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1264,
+      "sha256": "0aad19072382bf609e03c9fcc119f50ad2affbb4a7688abc826588c080200727"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.cpp": {
+      "bytes": 10704,
+      "sha256": "00d18841d655dcd517e183bce18049a43248bd5d139301a0a2b8f5ae6293617b"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.h": {
+      "bytes": 3722,
+      "sha256": "69e399842ebbde0baa27e49d29cde7fc38363987e8e4303e9234518ae469708f"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3331,
+      "sha256": "4594be664bb8ba4cf86db5c75a8bee498bc91c49743ac994eb67493bc5a782ec"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1815,
+      "sha256": "466713ab0b38e090d7e1e26d667972d27b0fdd56886b365b8b9f942fc71b8e1a"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsDiagnostics.cpp": {
+      "bytes": 6993,
+      "sha256": "5b025993951701dce374505aebc238d6f78f2262a12a3c3ef09fc94131e5e62d"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsDiagnostics.h": {
+      "bytes": 2833,
+      "sha256": "112e0bc868fe781556084e20fac754ebd5b070195ce3224b43cff50023cdf6e2"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.cpp": {
+      "bytes": 14856,
+      "sha256": "027317ab0fe88927daf5ea658dd73897eef0b6f635d8e8259fc4bc64eed0e97a"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.h": {
+      "bytes": 4149,
+      "sha256": "771721b76e57429f4fbc3b855e0ccda1c9c96b052e25ed6e5a7e56dc0c65ddd8"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.cpp": {
+      "bytes": 12706,
+      "sha256": "34b7fdfd45a8d06228694ff18207ea8494976662a7b073bd94c96f468cbafe4b"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.h": {
+      "bytes": 2605,
+      "sha256": "07efaaa3f6e4ec1414c0fc1dc68daa97fd24d888f30d89bfcd963f14aee5d154"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsIo.h": {
+      "bytes": 994,
+      "sha256": "bc42f674a40382fc684217be9ad200d6273d55854555bce55eef96510bbe6771"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.cpp": {
+      "bytes": 21027,
+      "sha256": "46d8f245364a1de2597262885f911384ad742fd682565a5bc76f2619ac59aaf0"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.h": {
+      "bytes": 3102,
+      "sha256": "402fee10b3f5e6b61255546b94b8d9a9243ddc5fcc7667c3c595d43574ddc562"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/patches/xnu/series": {
+      "bytes": 188,
+      "sha256": "665dbe8e1327c79c26b29c190111f7d023a73518d324380f62072399b6bad027"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-storage-r30/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host-text-console/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-text-console/AGENTS.md": {
+      "bytes": 518,
+      "sha256": "d828139b4ee685a138b20af6adc63b05618bcf1c4b65d02dcae50924482a14d4"
+    },
+    "work/UniXNU-j716f-host-text-console/README.md": {
+      "bytes": 1506,
+      "sha256": "99b84fb6a2a0fc424e423a25be5b304f4d8353943c38a382b3219760babb9a88"
+    },
+    "work/UniXNU-j716f-host-text-console/board.toml": {
+      "bytes": 985,
+      "sha256": "cff6a84b97c142ecaee547345a6407e49e09837d23455fd5fac7e7956ea64a37"
+    },
+    "work/UniXNU-j716f-host-text-console/build-inputs.toml": {
+      "bytes": 226,
+      "sha256": "df3e1f35b1fb9bd1487b73fed230773354c1924e55f221e173c46791edae280d"
+    },
+    "work/UniXNU-j716f-host-text-console/configs/j716f_host_text_console_defconfig": {
+      "bytes": 767,
+      "sha256": "62adbce2cd5c90eff2bb63c1f7ce200e7b0df5dd6d69bebb0dd125c7a66ada8d"
+    },
+    "work/UniXNU-j716f-host-text-console/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-text-console/docs/host-source-manifest.json": {
+      "bytes": 5435,
+      "sha256": "91c16ef19b888311add2de8ba0b2e8f4a4a27f3f05ff4e893ba9a55f0ea5b5be"
+    },
+    "work/UniXNU-j716f-host-text-console/docs/source-provenance.json": {
+      "bytes": 5079,
+      "sha256": "49d3435f3bfb574df3294b323a57b0314fa3b98fa350afcf4f8a1c7985011a53"
+    },
+    "work/UniXNU-j716f-host-text-console/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-text-console/feeds.toml": {
+      "bytes": 326,
+      "sha256": "3ee5354f97663adefe6df3462fbabf0d735eb2dd1c9291b1bc5a95b5af904e48"
+    },
+    "work/UniXNU-j716f-host-text-console/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-text-console/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-text-console/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-text-console/patches/xnu/j716f-verbose-text-console.patch": {
+      "bytes": 687,
+      "sha256": "9ff9d62bc25a0d9944a815daa42f262dd03a1ec65d1663d8ba00e93dc585b95f"
+    },
+    "work/UniXNU-j716f-host-text-console/patches/xnu/series": {
+      "bytes": 113,
+      "sha256": "2642fc8292ad40f1b2f0581bafac13d048a51290c492a261232516964e987ab5"
+    },
+    "work/UniXNU-j716f-host-text-console/porting.toml": {
+      "bytes": 14598,
+      "sha256": "e72c7598b01852b7226f5d16266c5f6ac268b8c874a2e03c553258d6821d6372"
+    },
+    "work/UniXNU-j716f-host-text-console/scripts/host.py": {
+      "bytes": 2273,
+      "sha256": "71ac944ad73a517e8cc79fbbb266f1267949f1fed9dcabccefd1400deda9403d"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1315,
+      "sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3420,
+      "sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1865,
+      "sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/patches/xnu/series": {
+      "bytes": 192,
+      "sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af"
+    },
+    "work/UniXNU-j716f-host-text-console/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-text-console/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/AGENTS.md": {
+      "bytes": 1116,
+      "sha256": "0dcc2623deb08e175d47e14158b6cf75cd018c4a7476746a5fd65097a19db123"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/README.md": {
+      "bytes": 2721,
+      "sha256": "b7906cfca2b94a444f678ee9d4bddd417dbe9f4aac9ef44858e77429cd13406a"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/board.toml": {
+      "bytes": 1265,
+      "sha256": "4c437f141705b805c94a7f521df3679c7e7b05d77afbd01b66c9a352b0ca7f75"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/build-inputs.toml": {
+      "bytes": 225,
+      "sha256": "7c6a237d87950507053364e6563ac54892eb91f1879de4d31a829afd14a89f9a"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/configs/j716f_host_ufs_adapter_defconfig": {
+      "bytes": 942,
+      "sha256": "e79353dee7bc0d02e184159213de71ea006f6d24999102d391997ddc44f6e684"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/docs/host-source-manifest.json": {
+      "bytes": 5707,
+      "sha256": "4271e48ac46d0de8f139b8e3e336c7cad5280ee624e32d1ba169f2f6a12ebed3"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/docs/source-provenance.json": {
+      "bytes": 5079,
+      "sha256": "49d3435f3bfb574df3294b323a57b0314fa3b98fa350afcf4f8a1c7985011a53"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/docs/ufs-adapter-inputs.json": {
+      "bytes": 8383,
+      "sha256": "57c4e2d9d5d28df1b4676786fc2dba67e2a4bd424d164bc00c15053819259c86"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/drivers/ShengUfs/ReadCommandPolicy.h": {
+      "bytes": 12409,
+      "sha256": "38417c0343641fbc5d981757b3a0fed6ecdce87f1d3ccf754821e65f2ed16c81"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/drivers/ShengUfs/RestrictedUfs.h": {
+      "bytes": 13167,
+      "sha256": "0db331f3be2ae57e93b0d44b184d7e49aaf9da92e6f4e295d24c47fb42c2c0a5"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/drivers/ShengUfs/SmmuGroupPlan.h": {
+      "bytes": 16058,
+      "sha256": "54becb15f60969933971583c93752ae864718cafae213d9af58ba6a513da968a"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/drivers/ShengUfs/UfsObservation.h": {
+      "bytes": 5999,
+      "sha256": "c9418b706655f808ba0e853a4769278e1018288e102c1442973f000babcf0016"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/drivers/ShengUfs/UfsPlatform.h": {
+      "bytes": 2917,
+      "sha256": "734aaf274bb9e081135da40830663993ba64a18ba2631aa2b7f0ce918c159164"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/feeds.toml": {
+      "bytes": 326,
+      "sha256": "3ee5354f97663adefe6df3462fbabf0d735eb2dd1c9291b1bc5a95b5af904e48"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/patches/xnu/series": {
+      "bytes": 66,
+      "sha256": "0f501eb9a685608fd94e3216142aa4106674e2a5ab4d3ca714ecad0feb1346fd"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/patches/xnu/sm8250-ufs-adapter-dependency.patch": {
+      "bytes": 982,
+      "sha256": "6f382edb22ac67961081514c8b092258b26f0940c2e2804843d95e2eefd4b0c3"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/patches/xnu/sm8250-ufs-adapter-init.patch": {
+      "bytes": 421,
+      "sha256": "bef090d91aa75260b34db07854ea3d573cf5fae09cf28a1088daab8cc0193fa8"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/porting.toml": {
+      "bytes": 14674,
+      "sha256": "6f28202db84f87750984fd648aa472bceca94c7b18b4666685f6d68dbefc7bbb"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/scripts/build-sm8250-ufs-adapter.py": {
+      "bytes": 12520,
+      "sha256": "5dfa21c7aa3b67e50053d974f0bfe74ddab5ea0f0992a111a142088472e145a8"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/scripts/freeze-inputs.py": {
+      "bytes": 1911,
+      "sha256": "7ca63cbfb20a4992e9497a4bf8a6e6c12e7053aea16c9756cc13c55a97175f10"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/scripts/host.py": {
+      "bytes": 2269,
+      "sha256": "1c4b80ec5da43e41b5d44131b1dd3b05fa020393d11107d5c252783b40cc0d4d"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1315,
+      "sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.cpp": {
+      "bytes": 10704,
+      "sha256": "00d18841d655dcd517e183bce18049a43248bd5d139301a0a2b8f5ae6293617b"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.h": {
+      "bytes": 3722,
+      "sha256": "69e399842ebbde0baa27e49d29cde7fc38363987e8e4303e9234518ae469708f"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3420,
+      "sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1865,
+      "sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.cpp": {
+      "bytes": 14856,
+      "sha256": "027317ab0fe88927daf5ea658dd73897eef0b6f635d8e8259fc4bc64eed0e97a"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.h": {
+      "bytes": 4149,
+      "sha256": "771721b76e57429f4fbc3b855e0ccda1c9c96b052e25ed6e5a7e56dc0c65ddd8"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.cpp": {
+      "bytes": 12706,
+      "sha256": "34b7fdfd45a8d06228694ff18207ea8494976662a7b073bd94c96f468cbafe4b"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.h": {
+      "bytes": 2605,
+      "sha256": "07efaaa3f6e4ec1414c0fc1dc68daa97fd24d888f30d89bfcd963f14aee5d154"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/Sm8250UfsIo.h": {
+      "bytes": 994,
+      "sha256": "bc42f674a40382fc684217be9ad200d6273d55854555bce55eef96510bbe6771"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.cpp": {
+      "bytes": 17313,
+      "sha256": "c9a57321fd9dc62d8453205198e7c9fa2f3763265a232c9f81c1b04f134e4158"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.h": {
+      "bytes": 2654,
+      "sha256": "b0191ea818819954f31d6e23d7c7964f31b5fb5fb626a3468c936f5f2ec570ce"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/tests/AppsSmmuOwner.cpp": {
+      "bytes": 10850,
+      "sha256": "20d35c6edd1c743d578c600be029abcd03a15ce0ad8becfdc0b85cd14445975b"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/tests/AppsSmmuOwnerPeer.cpp": {
+      "bytes": 547,
+      "sha256": "bab0545934ebf8a2443eed65d01f67240cbc65499cc8facff7a498c1b8897ef4"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/tests/Sm8250UfsHandoff.cpp": {
+      "bytes": 12640,
+      "sha256": "dea0b5056ec6b29025dc2bfc7ecc8ee5ad6e83396a989ce57439335e06970d05"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/tests/Sm8250UfsHci.cpp": {
+      "bytes": 13506,
+      "sha256": "43833683f6ed0a4bae69f51bea99ee43206a8409c36e562f968832cff3e40976"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/kits/Sm8250Platform/tests/Sm8250UfsPipeline.cpp": {
+      "bytes": 16050,
+      "sha256": "a59f8f65f4a9176fc374cc1955b4d9fde446ffedeb109867f7ccb3121b22dc37"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/patches/xnu/series": {
+      "bytes": 192,
+      "sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-ufs-adapter/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/AGENTS.md": {
+      "bytes": 748,
+      "sha256": "ac6fa884aa668ce61ebb12fe82b0bd9661cdeb9c53f2a528fa1639122ba1de4f"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/README.md": {
+      "bytes": 2235,
+      "sha256": "0a2db6278038e0ca1da4d05e45fd97ad7395b5b8215616249b61e4aa376c2f26"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/board.toml": {
+      "bytes": 1281,
+      "sha256": "024dbeb819a56cf179afae10567e5609fb1fdebba2192b0b4bf972d3fc582e04"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/build-inputs.toml": {
+      "bytes": 225,
+      "sha256": "7c6a237d87950507053364e6563ac54892eb91f1879de4d31a829afd14a89f9a"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/configs/j716f_host_ufs_observation_defconfig": {
+      "bytes": 942,
+      "sha256": "152dc5d03a43f9c05dc78d5fb88a5e6b362d747a768056dd8462de9fcf595e28"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/docs/host-source-manifest.json": {
+      "bytes": 9873,
+      "sha256": "9bd3c472bd8915951c0a501290c052d293b53c796cc23b6d2796079b9c3c5bc2"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/docs/source-provenance.json": {
+      "bytes": 5079,
+      "sha256": "49d3435f3bfb574df3294b323a57b0314fa3b98fa350afcf4f8a1c7985011a53"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/docs/ufs-observation-inputs.json": {
+      "bytes": 8989,
+      "sha256": "bd080504adf9a7fd60d8c431ad76f9390b576be873eccffa7d0c9092502d1aa7"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/drivers/ShengUfs/ReadCommandPolicy.h": {
+      "bytes": 12409,
+      "sha256": "38417c0343641fbc5d981757b3a0fed6ecdce87f1d3ccf754821e65f2ed16c81"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/drivers/ShengUfs/RestrictedUfs.h": {
+      "bytes": 13167,
+      "sha256": "0db331f3be2ae57e93b0d44b184d7e49aaf9da92e6f4e295d24c47fb42c2c0a5"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/drivers/ShengUfs/SmmuGroupPlan.h": {
+      "bytes": 16058,
+      "sha256": "54becb15f60969933971583c93752ae864718cafae213d9af58ba6a513da968a"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/drivers/ShengUfs/UfsObservation.h": {
+      "bytes": 5999,
+      "sha256": "c9418b706655f808ba0e853a4769278e1018288e102c1442973f000babcf0016"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/drivers/ShengUfs/UfsPlatform.h": {
+      "bytes": 2917,
+      "sha256": "734aaf274bb9e081135da40830663993ba64a18ba2631aa2b7f0ce918c159164"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/feeds.toml": {
+      "bytes": 326,
+      "sha256": "3ee5354f97663adefe6df3462fbabf0d735eb2dd1c9291b1bc5a95b5af904e48"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/patches/xnu/series": {
+      "bytes": 66,
+      "sha256": "0f501eb9a685608fd94e3216142aa4106674e2a5ab4d3ca714ecad0feb1346fd"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/patches/xnu/sm8250-ufs-adapter-dependency.patch": {
+      "bytes": 982,
+      "sha256": "6f382edb22ac67961081514c8b092258b26f0940c2e2804843d95e2eefd4b0c3"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/patches/xnu/sm8250-ufs-adapter-init.patch": {
+      "bytes": 421,
+      "sha256": "bef090d91aa75260b34db07854ea3d573cf5fae09cf28a1088daab8cc0193fa8"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/porting.toml": {
+      "bytes": 14682,
+      "sha256": "0d5cb992e3f74b1b9687daaa0268941fc4129eb122f98bf636e7a4e540eb39a7"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/scripts/build-sm8250-ufs-adapter.py": {
+      "bytes": 12577,
+      "sha256": "db6d305097c118a0f38f89ef8cccbd870549b43ed95d03e4fa3bbf6ea567d298"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/scripts/freeze-inputs.py": {
+      "bytes": 1966,
+      "sha256": "1054ad4913a835b5d923fddc70bbf7c560ec9d985a4819426f0a2c16be7aab0a"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/scripts/host.py": {
+      "bytes": 2285,
+      "sha256": "ce11fc85c956e4ab71b6100ea3d04ea119660b56c6816c54a214b18240d92ba2"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1315,
+      "sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.cpp": {
+      "bytes": 10704,
+      "sha256": "00d18841d655dcd517e183bce18049a43248bd5d139301a0a2b8f5ae6293617b"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.h": {
+      "bytes": 3722,
+      "sha256": "69e399842ebbde0baa27e49d29cde7fc38363987e8e4303e9234518ae469708f"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3420,
+      "sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1865,
+      "sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/Sm8250UfsDiagnostics.cpp": {
+      "bytes": 6993,
+      "sha256": "5b025993951701dce374505aebc238d6f78f2262a12a3c3ef09fc94131e5e62d"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/Sm8250UfsDiagnostics.h": {
+      "bytes": 2833,
+      "sha256": "112e0bc868fe781556084e20fac754ebd5b070195ce3224b43cff50023cdf6e2"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.cpp": {
+      "bytes": 14856,
+      "sha256": "027317ab0fe88927daf5ea658dd73897eef0b6f635d8e8259fc4bc64eed0e97a"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.h": {
+      "bytes": 4149,
+      "sha256": "771721b76e57429f4fbc3b855e0ccda1c9c96b052e25ed6e5a7e56dc0c65ddd8"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.cpp": {
+      "bytes": 12706,
+      "sha256": "34b7fdfd45a8d06228694ff18207ea8494976662a7b073bd94c96f468cbafe4b"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.h": {
+      "bytes": 2605,
+      "sha256": "07efaaa3f6e4ec1414c0fc1dc68daa97fd24d888f30d89bfcd963f14aee5d154"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/Sm8250UfsIo.h": {
+      "bytes": 994,
+      "sha256": "bc42f674a40382fc684217be9ad200d6273d55854555bce55eef96510bbe6771"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.cpp": {
+      "bytes": 21027,
+      "sha256": "46d8f245364a1de2597262885f911384ad742fd682565a5bc76f2619ac59aaf0"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.h": {
+      "bytes": 3102,
+      "sha256": "402fee10b3f5e6b61255546b94b8d9a9243ddc5fcc7667c3c595d43574ddc562"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/tests/AppsSmmuOwner.cpp": {
+      "bytes": 10850,
+      "sha256": "20d35c6edd1c743d578c600be029abcd03a15ce0ad8becfdc0b85cd14445975b"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/tests/AppsSmmuOwnerPeer.cpp": {
+      "bytes": 547,
+      "sha256": "bab0545934ebf8a2443eed65d01f67240cbc65499cc8facff7a498c1b8897ef4"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/tests/Sm8250UfsDiagnostics.cpp": {
+      "bytes": 16583,
+      "sha256": "0f6d1b3f05c3d164859ed8dc1802c5491be11a906f03c71faaea7d07d2716873"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/tests/Sm8250UfsHandoff.cpp": {
+      "bytes": 12640,
+      "sha256": "dea0b5056ec6b29025dc2bfc7ecc8ee5ad6e83396a989ce57439335e06970d05"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/tests/Sm8250UfsHci.cpp": {
+      "bytes": 13506,
+      "sha256": "43833683f6ed0a4bae69f51bea99ee43206a8409c36e562f968832cff3e40976"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/kits/Sm8250Platform/tests/Sm8250UfsPipeline.cpp": {
+      "bytes": 16050,
+      "sha256": "a59f8f65f4a9176fc374cc1955b4d9fde446ffedeb109867f7ccb3121b22dc37"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/patches/xnu/series": {
+      "bytes": 192,
+      "sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-ufs-observation/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/AGENTS.md": {
+      "bytes": 1092,
+      "sha256": "c0aa2447c412da6e17c44167fff354b2ef502a9a2f76ccd757025b880a5e4f18"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/README.md": {
+      "bytes": 1590,
+      "sha256": "12e22069f7ca124db3ccc33b13376762697caca0c907a0782ef6dd0db1569f52"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/board.toml": {
+      "bytes": 1291,
+      "sha256": "c3cf1913d44ba153b7b8ab1cba7b2ecdc08dd86a3970a523fd3414c858d76853"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/build-inputs.toml": {
+      "bytes": 227,
+      "sha256": "f33c2f9d61e1b1979515982a889371f493feed50e8ef29bc37767454d3126fa5"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/configs/j716f_host_ufs_power_r31_defconfig": {
+      "bytes": 953,
+      "sha256": "a0bdba42daa39583e0a9416700e6add552c444db548091afb653aea52283ac02"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/docs/host-source-manifest.json": {
+      "bytes": 97091,
+      "sha256": "111d6e1e7fb61af73bc431a18af8988ced14fd2a94bb10187426abeea93b563f"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/docs/parent-iokit-cpu0/armcpu-cpu0-separators.patch": {
+      "bytes": 2151,
+      "sha256": "a8819171d0cda86205cbb4f4bf1e880c7329e3b36eb6586a896fcd019a7a4909"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/docs/parent-iokit-cpu0/cpu0-source-delta.json": {
+      "bytes": 1788,
+      "sha256": "f0914d4201f71bf275659356dffd3b2189cd946a8565a46089d734bc84d8691b"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/docs/parent-iokit-cpu0/host-source-manifest.json": {
+      "bytes": 7172,
+      "sha256": "75cb223b3b4e191c3b65d4e8de05900449304241b4dc0024837a963e9fb44978"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/docs/parent-storage-r30/host-source-manifest.json": {
+      "bytes": 96077,
+      "sha256": "378ec2c3e2141faa323835a8698a5dcdbd39b2752652422d0bbe87359f6f9e21"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/docs/parent-storage-r30/storage-inputs.json": {
+      "bytes": 10069,
+      "sha256": "b498eb0462700a05484ef85500cbb73fd9c49791dbd8cf1846e57ca8e2b19fd9"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/docs/source-provenance.json": {
+      "bytes": 4946,
+      "sha256": "84bf78026204326548678109d03ee3a4176d2869b8907117b883b8ccac383bcc"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/docs/storage-inputs.json": {
+      "bytes": 10996,
+      "sha256": "6cc5609fefa417330103da3f43d268d567b3ab7b385c2c04b27727d239d0ea2c"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/drivers/ShengUfs/ReadCommandPolicy.h": {
+      "bytes": 12409,
+      "sha256": "38417c0343641fbc5d981757b3a0fed6ecdce87f1d3ccf754821e65f2ed16c81"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/drivers/ShengUfs/RestrictedUfs.h": {
+      "bytes": 13167,
+      "sha256": "0db331f3be2ae57e93b0d44b184d7e49aaf9da92e6f4e295d24c47fb42c2c0a5"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/drivers/ShengUfs/SmmuGroupPlan.h": {
+      "bytes": 16058,
+      "sha256": "54becb15f60969933971583c93752ae864718cafae213d9af58ba6a513da968a"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/drivers/ShengUfs/UfsObservation.h": {
+      "bytes": 5999,
+      "sha256": "c9418b706655f808ba0e853a4769278e1018288e102c1442973f000babcf0016"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/drivers/ShengUfs/UfsPlatform.h": {
+      "bytes": 2917,
+      "sha256": "734aaf274bb9e081135da40830663993ba64a18ba2631aa2b7f0ce918c159164"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/feeds.toml": {
+      "bytes": 638,
+      "sha256": "a6495c2d253b5c52373e60007646e8562bcf8f8954cceff8b04eeb6e8d4980f4"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/patches/xnu/j716f-earlylog-console.patch": {
+      "bytes": 25956,
+      "sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/patches/xnu/j716f-power-probe-call.patch": {
+      "bytes": 390,
+      "sha256": "167403de0e4512c2a7f42e776d5cfe99f22a4be21c3c546ba44a2b0fcf9b83f6"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/patches/xnu/j716f-storage-dependency.patch": {
+      "bytes": 974,
+      "sha256": "db1caedcab6c9dc5b453d86ad654df872c19d5348daa4b56877f7721be5a24c7"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/patches/xnu/j716f-storage-init.patch": {
+      "bytes": 874,
+      "sha256": "62b6135a95f434d549feb7897feb6641ccef23e02831b11b396a8030186d5691"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/patches/xnu/j716f-verbose-text-console.patch": {
+      "bytes": 687,
+      "sha256": "9ff9d62bc25a0d9944a815daa42f262dd03a1ec65d1663d8ba00e93dc585b95f"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/patches/xnu/series": {
+      "bytes": 229,
+      "sha256": "f2d5ecd99cb0c88cef06954242309e2c1d9159776f3c8c236411116eb27e6e6c"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/porting.toml": {
+      "bytes": 15632,
+      "sha256": "93cd737f94d900f62b636cec552a0cd412bad57ac36305b2f4548859a9a41757"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/scripts/build-j716f-ufs-power-r31.py": {
+      "bytes": 14773,
+      "sha256": "96ca92a40e6f3a53b39a5863413995ae9bc2e51f5e1e74948d27d295d5feebac"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/scripts/host.py": {
+      "bytes": 2390,
+      "sha256": "557a30048043c32fc2e474c524330076ac415696b01d13ac4a0383920fc5805d"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/configs/sm8250.config": {
+      "bytes": 118,
+      "sha256": "9310627f0f0dc4c61dfd667de7526b684a5b025c56c2c6eae1b58388a2c14ce3"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1264,
+      "sha256": "0aad19072382bf609e03c9fcc119f50ad2affbb4a7688abc826588c080200727"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.cpp": {
+      "bytes": 10704,
+      "sha256": "00d18841d655dcd517e183bce18049a43248bd5d139301a0a2b8f5ae6293617b"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.h": {
+      "bytes": 3722,
+      "sha256": "69e399842ebbde0baa27e49d29cde7fc38363987e8e4303e9234518ae469708f"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3331,
+      "sha256": "4594be664bb8ba4cf86db5c75a8bee498bc91c49743ac994eb67493bc5a782ec"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1815,
+      "sha256": "466713ab0b38e090d7e1e26d667972d27b0fdd56886b365b8b9f942fc71b8e1a"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/Sm8250UfsDiagnostics.cpp": {
+      "bytes": 6993,
+      "sha256": "5b025993951701dce374505aebc238d6f78f2262a12a3c3ef09fc94131e5e62d"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/Sm8250UfsDiagnostics.h": {
+      "bytes": 2833,
+      "sha256": "112e0bc868fe781556084e20fac754ebd5b070195ce3224b43cff50023cdf6e2"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.cpp": {
+      "bytes": 14856,
+      "sha256": "027317ab0fe88927daf5ea658dd73897eef0b6f635d8e8259fc4bc64eed0e97a"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.h": {
+      "bytes": 4149,
+      "sha256": "771721b76e57429f4fbc3b855e0ccda1c9c96b052e25ed6e5a7e56dc0c65ddd8"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.cpp": {
+      "bytes": 12706,
+      "sha256": "34b7fdfd45a8d06228694ff18207ea8494976662a7b073bd94c96f468cbafe4b"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.h": {
+      "bytes": 2605,
+      "sha256": "07efaaa3f6e4ec1414c0fc1dc68daa97fd24d888f30d89bfcd963f14aee5d154"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/Sm8250UfsIo.h": {
+      "bytes": 994,
+      "sha256": "bc42f674a40382fc684217be9ad200d6273d55854555bce55eef96510bbe6771"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.cpp": {
+      "bytes": 21027,
+      "sha256": "46d8f245364a1de2597262885f911384ad742fd682565a5bc76f2619ac59aaf0"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.h": {
+      "bytes": 3102,
+      "sha256": "402fee10b3f5e6b61255546b94b8d9a9243ddc5fcc7667c3c595d43574ddc562"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/patches/xnu/series": {
+      "bytes": 188,
+      "sha256": "665dbe8e1327c79c26b29c190111f7d023a73518d324380f62072399b6bad027"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-ufs-power-r31/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host/AGENTS.md": {
+      "bytes": 1296,
+      "sha256": "27a079caa0c0eeeb0bc4e40c19c9008b06e3e91d786cc573597dc31a2199c728"
+    },
+    "work/UniXNU-j716f-host/README.md": {
+      "bytes": 3492,
+      "sha256": "c11d1aa14ab933944843585f61c884b90d03252b565e5fbd77d2551c120d9c0e"
+    },
+    "work/UniXNU-j716f-host/board.toml": {
+      "bytes": 933,
+      "sha256": "be308f5befddcf5074368b46b4e74fd0f48357caaf59a1e97600cb4553323d80"
+    },
+    "work/UniXNU-j716f-host/build-inputs.toml": {
+      "bytes": 204,
+      "sha256": "404def8921dd50a1d6b1f86769951f116351d1f783b8b9b662de5dfa710a37ab"
+    },
+    "work/UniXNU-j716f-host/configs/j716f_host_defconfig": {
+      "bytes": 660,
+      "sha256": "0a61da192fc1ee06cb54bb778c420c30a2ccc5ff4ead40158581ead6e3ca5620"
+    },
+    "work/UniXNU-j716f-host/docs/build-result.json": {
+      "bytes": 13639,
+      "sha256": "f0f900f103daba72f6d59ea785417a6fbc6a09a13e9d3b4f4acb386befee7a37"
+    },
+    "work/UniXNU-j716f-host/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host/docs/host-source-manifest.json": {
+      "bytes": 2205,
+      "sha256": "f15690291f3c10717f72d0b56631ceb34d2270f760bf7e9da006423dad3e14d8"
+    },
+    "work/UniXNU-j716f-host/docs/source-provenance.json": {
+      "bytes": 5079,
+      "sha256": "49d3435f3bfb574df3294b323a57b0314fa3b98fa350afcf4f8a1c7985011a53"
+    },
+    "work/UniXNU-j716f-host/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host/feeds.toml": {
+      "bytes": 326,
+      "sha256": "3ee5354f97663adefe6df3462fbabf0d735eb2dd1c9291b1bc5a95b5af904e48"
+    },
+    "work/UniXNU-j716f-host/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host/patches/xnu/series": {
+      "bytes": 126,
+      "sha256": "526ca1ca1d92ae45eda5c155309f0941af4c641db8d41f44674a8ffbfcb40e32"
+    },
+    "work/UniXNU-j716f-host/porting.toml": {
+      "bytes": 15173,
+      "sha256": "e3cace4bda3842535f4308c9f6b3b878c5a7a4f41cf2b76d7627c33f69764881"
+    },
+    "work/UniXNU-j716f-host/scripts/host.py": {
+      "bytes": 2212,
+      "sha256": "f656b5b27c90589cf93081dfccdb3fdb02fce72faf758f64187d96a9299d7c5c"
+    },
+    "work/UniXNU-j716f-host/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-host/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1315,
+      "sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476"
+    },
+    "work/UniXNU-j716f-host/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3420,
+      "sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9"
+    },
+    "work/UniXNU-j716f-host/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1865,
+      "sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72"
+    },
+    "work/UniXNU-j716f-host/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host/socs/sm8250/patches/xnu/series": {
+      "bytes": 192,
+      "sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af"
+    },
+    "work/UniXNU-j716f-host/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/AGENTS.md": {
+      "bytes": 1727,
+      "sha256": "54a89bf78a1451fc8e278410d385ce7055d743633734933b6af6e10a6e68ef4a"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/README.md": {
+      "bytes": 2129,
+      "sha256": "88d2b2892bb9531c112aaf0215e517b4a5862fdc4f81fd4283cfe2b72db57eed"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/board.toml": {
+      "bytes": 1938,
+      "sha256": "619cc2dbd7e5c520929ac4c713662db32c4f9bbe117af61ef82d7fe0497ccb38"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/build-inputs.toml": {
+      "bytes": 274,
+      "sha256": "53c1f9efae632e262be9846af2beae7434c9335fe46c690206796426ff60945b"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/configs/j716f_xnu_bsd_pre_root_probe_defconfig": {
+      "bytes": 772,
+      "sha256": "088100f41ae8af859d3364025e4dbbac8e3c3ed39981d6a3d9ddf91d6c25b0a6"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/feeds.toml": {
+      "bytes": 321,
+      "sha256": "a9fa2ba8f01445a73695641289d2652d34591ba335f276656e5ce46996a31e53"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/firmware-expectation.json": {
+      "bytes": 39423,
+      "sha256": "a108fd46b2a001930991a64c62686549a32b3116a41d35a36708b14203c0282c"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/kernel-expectation.json": {
+      "bytes": 106079,
+      "sha256": "a0212e5ba225da03f6f96800be4ae8d4cebd20cf600fe59229ae31074d965c5b"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/patches/xnu/j716f-earlylog-console.patch": {
+      "bytes": 25956,
+      "sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/patches/xnu/j716f-verbose-text-console.patch": {
+      "bytes": 687,
+      "sha256": "9ff9d62bc25a0d9944a815daa42f262dd03a1ec65d1663d8ba00e93dc585b95f"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/patches/xnu/series": {
+      "bytes": 142,
+      "sha256": "117f16c7399083ca767825b081a504864ae488bf0f6a55688788e735acb16092"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/payload/unixnu.toml": {
+      "bytes": 593,
+      "sha256": "36753313c57e7f090e966f5acc1a235908b490d0591b16287cefaa5d3342a229"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/r22-kernel-expectation.json": {
+      "bytes": 5021,
+      "sha256": "219dde0ad4d9d5f6d669750e860dffe95644795b76e588d1d8c74c05805dcda9"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1264,
+      "sha256": "0aad19072382bf609e03c9fcc119f50ad2affbb4a7688abc826588c080200727"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3331,
+      "sha256": "4594be664bb8ba4cf86db5c75a8bee498bc91c49743ac994eb67493bc5a782ec"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1815,
+      "sha256": "466713ab0b38e090d7e1e26d667972d27b0fdd56886b365b8b9f942fc71b8e1a"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/socs/sm8250/patches/xnu/series": {
+      "bytes": 188,
+      "sha256": "665dbe8e1327c79c26b29c190111f7d023a73518d324380f62072399b6bad027"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/source-provenance.json": {
+      "bytes": 688372,
+      "sha256": "77b743df07eca2a8c949aabf324328f7fefe1ba2cc43ef53ce7e7e72337a2e4d"
+    },
+    "work/UniXNU-j716f-xnu-bsd-pre-root-probe/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/AGENTS.md": {
+      "bytes": 545,
+      "sha256": "bf80f88b605a0559cd6854c3873d40faf19ac975f08fa06f10e0b089c92a8989"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/README.md": {
+      "bytes": 2089,
+      "sha256": "2ecea5f3c53bc7c9ded5d172857d75456f50a1291d14c36018eca1883c26b32e"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/board.toml": {
+      "bytes": 1870,
+      "sha256": "53bb3c9478beb5a09db58ea14e0f887a8f84e91860a844acd65ca8e3466d26fb"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/build-inputs.toml": {
+      "bytes": 268,
+      "sha256": "df8a7de3d6f60ced8431a8ab55868f5a019d0f989ee78ec837f9ffa447a6366f"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/configs/j716f_xnu_storage_r30_defconfig": {
+      "bytes": 772,
+      "sha256": "088100f41ae8af859d3364025e4dbbac8e3c3ed39981d6a3d9ddf91d6c25b0a6"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/feeds.toml": {
+      "bytes": 321,
+      "sha256": "a9fa2ba8f01445a73695641289d2652d34591ba335f276656e5ce46996a31e53"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/firmware-expectation.json": {
+      "bytes": 39423,
+      "sha256": "a108fd46b2a001930991a64c62686549a32b3116a41d35a36708b14203c0282c"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/patches/xnu/j716f-earlylog-console.patch": {
+      "bytes": 25956,
+      "sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/patches/xnu/j716f-verbose-text-console.patch": {
+      "bytes": 687,
+      "sha256": "9ff9d62bc25a0d9944a815daa42f262dd03a1ec65d1663d8ba00e93dc585b95f"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/patches/xnu/series": {
+      "bytes": 142,
+      "sha256": "117f16c7399083ca767825b081a504864ae488bf0f6a55688788e735acb16092"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/payload/unixnu.toml": {
+      "bytes": 600,
+      "sha256": "885bb679e624e0fa72787f97010613e2596dbee5b48bdfe2d40f7314c893b600"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1264,
+      "sha256": "0aad19072382bf609e03c9fcc119f50ad2affbb4a7688abc826588c080200727"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3331,
+      "sha256": "4594be664bb8ba4cf86db5c75a8bee498bc91c49743ac994eb67493bc5a782ec"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1815,
+      "sha256": "466713ab0b38e090d7e1e26d667972d27b0fdd56886b365b8b9f942fc71b8e1a"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/socs/sm8250/patches/xnu/series": {
+      "bytes": 188,
+      "sha256": "665dbe8e1327c79c26b29c190111f7d023a73518d324380f62072399b6bad027"
+    },
+    "work/UniXNU-j716f-xnu-storage-r30/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/AGENTS.md": {
+      "bytes": 768,
+      "sha256": "ec7aa352ef3e8bb3e81cc3d067927a8b45bd51de613b0fa32a0405a0987235aa"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/README.md": {
+      "bytes": 507,
+      "sha256": "aea298042fb6ff787bb930ff73f0732f3500f969f80c80ef9c976b08b254ce2f"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/board.toml": {
+      "bytes": 1903,
+      "sha256": "b9183bd10ff6bab13a9a5ca383c11eaead7e50577bf9d0a5c7be0831b8344600"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/build-inputs.toml": {
+      "bytes": 272,
+      "sha256": "98a43e953e75b725550711a059ef3f55ad992f3033f77d83316046c44271d61d"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/configs/j716f_xnu_ufs_power_r31_defconfig": {
+      "bytes": 795,
+      "sha256": "62ca1790a6f382858b7a9476041c7e3e8a04c47e771baab9eb97130cd0157688"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/feeds.toml": {
+      "bytes": 321,
+      "sha256": "a9fa2ba8f01445a73695641289d2652d34591ba335f276656e5ce46996a31e53"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/firmware-expectation.json": {
+      "bytes": 38792,
+      "sha256": "e3c07cc5ee7518e71619a5326a3a4e29119c2f9ac9f5402dbbd4adbd31cdd9d7"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/patches/xnu/j716f-earlylog-console.patch": {
+      "bytes": 25956,
+      "sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/patches/xnu/j716f-verbose-text-console.patch": {
+      "bytes": 687,
+      "sha256": "9ff9d62bc25a0d9944a815daa42f262dd03a1ec65d1663d8ba00e93dc585b95f"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/patches/xnu/series": {
+      "bytes": 142,
+      "sha256": "117f16c7399083ca767825b081a504864ae488bf0f6a55688788e735acb16092"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/payload/unixnu.toml": {
+      "bytes": 588,
+      "sha256": "6b76ed71813c0f23f854a80ae155342c2edced2eb56f93233e12f36d4b7791a2"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/socs/sm8250/configs/sm8250.config": {
+      "bytes": 118,
+      "sha256": "9310627f0f0dc4c61dfd667de7526b684a5b025c56c2c6eae1b58388a2c14ce3"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1264,
+      "sha256": "0aad19072382bf609e03c9fcc119f50ad2affbb4a7688abc826588c080200727"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3331,
+      "sha256": "4594be664bb8ba4cf86db5c75a8bee498bc91c49743ac994eb67493bc5a782ec"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1815,
+      "sha256": "466713ab0b38e090d7e1e26d667972d27b0fdd56886b365b8b9f942fc71b8e1a"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/socs/sm8250/patches/xnu/series": {
+      "bytes": 188,
+      "sha256": "665dbe8e1327c79c26b29c190111f7d023a73518d324380f62072399b6bad027"
+    },
+    "work/UniXNU-j716f-xnu-ufs-power-r31/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    }
+  },
+  "policy": "Byte-identical selected source snapshot; generated repo docs are outside this manifest."
+}

@@ -1,0 +1,19 @@
+# Independent r31 source-kernel configuration: iPadOS 17.7.11 / 21H461, arm64, SM8250.
+# This target packages that kernel without rebuilding it; only CPU0 is enabled.
+CONFIG_XNU_SOURCE_CORECRYPTO14=y
+CONFIG_XNU_SOURCE_PTHREAD=y
+CONFIG_XNU_ARM_DT_PLATFORM=y
+CONFIG_XNU_ARMCPU=y
+CONFIG_XNU_CRYPTO_BOOTSTRAP="prelinked"
+# CONFIG_XNU_ARMVIRT_PLATFORM is not set
+# CONFIG_XNU_NATIVE_UFS is not set
+# CONFIG_XNU_NATIVE_ADRENO is not set
+# CONFIG_XNU_NATIVE_LEGACY_DISPLAY is not set
+# CONFIG_XNU_NATIVE_MOBILE_DISPLAY is not set
+# CONFIG_XNU_BOOT_PROGRESS is not set
+# CONFIG_XNU_SHENG_PMGR is not set
+# CONFIG_XNU_OWNER_DATA_MOUNT is not set
+# CONFIG_XNU_OWNER_CACHE_MOUNT is not set
+
+# Preserve the DT panic-region fix in the new source-built kernel.
+CONFIG_XNU_DT_PANIC_REGION=y

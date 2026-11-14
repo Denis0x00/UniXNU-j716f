@@ -1,0 +1,26 @@
+{
+  "source_target": "../UniXNU-j716f",
+  "upstream": "0e2fb2bcdf11b104d28b0d4aae4f77a7945e3de5",
+  "files": {
+    "feeds.toml": "3ee5354f97663adefe6df3462fbabf0d735eb2dd1c9291b1bc5a95b5af904e48",
+    "unixnu.lock": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9",
+    "socs/sm8250/README.md": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732",
+    "socs/sm8250/soc.toml": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01",
+    "socs/sm8250/patches/xnu/native-smp-secondary.patch": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c",
+    "socs/sm8250/patches/xnu/native-smp-type-clusters.patch": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7",
+    "socs/sm8250/patches/xnu/series": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af",
+    "socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476",
+    "socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9",
+    "socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72",
+    "socs/sm8250/dts/sm8250.dtsi": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8",
+    "socs/sm8250/configs/sm8250.config": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac",
+    "patches/xnu/ipados17-series": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d",
+    "patches/xnu/series": "526ca1ca1d92ae45eda5c155309f0941af4c641db8d41f44674a8ffbfcb40e32",
+    "package/.gitkeep": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "package/README.md": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9",
+    "dts/j716f.dts": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a",
+    "docs/hardware-baseline.md": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f",
+    "docs/source-provenance.json": "49d3435f3bfb574df3294b323a57b0314fa3b98fa350afcf4f8a1c7985011a53",
+    "configs/j716f_host_defconfig": "0a61da192fc1ee06cb54bb778c420c30a2ccc5ff4ead40158581ead6e3ca5620"
+  }
+}

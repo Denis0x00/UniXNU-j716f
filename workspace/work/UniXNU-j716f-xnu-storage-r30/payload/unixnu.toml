@@ -1,0 +1,43 @@
+version = 1
+
+[boot]
+timeout = -1
+default = "xnu"
+rotate = 0
+
+[ui]
+title = "J716F XNU storage inputs r30s"
+
+[kits]
+autoload = false
+
+[[entry]]
+id = "xnu"
+title = "Start XNU (storage pre-root checkpoint)"
+type = "xnu"
+path = "Payloads/kernel.macho"
+args = "-v serial=3 j716f-earlylog=1"
+
+[[entry]]
+id = "tools"
+title = "Tools"
+type = "action"
+action = "tools"
+
+[[entry]]
+id = "exit"
+title = "Return to firmware"
+type = "action"
+action = "exit"
+
+[[entry]]
+id = "reset"
+title = "Restart"
+type = "action"
+action = "reset"
+
+[[entry]]
+id = "shutdown"
+title = "Power off"
+type = "action"
+action = "shutdown"

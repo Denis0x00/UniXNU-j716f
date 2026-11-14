@@ -1,0 +1,16 @@
+--- a/makedefs/MakeInc.kernel
++++ b/makedefs/MakeInc.kernel
+@@ -188,6 +188,13 @@ endif
+ # Explicit external source archives participate in incremental relinking.
+ $(TARGET)/$(KERNEL_FILE_NAME).unstripped.noctf: $(XNU_EXTERNAL_KERNEL_ARCHIVES)
+ 
++# This device-local extra archive is absent during the official bootstrap.
++# Once built, changes to it must trigger a fresh native kernel link.
++J716F_UFS_ADAPTER_ARCHIVE := $(wildcard $(OBJROOT)/../../sm8250-ufs-adapter/libSm8250UfsAdapter.a)
++ifneq ($(strip $(J716F_UFS_ADAPTER_ARCHIVE)),)
++$(TARGET)/$(KERNEL_FILE_NAME).unstripped.noctf: $(J716F_UFS_ADAPTER_ARCHIVE)
++endif
++
+ $(TARGET)/$(KERNEL_FILE_NAME).unstripped.noctf: $(addprefix $(TARGET)/,$(foreach component,$(COMPONENT_LIST),$(component)/$(CURRENT_KERNEL_CONFIG)/$(component).filelist)) lastkerneldataconst.o lastkernelconstructor.o nonlto.o version.o $(LDFILES_KERNEL_ONLY) .LDFLAGS $(filter %/MakeInc.kernel,$(MAKEFILE_LIST))
+ ifeq ($(PRE_LTO),1)
+ 	@$(LOG_LTO) "$(@F)"

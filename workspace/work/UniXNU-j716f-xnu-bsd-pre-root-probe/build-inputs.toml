@@ -1,0 +1,8 @@
+[build]
+device = "."
+out = "../UniXNU-core-adt-phandle-r23/out-j716f-xnu-bsd-pre-root-probe"
+uefi = "../uefi-j716f"
+dtb = "firmware/j716f-stock-base00-overlay01-normalized.dtb"
+kernel = "../../artifacts/j716f-host-iokit-cpu0-20261114/kernel.macho"
+target = "DEBUG"
+jobs = 2

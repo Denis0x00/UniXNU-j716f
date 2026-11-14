@@ -1,0 +1,141 @@
+{
+  "upstream_revision": "dff276535db3ac394f628cec58a718cd46c20ac2",
+  "inputs": {
+    "work/UniXNU-j716f-host-cpu0-diag/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/AGENTS.md": {
+      "bytes": 592,
+      "sha256": "62a625e70b6fd79832f23c50b462b01866f6986eaf254cf3df369424ab29511a"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/board.toml": {
+      "bytes": 973,
+      "sha256": "296855bcdb615980d7c125a41a9cbc549b882db33b189e3650ce983dfd49df2b"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/build-inputs.toml": {
+      "bytes": 223,
+      "sha256": "e09f0b96ad24851bf09b02fd18fd884bc00dbaed08a4d7d19aff95a507b058b4"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/feeds.toml": {
+      "bytes": 477,
+      "sha256": "866b715097157efba2f3d229af46450534ae9c4412b589647124af1d8a6d5eeb"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/porting.toml": {
+      "bytes": 14530,
+      "sha256": "580efeb7a2b01b0d3c864499adf4642d354af02c42c3feecc3aa2579deee6f41"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/README.md": {
+      "bytes": 1034,
+      "sha256": "1c0dea9e6cbd47637b148a0b1e1375980b62ebda656d370802022fd9f7ada07c"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/configs/j716f_host_cpu0_diag_defconfig": {
+      "bytes": 767,
+      "sha256": "62adbce2cd5c90eff2bb63c1f7ce200e7b0df5dd6d69bebb0dd125c7a66ada8d"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/docs/source-provenance.json": {
+      "bytes": 4946,
+      "sha256": "84bf78026204326548678109d03ee3a4176d2869b8907117b883b8ccac383bcc"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/scripts/host.py": {
+      "bytes": 2261,
+      "sha256": "21dd9f3bbc72961509790585c447ebb66a1b6a5c3bd72d4ed12a958d86f4c294"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/patches/xnu/series": {
+      "bytes": 126,
+      "sha256": "526ca1ca1d92ae45eda5c155309f0941af4c641db8d41f44674a8ffbfcb40e32"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1315,
+      "sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3420,
+      "sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1865,
+      "sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-cpu0-diag/socs/sm8250/patches/xnu/series": {
+      "bytes": 192,
+      "sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af"
+    },
+    "work/ArmCpu-j716f-diag-20261113/AGENTS.md": {
+      "bytes": 581,
+      "sha256": "c9a41da2c7f662a00ec05e7a89bbb347e6fe6ef8453384e0a809a084ca21eb86"
+    },
+    "work/ArmCpu-j716f-diag-20261113/ArmCpu.cpp": {
+      "bytes": 60870,
+      "sha256": "cc0f9e8aa239c1507b84676614ee78d2390779863ea1df8edcac30313593b404"
+    },
+    "work/ArmCpu-j716f-diag-20261113/Info.plist": {
+      "bytes": 786,
+      "sha256": "e3f8deb8f64851a4ecb7b399d8f2e0ac19142322c255c3176cc2d251b77e4f89"
+    },
+    "work/ArmCpu-j716f-diag-20261113/J716FCpu0DiagCore.h": {
+      "bytes": 5457,
+      "sha256": "9531c130a4715fa6bf6a4fd8207cd3f43ba4ce251289aa0ea597ccc9ca0ec2af"
+    },
+    "work/ArmCpu-j716f-diag-20261113/J716FCpu0DiagRuntime.h": {
+      "bytes": 8983,
+      "sha256": "a8e7bfaf2c3c716430902d0a1ba8f78dab6043f5a9a4ce740b2a3c919fb4f847"
+    },
+    "work/ArmCpu-j716f-diag-20261113/LICENSE": {
+      "bytes": 2724,
+      "sha256": "370e1c48665dc34ca639431a0af1dc2f7418e40cdc3095cd26ca54cee6e8dfb9"
+    },
+    "work/ArmCpu-j716f-diag-20261113/README.md": {
+      "bytes": 6243,
+      "sha256": "d820f469a2f6597de739bbf30442a8f44634f1bc8806180786fbe0488fab1141"
+    }
+  }
+}

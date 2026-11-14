@@ -1,0 +1,4 @@
+# SM8250 8-core SMP + E/P cluster Edge scheduler (from UniXNU & UniXNU-pipa)
+native-smp-secondary.patch
+native-smp-type-clusters.patch
+arch:../../../patches/xnu/sheng-platform-power.patch

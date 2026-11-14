@@ -1,0 +1,5 @@
+# Isolated Denis PE_create_console verbose-console hunk; no VFS or ISB changes.
+j716f-verbose-text-console.patch
+j716f-earlylog-console.patch
+j716f-storage-init.patch
+j716f-storage-dependency.patch

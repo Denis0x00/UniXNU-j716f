@@ -1,0 +1,2255 @@
+{
+  "origin": "Independent r30 storage bridge over accepted host-iokit-cpu0 target",
+  "upstream_revision": "7b730b231746667d8b7f54746c2c1ce45852611c",
+  "source_delta": "Seven-TU archive, two startup/dependency patches and its explicit linker setting",
+  "retained_patch_count": 60,
+  "new_patch_count": 2,
+  "archive_recipe_count": 9,
+  "fresh_compile_records_required": true,
+  "effective_config_delta_from_iokit_cpu0": {
+    "XNU_EXTRA_LD_ARCHIVES": "-Wl,-force_load,{tree}/build/j716f-storage-r30/libJ716fStorageBringup.a"
+  },
+  "logging_patch_sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708",
+  "inputs": {
+    "UniXNU/components.toml": {
+      "bytes": 20365,
+      "sha256": "af721e73ce1923675675e98579514e3f0f1593a4c0192e17bb364d701a0131a8"
+    },
+    "UniXNU/drivers/ArmDTPlatform/AGENTS.md": {
+      "bytes": 2171,
+      "sha256": "80fdedcc75e3f92c502f3bab6fe88ac1f6993cec60ec31a5acf12704787659bf"
+    },
+    "UniXNU/drivers/ArmDTPlatform/ArmDTPlatform.cpp": {
+      "bytes": 12688,
+      "sha256": "44551e5f4071b22f8b0d17d5371049e0350499c9d07ef10d451654b94a51f834"
+    },
+    "UniXNU/drivers/ArmDTPlatform/Info.plist": {
+      "bytes": 890,
+      "sha256": "05bb7b66bd285839feb1a57a903adcafcf5de235d7af1f458fbcce5d6eb59a43"
+    },
+    "UniXNU/drivers/ArmDTPlatform/LICENSE": {
+      "bytes": 2733,
+      "sha256": "4e1f7091cbd25b42600ee9cfa9e69b2cb5af4225f3e495b602a03fbb3c02b706"
+    },
+    "UniXNU/drivers/ArmDTPlatform/README.md": {
+      "bytes": 274,
+      "sha256": "0a53fa76e02d567749510959045dbd67159851015f7e17a44ffd78d70ae1fb12"
+    },
+    "UniXNU/drivers/DarwinBoot/AGENTS.md": {
+      "bytes": 2138,
+      "sha256": "934f68eefa8ad061c2bca1acf76ea30991fe2ba59f2c9db77ae3f9552c864c0a"
+    },
+    "UniXNU/drivers/DarwinBoot/DarwinBootPkg/DarwinBoot.dsc": {
+      "bytes": 1510,
+      "sha256": "1871b11909136c864613f10bc8e19fbc2cf9f5fd61d3bb8ed6894be8bb39ff38"
+    },
+    "UniXNU/drivers/DarwinBoot/DarwinBootPkg/Driver/BootArgs.h": {
+      "bytes": 1045,
+      "sha256": "db3280da9e21ca550c6b3eae71962de700726cefad610125a550c142de2299b4"
+    },
+    "UniXNU/drivers/DarwinBoot/DarwinBootPkg/Driver/BootVideo.h": {
+      "bytes": 1495,
+      "sha256": "8ec83f77a2ef9b9cb0a5bac04698521061d463ba5cf0cde8323794f812b6861a"
+    },
+    "UniXNU/drivers/DarwinBoot/DarwinBootPkg/Driver/DarwinBoot.c": {
+      "bytes": 53794,
+      "sha256": "ccabf14f4265d30a706abff50c63c2cfd1e7ecd699744eb91909dc3b73ef4540"
+    },
+    "UniXNU/drivers/DarwinBoot/DarwinBootPkg/Driver/DarwinBoot.inf": {
+      "bytes": 939,
+      "sha256": "925b356f6c36296b62230d43105e44805a15ee81d6ed9bff69bf51cf09072890"
+    },
+    "UniXNU/drivers/DarwinBoot/DarwinBootPkg/Driver/DiagFont.h": {
+      "bytes": 3784,
+      "sha256": "7749b211129f6f669f53fd9ee16b8e8dc9464aad41ba1bb6f7ce9b45c4eb2f1d"
+    },
+    "UniXNU/drivers/DarwinBoot/DarwinBootPkg/Driver/Entry.S": {
+      "bytes": 1364,
+      "sha256": "b0d8c8d0f6bcc750667ced9d23c039528e609487fdeaa68e0e20dfbe69030532"
+    },
+    "UniXNU/drivers/DarwinBoot/DarwinBootPkg/Driver/LoaderInputs.h": {
+      "bytes": 14200,
+      "sha256": "6d0a1d23207221df6587aeec1e9e9ae09540fafcfb316244d49a128dbbb1c2c2"
+    },
+    "UniXNU/drivers/DarwinBoot/DarwinBootPkg/Driver/MemoryWindow.h": {
+      "bytes": 12594,
+      "sha256": "3e9ad0870a90e0d22ee3b2933b4eb6eb0b313f55bb66e7ba7d74c8f2cc7cd06b"
+    },
+    "UniXNU/drivers/DarwinBoot/DarwinBootPkg/Driver/PackedRamdisk.h": {
+      "bytes": 2891,
+      "sha256": "b06f5b3e39571b6b595c3951ef791b78fc8723ba17528f42ddbb824ae52aff0b"
+    },
+    "UniXNU/drivers/DarwinBoot/DarwinBootPkg/Driver/WindowSize.h": {
+      "bytes": 436,
+      "sha256": "1e83b32e1a89dbcae9951b59af8602c455fbc13f78d57329c50750c53031eed2"
+    },
+    "UniXNU/drivers/DarwinBoot/LICENSE": {
+      "bytes": 2728,
+      "sha256": "d1ceae8ada0f626296e10a14e85a77773daa5eae31be3060bb744c547207052c"
+    },
+    "UniXNU/drivers/DarwinBoot/README.md": {
+      "bytes": 4197,
+      "sha256": "acf4d4029b5f68ad755e7bcc474c6eecec284ac84d915bf2901e2749a8aa9981"
+    },
+    "UniXNU/drivers/DarwinBoot/Test/Kernel.S": {
+      "bytes": 3806,
+      "sha256": "bbcb5b437addb5e8abf39c8ef2c52da85d28aadc71c628ec5c54fa2c43995abb"
+    },
+    "UniXNU/drivers/DarwinBoot/Test/make-fixtures.py": {
+      "bytes": 7455,
+      "sha256": "5fba354a76df7033ce95427064b9e642d83082995ef4ea22c8dadd48bf8288c9"
+    },
+    "UniXNU/drivers/DarwinBoot/Test/packed_ramdisk.py": {
+      "bytes": 6475,
+      "sha256": "2291ff803553ee6e5431a4ce3770a36dab0a09f0d1fe036d3e1264ee5dd2a3b3"
+    },
+    "UniXNU/drivers/DarwinBoot/Test/test-adt-window.py": {
+      "bytes": 6911,
+      "sha256": "700a587b817650275548837b4bf31802e92adb5b867c742862e452a42d572d04"
+    },
+    "UniXNU/drivers/DarwinBoot/Test/test-kernel-parser.py": {
+      "bytes": 3206,
+      "sha256": "b3b87de8908dbb30f55fb7732826a2449f568faf32b9ae0d59ab7f8121d86757"
+    },
+    "UniXNU/drivers/DarwinBoot/Test/test-loader-inputs.py": {
+      "bytes": 27906,
+      "sha256": "05d922c01ab62f960a5cc10cf7a44dddaafd9c9d72924b9476d1281599a0dea9"
+    },
+    "UniXNU/drivers/DarwinBoot/Test/test-memory-outside.py": {
+      "bytes": 6437,
+      "sha256": "01576cef7d2bc45dd7a0440eab07762895bcbf265eea1d8b132b2f977ad40314"
+    },
+    "UniXNU/drivers/DarwinBoot/Test/test-memory-window.py": {
+      "bytes": 12930,
+      "sha256": "c6b903960200e3205fdf05a867339184a0998f74bae6e55cb19821ec5a03a5f3"
+    },
+    "UniXNU/drivers/DarwinBoot/Test/test-packed-ramdisk.py": {
+      "bytes": 3660,
+      "sha256": "80002cb3ca801c22f251b0c26e7043993fecf2cb25fb9dbd7731ecc4785798a2"
+    },
+    "UniXNU/drivers/DarwinBoot/Test/Validation.c": {
+      "bytes": 6469,
+      "sha256": "427d9e6e2e89200aaeb88a7a548379fd4655386d00ea5cddc4790ce0b367c4ff"
+    },
+    "UniXNU/drivers/DarwinBoot/Test/Validation.inf": {
+      "bytes": 540,
+      "sha256": "2f4711ac372b50f1b6f724d2b433e590aa1d06d3474729bb96e39ce9c28e061a"
+    },
+    "UniXNU/drivers/DarwinBoot/Test/window-size.c": {
+      "bytes": 529,
+      "sha256": "95d7aa6401802402f1663c66d273545a331c685f883167f88d7ecc3dc4a302cc"
+    },
+    "UniXNU/drivers/SoftwareAES/AGENTS.md": {
+      "bytes": 2181,
+      "sha256": "67c63ec068d0f0caa06dd8d0b8c6814cef4767eec7f7bbbff85e24dbe59e1b8b"
+    },
+    "UniXNU/drivers/SoftwareAES/LICENSE": {
+      "bytes": 2733,
+      "sha256": "4e1f7091cbd25b42600ee9cfa9e69b2cb5af4225f3e495b602a03fbb3c02b706"
+    },
+    "UniXNU/drivers/SoftwareAES/NativeAES.cpp": {
+      "bytes": 14043,
+      "sha256": "2404875e8ba1d14c5ca933526a4546e301ce285598cee2f47a84019ae9805a0a"
+    },
+    "UniXNU/drivers/SoftwareAES/OriginalAESABI.h": {
+      "bytes": 2753,
+      "sha256": "c89dfd6ea617827fa0329d27aa1f985e6ebbe42792d9bc69900692e1465b612a"
+    },
+    "UniXNU/drivers/SoftwareAES/README.md": {
+      "bytes": 633,
+      "sha256": "dd3a4bb10e1226fdb06ea82560f8475ec07da2546cd05716d84231fcaa5d4c49"
+    },
+    "UniXNU/feeds.toml": {
+      "bytes": 2454,
+      "sha256": "d0a55d82dc011a3c1cf95d3bcd5333c67283b8c9d44010e4d154ab59562b3091"
+    },
+    "UniXNU/kits/XnuPrelink/.gitignore": {
+      "bytes": 21,
+      "sha256": "01d8d0360f02a0c00e236a4eb2a1d8bdf83377acf442eaafad7a136bf14d6bb0"
+    },
+    "UniXNU/kits/XnuPrelink/AGENTS.md": {
+      "bytes": 2164,
+      "sha256": "4ca3cac1df62967d0fe2f130aa60d7f73f2fa0748106c7321e6ab4daedbd0065"
+    },
+    "UniXNU/kits/XnuPrelink/emit_prelink.py": {
+      "bytes": 24418,
+      "sha256": "83e1395f8ec22307b0a0592962e8c04e48aeace95a277a24fb83919ed040bd4d"
+    },
+    "UniXNU/kits/XnuPrelink/fileset_emit.py": {
+      "bytes": 44875,
+      "sha256": "ef3bb9ded403882a47c2c8971063f6a266c9640df89ef30dfd97fdea34b931d9"
+    },
+    "UniXNU/kits/XnuPrelink/fileset_layout.py": {
+      "bytes": 18763,
+      "sha256": "5538b8911d3e6c2c58819fb7e77cebc9631690b847196ee84f6b3a1f319affe9"
+    },
+    "UniXNU/kits/XnuPrelink/fileset_match.py": {
+      "bytes": 57589,
+      "sha256": "bc2de4c8b312988847c728fc8051305de42c8f53e39351498168c95879e8fd57"
+    },
+    "UniXNU/kits/XnuPrelink/fileset_names.py": {
+      "bytes": 7801,
+      "sha256": "85bc4089f443433d72cab7eec540e37ee1aeaafb6b6e1fa05ff180a5de68ce19"
+    },
+    "UniXNU/kits/XnuPrelink/fileset_segmented.py": {
+      "bytes": 22736,
+      "sha256": "37b39d24fce69d077f08673f4ced84ca2c2dc189c461835ca21e4d7701cfcf33"
+    },
+    "UniXNU/kits/XnuPrelink/fileset_shape.py": {
+      "bytes": 2308,
+      "sha256": "2b24120e7fbcf99966153b54594d1e2629a4706f807b19061f891b711a415348"
+    },
+    "UniXNU/kits/XnuPrelink/fixtures/fileset-23F84-symbols.json": {
+      "bytes": 43012,
+      "sha256": "de60074a80f34367db3824ec7c193cc9d546f184e9818046aee851f6af14863a"
+    },
+    "UniXNU/kits/XnuPrelink/fixtures/fileset-24A446-symbols.json": {
+      "bytes": 94077,
+      "sha256": "9c8b41d9e92134d506beedc512d90ebfed68d68eaa7345653bae6ef2a93eb1ed"
+    },
+    "UniXNU/kits/XnuPrelink/fixtures/fileset-26C5035r-symbols.json": {
+      "bytes": 976,
+      "sha256": "633fe40692da9338d4f6ab408f25d8ba5056413aa75214567a58fe40f1c10e52"
+    },
+    "UniXNU/kits/XnuPrelink/kc_image.py": {
+      "bytes": 11190,
+      "sha256": "3980c263ab44adcd61721477358f98f9d7294c1e3ffe54faf71f38062b585ea1"
+    },
+    "UniXNU/kits/XnuPrelink/LICENSE": {
+      "bytes": 2724,
+      "sha256": "2ae69e7ac990c1301232222467e07ac9fa01483aaae0a3cc826a315919610e15"
+    },
+    "UniXNU/kits/XnuPrelink/native_prelink.py": {
+      "bytes": 12987,
+      "sha256": "a2da7ea8a4431f6c26418ecab9be718c0fbd2f0aa2334ba8d32c2270d2ac81dc"
+    },
+    "UniXNU/kits/XnuPrelink/patches/xnu-10063.141.1-security-init.patch": {
+      "bytes": 2151,
+      "sha256": "fae782159b8d607aca4c1515ce8e3238c76dfe5d1a50f1ada7af7735f132ee5c"
+    },
+    "UniXNU/kits/XnuPrelink/patches/xnu-10063.141.1-sparse-index.patch": {
+      "bytes": 4073,
+      "sha256": "069ca135cec3eea8ba29aa007bc7141d5a19d5e037c4ca4b09cdabf320d2feca"
+    },
+    "UniXNU/kits/XnuPrelink/README.md": {
+      "bytes": 5106,
+      "sha256": "402d70a3195a5730988c1798ab2f22c31ded04cf2d127de88b70b5710f12359b"
+    },
+    "UniXNU/kits/XnuPrelink/test_codeless.py": {
+      "bytes": 3013,
+      "sha256": "81070184822151a04b0321f6a18a2dc7407e4b3290b5b8ca79a9fec8f296d4d0"
+    },
+    "UniXNU/kits/XnuPrelink/test_emit_prelink.py": {
+      "bytes": 13286,
+      "sha256": "8468ac5f0adcf73987bb5acf2f740badf76bc144dd5ca9e4adb8020a211e3cb5"
+    },
+    "UniXNU/kits/XnuPrelink/test_fileset_emit.py": {
+      "bytes": 10593,
+      "sha256": "46433f6a2ce95743d16c957f0770fffcedb34038037e67a3170187088f03b106"
+    },
+    "UniXNU/kits/XnuPrelink/test_fileset_layout.py": {
+      "bytes": 8624,
+      "sha256": "88e65b930a31c9d4dad6ea03aaba2752890e415e0ca1ae928f5967f7d3269592"
+    },
+    "UniXNU/kits/XnuPrelink/test_fileset_match.py": {
+      "bytes": 8861,
+      "sha256": "52e4795b22de2ff8b3be6baaab1e49a248459bdf5d0b1882c053b65a52571f6f"
+    },
+    "UniXNU/kits/XnuPrelink/test_fileset_shape.py": {
+      "bytes": 1765,
+      "sha256": "43a2fb4b544ca61ab4ee8c685df776c124da2245fd15ba0cceb10d1450e4945a"
+    },
+    "UniXNU/kits/XnuPrelink/test_native_prelink.py": {
+      "bytes": 7048,
+      "sha256": "9dd7567686286a51669b871a3cd36baadbb32da28beb86ff586bb01a7d5962cf"
+    },
+    "UniXNU/patches/xnu/apple-only-cpu-tunables.patch": {
+      "bytes": 783,
+      "sha256": "91e431249a4d756bfca8b1800b4b283340c86d1899ec8196a2fe873e8d3c251e"
+    },
+    "UniXNU/patches/xnu/architectural-timer-entry.patch": {
+      "bytes": 395,
+      "sha256": "809b0c951545d889a2a37c730189283e7e890340894bab6d937c914dbd20b8e5"
+    },
+    "UniXNU/patches/xnu/armvirt-platform-personality.patch": {
+      "bytes": 990,
+      "sha256": "00e7054c9ff2ae82b66f27bfbefd7620e9000503ea5b38b80aa90aab1e4b7225"
+    },
+    "UniXNU/patches/xnu/cxx-flag-dependencies.patch": {
+      "bytes": 4316,
+      "sha256": "a435e8797ed24a8338db53d0eaac49c163f90170c1fb7946d0c5cdee9d7d4b52"
+    },
+    "UniXNU/patches/xnu/disabled-deferred-reclaim.patch": {
+      "bytes": 261,
+      "sha256": "817a0b017aebb21f773aafe2b92a81be076abc66e29275d57220635339a407e1"
+    },
+    "UniXNU/patches/xnu/external-archive-dependencies.patch": {
+      "bytes": 923,
+      "sha256": "0a571de8361845266d7d419b0b3d5ebadbef986840c7e06eb981c0960d7fe374"
+    },
+    "UniXNU/patches/xnu/kernel-sdk-root.patch": {
+      "bytes": 1258,
+      "sha256": "2bcf10f4bf171afbc358cb64e9bc742563dd21f5eadf0e7a17936e87fa8ba43d"
+    },
+    "UniXNU/patches/xnu/local-availability.patch": {
+      "bytes": 503,
+      "sha256": "a051857d524f8836068fd2f1182ebe9e9d9ccf28b9560fb27ad634b0cb93270e"
+    },
+    "UniXNU/patches/xnu/mockfs-intermediate-lookup.patch": {
+      "bytes": 440,
+      "sha256": "51a5b76873c2a39b777bd4f1f5e78730ce72e93d548de6fbe4655f107731fa00"
+    },
+    "UniXNU/patches/xnu/mockfs-memory-device-width.patch": {
+      "bytes": 983,
+      "sha256": "506f4ba36e30a700f0d27370d07abbde6e2c689d13fbad3400a6b940569ae30a"
+    },
+    "UniXNU/patches/xnu/mockfs-statfs.patch": {
+      "bytes": 1251,
+      "sha256": "58c9a51909b12dca9cd1ac2fdb94be748b43be1c979383b9504a0304fb16a809"
+    },
+    "UniXNU/patches/xnu/mockfs-test-file.patch": {
+      "bytes": 9938,
+      "sha256": "4a1ef86e0bdca7b633f59885961be1939574f8ba9814d1d75ebbfd0a7a8bd919"
+    },
+    "UniXNU/patches/xnu/mockfs-typed-allocation.patch": {
+      "bytes": 707,
+      "sha256": "44dfe8ea590336fae48a4d5f7b8fd478a435d591a34ba77fe1d0a961c630ad57"
+    },
+    "UniXNU/patches/xnu/native-4k-bootstrap-capacity.patch": {
+      "bytes": 2300,
+      "sha256": "4ac39b497d88b28432bc7844c7137c8d2acc1992bef53f68c3512523a80b13a3"
+    },
+    "UniXNU/patches/xnu/native-4k-signature-hash-cache.patch": {
+      "bytes": 10363,
+      "sha256": "a12be973c4eb525cb4309c759d5bae970b158f2928f284615ba6d6969f445eb4"
+    },
+    "UniXNU/patches/xnu/native-4k-user-abi.patch": {
+      "bytes": 3136,
+      "sha256": "981ac483ae898426486aab475e22b2286bc1d820ad047c566182c3fbf435f6d4"
+    },
+    "UniXNU/patches/xnu/native-aes-personality.patch": {
+      "bytes": 1737,
+      "sha256": "02fe52c87a6bd801e602d03b54ce51de1362a2f2c6f75f5fc08122d3901aefff"
+    },
+    "UniXNU/patches/xnu/native-arm-pan.patch": {
+      "bytes": 402,
+      "sha256": "7948f0ca8ad0ac5313a32bc8d9377290f88a7d64c880bbfac8e2b4c092e916f6"
+    },
+    "UniXNU/patches/xnu/native-dt-panic-region.patch": {
+      "bytes": 1571,
+      "sha256": "b60c2a9a72ea23832f1e64348a5c5d1152cf05db6c156283dd8a93c804cd89cb"
+    },
+    "UniXNU/patches/xnu/native-lookup-trace.patch": {
+      "bytes": 1797,
+      "sha256": "a9636d507e1d03fa87e79ec28d6f2007bb5f2563052e863a0de5b75cef21717f"
+    },
+    "UniXNU/patches/xnu/native-priv-work-interval.patch": {
+      "bytes": 747,
+      "sha256": "6250b487e67dd35e97da59cc79040aa5d73f11106fbe5bc07e81047c4c33e2ed"
+    },
+    "UniXNU/patches/xnu/native-quiet-managed-page-report.patch": {
+      "bytes": 1228,
+      "sha256": "3044601dad4bcb731a46285e65e82129bbc3a6d5e85138e29543b06f18d13a3c"
+    },
+    "UniXNU/patches/xnu/native-text-fixup.patch": {
+      "bytes": 7297,
+      "sha256": "c4dabb43d79fe23970ef24498f9cccaf15d1a9f6af23b7f2952bd75b3f248d9b"
+    },
+    "UniXNU/patches/xnu/native-trust-cache-runtime.patch": {
+      "bytes": 336,
+      "sha256": "19e000ca6f70a8ddfefa503d2936894dd8315fae3ca2fb3e50d666d65252de79"
+    },
+    "UniXNU/patches/xnu/native-union-getattrlistbulk.patch": {
+      "bytes": 1939,
+      "sha256": "f5d665fd7250717cfacced8408a0b94f282eb2764e514f61a378f7d085c7a03b"
+    },
+    "UniXNU/patches/xnu/native-union-lower-directory.patch": {
+      "bytes": 532,
+      "sha256": "b39e077b190134caae1842d07758795bf15b408eb637701a41b603825e5d563b"
+    },
+    "UniXNU/patches/xnu/native-work-interval-instance.patch": {
+      "bytes": 712,
+      "sha256": "807df62245701f999fb5c7033a9f03a4fab195e619a0c0607fd6481d19d4c1c8"
+    },
+    "UniXNU/patches/xnu/native-work-interval-soft-fail.patch": {
+      "bytes": 925,
+      "sha256": "b163b85e0340abf2da104527a3b5c3c4e72abe6cacabb3bacb6001e84a67f3fe"
+    },
+    "UniXNU/patches/xnu/native-work-interval-trace.patch": {
+      "bytes": 1565,
+      "sha256": "f2c11511c172929572c3b075b0b0f3b8ae2c63d6f229c489c0339acc4f39815c"
+    },
+    "UniXNU/patches/xnu/non-apple-cache-monitor.patch": {
+      "bytes": 869,
+      "sha256": "116ee4e61fb68e4a403049e349ceb23334e2eff0bec0eb11dc3bd5f3259fabdf"
+    },
+    "UniXNU/patches/xnu/non-apple-iommu-bootstrap.patch": {
+      "bytes": 2647,
+      "sha256": "a53aaf1073976aed1561cb609763c7a4214e245a50fb534cc77b643808df9e70"
+    },
+    "UniXNU/patches/xnu/non-apple-pmap-field.patch": {
+      "bytes": 268,
+      "sha256": "82fe0a5021d59ddb766884f802f960ad67d61be63596f0bde136bf3875ff3ff8"
+    },
+    "UniXNU/patches/xnu/null-root-media.patch": {
+      "bytes": 835,
+      "sha256": "a67ce9afd5af8178e83089ace6ce5d21f5e820b69e4c70dfc2cdae1be274678a"
+    },
+    "UniXNU/patches/xnu/offline-component-load-probes.patch": {
+      "bytes": 6315,
+      "sha256": "288ee8544fef056ebaf5da0d4740d0170788d3c14b6b3b78de140e7d966b8ecb"
+    },
+    "UniXNU/patches/xnu/offline-legacy-start.patch": {
+      "bytes": 551,
+      "sha256": "a6ed6012f215e2c13c09f1b89fe986616af0a0674b0f6e4afd2194d4b8de4c0c"
+    },
+    "UniXNU/patches/xnu/offline-native-gpu-broker.patch": {
+      "bytes": 369,
+      "sha256": "dc7590c3298ead78a843f098d3f47df57350e15b30746890b162a24b6eb182f5"
+    },
+    "UniXNU/patches/xnu/offline-owner-boot-manifest.patch": {
+      "bytes": 3001,
+      "sha256": "840a73448459b0ddad1ad7d8525ffb3bd0826d58a7e732f8283a4222c2df175e"
+    },
+    "UniXNU/patches/xnu/offline-owner-cache-carrier.patch": {
+      "bytes": 4742,
+      "sha256": "11b292274599c7161d5eaef627d11934166b136c5e8c31098bcabb2569da3d0e"
+    },
+    "UniXNU/patches/xnu/offline-owner-root-binding-audit.patch": {
+      "bytes": 2968,
+      "sha256": "f77d07af625d8cf2404185717e58738841ff453735f260fd7dc3c4e8526a4e69"
+    },
+    "UniXNU/patches/xnu/offline-owner-root-crypto-probe.patch": {
+      "bytes": 495,
+      "sha256": "35415f0a13a2770d835f0e837ecc47e6fa51934a6faa1edfc6900e5f5d479e4d"
+    },
+    "UniXNU/patches/xnu/offline-owner-systemos-mount.patch": {
+      "bytes": 14467,
+      "sha256": "42d5642e103d25955db2864ef4cb63a2c14ae94a43b71ac2418b1e587f8de46c"
+    },
+    "UniXNU/patches/xnu/offline-owner-z-air-init.patch": {
+      "bytes": 745,
+      "sha256": "5b1b1252a0614eee6926fb05def89c49008a6d891dc8760e7d126d1a444ac6d9"
+    },
+    "UniXNU/patches/xnu/offline-pgz-alignment-probe.patch": {
+      "bytes": 3734,
+      "sha256": "632daaab2392352c69226670750285ead5bbf5aa90ea93198a7c79525a23ea0f"
+    },
+    "UniXNU/patches/xnu/pgz-aligned-validation.patch": {
+      "bytes": 458,
+      "sha256": "b1c0e2a78de033f9c9b234820e9be93756dcd6765af8a1ecb76b209476058f25"
+    },
+    "UniXNU/patches/xnu/public-entitlements-header.patch": {
+      "bytes": 1087,
+      "sha256": "c6922bcfde308a02b39570f5f9af8d24e4cf4d88254a80e80218b6d410a784b8"
+    },
+    "UniXNU/patches/xnu/published-freezer-condition.patch": {
+      "bytes": 567,
+      "sha256": "644646451d10ea720414c8ed7b31a5aa63846018a3bb686b966565169fbc9688"
+    },
+    "UniXNU/patches/xnu/source-corecrypto14-bootstrap.patch": {
+      "bytes": 1408,
+      "sha256": "041f0d0627e83f5c276cfa87130cec04907cdd02682428d069af2a9af2a16ebd"
+    },
+    "UniXNU/patches/xnu/source-machine-layer.patch": {
+      "bytes": 3342,
+      "sha256": "1538783d2e5956f8ba65baeca4e9490711c43b8825123860847778b256291573"
+    },
+    "UniXNU/patches/xnu/source-pthread-bootstrap.patch": {
+      "bytes": 948,
+      "sha256": "1bbf00cc2b4e8f227dddf2807818d10e07325beea8e6c2c0b12106228d31d643"
+    },
+    "UniXNU/patches/xnu/zzw-native-adreno-sandbox-grant.patch": {
+      "bytes": 2702,
+      "sha256": "07992b1f83014191fcf422d6924fa53b3008560d9eb73a4d2cf340941e564c56"
+    },
+    "UniXNU/patches/xnu/zzwb-native-sandbox-grant-set-properties.patch": {
+      "bytes": 889,
+      "sha256": "20ceb08c197d4da0f30e59a42db6a0ab8a2a3109218c3204e67ee2956423381b"
+    },
+    "UniXNU/patches/xnu/zzx-pmap-sync-64bit-pa.patch": {
+      "bytes": 1224,
+      "sha256": "b8419e7779f49c9c5360a8ae8e9b52a78968511a9e24e43b9edb799793e04496"
+    },
+    "UniXNU/patches/xnu/zzy-native-gpu-addon-mount.patch": {
+      "bytes": 16342,
+      "sha256": "16cac9052e1bd78728649697cf6c8a248d784dba0355f6d8e16f462b81bef161"
+    },
+    "UniXNU/patches/xnu/zzy-staged-system-apps.patch": {
+      "bytes": 12315,
+      "sha256": "66ebb3560de7be02e391a5a93c7d84edcf08e508e2c1b005445538c11d09f373"
+    },
+    "UniXNU/patches/xnu/zzyb-native-cryptex-os-view.patch": {
+      "bytes": 7521,
+      "sha256": "299b2c9b2e25168512e95340864b7ae728103164b942f18bb700285267e4836a"
+    },
+    "UniXNU/patches/xnu/zzyc-owner-skip-launch-constraints.patch": {
+      "bytes": 1244,
+      "sha256": "860ee4868bdf227e3311ae1e8d647e55f04aa530c9a5a1ab4a892fe03bf117c4"
+    },
+    "UniXNU/profiles/arch/arm64/configs/common.config": {
+      "bytes": 217,
+      "sha256": "6d65acf73f0b8252e386eccfaabe6093eed7ac3c90d940454eaf37763afdd790"
+    },
+    "UniXNU/profiles/arch/arm64/patches/xnu/series": {
+      "bytes": 3289,
+      "sha256": "9225f0543400d1c091e71d170e9d2783bc2a7dea0356a3f72a4b4fa110546ccd"
+    },
+    "UniXNU/profiles/arch/arm64/profile.toml": {
+      "bytes": 561,
+      "sha256": "9c3c54fbbb2ffd732fd270a3b79e569cd48ec5dc087f764889e29e88981a115c"
+    },
+    "UniXNU/profiles/os/ipados-17.7.11-21H461/configs/ipados.config": {
+      "bytes": 134,
+      "sha256": "cbd8a664410ef32d0a48e518be76d41656d2324943cc585a4f6f166782c92dd9"
+    },
+    "UniXNU/profiles/os/ipados-17.7.11-21H461/patches/xnu/series": {
+      "bytes": 179,
+      "sha256": "82469c3137c1c1bf0679b38849a1beddacdb671d5beb0d720533b0b2788ec667"
+    },
+    "UniXNU/profiles/os/ipados-17.7.11-21H461/profile.toml": {
+      "bytes": 4647,
+      "sha256": "6206f05d6e8e983adf84e4dd9f9cc26e1be5158c1510bfcacfeb0c530685ebdd"
+    },
+    "UniXNU/scripts/absent-service/absentd.c": {
+      "bytes": 3030,
+      "sha256": "75c4333bcac915a6b0efda296347a6b7c3437382575f3af3cdd73aec1cb2df3e"
+    },
+    "UniXNU/scripts/absent-service/build.py": {
+      "bytes": 1617,
+      "sha256": "6fff0c7dd09bd165fed370939fbeb1878342a5c51419a1fe8be43587b0e55bbb"
+    },
+    "UniXNU/scripts/add-gpu-plugin-data.py": {
+      "bytes": 5936,
+      "sha256": "85f7770542666e005122e21db1a0ce2f23c69183892756b83832f24614d64531"
+    },
+    "UniXNU/scripts/addon-add-dir.py": {
+      "bytes": 1981,
+      "sha256": "f7038c80ac859ab48bfc6ffeac95d746b4b4ba4e2c7f50b9d56ab78af419acd8"
+    },
+    "UniXNU/scripts/analyze-corecrypto-edges.py": {
+      "bytes": 3624,
+      "sha256": "d6184580232ddb04470745176db4373abfece15255e03cc6336d51354ca85ce5"
+    },
+    "UniXNU/scripts/appsync/appinst.m": {
+      "bytes": 2218,
+      "sha256": "805f365be401a168f98ec5f5ed0884028e33f331e7cc94e0aca14c6ded342fce"
+    },
+    "UniXNU/scripts/appsync/AppSync.m": {
+      "bytes": 6160,
+      "sha256": "44a23a95d6c9dbb98ccd1e612f26e4ed4adbc8ed49738e35d65003cdd2847287"
+    },
+    "UniXNU/scripts/appsync/BacklightMode.m": {
+      "bytes": 1576,
+      "sha256": "a0ca3d1cb42ad549690fb4610549091f747ca6129ccdefc5dba15b4c5be2fb18"
+    },
+    "UniXNU/scripts/appsync/build.py": {
+      "bytes": 7892,
+      "sha256": "c7373c794d15772c40e3c4416193f88c761063a538d4ebbd231d46f92e23d7e8"
+    },
+    "UniXNU/scripts/appsync/ldid-adhoc.patch": {
+      "bytes": 5147,
+      "sha256": "d01dcfafca63a3d448449cc2feb89f6a549b70994ff8dfc4d43eae4c254f9b82"
+    },
+    "UniXNU/scripts/appsync/ldid-library.cpp": {
+      "bytes": 3633,
+      "sha256": "a9277e563a6bb4a32d19b1886f04cdb2722cfdcfc35b6c1af4ae5ef124cd7ee7"
+    },
+    "UniXNU/scripts/appsync/LICENSE": {
+      "bytes": 1404,
+      "sha256": "442f8326b62909b29d05c8fa840f6993ee44501ccf0decf5143a86bad4b26dc6"
+    },
+    "UniXNU/scripts/appsync/macho.py": {
+      "bytes": 2507,
+      "sha256": "223107b811c2a8f816f5fa84ccbdb495c8c0ec9ab6806329d4461191fd11631a"
+    },
+    "UniXNU/scripts/appsync/README.md": {
+      "bytes": 6984,
+      "sha256": "6699666502497776989bfaffa21b04676884ac9ba1afd49a70621d0d5ff0cbb8"
+    },
+    "UniXNU/scripts/appsync/signer-sources.json": {
+      "bytes": 1138,
+      "sha256": "4d5747e2dc9ff9b7f2f5b1ddd895d3dd271d5024871f830c35cbfcc5a65e31e7"
+    },
+    "UniXNU/scripts/appsync/signer.py": {
+      "bytes": 9159,
+      "sha256": "0994a1c3ecdd3e81dce7833831f38d49472343b1dc88c4b0e6d056de246b0695"
+    },
+    "UniXNU/scripts/appsync/Signing.h": {
+      "bytes": 165,
+      "sha256": "29c9da391a8fbe7736405d0405deb2749856e57500fb403ca9292bc20832e2fb"
+    },
+    "UniXNU/scripts/appsync/Signing.m": {
+      "bytes": 8530,
+      "sha256": "4a6ea284f6afa85950de365d458d5ad36bacf1f7a433536bc4720f44ec3d421e"
+    },
+    "UniXNU/scripts/appsync/test-runtime.m": {
+      "bytes": 4011,
+      "sha256": "3412a7a6e2e48a62fa72f66205eba0583a249d6109052f093dcd33f525c7f373"
+    },
+    "UniXNU/scripts/appsync/test-signing.m": {
+      "bytes": 1671,
+      "sha256": "ab62b5935df9aa17faae216ccf2a7d61f68c7e690a84030b20f3382e200d29ab"
+    },
+    "UniXNU/scripts/appsync/test-trust.c": {
+      "bytes": 5715,
+      "sha256": "cb6508956b8e1da76cd3a440009ed658817039050c41e8dba41a0a826706d1bf"
+    },
+    "UniXNU/scripts/appsync/test.py": {
+      "bytes": 16213,
+      "sha256": "4d0fc74a9c25ead6286a004fa77ccdc3c59d0eecd00386487e49328b165f74f9"
+    },
+    "UniXNU/scripts/audit-aes-interface.py": {
+      "bytes": 11427,
+      "sha256": "216245fa2f32bcfcefbad313bb66382b3cc5ddd1cb5826c589f5c881318bade5"
+    },
+    "UniXNU/scripts/audit-amfi-pmgr-contract.py": {
+      "bytes": 7823,
+      "sha256": "19a0429a75341947b6908da69a26c2b9e686602e3b0f8795968009475fe5df08"
+    },
+    "UniXNU/scripts/audit-image4-ignition.py": {
+      "bytes": 5800,
+      "sha256": "fc666eeeb77d8fd28b864fa988024ffc1e242cc73d510e3eb8b497be0f6131be"
+    },
+    "UniXNU/scripts/audit-metal-api-surface.py": {
+      "bytes": 8898,
+      "sha256": "a2e882bc3df07fea5e2f39a81d1edd758240dc05229cc3e294e9e578026d2401"
+    },
+    "UniXNU/scripts/audit-mobile-graphics-legacy.py": {
+      "bytes": 6409,
+      "sha256": "f3ff5f51ab13c7ce89a42be0ef7e503256573a4b29c39d75a1572415a23370f7"
+    },
+    "UniXNU/scripts/audit-mobile-graphics-userclient.py": {
+      "bytes": 10408,
+      "sha256": "6a736b263d1546714afe5e68eeaf88c52094fb2d8da588a841891a45d1af08b0"
+    },
+    "UniXNU/scripts/audit-native-cache-slide.py": {
+      "bytes": 8523,
+      "sha256": "8c2200ee188dc1ef44dc720b1bd52ccbcfe28c77219e1b3feea9da0571254b70"
+    },
+    "UniXNU/scripts/audit-storage-interface.py": {
+      "bytes": 11968,
+      "sha256": "e44fe83cfd7461f2caf9fb48cad95a3c1d0a45cacbee43ef4b07582d851660a1"
+    },
+    "UniXNU/scripts/audit-target-accelerator-base.py": {
+      "bytes": 4894,
+      "sha256": "4f512387d20e216865b26261a4922cba020c05de84b8fec8c2a53abc54d5bcc4"
+    },
+    "UniXNU/scripts/audit-target-air-inputs.py": {
+      "bytes": 11722,
+      "sha256": "552060a33ffe66d986fbe3244b1bab89238a3452c17a773ea6187dc17fadc2ab"
+    },
+    "UniXNU/scripts/audit-target-cache-leaf.py": {
+      "bytes": 7373,
+      "sha256": "5c8e65ead6abec857200fca51cb4f80d0206dc30612b5a08ea5cc6d43469bff7"
+    },
+    "UniXNU/scripts/audit-target-display-query.py": {
+      "bytes": 14533,
+      "sha256": "0b71030faa602b277ada1fb41ddce9c31b6d82d3f91bc333c7fc6d3ee029f57e"
+    },
+    "UniXNU/scripts/audit-target-dyld-cache.py": {
+      "bytes": 6727,
+      "sha256": "29af40bb3876dc55e360233f7f6b45b47fa7296f69b8141554e29f0ca18f0cb3"
+    },
+    "UniXNU/scripts/audit-target-iogpu-client-contract.py": {
+      "bytes": 6006,
+      "sha256": "e78549b43b33a93b24240036a5880954991fefc848afecf33b53acbaf23596c6"
+    },
+    "UniXNU/scripts/audit-target-iogpu-provider.py": {
+      "bytes": 6009,
+      "sha256": "6a043d81085d0c7e01aefd3927fb3e8be6172f9facc50c9dd2c10ffbeec9cae3"
+    },
+    "UniXNU/scripts/audit-target-iogpu-start-contract.py": {
+      "bytes": 13141,
+      "sha256": "27c70f520ec8014eed5a0de18a82a519b29b80e075a9462508d70d4d405a0053"
+    },
+    "UniXNU/scripts/audit-target-iogpu-userclient.py": {
+      "bytes": 5841,
+      "sha256": "5092136ec94ebe1ec512c7f7d51c2c478bb1c1a6e24e6009f6ffac5874b6436b"
+    },
+    "UniXNU/scripts/audit-target-kext-bindings.py": {
+      "bytes": 9228,
+      "sha256": "06ec1ef97f09e599980f38edca10f3ba52f89d258470e81502ac0e434c989937"
+    },
+    "UniXNU/scripts/audit-target-libm-inline-data.py": {
+      "bytes": 5142,
+      "sha256": "b8d99fef7fa6aaf24539d3494080feb3b928c29644561a7d3f724c610c5db935"
+    },
+    "UniXNU/scripts/audit-target-metal-constants.py": {
+      "bytes": 1871,
+      "sha256": "22ebe842a1659cc9327f3f655fe40221fb56340ff59d09119bc8c03dd3afc193"
+    },
+    "UniXNU/scripts/audit-target-metal-device.py": {
+      "bytes": 5449,
+      "sha256": "34e28c305df71ecc33263409e94b3c525bfa51af992de18b7ee450b66515df5f"
+    },
+    "UniXNU/scripts/audit-target-metal-discovery.py": {
+      "bytes": 12559,
+      "sha256": "6d8d2ca8a92a7c729cd7a2a79bb1e41a7a35dcee70c1c0e0a4c3ed3fad4c6e25"
+    },
+    "UniXNU/scripts/audit-target-metal-shared-events.py": {
+      "bytes": 8079,
+      "sha256": "616e71c5364ee36dd96bae9f633a0c3a878d669e3ed129ff0fb1e29e97e7e650"
+    },
+    "UniXNU/scripts/audit-target-renderbox-device.py": {
+      "bytes": 4499,
+      "sha256": "9864b479e7bc4ce6907ca279ff5f2211abdcf73b5e9f7a22bc2cdf20bd406b96"
+    },
+    "UniXNU/scripts/audit-target-root-hashes.py": {
+      "bytes": 3385,
+      "sha256": "25da1773a2d59d88d7b23719204c628cef6724939719a826b4840053bcce1ee9"
+    },
+    "UniXNU/scripts/audit-target-sandbox-client-class.py": {
+      "bytes": 5019,
+      "sha256": "4819665bd7f65d99c703a42701aacbbf98e7f3fd94c38df32c0f3bc459b59a5d"
+    },
+    "UniXNU/scripts/audit-target-userspace.py": {
+      "bytes": 5697,
+      "sha256": "d2f97723a7762ffeb9550177e0e75f98a22cb9f8c399b7aeab80b5c97959edd9"
+    },
+    "UniXNU/scripts/audit-target-xpc-endpoints.py": {
+      "bytes": 4734,
+      "sha256": "28a7a560a6c4420d7211113ef931b075736acad090813733d97d67cb5d94d545"
+    },
+    "UniXNU/scripts/audit-xnu-kernel.py": {
+      "bytes": 2079,
+      "sha256": "008ed91a1a69b021ce02d1991611a1230a8dfb2c097fe53117086e435c2429b5"
+    },
+    "UniXNU/scripts/audit-xnu-objects.py": {
+      "bytes": 2258,
+      "sha256": "45dda2f490a17fec335299e1b3ce61aaa9c58b8da2014bf3dddb5767baf58833"
+    },
+    "UniXNU/scripts/build-adreno-metal-bridge.py": {
+      "bytes": 9689,
+      "sha256": "12543b8f66ebe66c589d6ef5c68d8b737b51ae85c2d979749ccb56a3b0990358"
+    },
+    "UniXNU/scripts/build-adreno-metal-plugin.py": {
+      "bytes": 14165,
+      "sha256": "8e4bbca4d36b317b0c508a3b3e7f2900435486dfc80db3930016997ec8d26995"
+    },
+    "UniXNU/scripts/build-adreno740-accelerator.py": {
+      "bytes": 8018,
+      "sha256": "a9ddc90be828bf6892f4f95ca4ed5c371291a87f039915c177155bc97ec9e9bc"
+    },
+    "UniXNU/scripts/build-air-nir-host.py": {
+      "bytes": 16978,
+      "sha256": "6194b97a565548c7c29064d22fe5704cffbc3fe452758f6edac8f05e8e58efcd"
+    },
+    "UniXNU/scripts/build-air-nir-ios.py": {
+      "bytes": 6050,
+      "sha256": "932928fe256ca440519978a9ab9f88453a71aa39c666096e4ddd3269cb7d38c1"
+    },
+    "UniXNU/scripts/build-arm-driver.py": {
+      "bytes": 7259,
+      "sha256": "bf3cbcf7de988a611f43994f2ef39805fa90ded9aebcb4f27e5348a301863fd5"
+    },
+    "UniXNU/scripts/build-boot-runtime.py": {
+      "bytes": 27921,
+      "sha256": "e2f1480d76dc1acb1fc0f9e66c0e5e6797fb835f616e9c24358ca7bf7ee9849c"
+    },
+    "UniXNU/scripts/build-corecrypto-14.py": {
+      "bytes": 7775,
+      "sha256": "1d0dfaf7b4ef550f9facea04bf25f64d1d8dabdc8668d5b61d3a52a0e4e76efa"
+    },
+    "UniXNU/scripts/build-cpu-desktop-kernel.py": {
+      "bytes": 1590,
+      "sha256": "12df83e9890cb979e35a89f95b688bc82de1a345cbf030518a2a6c394de5de99"
+    },
+    "UniXNU/scripts/build-darwinboot.sh": {
+      "bytes": 849,
+      "sha256": "98055a3fea7386e357cabcba4cf6c9fdbc49c3b733b658810ca8f956628a88e5"
+    },
+    "UniXNU/scripts/build-fileset-release-reference.py": {
+      "bytes": 10715,
+      "sha256": "e6a393944724336c75f6d8eff126dc37b086e7563c82ae4477dcebda77409b4b"
+    },
+    "UniXNU/scripts/build-firehose.sh": {
+      "bytes": 3472,
+      "sha256": "344ed028527d05fe4fdc1b009eadcb14dc1b258bf7e4e80886882f13ed62b9b6"
+    },
+    "UniXNU/scripts/build-libpthread-kernel.py": {
+      "bytes": 5934,
+      "sha256": "bd330716f1b141240e50b57dcf2700af4049b58cbe66ecdecc62144deb5047a8"
+    },
+    "UniXNU/scripts/build-llvm-ios.py": {
+      "bytes": 4773,
+      "sha256": "521b5075dccc0761cbc2c8f56e8a288d579788cb6684d5e48ee2cd34fec354e3"
+    },
+    "UniXNU/scripts/build-metal-vulkan-probe.py": {
+      "bytes": 3354,
+      "sha256": "1b4cd73060a00b26fa4f8ba357f7ec45102b41e5c7df2537da08c9ff864fcbe0"
+    },
+    "UniXNU/scripts/build-mockfs-fixture.py": {
+      "bytes": 1870,
+      "sha256": "4abc2db627798d185cba14e8a68d9519c921a25745febfadff73f950c84b4206"
+    },
+    "UniXNU/scripts/build-native-user-fixture.py": {
+      "bytes": 16751,
+      "sha256": "8321a8a32424d75e49f34cb9c08aa56127ceeb0a200e126d3b0acde70e235ffc"
+    },
+    "UniXNU/scripts/build-original-system-trust.py": {
+      "bytes": 3068,
+      "sha256": "cd17f451a8bfca33476836a151a97fff44d0f0115108834a39bb3d907736264c"
+    },
+    "UniXNU/scripts/build-owner-os-policy.py": {
+      "bytes": 5614,
+      "sha256": "fa10bf8e64f85ff0aae5d07509ffa9c917cc58b9509973035ae37f55ea07d957"
+    },
+    "UniXNU/scripts/build-qcom-baseband.py": {
+      "bytes": 343,
+      "sha256": "5eb276b6b3124f612ccd2314ab2e0e70cdd9194adcf0924aa697c47ede288ffc"
+    },
+    "UniXNU/scripts/build-sheng-hid-input.py": {
+      "bytes": 9290,
+      "sha256": "16b820f6ae9dc0bf0ac7876c7c63c001a02a5f100911fd9e6312dbd357fafb9c"
+    },
+    "UniXNU/scripts/build-sheng-source-drivers.py": {
+      "bytes": 15750,
+      "sha256": "e3ca14afe6c14b0745385da7399c4380a90be2237ad331bf64156dde29ddcc73"
+    },
+    "UniXNU/scripts/build-sheng-source-storage.py": {
+      "bytes": 16223,
+      "sha256": "a5ecbe9e69f120e2670fffbf65623cfb4eb62c03c96f45c53b86d4fd41d3c585"
+    },
+    "UniXNU/scripts/build-software-aes-bindings.py": {
+      "bytes": 7555,
+      "sha256": "e1c49d7753a072aad1081c2e83638be02a6aa0b19da6051a1e9c4e7aea72420d"
+    },
+    "UniXNU/scripts/build-target-dyld-fixture.py": {
+      "bytes": 4590,
+      "sha256": "163a6b1559791457bb669b14089ac751837f2495b0e265e984f9963532768120"
+    },
+    "UniXNU/scripts/build-turnip-darwin.py": {
+      "bytes": 8988,
+      "sha256": "673bc847c48bb0f015963d743d2574ece156e164f0ebb8e1631a2143f6f093b8"
+    },
+    "UniXNU/scripts/build-unixnu.sh": {
+      "bytes": 521,
+      "sha256": "3cca74bcad628ece2dada68d5cc23d886c2d7173949f8a86d64d7f9bd88a3f44"
+    },
+    "UniXNU/scripts/build-verified-root-probe.py": {
+      "bytes": 10044,
+      "sha256": "244e46d945540855d43fd9ccd200ef37a722593d8877b7360ac3cf5ae411643e"
+    },
+    "UniXNU/scripts/build-virtio-mmio-bindings.py": {
+      "bytes": 6082,
+      "sha256": "62369f2b88765d06cb2893ca100ed831120dd804175866da63e0f13e5dd89c6f"
+    },
+    "UniXNU/scripts/build-xnu-4k-baseline.sh": {
+      "bytes": 45873,
+      "sha256": "490e362dd26283584d98bdded562b4b7060b1f941afe1cf23e833176816e6ac5"
+    },
+    "UniXNU/scripts/bundle-ipsw-trust.py": {
+      "bytes": 2038,
+      "sha256": "e45464ce5b98c4f7cb66dc3ce7f86aac2c479f2dab6bb403619519d81ee71bb5"
+    },
+    "UniXNU/scripts/check-accelerator-abi.py": {
+      "bytes": 5983,
+      "sha256": "67ccdf76d15574d99835182c87d712bc9f2b7c9694f12994cbf605157b12cc1c"
+    },
+    "UniXNU/scripts/check-addon-writer.py": {
+      "bytes": 4496,
+      "sha256": "2a3fbe7ca73a6053ef9d26c73b74186f9a1d3f6de8b9382862733b3f1ba2345e"
+    },
+    "UniXNU/scripts/check-adreno-constant-commands.py": {
+      "bytes": 11511,
+      "sha256": "726bbb54721ac7457e34873e6a900fdd07fe0db10d3c821ed70544eec95418c0"
+    },
+    "UniXNU/scripts/check-adreno-constant-uploads.py": {
+      "bytes": 11851,
+      "sha256": "7b8009bb4fafa7eebf7ce5a4423e9a445c79bb41e8f778f28b9e941d6f88d584"
+    },
+    "UniXNU/scripts/check-adreno-firmware-checkpoints.py": {
+      "bytes": 5517,
+      "sha256": "872235c0ea44856e6d06e08878579c4c6309bda2b511d57cee52830bb527b46b"
+    },
+    "UniXNU/scripts/check-adreno-firmware.py": {
+      "bytes": 2746,
+      "sha256": "7668c0c181cadd00d02a33d00515be64cfed977604ce515aaedda3207400cda1"
+    },
+    "UniXNU/scripts/check-adreno-hfi-startup.py": {
+      "bytes": 8044,
+      "sha256": "80b570df9bbe0c61897e3cce9c67df2cfcee1d4f3a9d073711bc5cd6ac2857b9"
+    },
+    "UniXNU/scripts/check-adreno-hfi-votes.py": {
+      "bytes": 6981,
+      "sha256": "b209f78121c25ddea1b62b9466bfc03f955bfae08aeeb5c060c03b23627e66a3"
+    },
+    "UniXNU/scripts/check-adreno-hfi.py": {
+      "bytes": 6842,
+      "sha256": "e98566abcaeed428792f25fcfe5bf9ed67f10812986fc6000cb55d991ab6bd93"
+    },
+    "UniXNU/scripts/check-adreno-pm4-checkpoints.py": {
+      "bytes": 4516,
+      "sha256": "b9b6faac2108049edfc88af38917f2f2f50b16fd3c342b887636a421ca762247"
+    },
+    "UniXNU/scripts/check-adreno-pm4.py": {
+      "bytes": 2341,
+      "sha256": "2763f043eca56a23e9b032707a4b5c24aa5620dc6c5a4c584759467761dfe965"
+    },
+    "UniXNU/scripts/check-adreno-raster.py": {
+      "bytes": 9250,
+      "sha256": "f330bd9584f1f3e7f6c208f8d5ea3ba0734b1d7fe3ec31557222834758908a36"
+    },
+    "UniXNU/scripts/check-adreno-shader-bindings.py": {
+      "bytes": 12935,
+      "sha256": "4825fa4276869036b097e162123964095ece564b5338f1bdf564c4713f45937f"
+    },
+    "UniXNU/scripts/check-air-fragment-inputs.py": {
+      "bytes": 7310,
+      "sha256": "595aa67c9e58bd42accc3c04ee08b6a9a90adef6db3f43ea0c291c6e00e2a233"
+    },
+    "UniXNU/scripts/check-air-fragment-outputs.py": {
+      "bytes": 7081,
+      "sha256": "15b8b4ce7244a135cbf47346d7a9ad524d09efe02c8f4fbe2924cb2832af09ee"
+    },
+    "UniXNU/scripts/check-air-library-compiler.py": {
+      "bytes": 4263,
+      "sha256": "a875a03df4933d8634ea43957634d44c4c26a8516c2333142c703edbb9049c73"
+    },
+    "UniXNU/scripts/check-air-library-inputs.py": {
+      "bytes": 5400,
+      "sha256": "9d2bbe40889bf5d4f77a5f529ae6c7d28a4d295807d55aeaa342422a3c2bb156"
+    },
+    "UniXNU/scripts/check-air-resource-inputs.py": {
+      "bytes": 7506,
+      "sha256": "8a67bc071781efdb257553971a90e8c1e23c57fc3b838d6423a1f0e4628714a7"
+    },
+    "UniXNU/scripts/check-apfs-component-checkpoints.py": {
+      "bytes": 4944,
+      "sha256": "10b879b442ed7492aa86e131d79c444724ba0f619878c8b7b5fff2861ed421ad"
+    },
+    "UniXNU/scripts/check-arm-smmu-4k.py": {
+      "bytes": 2610,
+      "sha256": "8e55de98e70d661ddb6ce82bbc9ed34b35f211fd2a9eaf12402cd29994b4d4bf"
+    },
+    "UniXNU/scripts/check-armcpu-diagnostic-paths.py": {
+      "bytes": 4376,
+      "sha256": "4630ad5306b0e098693db2364b655109f66d5b21680fa44604035d652333b70d"
+    },
+    "UniXNU/scripts/check-boot-progress-code.py": {
+      "bytes": 3338,
+      "sha256": "0d1835db23f06b1fd632ef6b4d469ff4c24206ccb3e43884bc3522d16a6d0e06"
+    },
+    "UniXNU/scripts/check-code-signing-granules.py": {
+      "bytes": 2784,
+      "sha256": "be80bd5254a6a0f52b3d3abbdde9df332b91290a4f1d9d76fb80872c942d7d6d"
+    },
+    "UniXNU/scripts/check-constant-uploads-checkpoints.py": {
+      "bytes": 9962,
+      "sha256": "1303733b99955176ebb136ef62245f2145dc14c14ed05519378c4cea6bbbb0e8"
+    },
+    "UniXNU/scripts/check-darwinboot-window-parser.py": {
+      "bytes": 3889,
+      "sha256": "e8b872c73c97e88c392b18bbb8573903b93a6d5773f0bd26fe095c5d7d8874a9"
+    },
+    "UniXNU/scripts/check-display-client.py": {
+      "bytes": 4255,
+      "sha256": "c9c041e3922044316d94bd042a2c72018a3d71a1bf17513361c6ba40198f60be"
+    },
+    "UniXNU/scripts/check-gop-handoff-checkpoints.py": {
+      "bytes": 3641,
+      "sha256": "7b87049cc6803888423c4236730e7dc6f5673cfbab1031e800ad935d7fd41f51"
+    },
+    "UniXNU/scripts/check-host-metal-async.py": {
+      "bytes": 13900,
+      "sha256": "1bf65bd7476f6788b030b8cf66bc70f9da9887a8deb0c463beea7a6d130afcee"
+    },
+    "UniXNU/scripts/check-host-metal-fences.py": {
+      "bytes": 8259,
+      "sha256": "ef18afdcb4460a285d5f951902b268011efcb9fe1811c0906a284257cc9577de"
+    },
+    "UniXNU/scripts/check-host-metal-shared-events.py": {
+      "bytes": 13188,
+      "sha256": "7a3a0726af4ab2582984f0a838d512f6dd7e314f36ef9e7f67ebf0349ed04ce1"
+    },
+    "UniXNU/scripts/check-host-metal-vertex-inputs.py": {
+      "bytes": 8173,
+      "sha256": "d30e2d6c363ca03292979c8ea6e895d11da47ab03936f7af06fa8edb5b6da116"
+    },
+    "UniXNU/scripts/check-hvf-native-checkpoints.py": {
+      "bytes": 6584,
+      "sha256": "6a6ecc1b58ea0d5f9fed913544fd2849a2534aff3fbb2a5a986d99d7d4b66338"
+    },
+    "UniXNU/scripts/check-image4-service-checkpoints.py": {
+      "bytes": 5658,
+      "sha256": "65630e7deed97168e20bbdf8aadd71255cdd700ae8e566c133969e060500c120"
+    },
+    "UniXNU/scripts/check-iogpu-checkpoints.py": {
+      "bytes": 7540,
+      "sha256": "b339ca3827a5ec63dd51ae5281c01c20f1a86500192d71149f2fde6215c992f6"
+    },
+    "UniXNU/scripts/check-launchd-watchdog-policy.py": {
+      "bytes": 5606,
+      "sha256": "81942011fd300fdc00b14a6822cff2c68096d30561078d546e7217122b445be9"
+    },
+    "UniXNU/scripts/check-metal-vulkan-probe.py": {
+      "bytes": 4258,
+      "sha256": "80a499e026a554b966cdf9265a49b4800adf7e62677358ae05d52e462087d8a0"
+    },
+    "UniXNU/scripts/check-metal2vulkan-pin.py": {
+      "bytes": 4435,
+      "sha256": "039d586de72dd5f085551eaa5017745d48652b99aa6194b1f6b1a51019516fe6"
+    },
+    "UniXNU/scripts/check-mobile-display-provider.py": {
+      "bytes": 8514,
+      "sha256": "59a530e6e428c5904df89c65978354b594bcf1562385d33228df3baf3f017b4c"
+    },
+    "UniXNU/scripts/check-mobile-graphics-checkpoints.py": {
+      "bytes": 7584,
+      "sha256": "96c36af9c7e39369effd41a739e8f719a3573c71c8b3d77f1ba3cdfed1051a74"
+    },
+    "UniXNU/scripts/check-mobile-graphics-client-checkpoints.py": {
+      "bytes": 4870,
+      "sha256": "b955264ce04a2a1cb78b62a4be4264b44b9bc06d8a1b4234ffbf6fbdda4a273e"
+    },
+    "UniXNU/scripts/check-mount-phase-checkpoints.py": {
+      "bytes": 2524,
+      "sha256": "89dd28a387544dfe1afd775e5417f352488b8d1cb59c3a4ac57a9885836674a5"
+    },
+    "UniXNU/scripts/check-native-4k-policy.py": {
+      "bytes": 2421,
+      "sha256": "d489efd00b573b9ebbc8414defc2f4326a3295995684b7c8ff6acd516d5dd835"
+    },
+    "UniXNU/scripts/check-native-aes-checkpoints.py": {
+      "bytes": 7892,
+      "sha256": "ba462fdad4404d52d0a1b819a00fc60c8e7a0bf98e3efe89b9bd82449235a500"
+    },
+    "UniXNU/scripts/check-native-apfs-file-checkpoints.py": {
+      "bytes": 9265,
+      "sha256": "8b1d59f01deb6abd534ee44a4f4f6356726f5be482ba460babb33785556edf09"
+    },
+    "UniXNU/scripts/check-native-arch-timer-checkpoints.py": {
+      "bytes": 3096,
+      "sha256": "519c74f75f4fa9949f38e183048760e737992abcf7ea22b48df0ee26d8d71f82"
+    },
+    "UniXNU/scripts/check-native-data-mount-path.py": {
+      "bytes": 4286,
+      "sha256": "435ab34f823ce55630233d780ca237935162ea2dcaa9eda518abf707836dfd88"
+    },
+    "UniXNU/scripts/check-native-fp-context.py": {
+      "bytes": 4536,
+      "sha256": "f5d54eb5595247180125ab393b00858e263deaeead3efe630aeb190c9032ca00"
+    },
+    "UniXNU/scripts/check-native-integrity-checkpoints.py": {
+      "bytes": 7302,
+      "sha256": "8f8d6588d6c94efa14682465e24fd951ce05ca76d10f76c0c4a7f8ad4d6b0b0f"
+    },
+    "UniXNU/scripts/check-native-legacy-display.py": {
+      "bytes": 7869,
+      "sha256": "1f027e64e52e3e8e89683905da879f2d0bf6b6af22d04b63c5ff88ad27912d97"
+    },
+    "UniXNU/scripts/check-native-legacy-logical-pm.py": {
+      "bytes": 5136,
+      "sha256": "5d5e22d751688c33adc45f7e373945532713706d66a3aea578ba9edeb2d027e1"
+    },
+    "UniXNU/scripts/check-native-metal-frontend-host.py": {
+      "bytes": 26162,
+      "sha256": "218aac4214e78e3ec89dbf14d9b739e445ed35a857c3efe6686ef59706fcd176"
+    },
+    "UniXNU/scripts/check-native-metal-vertex-inputs.py": {
+      "bytes": 10380,
+      "sha256": "4ee47ad44de1df3c7531f5fcd1dd3771cc1452537a8f381e5f8bb6f867ca7814"
+    },
+    "UniXNU/scripts/check-native-ram-data-checkpoints.py": {
+      "bytes": 6958,
+      "sha256": "ae9ebeabcb88039e1680ad2c80d5a808a0d8b1ef5064fcf07d95a71f76d597e6"
+    },
+    "UniXNU/scripts/check-native-virtio-checkpoints.py": {
+      "bytes": 8171,
+      "sha256": "e088a3607b425fc1053a146552745c1e49cd0dfc3e094929f6188116a8550b7b"
+    },
+    "UniXNU/scripts/check-offline-legacy-swap.py": {
+      "bytes": 4551,
+      "sha256": "0e32e9a6d0638742870bad3a6c2e3a4c5979267645db099b91b9ce884b0a9d72"
+    },
+    "UniXNU/scripts/check-offline-metal-addon.py": {
+      "bytes": 6915,
+      "sha256": "33198e4d836d7f0b610fb64600e9c491dda830fa23074bc61030b358566e6038"
+    },
+    "UniXNU/scripts/check-offline-metal-sharing.py": {
+      "bytes": 22562,
+      "sha256": "254af0512c38f545e1e13546cde5a8f44cdffb1816d4047ea289f7dd859b9067"
+    },
+    "UniXNU/scripts/check-original-apfs-checkpoints.py": {
+      "bytes": 6605,
+      "sha256": "83e3068330e56800b5da801169c26a15d891604c48802af5b0a9b9fc600f3a9e"
+    },
+    "UniXNU/scripts/check-original-apfs-root-checkpoints.py": {
+      "bytes": 8855,
+      "sha256": "dd3b1174371df361a01085182f64b4d4d628c19c392536f4e67cad2fb7b8c8ba"
+    },
+    "UniXNU/scripts/check-original-backboard-haptic-wait.py": {
+      "bytes": 3387,
+      "sha256": "2b2363e58937bc95c607d378e3dac8546ca4861830dfce0c6a6e7c0fef31c52e"
+    },
+    "UniXNU/scripts/check-original-bics-environment.py": {
+      "bytes": 4107,
+      "sha256": "4ad678363c9afd93ce1ed98d609597a0559f01fc6219836ef6c67095c9e39d10"
+    },
+    "UniXNU/scripts/check-original-cache-code-checkpoints.py": {
+      "bytes": 6236,
+      "sha256": "68292ce279fb9c5f6a4a84a36b66111699fde98364cde694c58e360dca01b94f"
+    },
+    "UniXNU/scripts/check-original-cache-file-checkpoints.py": {
+      "bytes": 7174,
+      "sha256": "88e1848a3eb24d716d0609c86577a3568940833dc14c748168ced19ed4cd2be6"
+    },
+    "UniXNU/scripts/check-original-cpu-render.py": {
+      "bytes": 2764,
+      "sha256": "d294a5d3c989239662ac1f7e007aac43b1b491fd7578deac3bb0c3d2dc83ccae"
+    },
+    "UniXNU/scripts/check-original-display-exception-checkpoints.py": {
+      "bytes": 3180,
+      "sha256": "f59234474074a5d303f02bd2e48348ea75c7973c839ffd56fce58843c5667b8b"
+    },
+    "UniXNU/scripts/check-original-display-mode.py": {
+      "bytes": 4508,
+      "sha256": "8a36f2da3e5a4c55df78669a04fb09aa3a1122b2e661131f3ed67d253471ea52"
+    },
+    "UniXNU/scripts/check-original-gpu-attach-only.py": {
+      "bytes": 2506,
+      "sha256": "89868f7f055759eb1079629c83b71fca1f56cfbf75d11794e6922efda9faa88d"
+    },
+    "UniXNU/scripts/check-original-gpu-attach.py": {
+      "bytes": 2376,
+      "sha256": "bd7b81f2e8f0a4a70df3fa5dc3ea04f6c30c70d6f478448e0a0491a9d2b1d311"
+    },
+    "UniXNU/scripts/check-original-gpu-client-abi.py": {
+      "bytes": 7636,
+      "sha256": "afd2e82357f7c0a66116157ad9f370034dee872ac6fa3c1d6896140f68f9bd49"
+    },
+    "UniXNU/scripts/check-original-gpu-client-factory.py": {
+      "bytes": 7437,
+      "sha256": "bef1e26366f9ffc381f72275293b34fa37b68e0a6f9ef2b7d9b31459b227f402"
+    },
+    "UniXNU/scripts/check-original-gpu-descriptor-provision.py": {
+      "bytes": 2731,
+      "sha256": "0664f1593dad1dc45078007b1273b01ed4e82e8c3c86a496b8d93bb4bab0fb93"
+    },
+    "UniXNU/scripts/check-original-gpu-descriptor-refusal.py": {
+      "bytes": 5006,
+      "sha256": "1fb63d15c4ecfa0fe4d482aa99d9cc3cb251144d68fd27552f784666e93f5f82"
+    },
+    "UniXNU/scripts/check-original-gpu-provider.py": {
+      "bytes": 9332,
+      "sha256": "8aa3e9f9a1c26312f248f7dbd03db4a5b8408e22a396d1fafc2b05302932a3fc"
+    },
+    "UniXNU/scripts/check-original-launchd-integrity-checkpoints.py": {
+      "bytes": 3170,
+      "sha256": "a8a0bb3e534b290dc86a90158e9894feccffe26db58528bed71daafd133a87eb"
+    },
+    "UniXNU/scripts/check-original-launchd-main-checkpoints.py": {
+      "bytes": 7479,
+      "sha256": "80c24d1002ddff2d45182dc0aa6d661cc3e915939b45cce8d071f883350ea0e4"
+    },
+    "UniXNU/scripts/check-original-mode-validation.py": {
+      "bytes": 6243,
+      "sha256": "4134eb5c2b104169c094e714c341f4b095e6104fa3feb2aed196113f493eece3"
+    },
+    "UniXNU/scripts/check-original-queue-completion.py": {
+      "bytes": 9349,
+      "sha256": "435e70ea4bba21a190a843f0661ccf0f14ba6a2b89de4706a93b739f319ee247"
+    },
+    "UniXNU/scripts/check-original-queue-kick.py": {
+      "bytes": 2035,
+      "sha256": "2b9f764a68bcf2c1abcd426540ab91861a5594df31b6aaa1c2c2603885131514"
+    },
+    "UniXNU/scripts/check-original-queue-transfer.py": {
+      "bytes": 8790,
+      "sha256": "ba267046874621eddcae414754a117d140573503222c918f065368251b640ca4"
+    },
+    "UniXNU/scripts/check-original-render-server.py": {
+      "bytes": 6018,
+      "sha256": "501429caa67460d0f84d5754fcbaff86cc1818c72dd04c8e963a81c9b794d7cc"
+    },
+    "UniXNU/scripts/check-original-sandbox-iokit.py": {
+      "bytes": 7738,
+      "sha256": "2483813c3164f594fb662893382b285dd6b65ed4828b2f4002895b1b3d46090b"
+    },
+    "UniXNU/scripts/check-original-swap-gate.py": {
+      "bytes": 2947,
+      "sha256": "6f26241b75bacfdd6ebbc76b4e6ed70a8aa3bc3e2f3cd1b360d05549964084b3"
+    },
+    "UniXNU/scripts/check-owner-boot-manifest-checkpoints.py": {
+      "bytes": 6146,
+      "sha256": "6407c34c19bd8bae72409461a412793a74e9d8d5e99302bc2d0110bbe7cd289a"
+    },
+    "UniXNU/scripts/check-owner-cache-carrier-checkpoints.py": {
+      "bytes": 7707,
+      "sha256": "6408064152eb674d04b15fc95b955cc48c3ac263f349c9d3f171b4454abc7b98"
+    },
+    "UniXNU/scripts/check-owner-cache-preflight-checkpoints.py": {
+      "bytes": 6938,
+      "sha256": "6427a1aeac3af82fc72e8f7f0948be80b83ad4d5c9f57cfb6f802998f0c13a08"
+    },
+    "UniXNU/scripts/check-owner-cryptex-fallback-checkpoints.py": {
+      "bytes": 1800,
+      "sha256": "ab3405e17ea12649f4908a6d42194c29adbfbc9916e62fcd7e69efb5a44b92d3"
+    },
+    "UniXNU/scripts/check-owner-dyld-startup-checkpoints.py": {
+      "bytes": 8295,
+      "sha256": "c0ced5a74d26214dce1ed9ff97c68cb61914040e3ad450e5ec5313b6258ac9fb"
+    },
+    "UniXNU/scripts/check-owner-policy-bundle-checkpoints.py": {
+      "bytes": 7032,
+      "sha256": "c865f4f0fb4bf4fd0dbe430bd40fc0d71ec1b217d46e40869d2ef25fa7b5a010"
+    },
+    "UniXNU/scripts/check-owner-root-checkpoints.py": {
+      "bytes": 8269,
+      "sha256": "efddfeb4887f6f4e2ce6f153523e09c99725dba9d7235b0817888874912ad46d"
+    },
+    "UniXNU/scripts/check-owner-root-compression-checkpoints.py": {
+      "bytes": 7304,
+      "sha256": "99a0632ed4b1471491d654c7bc1cf0843d81a3ffebad0c49b8becdf10128c6ac"
+    },
+    "UniXNU/scripts/check-owner-root-crypto-checkpoints.py": {
+      "bytes": 4265,
+      "sha256": "0bb15bc5e7833f3e57db89ea77e876cd47895dee8a6c14d98ef4acc9fbc527ca"
+    },
+    "UniXNU/scripts/check-owner-systemos-mount-checkpoints.py": {
+      "bytes": 7258,
+      "sha256": "0bf7823265c23593a04f337566c632a8e93b2305218e3e68a0572c7f0687ac80"
+    },
+    "UniXNU/scripts/check-owner-union-checkpoints.py": {
+      "bytes": 6431,
+      "sha256": "a309bdf0680c6d88cae18f273c3d08d30998661ad524fcd4338e789dadc6edb3"
+    },
+    "UniXNU/scripts/check-panic-entry-coverage.py": {
+      "bytes": 8382,
+      "sha256": "67bc7524216dd676e2164b4f416400ac18c486851925fa05aded73fd806a8f39"
+    },
+    "UniXNU/scripts/check-pgz-alignment-checkpoints.py": {
+      "bytes": 7191,
+      "sha256": "8350172344ba74552a8f0196c1fcc0972c2718c84813dadf5388dcf7ff7d2b64"
+    },
+    "UniXNU/scripts/check-pgz-legacy-checkpoint.py": {
+      "bytes": 1765,
+      "sha256": "24a0dd3555899c5a381276356da47bf4ddba2be9ca3e40b332cc9fd4cbc7008c"
+    },
+    "UniXNU/scripts/check-prelink-rebuild-equivalence.py": {
+      "bytes": 3053,
+      "sha256": "3a8e7eb93bfe0adc96de851181b952befdf8258ff7e7826ec7a3d2d66e20d963"
+    },
+    "UniXNU/scripts/check-prelink-xml.py": {
+      "bytes": 3142,
+      "sha256": "1fd7668c3bcecedb7a45a744b82978f661f76c7a94b79aa667f7519a1236179e"
+    },
+    "UniXNU/scripts/check-priming-cache-host.py": {
+      "bytes": 11958,
+      "sha256": "825c471b2b095ccd2d0c6203e8199ab59ce9769f836aa75f433e137aa6be7422"
+    },
+    "UniXNU/scripts/check-provisioned-data.py": {
+      "bytes": 3131,
+      "sha256": "02550890d97a721f70bf2cd72d534c2d2557b626afb0f5b1be72c771b6d1f675"
+    },
+    "UniXNU/scripts/check-qemu-ramfb-geometry.py": {
+      "bytes": 2062,
+      "sha256": "9d4d004a832b8a258aed75b5746161ba105b18ff75b42b8b8f31a46a7e987a3c"
+    },
+    "UniXNU/scripts/check-qemu-vmm-checkpoints.py": {
+      "bytes": 4300,
+      "sha256": "3daae9c43a18c9d4e802dd903bb1fbe5294bc5b846474bb91ce2f0392c03fd3f"
+    },
+    "UniXNU/scripts/check-renderbox-drawing-boundary.py": {
+      "bytes": 3413,
+      "sha256": "8b1d8b2d16ae102141fc263316a6fe73d4463bb051091f0a716e01f6ed373adc"
+    },
+    "UniXNU/scripts/check-renderbox-function-constants.py": {
+      "bytes": 5268,
+      "sha256": "f89e7270bee70f58940db8ea17777af5b420dd0a948f37975412378fb49e6bc0"
+    },
+    "UniXNU/scripts/check-renderbox-pipeline-boundary.py": {
+      "bytes": 4192,
+      "sha256": "ff4239ddb9454b90c6e21b20fc909caf273e95f49c9561359f532b272a81273c"
+    },
+    "UniXNU/scripts/check-renderbox-queue-priority.py": {
+      "bytes": 9565,
+      "sha256": "b4c4ae8d3205d7cf9ab5b91f95546ee5de09d6e04d385209b9e7d68ed85c24b8"
+    },
+    "UniXNU/scripts/check-scratch-data-checkpoints.py": {
+      "bytes": 3271,
+      "sha256": "f116ba8a7fa585963ea0672ebdd65c40487d3d08cc5e86e4d12feb59e07a107c"
+    },
+    "UniXNU/scripts/check-smmu4k-audit.py": {
+      "bytes": 1864,
+      "sha256": "8d725b596dc2620b320b7b00815d9bba70755e4dce2c6ff98ee9efcf593904c7"
+    },
+    "UniXNU/scripts/check-smmu4k-checkpoints.py": {
+      "bytes": 9423,
+      "sha256": "3bc8cd27495b8773eec194a56b7e9fa92770fe0e03cda0265384e0bc476e9b28"
+    },
+    "UniXNU/scripts/check-smmu4k-context.py": {
+      "bytes": 6511,
+      "sha256": "32b5c20e7025e9f433eaccd6a33368aab82cd2290dadffe88c276095197e4d99"
+    },
+    "UniXNU/scripts/check-smmu4k-live.py": {
+      "bytes": 7915,
+      "sha256": "cf8f27ca22c1a7826a4996215ae93dfef0b84dc0c6efceec7edeccbcbe478cb3"
+    },
+    "UniXNU/scripts/check-smmu4k-permissions.py": {
+      "bytes": 3524,
+      "sha256": "622058588aa70826932d2c1317c77b0d69676a7eb738ce1b2c6c8dc2f2cb7580"
+    },
+    "UniXNU/scripts/check-smmu4k-program.py": {
+      "bytes": 6589,
+      "sha256": "ed89165e53fd1e81580415c3c845517f328e65f35c3d1ebc833064a7e49c2f00"
+    },
+    "UniXNU/scripts/check-smmu4k-streams.py": {
+      "bytes": 6362,
+      "sha256": "f4fc2e61c2dcc1bdbf0e2c71ff1f73a912b0d5ae4462d3f45d5eeb5f1c6c2163"
+    },
+    "UniXNU/scripts/check-springboard-process.py": {
+      "bytes": 2794,
+      "sha256": "926e96c1356e53db625f986ba7334c0ec0a4fcc311de649989f5be9e9a353ae2"
+    },
+    "UniXNU/scripts/check-system-framebuffer-client.py": {
+      "bytes": 12683,
+      "sha256": "9243a285708959573da5f58efc333fb4919840ac9058a2e3036b97e416e5e5ed"
+    },
+    "UniXNU/scripts/check-target-display-discovery-checkpoints.py": {
+      "bytes": 6576,
+      "sha256": "eed591a2a346e0ff0321c459526b743c9d4d0d0a75dae04e13e244abfc7fc96d"
+    },
+    "UniXNU/scripts/check-target-dyld-checkpoints.py": {
+      "bytes": 7676,
+      "sha256": "bce880276b8d9a6cc6713f307bf6d2b963bee77516c82d908ba2692369680196"
+    },
+    "UniXNU/scripts/check-turnip-darwin-host.py": {
+      "bytes": 8323,
+      "sha256": "7ab580b33aa544a0e8931679884d2aa717e5663d6d9ff52ee5cda90c128862c0"
+    },
+    "UniXNU/scripts/check-turnip-pipeline-cache-host.py": {
+      "bytes": 4685,
+      "sha256": "c32274af6324841a00b99134f9632464bf38434e47243b256f64f449a4932e32"
+    },
+    "UniXNU/scripts/check-ufs-original-trust-evidence.py": {
+      "bytes": 5167,
+      "sha256": "acaee37176e306666415e8e025b0d929327659e2c23f2a0efca0509cccc8f2d0"
+    },
+    "UniXNU/scripts/check-ufs-preboot-evidence.py": {
+      "bytes": 10906,
+      "sha256": "18b868b0578c5f5ccc308d3c01e01c84b04bbe6e1872c031081f9add6631d231"
+    },
+    "UniXNU/scripts/check-ufs-va64-evidence.py": {
+      "bytes": 6681,
+      "sha256": "2b6ff563264e19fda408179d47e556040d99d5c3c8cca87a92e64a1719f571b9"
+    },
+    "UniXNU/scripts/check-unixnu.py": {
+      "bytes": 8323,
+      "sha256": "847b1b9cc5da141404700fa1a4daa8d20bc45558163afe188d0a4ce86dc82555"
+    },
+    "UniXNU/scripts/check-verified-block-checkpoints.py": {
+      "bytes": 6545,
+      "sha256": "066652587a99323350461746a300fa3b277fba7ba707a41267911af1b86b97c2"
+    },
+    "UniXNU/scripts/check-wallpaper-freeze-host.py": {
+      "bytes": 1991,
+      "sha256": "bf4baa0519781ee927f3471984750ca6c9c4192203b15402b5d253da74c31f2e"
+    },
+    "UniXNU/scripts/check-watchdogd-branches.py": {
+      "bytes": 5625,
+      "sha256": "a6e281c7f4fa318fbab14de7601ace588e941c4e22887528d513f10fe47f5203"
+    },
+    "UniXNU/scripts/check-xnu-granules.py": {
+      "bytes": 1771,
+      "sha256": "272746712373efdd3ccc0720e3304de4d6d26baceae172c77ec2c19e514b1220"
+    },
+    "UniXNU/scripts/compatibility.toml": {
+      "bytes": 570,
+      "sha256": "2f0a6d8ba1ef8b2a2821d6d779289431b3906bee023ff2781fd486cee24c7248"
+    },
+    "UniXNU/scripts/data/adreno-compiler-inputs.json": {
+      "bytes": 3365,
+      "sha256": "d5e3e66928c0fa30d44ffd16af264fe960be2c77d4d1baba1244b3d49fe9ddb0"
+    },
+    "UniXNU/scripts/data/adreno-constant-inputs.json": {
+      "bytes": 746,
+      "sha256": "30cb7cb2ac588f52bd8be762e832b26f6a268a0cd45ad24453c1d27cb000a39a"
+    },
+    "UniXNU/scripts/data/adreno-inputs.json": {
+      "bytes": 10158,
+      "sha256": "770c85b715dbd325bf8813c72b5b4cde1e204faa79c14e8272fa1c4e93bb6434"
+    },
+    "UniXNU/scripts/data/adreno-raster-inputs.json": {
+      "bytes": 2398,
+      "sha256": "9cb3940682ddd1c2b1a83ee05b7af0057c559d6c2df4d0433524e003eb344cbc"
+    },
+    "UniXNU/scripts/data/adreno-shader-inputs.json": {
+      "bytes": 1249,
+      "sha256": "7f901d1c93b870a44160fd191b4afd75405dd336564eb69146fdca99923130f3"
+    },
+    "UniXNU/scripts/data/adreno-vpc-inputs.json": {
+      "bytes": 1747,
+      "sha256": "27831a60f7342ce524f5878a634f5572b3b15833119cb7ec6090d1954eb4d344"
+    },
+    "UniXNU/scripts/data/air-fragment-inputs.json": {
+      "bytes": 3563,
+      "sha256": "705e29a8fe1a309876736d98bb0b7cc5c0e6337f2f403bc6072b4fc640c9b7bb"
+    },
+    "UniXNU/scripts/data/gpu-metal-vulkan-inputs.json": {
+      "bytes": 2534,
+      "sha256": "544e3bacd0fdcd478cd95163c9e0af7386d4d508efbc992976b59c757c6ef600"
+    },
+    "UniXNU/scripts/data/ioaccelerator-base-abi-24A446.json": {
+      "bytes": 955,
+      "sha256": "ddd4c00f57590d7d8b39c0a71f6d4a1572bac468e8dc7db1391d6382c5cf1c83"
+    },
+    "UniXNU/scripts/data/ioaccelerator-base-abi-26C5035r.json": {
+      "bytes": 926,
+      "sha256": "fea332008e8a1712e31e4ad1ca6d7a474f5495492a9238580a7d601501ade98d"
+    },
+    "UniXNU/scripts/data/ioaccelerator-base-abi.json": {
+      "bytes": 1236,
+      "sha256": "7d898b215006553b4de3820b0a29b4a330ddb5ec44fee77a3695bd6ea682a7be"
+    },
+    "UniXNU/scripts/data/native-adreno-memory-inputs.json": {
+      "bytes": 2098,
+      "sha256": "1240f7b12fb27305fdfae0ca9a0d9f10925fc36c9df4ebe5f45690def04029cd"
+    },
+    "UniXNU/scripts/data/native-aes-original-bindings.S": {
+      "bytes": 3016,
+      "sha256": "69576361ea9a462cfed936e36e5c08458bb8b710ed1ee523e96f7ec7cf0a960a"
+    },
+    "UniXNU/scripts/data/native-air-compiler-inputs.json": {
+      "bytes": 770,
+      "sha256": "e47b6aa3308b3735f48c464843c058f1fa803afb7984e9a97c7fd156f4dcaa43"
+    },
+    "UniXNU/scripts/data/native-air-diagnostic-inputs.json": {
+      "bytes": 8277,
+      "sha256": "12b1cf9701d86c8c68b41dff61800253e1beaea603aa35eba5c344adda7557e6"
+    },
+    "UniXNU/scripts/data/native-air-fragment-inputs.json": {
+      "bytes": 10758,
+      "sha256": "fb44e7808267948b6136a334b3d849c7122fcbf7af1735b69d2552803ad13675"
+    },
+    "UniXNU/scripts/debug-terminal.cmd": {
+      "bytes": 240,
+      "sha256": "d95e2dd8d062eb1a405ebfb75d1a78b63ee91df652e08a7bb311b95d1f6adebb"
+    },
+    "UniXNU/scripts/debug_screen.py": {
+      "bytes": 24049,
+      "sha256": "731de2403f870e2f4deae77c5172886a78da6ae874595f898d0a8fdbad49b2df"
+    },
+    "UniXNU/scripts/debug_screen_viewer.html": {
+      "bytes": 28011,
+      "sha256": "cec7b3ba0c8b571cf117b73ad5c4b487d746d09b24a45233b14b8051d5932c42"
+    },
+    "UniXNU/scripts/debug_terminal.py": {
+      "bytes": 33991,
+      "sha256": "b4c7b43d3ac7089c7cebba79c109d9639e3e52f00faf9377a610cf2adc664180"
+    },
+    "UniXNU/scripts/decode-boot-ui-trace.py": {
+      "bytes": 2474,
+      "sha256": "f68af4f59eed8aed00824244bf37315517535763a0cc2a694ebbfb0d06b4dac6"
+    },
+    "UniXNU/scripts/derive-a740-hwinit.py": {
+      "bytes": 6357,
+      "sha256": "2962415b3cd83bb8a918ca043ccebc29437930aa2a578c149fe317f2f12d7a82"
+    },
+    "UniXNU/scripts/derive-a740-pwrup.py": {
+      "bytes": 4096,
+      "sha256": "e949554f21bf89891118555ee4050a5710cbc56921eb6698e6cbfff3ca9c052a"
+    },
+    "UniXNU/scripts/dual_sys/f2fs-shrink.c": {
+      "bytes": 9694,
+      "sha256": "8e4a756951f691849a4c95d0a775d26cdafaa9dd638aeb8b417425ce74b91aa7"
+    },
+    "UniXNU/scripts/dual_sys/gpt.py": {
+      "bytes": 6937,
+      "sha256": "d0864fd6f7caf3ffa54d9a52ab93e3eb1a2a4a02c5263ee2119be71f37d33498"
+    },
+    "UniXNU/scripts/dual_sys/partition.py": {
+      "bytes": 12951,
+      "sha256": "4f5686539ba3f88276efc7c0f2b72e190e70f05d4ec0884ad0618732845b7d9a"
+    },
+    "UniXNU/scripts/dual_sys/test_dual_sys.py": {
+      "bytes": 15171,
+      "sha256": "29f2de54c0a9e2122ddb84d3d510f704c001adee7ff93b1916cccda17cef903c"
+    },
+    "UniXNU/scripts/dual_sys/twrp.sh": {
+      "bytes": 3499,
+      "sha256": "f51641521a6fe88d024b98c8f75aa49e157cff54b85a8d888c110f29349ae5d0"
+    },
+    "UniXNU/scripts/extract-kdk-support.py": {
+      "bytes": 2866,
+      "sha256": "595c70ff3691cf272b33757d9e344baf0d508453b1eaba7b4fe0d054d7a5e737"
+    },
+    "UniXNU/scripts/extract-target-volume.py": {
+      "bytes": 2673,
+      "sha256": "56d15c3631249eb85b94f4168f23c463e418add7939e2b997e77636880b81300"
+    },
+    "UniXNU/scripts/fetch-adreno-inputs.py": {
+      "bytes": 3017,
+      "sha256": "a854723a3a5530811aa628172b09096def25b6f319609b5f35dc29fe54b2fa15"
+    },
+    "UniXNU/scripts/gen-turnip-replay.py": {
+      "bytes": 5260,
+      "sha256": "d61c46c63835e0da62f9515c7667a2c8ce51d840b55294cee6c72a07ce1cb096"
+    },
+    "UniXNU/scripts/gen-turnip-smoke-shaders.py": {
+      "bytes": 1493,
+      "sha256": "ea807524eff71d96d7b0b8135a8c17ad129ffaccd00b6f8361ee8dfae99829d3"
+    },
+    "UniXNU/scripts/inspect-ipsw.py": {
+      "bytes": 2512,
+      "sha256": "9702775debff318ba03778df88a5d4ad3c6db2ce1fe3a02bf1bfd79d8efa2538"
+    },
+    "UniXNU/scripts/inspect-prelink-callsite.py": {
+      "bytes": 3547,
+      "sha256": "c2f9bdbb36283bd45f2f17f982189d0f13968d8ce3796734a094f5bd15254d58"
+    },
+    "UniXNU/scripts/inspect-target-prelink.py": {
+      "bytes": 5807,
+      "sha256": "deff7fe2b86b18be31a8831a9a30a2e53ed7747893dcc50e36c8a3ef99de6cb4"
+    },
+    "UniXNU/scripts/kernel_target.py": {
+      "bytes": 1394,
+      "sha256": "f2351aebc029a69673ead76e1a0b49845fd940e285da82cd693a89084991c4bf"
+    },
+    "UniXNU/scripts/linux/cc": {
+      "bytes": 108,
+      "sha256": "abd4ae2f7ec1f3558b41454df2aead4b3b0c1414d2997e13d7af4d44f7973132"
+    },
+    "UniXNU/scripts/linux/clang": {
+      "bytes": 1924,
+      "sha256": "f9374d4fee38f59f73f6f19c0fad2b0bf4bb5f65a6f74afb8820502368b4a96a"
+    },
+    "UniXNU/scripts/linux/clang++": {
+      "bytes": 179,
+      "sha256": "1bd96563baa554c95cf87afd8ff9c26c64c6c6bca22be562e2a600000057faa4"
+    },
+    "UniXNU/scripts/linux/codesign": {
+      "bytes": 214,
+      "sha256": "c5af99f85a28e60d50d53ea030d5bf8b85b3f02dedbe8fdb67ec6c68d9a25c5f"
+    },
+    "UniXNU/scripts/linux/gm4": {
+      "bytes": 103,
+      "sha256": "a96fd816d35a8bc4d7383e582a7b653fb69bdfcec3861530841296842ea9630d"
+    },
+    "UniXNU/scripts/linux/iig-port-darwin-target.patch": {
+      "bytes": 3813,
+      "sha256": "aa63f66fdf5422a0af9158734a231852c03fe0c86c4adc09c9bd2eeded9ebf4f"
+    },
+    "UniXNU/scripts/linux/install": {
+      "bytes": 696,
+      "sha256": "198a02f94d32ac800e099876d2f9071f01ef0603bb49959dd1e911d6d2327dff"
+    },
+    "UniXNU/scripts/linux/llvm-xnu-builtin-type.patch": {
+      "bytes": 24726,
+      "sha256": "7c9f2cb16ff1cc045d246fa6d1b6fbe6c90dc1540839a4219a0045219792dba9"
+    },
+    "UniXNU/scripts/linux/plutil": {
+      "bytes": 2984,
+      "sha256": "58e6cfc687cda0af800ec8babea3177f65cc6d9e6abd65f736f3e00c3604331d"
+    },
+    "UniXNU/scripts/linux/prepare-xnu.py": {
+      "bytes": 7065,
+      "sha256": "6d6b4f92cb421f09b3694293491b4bcb558ef3e23a70250d20374a3b817acf25"
+    },
+    "UniXNU/scripts/linux/setup-toolchain.py": {
+      "bytes": 20620,
+      "sha256": "82a4bae15dfaa680c081e32ca3143d593abe9b9be307a5a498e39ed19f0c5415"
+    },
+    "UniXNU/scripts/linux/TargetConditionals.h": {
+      "bytes": 4095,
+      "sha256": "2dbd9a6885bd6ece5195c2f67c75e29c63bd7519cbbe8b6bcc6ebd279de118b2"
+    },
+    "UniXNU/scripts/linux/xcrun": {
+      "bytes": 2810,
+      "sha256": "8da8a494abd47a6d484c217ac074c1759792732f048ffce3f65c114c5d641576"
+    },
+    "UniXNU/scripts/macho-self-bind-weak-imports.py": {
+      "bytes": 2113,
+      "sha256": "7167c991492bb8a9f9ba07a74a2e25710f23066451eda4c3ba52391d263c9daf"
+    },
+    "UniXNU/scripts/macos-boot-shims/apfs_boot_util.c": {
+      "bytes": 1162,
+      "sha256": "6b79f08c1499247862cd49354a2dbfb8acb36465980f4a0ef8d78b04c55c1985"
+    },
+    "UniXNU/scripts/make-adt.py": {
+      "bytes": 1249,
+      "sha256": "61815dee57338a4789b5d1b8acece88b31f803558bb4920844c16122f91376aa"
+    },
+    "UniXNU/scripts/make-android-sparse.py": {
+      "bytes": 5317,
+      "sha256": "4cf6f852656bd1160993e189f0eff659445b8e034f9fad65aec62caa214ff78f"
+    },
+    "UniXNU/scripts/make-data-seed.py": {
+      "bytes": 5279,
+      "sha256": "a10a818ae19e2853b8a2e04ac56f9af2ea555c47ef6abaf85e0ee4da2865df0b"
+    },
+    "UniXNU/scripts/make-gpu-addon.py": {
+      "bytes": 7203,
+      "sha256": "59774b3856c581ff58385b479ff5a329e0ce76e840ab471fc02127631bc7e258"
+    },
+    "UniXNU/scripts/make-m2vpack.py": {
+      "bytes": 1105,
+      "sha256": "53326fb2ccb19534125565a7c61459d68927a430045f4e0253b409d3be7e37da"
+    },
+    "UniXNU/scripts/make-macos-data-seed.py": {
+      "bytes": 20057,
+      "sha256": "58e21230057294bc851bb3fb7f712072e76f2ecaf7fe88281d56b0d1b4f982e9"
+    },
+    "UniXNU/scripts/make-owner-trust-bundle.py": {
+      "bytes": 4165,
+      "sha256": "1f0d77bf4486939579e765e83291511f3005d3d088e23b2f0823874c47dc0727"
+    },
+    "UniXNU/scripts/make-root-policies.py": {
+      "bytes": 4579,
+      "sha256": "99497d3052ae27b2bfb36346ad47276bb62e8e33fdb9dcb74b2973950a9b873f"
+    },
+    "UniXNU/scripts/make-wallpaper-overlay.py": {
+      "bytes": 4630,
+      "sha256": "65e6eac092eedcdc63c3e65ecfaa0fd80244f7c156c4ab96547e4f4dacb2535c"
+    },
+    "UniXNU/scripts/mesa_patch_identity.py": {
+      "bytes": 2213,
+      "sha256": "60f03967f4d2b56807b7b3d984181792cb810abbbc6392161d4c82b03d4433a7"
+    },
+    "UniXNU/scripts/patch-xnu-entry-probe.py": {
+      "bytes": 20292,
+      "sha256": "159eb1ea8d6c1da30f26913a281f46e21d940a1ae7886656529907ec3edf96ad"
+    },
+    "UniXNU/scripts/pbxproj.py": {
+      "bytes": 2774,
+      "sha256": "8fe71e16f45db4ad1964fd748b7bed2a450ea55483fa8faddc2ad85519452ecf"
+    },
+    "UniXNU/scripts/policies/ipados-27.0.1-24A446/prelink-regression.json": {
+      "bytes": 1782,
+      "sha256": "fb59f3227b13ab7f7b4e66c6600031385936051b011987c2d5f0dcdc27436b39"
+    },
+    "UniXNU/scripts/porting-record.py": {
+      "bytes": 12329,
+      "sha256": "b929423fd4b938a957a3f2047a29b363801afe3e33fda61e40e7cdbd8c65ea55"
+    },
+    "UniXNU/scripts/prepare-air-nir-diagnostic.py": {
+      "bytes": 16331,
+      "sha256": "5e8c62fc15f013959afdc7f169c7604acf7b5a6eae58aaaaeb1c894f6a6d5992"
+    },
+    "UniXNU/scripts/prepare-offline-data.py": {
+      "bytes": 4651,
+      "sha256": "a72cff4596d6f4d3030cb92e79670a9303b4d2b719b78e82b0741ab3f4d71ae8"
+    },
+    "UniXNU/scripts/prepare-offline-gpu-candidate.py": {
+      "bytes": 2234,
+      "sha256": "0e2a0063b479de897fd4973801b50076a44a2707abcf2c4756d711e266826d6c"
+    },
+    "UniXNU/scripts/prepare-original-cpu-render-observer.py": {
+      "bytes": 10911,
+      "sha256": "61c6b196b69ddbfdfbeb8d55d9ef3eccda69375457586fc6d3bd624ff9ac72f0"
+    },
+    "UniXNU/scripts/prepare-original-display-mode-observer.py": {
+      "bytes": 2681,
+      "sha256": "f1fff248ecc004fe8de6cfe79fd7cbc70ce62c9b9d9ed516b8da0fb576e92c1a"
+    },
+    "UniXNU/scripts/prepare-owner-data-fixture.py": {
+      "bytes": 3482,
+      "sha256": "3f4f01817ba1be6b7e348042b97f05590ec16e0df2065be0aa357b58408c8c09"
+    },
+    "UniXNU/scripts/prepare-storage-headers.py": {
+      "bytes": 2996,
+      "sha256": "c9b1d43c1d3d248959ebcfa721ba618d373932d5c94851dfb9c4f62f8b2875b5"
+    },
+    "UniXNU/scripts/prepare-xnu-source.py": {
+      "bytes": 3949,
+      "sha256": "1ad6cc259a39fdf9b9059e0d748a316f0b2bf64853aef11dff709647706d27af"
+    },
+    "UniXNU/scripts/probe-accelerator-abi.py": {
+      "bytes": 3987,
+      "sha256": "75fb69807f2f0baa7e6b1f147a4c5b71517be1018383482b754fb14cbb8ff257"
+    },
+    "UniXNU/scripts/probe-air-nir-native.py": {
+      "bytes": 4389,
+      "sha256": "697f95da5e9518bdb3f038dbb535c6347537ca93215ba5981865d80ade3f5620"
+    },
+    "UniXNU/scripts/probe-darwinboot-xnu.py": {
+      "bytes": 131657,
+      "sha256": "7058e29ecf7e65d173fd300e294dc2a0b019db4982345df357d722d3c819feb8"
+    },
+    "UniXNU/scripts/probe-keybag-bypass.py": {
+      "bytes": 6281,
+      "sha256": "23aec4c5d2ca5f1462d5be1cd17ca4bc8770e41e800a8e41477611eaaff20de2"
+    },
+    "UniXNU/scripts/probe-metal-vulkan-host.py": {
+      "bytes": 12395,
+      "sha256": "21aa8515980b4b28f1157458dcb19ba99c20f698ff69e73213068f7664d79716"
+    },
+    "UniXNU/scripts/probe-mobile-display-provider.py": {
+      "bytes": 1698,
+      "sha256": "9055f4aed0bcc70be34542ff3e63042b622436391218a59066e09bab8a6ba16c"
+    },
+    "UniXNU/scripts/probe-native-legacy-display.py": {
+      "bytes": 7607,
+      "sha256": "744112086e698fdd5da63f136ab4a23727ff98d632ef145e20de8998f779d04f"
+    },
+    "UniXNU/scripts/probe-offline-gpu-transport.py": {
+      "bytes": 18389,
+      "sha256": "d7bb51ad47ab5ba366c35bb09208e0f7d5785047eff2bbc29e45559cbe98a7fa"
+    },
+    "UniXNU/scripts/probe-original-gpu-client-abi.py": {
+      "bytes": 4091,
+      "sha256": "78e0e9bda87c75122b39e0f151659ab6061d715cb14283969d4b985726b54458"
+    },
+    "UniXNU/scripts/probe-original-gpu-provider.py": {
+      "bytes": 6837,
+      "sha256": "5c2ec534d3e005bc553bda504d8d39219e1e2f8f24820e1ae8e6638812a72267"
+    },
+    "UniXNU/scripts/probe-original-sandbox-iokit.py": {
+      "bytes": 2860,
+      "sha256": "37c8f943cfba46e57a6a45c99493c387a2e00e16b754d04c2ee9a80ff52946fd"
+    },
+    "UniXNU/scripts/probe-stock-entry.py": {
+      "bytes": 10729,
+      "sha256": "8884ba69aecc675b0ee2ca6105a61c1a33084aaa48dc807cb78fa1b9cf52cec6"
+    },
+    "UniXNU/scripts/probe-target-dyld.py": {
+      "bytes": 16272,
+      "sha256": "69b74f37ba5d4df22ae83eb2cf29142f7f0843ceca1ddf48e382de53d0da9132"
+    },
+    "UniXNU/scripts/probe-turnip-internal-compiler-host.py": {
+      "bytes": 7536,
+      "sha256": "f25bd5e13341cc7132e40b69393149ad31e5977a37228cd3763e07b8db7e598c"
+    },
+    "UniXNU/scripts/qemu-entry/bootshim-fixture.S": {
+      "bytes": 850,
+      "sha256": "7a3bf46763b15b9b801986de40f8006b90a4a8e16242abfaae889e46c32c13f6"
+    },
+    "UniXNU/scripts/qemu-entry/entry.S": {
+      "bytes": 1537,
+      "sha256": "52df20763edfda536344e4b31869fcde666ffbd6552865d2d8b2089cbc42de78"
+    },
+    "UniXNU/scripts/qemu-entry/gdb-stop.py": {
+      "bytes": 132903,
+      "sha256": "30f99434c8128ec8609803f767a8aac3ff6aef5b09cba92b1cf966add278952e"
+    },
+    "UniXNU/scripts/qemu-entry/gdb_packets.py": {
+      "bytes": 1826,
+      "sha256": "71b2d22789c4838adadef6b2ccb3dc9e5a988b4434cd23089ff4b7cbde8d0c06"
+    },
+    "UniXNU/scripts/qemu-entry/link.ld": {
+      "bytes": 186,
+      "sha256": "76b9b4ec804ec01c78751fbfc6c008a27cbd648769757a8635a9c4a34a866f68"
+    },
+    "UniXNU/scripts/qemu-entry/live-hid.py": {
+      "bytes": 5188,
+      "sha256": "85d1ecbe1988f884201af3d54354c859d78227f79e740aa4c127f87d90b0ab2c"
+    },
+    "UniXNU/scripts/qemu-entry/make-dt.py": {
+      "bytes": 10413,
+      "sha256": "92b916673c86058afdc3fdf91000e15f91689d972ec65c56278bf1068f6e1d66"
+    },
+    "UniXNU/scripts/qemu-entry/native-apfs-launchd.inc": {
+      "bytes": 2792,
+      "sha256": "fe9d24e38472d45a274bd242d191f1cf516b10d37013a4b175d54504e27ee422"
+    },
+    "UniXNU/scripts/qemu-entry/native-apfs-mount.inc": {
+      "bytes": 1463,
+      "sha256": "0eb53c9798216ac259d0aa13ac8860a303b3884293b927621177509cb60941fa"
+    },
+    "UniXNU/scripts/qemu-entry/native-cache-leaf.inc": {
+      "bytes": 1685,
+      "sha256": "b24150ea62a5ed133513eb396858c20b18d2ba7ecbc2baa9753440a9efc23bc2"
+    },
+    "UniXNU/scripts/qemu-entry/native-file-probe.inc": {
+      "bytes": 1703,
+      "sha256": "417a75dc2746182b9502ae0b71cd4a45116ffef6195d6b56e0868a2d6ca289e6"
+    },
+    "UniXNU/scripts/qemu-entry/native-fp-context.inc": {
+      "bytes": 3974,
+      "sha256": "a4ac5fba78f2610c57ab36f73e02645c4db2defab1eddefa33860400628ac7f4"
+    },
+    "UniXNU/scripts/qemu-entry/native-user.S": {
+      "bytes": 1199,
+      "sha256": "6146d5d575e1a53207cb056b0e6c6cf639a4f3d6645deab2bd825ee342fe6a6c"
+    },
+    "UniXNU/scripts/qemu-entry/test-live-hid.py": {
+      "bytes": 4171,
+      "sha256": "25d65f69eb9beb5660734e99464a5caa7e4014230b91f9d6eb378b0066dbf2fa"
+    },
+    "UniXNU/scripts/qemu-entry/test_gdb_packets.py": {
+      "bytes": 2107,
+      "sha256": "fa3959e390f83d26a2f6f279d887ae76daa451fc0e81a5e8208e0beea7648135"
+    },
+    "UniXNU/scripts/qemu-entry/test_ufs_allocation.py": {
+      "bytes": 2772,
+      "sha256": "17e5252792c217d31a98019dce3b1523a6b8923b6d00acec8b902af7ee880e54"
+    },
+    "UniXNU/scripts/qemu-entry/thread_snapshot.py": {
+      "bytes": 8586,
+      "sha256": "ad93fc7bae6f56909256547cd5f7999c229db4c20de1c8e6fef773439aec14c4"
+    },
+    "UniXNU/scripts/qemu-entry/ufs_allocation.py": {
+      "bytes": 10031,
+      "sha256": "aa783ad6c00a1767e1b65ebb04547f5212817e199365a4a093a9b5703842fbe8"
+    },
+    "UniXNU/scripts/qemu-entry/verified-root-probe.c": {
+      "bytes": 4717,
+      "sha256": "fac1174a6b116c02f05a50f930efa133926505eb8fbde95e80e7e7da13b474d0"
+    },
+    "UniXNU/scripts/requirements-adreno-compiler.txt": {
+      "bytes": 84,
+      "sha256": "493c8cfda8dc52729876b8ba8726fe589c14521caf092b7c92504b9ec0244b15"
+    },
+    "UniXNU/scripts/rust-pac-rewrite.py": {
+      "bytes": 3620,
+      "sha256": "9ad09d8bb4605734b6700da014a6dfe441cc4e831686d4ab5139a7cf567499f3"
+    },
+    "UniXNU/scripts/save-turnip-builtin-patch.py": {
+      "bytes": 1672,
+      "sha256": "48a74cc89fb7fb52e4b3365580ef57924ed2d43b52a4050bfaf18d77ef91e900"
+    },
+    "UniXNU/scripts/save-turnip-darwin-patch.py": {
+      "bytes": 2237,
+      "sha256": "fb158f3ee7a98c26ecf0ef53fb41ec31a6ba2021d4d5db40dad9c156e59a06fe"
+    },
+    "UniXNU/scripts/save-turnip-gmem-patch.py": {
+      "bytes": 2291,
+      "sha256": "ade2c48aef9f42b230bd15ae5d6dc57c85b901372b2498c9f350235713fb260f"
+    },
+    "UniXNU/scripts/save-xnu-patch.py": {
+      "bytes": 1733,
+      "sha256": "d8239b4ae469ba098131fa34be6d234f88b7e82c71c7610bf3358ddf979afbe2"
+    },
+    "UniXNU/scripts/seal-source-crypto-kernel.py": {
+      "bytes": 7519,
+      "sha256": "b8f304c8d88ffa3f49277f407d1aa72734944cacd59c58d010609744af24c0a3"
+    },
+    "UniXNU/scripts/seed-data-grow.py": {
+      "bytes": 6476,
+      "sha256": "2c4b6da3f87fc4e148f0eb9321372bab42149b56eae0c4b1f405a900d81f1e44"
+    },
+    "UniXNU/scripts/seed-data-skip-setup.py": {
+      "bytes": 6234,
+      "sha256": "0e43d2058ce83fff522441f9250151ba8c28badc7aaeaa0c0fddc5c8905f9bfe"
+    },
+    "UniXNU/scripts/symbolicate-original-user-exception.py": {
+      "bytes": 8542,
+      "sha256": "2ad7f4a8b95514cfea9221f5d4a35911e7f0af4df161314b6e7f16435422fecd"
+    },
+    "UniXNU/scripts/sync-devices.py": {
+      "bytes": 21847,
+      "sha256": "16fdcf54699c0660a4bdfd860f01b8aba1ecad53b762d8cb1a6d9caa6c2e06ce"
+    },
+    "UniXNU/scripts/terminal-requirements.txt": {
+      "bytes": 14,
+      "sha256": "0b81718d1cbe8a7696e45a9388c9205272b5e345cd79d0cf1ccfb7a9fd1925e9"
+    },
+    "UniXNU/scripts/test-armcpu.py": {
+      "bytes": 3744,
+      "sha256": "3e652edbe4cbeccf88367373aaab2ca8ccab8eb0ebabd53ab9e155515d3e3a6d"
+    },
+    "UniXNU/scripts/test-armdt-platform.py": {
+      "bytes": 5396,
+      "sha256": "e7f2b8051cd5f675092beb39504594923e6d67d4b518a4deebb646fee3c26d26"
+    },
+    "UniXNU/scripts/test-armvirt-platform.py": {
+      "bytes": 2536,
+      "sha256": "7ba8dca9b640bd861702b8938480924cb71fec8c21e7ef6a1d3add126eb5afa1"
+    },
+    "UniXNU/scripts/test-corecrypto14-post.py": {
+      "bytes": 3346,
+      "sha256": "9d75adf13a5a4de2fe5c761cc49b4864e7ed717ae48de041f36fba54a9c25cc3"
+    },
+    "UniXNU/scripts/test-darwinboot.py": {
+      "bytes": 4650,
+      "sha256": "96fb4d770257706bb468e32175e05f7aec70fddd55b65bc16302402aa94d04c6"
+    },
+    "UniXNU/scripts/test-fileset-reference.py": {
+      "bytes": 5237,
+      "sha256": "7e5a14c9fbcc53a44950d53415e4c8943c016efd84a76e3ccd3f3a544988a3c7"
+    },
+    "UniXNU/scripts/test-qemu-ppm.py": {
+      "bytes": 2708,
+      "sha256": "06acc744e21c3769b14c87864770a7fae0e7f51260195e3b83121c5d66331462"
+    },
+    "UniXNU/scripts/test-runtime-inputs.py": {
+      "bytes": 7241,
+      "sha256": "1d1dab2b2c3a011c78a0d8d4490582f735487818c949637e6143aec498fc4111"
+    },
+    "UniXNU/scripts/trust-append-module.py": {
+      "bytes": 1264,
+      "sha256": "5de6c87ea926e2c9b6eefba8ecf643dec656e693d24aa51d7c06f7fb0e57fa4d"
+    },
+    "UniXNU/scripts/turnip-kmd-patch.py": {
+      "bytes": 1003,
+      "sha256": "80b6d8361c25bd9e4844bfcfc566a085b4926038286826086416bcf487583a72"
+    },
+    "UniXNU/scripts/turnip_compiler_lldb.py": {
+      "bytes": 2627,
+      "sha256": "f35709a8f6fdd1a5317335602765612731bc748f29f32ecfeff5e7b7aade6f0c"
+    },
+    "UniXNU/scripts/unixnu/__init__.py": {
+      "bytes": 90,
+      "sha256": "c6ae444a32411f12494607894581cc27d6bfec49c2f5712fe47a26cece5d1007"
+    },
+    "UniXNU/scripts/unixnu/bootimg.py": {
+      "bytes": 10940,
+      "sha256": "1449469129ca138228abe22463e69a2b90f552523922f7db61d834fd64b5e1c7"
+    },
+    "UniXNU/scripts/unixnu/cli.py": {
+      "bytes": 19525,
+      "sha256": "1adafc2943a969f53216c4fbbc053992640d8053901264c7c77e3d48c49c8206"
+    },
+    "UniXNU/scripts/unixnu/components.py": {
+      "bytes": 7251,
+      "sha256": "a0aa6d2a6e21735add0086089f93e242c1f3380feb00ab62d19b125a55dfd3fd"
+    },
+    "UniXNU/scripts/unixnu/config.py": {
+      "bytes": 10073,
+      "sha256": "f14d5745f8796b5c356280c1f4ee9550e513fea0a381b10ede84099295f6595d"
+    },
+    "UniXNU/scripts/unixnu/devicetree.py": {
+      "bytes": 22302,
+      "sha256": "dd72d2e5dfa8183c9ea320a52017d424c1dee70b057972b1ad91225686c49606"
+    },
+    "UniXNU/scripts/unixnu/feeds.py": {
+      "bytes": 15764,
+      "sha256": "3ebe1714f73c6d66f7a1775c7ce7fdc64c1d4214d76349c423896ca5f86c2c66"
+    },
+    "UniXNU/scripts/unixnu/firmware.py": {
+      "bytes": 3861,
+      "sha256": "69c30263d30da155a4f44d747d691847192891b889ff280c1ecc57bca0ce51ab"
+    },
+    "UniXNU/scripts/unixnu/ipsw.py": {
+      "bytes": 13577,
+      "sha256": "b7d166e113329a9dbfa352864567a6f61e344efae6fbeb96e9b997fdd7bfb093"
+    },
+    "UniXNU/scripts/unixnu/kernel.py": {
+      "bytes": 17615,
+      "sha256": "b961abe98408a1921349fafe6614b017e339844fdc1f7edd0e10a5eba4ff9f79"
+    },
+    "UniXNU/scripts/unixnu/package.py": {
+      "bytes": 1686,
+      "sha256": "692f642c276da3ac6099ea1788b9c773da920a610a5b5b489668d3dad86b7324"
+    },
+    "UniXNU/scripts/unixnu/patches.py": {
+      "bytes": 2981,
+      "sha256": "899b00bdd07e4ce0fd28f746c88d0106a903f4d5b13e58e17473834765eb7206"
+    },
+    "UniXNU/scripts/unixnu/payload.py": {
+      "bytes": 16056,
+      "sha256": "9377c4bf192c3b72de80c5b130789533f7189ca098313cfff808ef2fe957c94f"
+    },
+    "UniXNU/scripts/unixnu/pipeline.py": {
+      "bytes": 3016,
+      "sha256": "c012d9b95378fb4f355af253bd8cd19f53e0c99c4a7e65fc774a8d6db114a2a3"
+    },
+    "UniXNU/scripts/unixnu/profiles.py": {
+      "bytes": 4280,
+      "sha256": "89a04d5b18dcf4769737a1c9a723c25d884621032870d209b9cf85795ba0722a"
+    },
+    "UniXNU/scripts/unixnu/runtime.py": {
+      "bytes": 7291,
+      "sha256": "6d60ca8d20ca4db4d82e84d346daa9769280d3993b68b3dcd230fd63e1106ce8"
+    },
+    "UniXNU/scripts/unixnu/test_bootimg.py": {
+      "bytes": 10547,
+      "sha256": "373a39c1cde71960333b9fd1b642669810592f28f91df82d6b7c8ec7c1ba4d27"
+    },
+    "UniXNU/scripts/unixnu/test_kernel.py": {
+      "bytes": 5001,
+      "sha256": "c1ecf3023c0595cc501db2d5d849920563bb9a6ee2aefc0b6c199dc52e378ca5"
+    },
+    "UniXNU/scripts/unixnu/test_udif.py": {
+      "bytes": 4335,
+      "sha256": "e4289f0b93e2e913847c512a1c48fde7b7b0b304506d5ac69a47e6a205da9782"
+    },
+    "UniXNU/scripts/unixnu/test_vendor_boot.py": {
+      "bytes": 4492,
+      "sha256": "7f2f547560b3a89315b2e9d0167e27d8dd523ac9445311c1005e18c9983c579a"
+    },
+    "UniXNU/scripts/unixnu/tree.py": {
+      "bytes": 4192,
+      "sha256": "4d06a44b5f195e05335c10ce7a0e01cbf0da1b9f79f49dcafc3581978067e151"
+    },
+    "UniXNU/scripts/unixnu/udif.py": {
+      "bytes": 4319,
+      "sha256": "c3a2111c2188fb8a9bf0bfdf3675662520688233ba3bbf0ebf9ccb900de10e19"
+    },
+    "UniXNU/scripts/unixnu/userdata.py": {
+      "bytes": 8839,
+      "sha256": "637b1e62e05f3632fae6eab14024147811fcef3d2778acc571374d71ed0aa96a"
+    },
+    "UniXNU/scripts/unixnu/util.py": {
+      "bytes": 3406,
+      "sha256": "1f6efa81051d67f7225783958f1f8e86a38a7d4e538299ce6aa639b3cb4a759d"
+    },
+    "UniXNU/scripts/unixnu/vendor_boot.py": {
+      "bytes": 7083,
+      "sha256": "11e9cac117d46b7ad7b826395357a6d82713c2b65f3c1a23acf11f23f721500f"
+    },
+    "UniXNU/scripts/xnu-panic-screen.c": {
+      "bytes": 9283,
+      "sha256": "54b950a7d83c30f7720d30551c6d5f10cea5e40dcccc5adb2b4c70a98240a68b"
+    },
+    "UniXNU/scripts/xnu_symbols.py": {
+      "bytes": 2038,
+      "sha256": "1347d93c030c08cd76ce3aab54a0174cb682ddeb0c5b08c168e5ca7899131fa7"
+    },
+    "UniXNU/unixnu": {
+      "bytes": 165,
+      "sha256": "e15d5bc4745d80634d4c252848deead96ce426182cd825beb70ba1afffa2a1f5"
+    },
+    "work/ArmCpu-j716f-iokit-cpu0-20261114/AGENTS.md": {
+      "bytes": 501,
+      "sha256": "3c55896b6dbbb003d44ab0983819ea5f2129427b853c6f51c6330bce5a5dda57"
+    },
+    "work/ArmCpu-j716f-iokit-cpu0-20261114/ArmCpu.cpp": {
+      "bytes": 60166,
+      "sha256": "f2e4ae0d47fdf838b21004f7e500ac3aa145f4197f2a4ee3bfad9909bdce09e2"
+    },
+    "work/ArmCpu-j716f-iokit-cpu0-20261114/Info.plist": {
+      "bytes": 771,
+      "sha256": "32fd6a027cc14b497544626f96ae104cd28af8aa9b9fcbde9ef138a4b3d70547"
+    },
+    "work/ArmCpu-j716f-iokit-cpu0-20261114/LICENSE": {
+      "bytes": 2673,
+      "sha256": "9e18e2c43ae4e51da2d11fd777b5b11056476d6ba395e5e2270467dbf02d0adf"
+    },
+    "work/ArmCpu-j716f-iokit-cpu0-20261114/README.md": {
+      "bytes": 783,
+      "sha256": "9606b98c193af6bd9517dae12bf210ca4346d0eeac96fef2affcb3bbdbaa2c7d"
+    },
+    "work/J716fStorageBringup-r30/AGENTS.md": {
+      "bytes": 1011,
+      "sha256": "74bd220daa12eb04dc6487a9f37eaae62b0da57ddd514d2984aeeabfcaf2d203"
+    },
+    "work/J716fStorageBringup-r30/freeze.py": {
+      "bytes": 2465,
+      "sha256": "295c76bdaacb27d655c4149187e0d87e46b71acf0ddb11d971b9cf747c767be3"
+    },
+    "work/J716fStorageBringup-r30/J716fStorageBringup.cpp": {
+      "bytes": 12128,
+      "sha256": "e1b6110e0cdf751c389d97bdb15e7824cfeccbe81d3391d277496efb3391a888"
+    },
+    "work/J716fStorageBringup-r30/J716fStorageBringup.h": {
+      "bytes": 4274,
+      "sha256": "b3ffc26d8bc16ea35668b654cd5927fda3978d4bb413a2fa9ee8e8a333f7a37b"
+    },
+    "work/J716fStorageBringup-r30/J716fStorageKernel.cpp": {
+      "bytes": 3522,
+      "sha256": "b68938b056e89afb8b0ce4de7f429d95ee39a153bdeca1133dc6c833db41ea42"
+    },
+    "work/J716fStorageBringup-r30/README.md": {
+      "bytes": 6408,
+      "sha256": "8905ccd49501496a4aab3ceb44dfe49222dc120dc7eb02913b6f441847281232"
+    },
+    "work/J716fStorageBringup-r30/source-manifest.json": {
+      "bytes": 7539,
+      "sha256": "d69de980cb42b12fe47683cc2687cdf9ef322fcfbbe1caf4c2767e272d6a9918"
+    },
+    "work/J716fStorageBringup-r30/tests/run.py": {
+      "bytes": 3468,
+      "sha256": "fb1e394b6e2a464c37d994406821da110501d14097d833d41ec5ef8966537a7f"
+    },
+    "work/J716fStorageBringup-r30/tests/StorageBringup.cpp": {
+      "bytes": 10573,
+      "sha256": "5d82f1ebc694f8d0839c1b03fa7159fbfb4d558cf221e73761197b177341e0f7"
+    },
+    "work/UniXNU-j716f-host-storage-r30/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-storage-r30/AGENTS.md": {
+      "bytes": 833,
+      "sha256": "b915ada60d952bc736f0e5b65a585a8e617df1db4a9008d10e2b75763383c12d"
+    },
+    "work/UniXNU-j716f-host-storage-r30/board.toml": {
+      "bytes": 1281,
+      "sha256": "21f955639ef3cd15ee1b892b95aef6da88fcaade8413f25d16ce272d240b05bb"
+    },
+    "work/UniXNU-j716f-host-storage-r30/build-inputs.toml": {
+      "bytes": 225,
+      "sha256": "164d401a8cd5c609aa196663d4748eed562a0c5e13b89e5bdd033c0f289f91ba"
+    },
+    "work/UniXNU-j716f-host-storage-r30/configs/j716f_host_storage_r30_defconfig": {
+      "bytes": 950,
+      "sha256": "9b992c843c0429d3949ef38a7413086cbb1f955b349c8b2450fd2c74e8de29c1"
+    },
+    "work/UniXNU-j716f-host-storage-r30/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-storage-r30/docs/parent-iokit-cpu0/armcpu-cpu0-separators.patch": {
+      "bytes": 2151,
+      "sha256": "a8819171d0cda86205cbb4f4bf1e880c7329e3b36eb6586a896fcd019a7a4909"
+    },
+    "work/UniXNU-j716f-host-storage-r30/docs/parent-iokit-cpu0/cpu0-source-delta.json": {
+      "bytes": 1788,
+      "sha256": "f0914d4201f71bf275659356dffd3b2189cd946a8565a46089d734bc84d8691b"
+    },
+    "work/UniXNU-j716f-host-storage-r30/docs/source-provenance.json": {
+      "bytes": 4946,
+      "sha256": "84bf78026204326548678109d03ee3a4176d2869b8907117b883b8ccac383bcc"
+    },
+    "work/UniXNU-j716f-host-storage-r30/docs/storage-inputs.json": {
+      "bytes": 10069,
+      "sha256": "b498eb0462700a05484ef85500cbb73fd9c49791dbd8cf1846e57ca8e2b19fd9"
+    },
+    "work/UniXNU-j716f-host-storage-r30/drivers/ShengUfs/ReadCommandPolicy.h": {
+      "bytes": 12409,
+      "sha256": "38417c0343641fbc5d981757b3a0fed6ecdce87f1d3ccf754821e65f2ed16c81"
+    },
+    "work/UniXNU-j716f-host-storage-r30/drivers/ShengUfs/RestrictedUfs.h": {
+      "bytes": 13167,
+      "sha256": "0db331f3be2ae57e93b0d44b184d7e49aaf9da92e6f4e295d24c47fb42c2c0a5"
+    },
+    "work/UniXNU-j716f-host-storage-r30/drivers/ShengUfs/SmmuGroupPlan.h": {
+      "bytes": 16058,
+      "sha256": "54becb15f60969933971583c93752ae864718cafae213d9af58ba6a513da968a"
+    },
+    "work/UniXNU-j716f-host-storage-r30/drivers/ShengUfs/UfsObservation.h": {
+      "bytes": 5999,
+      "sha256": "c9418b706655f808ba0e853a4769278e1018288e102c1442973f000babcf0016"
+    },
+    "work/UniXNU-j716f-host-storage-r30/drivers/ShengUfs/UfsPlatform.h": {
+      "bytes": 2917,
+      "sha256": "734aaf274bb9e081135da40830663993ba64a18ba2631aa2b7f0ce918c159164"
+    },
+    "work/UniXNU-j716f-host-storage-r30/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-storage-r30/feeds.toml": {
+      "bytes": 644,
+      "sha256": "687919cd945257fd19956cbe68a2aaf9d76b13949add079af9a6c5e5d47cd2bd"
+    },
+    "work/UniXNU-j716f-host-storage-r30/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-storage-r30/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-storage-r30/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-storage-r30/patches/xnu/j716f-earlylog-console.patch": {
+      "bytes": 25956,
+      "sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708"
+    },
+    "work/UniXNU-j716f-host-storage-r30/patches/xnu/j716f-storage-dependency.patch": {
+      "bytes": 972,
+      "sha256": "3c7eb833d43439841835a88af1a811f041e7820c5db83b0bab50a73a4bce8754"
+    },
+    "work/UniXNU-j716f-host-storage-r30/patches/xnu/j716f-storage-init.patch": {
+      "bytes": 874,
+      "sha256": "62b6135a95f434d549feb7897feb6641ccef23e02831b11b396a8030186d5691"
+    },
+    "work/UniXNU-j716f-host-storage-r30/patches/xnu/j716f-verbose-text-console.patch": {
+      "bytes": 687,
+      "sha256": "9ff9d62bc25a0d9944a815daa42f262dd03a1ec65d1663d8ba00e93dc585b95f"
+    },
+    "work/UniXNU-j716f-host-storage-r30/patches/xnu/series": {
+      "bytes": 200,
+      "sha256": "ba968c6900c1190916792b2cc0a4c0a5b713ab5e656f54b86b15d8cadd31a795"
+    },
+    "work/UniXNU-j716f-host-storage-r30/porting.toml": {
+      "bytes": 15434,
+      "sha256": "0960f6e2dc909849dd2a5049494b6e148762ac2db1f191d0c287445bcf14cb40"
+    },
+    "work/UniXNU-j716f-host-storage-r30/README.md": {
+      "bytes": 2092,
+      "sha256": "1e7da1686ae77caa84b40d58b7dd58935f001443af3bc63a48e977d222a7e1a2"
+    },
+    "work/UniXNU-j716f-host-storage-r30/scripts/build-j716f-storage-r30.py": {
+      "bytes": 14483,
+      "sha256": "87a1878cb463630dc050f09a2b1f5b0b2c0b98720337da4d46299cffc81df095"
+    },
+    "work/UniXNU-j716f-host-storage-r30/scripts/host.py": {
+      "bytes": 2382,
+      "sha256": "8916f0f6acea33ef88773096c1af4507fa935b09b24fc56890126c7251298b63"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/configs/sm8250.config": {
+      "bytes": 118,
+      "sha256": "9310627f0f0dc4c61dfd667de7526b684a5b025c56c2c6eae1b58388a2c14ce3"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1264,
+      "sha256": "0aad19072382bf609e03c9fcc119f50ad2affbb4a7688abc826588c080200727"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.cpp": {
+      "bytes": 10704,
+      "sha256": "00d18841d655dcd517e183bce18049a43248bd5d139301a0a2b8f5ae6293617b"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.h": {
+      "bytes": 3722,
+      "sha256": "69e399842ebbde0baa27e49d29cde7fc38363987e8e4303e9234518ae469708f"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3331,
+      "sha256": "4594be664bb8ba4cf86db5c75a8bee498bc91c49743ac994eb67493bc5a782ec"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1815,
+      "sha256": "466713ab0b38e090d7e1e26d667972d27b0fdd56886b365b8b9f942fc71b8e1a"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsDiagnostics.cpp": {
+      "bytes": 6993,
+      "sha256": "5b025993951701dce374505aebc238d6f78f2262a12a3c3ef09fc94131e5e62d"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsDiagnostics.h": {
+      "bytes": 2833,
+      "sha256": "112e0bc868fe781556084e20fac754ebd5b070195ce3224b43cff50023cdf6e2"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.cpp": {
+      "bytes": 14856,
+      "sha256": "027317ab0fe88927daf5ea658dd73897eef0b6f635d8e8259fc4bc64eed0e97a"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHandoff.h": {
+      "bytes": 4149,
+      "sha256": "771721b76e57429f4fbc3b855e0ccda1c9c96b052e25ed6e5a7e56dc0c65ddd8"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.cpp": {
+      "bytes": 12706,
+      "sha256": "34b7fdfd45a8d06228694ff18207ea8494976662a7b073bd94c96f468cbafe4b"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsHci.h": {
+      "bytes": 2605,
+      "sha256": "07efaaa3f6e4ec1414c0fc1dc68daa97fd24d888f30d89bfcd963f14aee5d154"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsIo.h": {
+      "bytes": 994,
+      "sha256": "bc42f674a40382fc684217be9ad200d6273d55854555bce55eef96510bbe6771"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.cpp": {
+      "bytes": 21027,
+      "sha256": "46d8f245364a1de2597262885f911384ad742fd682565a5bc76f2619ac59aaf0"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/kits/Sm8250Platform/Sm8250UfsRuntime.h": {
+      "bytes": 3102,
+      "sha256": "402fee10b3f5e6b61255546b94b8d9a9243ddc5fcc7667c3c595d43574ddc562"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/patches/xnu/series": {
+      "bytes": 188,
+      "sha256": "665dbe8e1327c79c26b29c190111f7d023a73518d324380f62072399b6bad027"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-storage-r30/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-storage-r30/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    }
+  }
+}

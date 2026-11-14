@@ -1,0 +1,226 @@
+{
+  "upstream_revision": "dff276535db3ac394f628cec58a718cd46c20ac2",
+  "scope": "final",
+  "inputs": {
+    "work/ArmCpu-j716f-diag-20261113/AGENTS.md": {
+      "bytes": 581,
+      "sha256": "c9a41da2c7f662a00ec05e7a89bbb347e6fe6ef8453384e0a809a084ca21eb86"
+    },
+    "work/ArmCpu-j716f-diag-20261113/ArmCpu.cpp": {
+      "bytes": 60870,
+      "sha256": "cc0f9e8aa239c1507b84676614ee78d2390779863ea1df8edcac30313593b404"
+    },
+    "work/ArmCpu-j716f-diag-20261113/Info.plist": {
+      "bytes": 786,
+      "sha256": "e3f8deb8f64851a4ecb7b399d8f2e0ac19142322c255c3176cc2d251b77e4f89"
+    },
+    "work/ArmCpu-j716f-diag-20261113/J716FCpu0DiagCore.h": {
+      "bytes": 5457,
+      "sha256": "9531c130a4715fa6bf6a4fd8207cd3f43ba4ce251289aa0ea597ccc9ca0ec2af"
+    },
+    "work/ArmCpu-j716f-diag-20261113/J716FCpu0DiagRuntime.h": {
+      "bytes": 8983,
+      "sha256": "a8e7bfaf2c3c716430902d0a1ba8f78dab6043f5a9a4ce740b2a3c919fb4f847"
+    },
+    "work/ArmCpu-j716f-diag-20261113/LICENSE": {
+      "bytes": 2724,
+      "sha256": "370e1c48665dc34ca639431a0af1dc2f7418e40cdc3095cd26ca54cee6e8dfb9"
+    },
+    "work/ArmCpu-j716f-diag-20261113/README.md": {
+      "bytes": 6243,
+      "sha256": "d820f469a2f6597de739bbf30442a8f44634f1bc8806180786fbe0488fab1141"
+    },
+    "work/J716fDisplayHandoff-20261113/AGENTS.md": {
+      "bytes": 510,
+      "sha256": "df2add5503794f37c9e608317111cc333d9e05acaad280cd924e6957f7a71cef"
+    },
+    "work/J716fDisplayHandoff-20261113/package/J716fDisplayHandoff.cpp": {
+      "bytes": 6191,
+      "sha256": "894567420730db019dad4719df859df0d9e19582a1d632ecc1e19fb69064a26d"
+    },
+    "work/J716fDisplayHandoff-20261113/package/J716fDisplayHandoffCore.h": {
+      "bytes": 2041,
+      "sha256": "323d0f8a1acc225f8e53d289a276fab082a94915e99f0359a523c2c5209189d4"
+    },
+    "work/J716fDisplayHandoff-20261113/package/source-contract.json": {
+      "bytes": 1861,
+      "sha256": "aeb612bc07ce8564eb6609c4f5ddb4ed84faf2cb026ced4cc7c695a75fec422a"
+    },
+    "work/J716fDisplayHandoff-20261113/patches/j716f-platform-display-handoff.patch": {
+      "bytes": 2178,
+      "sha256": "7155e27f268eec1f9ebec37e10ec7d358e7c2c58ccb674ba74be6f7de42a1a3e"
+    },
+    "work/J716fDisplayHandoff-20261113/README.md": {
+      "bytes": 5675,
+      "sha256": "0f744f0db7e4eaabf06f845e41642cbb6790cf8865cd8ada300755ded4632c99"
+    },
+    "work/J716fDisplayHandoff-20261113/scripts/build.py": {
+      "bytes": 5255,
+      "sha256": "8df5d2c89c47212c35ce486a823b9214504af54a59c6c54ef86b8dad396664e7"
+    },
+    "work/J716fDisplayHandoff-20261113/tests/handoff_test.cpp": {
+      "bytes": 8266,
+      "sha256": "d5accc45bb0f8373ab45b2a2cbb9f49ef6a8a5148b64d94cf4832f949f508d70"
+    },
+    "work/J716fDisplayHandoff-20261113/tests/run_adoption_tests.py": {
+      "bytes": 3748,
+      "sha256": "8cc2dc83dff8504e0eab0196dba59f7ce41013db597da117bccd47f3a83a02b0"
+    },
+    "work/J716fDisplayHandoff-20261113/tests/run_host_tests.py": {
+      "bytes": 2388,
+      "sha256": "6ff0bd2714bb395a45d6e707f65970ac17436425dcc64f500813f436466e9588"
+    },
+    "work/J716fDisplayHandoff-20261113/tests/vm_adoption_test.c": {
+      "bytes": 2906,
+      "sha256": "19ae8b9385bbd6ace847b8fb9b518c13c52513142481a8d2812bc6f0e6b769f2"
+    },
+    "work/J716fGopAdapter-20261113/AGENTS.md": {
+      "bytes": 661,
+      "sha256": "a1f8c6a16d7aedf1c44fe72a2479465350cf10d0512fffa5ffd707b7765d3c3a"
+    },
+    "work/J716fGopAdapter-20261113/package/J716fDisplayCore.h": {
+      "bytes": 3433,
+      "sha256": "972591ff2b62227d630b3918ab1614b17c3a9b2910d08730badc58a31bc63eef"
+    },
+    "work/J716fGopAdapter-20261113/package/J716fGopProvider.cpp": {
+      "bytes": 7122,
+      "sha256": "5873765bef74ca5e5347e07f6a7d59ba0edb4234305b8080a415b07fc76d7438"
+    },
+    "work/J716fGopAdapter-20261113/README.md": {
+      "bytes": 5187,
+      "sha256": "9bd3d7b23b932752e96112132ddca2169f362c5ae807f93a8b1af917af1f641f"
+    },
+    "work/J716fGopAdapter-20261113/scripts/build.py": {
+      "bytes": 9740,
+      "sha256": "1edae951f2c6baffd1fb8dd21351df02f99d3cd57bdd3a369b618c60da3282b3"
+    },
+    "work/J716fGopAdapter-20261113/tests/provider_test.cpp": {
+      "bytes": 6598,
+      "sha256": "2f7390ce3c2573089444e96d0186c5795dac1b0426aac61b9b0f7ff3baea103b"
+    },
+    "work/J716fGopAdapter-20261113/tests/run_host_tests.py": {
+      "bytes": 2368,
+      "sha256": "5287f100619bbb9df9fe2df1bb627f6a4be1ab1eb4941220869931e52f130518"
+    },
+    "work/J716fGopAdapter-20261113/tests/shim/IOKitShim.h": {
+      "bytes": 4160,
+      "sha256": "2359a9e0ab99b17d394045060a5f82e4222340026924f932476061cd2099fb85"
+    },
+    "work/UniXNU-j716f-host-display-handoff/.gitignore": {
+      "bytes": 50,
+      "sha256": "7a2317e8a114d0fcc5cabf9b065c692b83a78dd2f3c585fee31b19e5b35880a5"
+    },
+    "work/UniXNU-j716f-host-display-handoff/AGENTS.md": {
+      "bytes": 566,
+      "sha256": "b07408b4a934c9340781dc3ef4941afd2b4e3fe4baca15497a57a00602a18a80"
+    },
+    "work/UniXNU-j716f-host-display-handoff/board.toml": {
+      "bytes": 1288,
+      "sha256": "a92e9ca652ffcd19dd2580fef20fed9599c8cc23ee8ecbde91a19abd96ac27b9"
+    },
+    "work/UniXNU-j716f-host-display-handoff/build-inputs.toml": {
+      "bytes": 229,
+      "sha256": "dc02756cb5aea04971b641180bda2a394c550db62c90674d25a086bfc91fa5b2"
+    },
+    "work/UniXNU-j716f-host-display-handoff/configs/j716f_host_display_handoff_defconfig": {
+      "bytes": 756,
+      "sha256": "c5b07f4ba6aa1fa3d8f02371ad416b103412f0f34e5313385cb8a5ca608c28d3"
+    },
+    "work/UniXNU-j716f-host-display-handoff/docs/hardware-baseline.md": {
+      "bytes": 14161,
+      "sha256": "6d7ee7989d6a98beee2be7b596a618e5e338c152bb4aef32e24d8fdddc6d2f0f"
+    },
+    "work/UniXNU-j716f-host-display-handoff/docs/source-provenance.json": {
+      "bytes": 4946,
+      "sha256": "84bf78026204326548678109d03ee3a4176d2869b8907117b883b8ccac383bcc"
+    },
+    "work/UniXNU-j716f-host-display-handoff/dts/j716f.dts": {
+      "bytes": 1724,
+      "sha256": "15d4e0f2c25fc29db758667e1ec472073713dd6dc87feaef0f18f1f40853868a"
+    },
+    "work/UniXNU-j716f-host-display-handoff/feeds.toml": {
+      "bytes": 477,
+      "sha256": "866b715097157efba2f3d229af46450534ae9c4412b589647124af1d8a6d5eeb"
+    },
+    "work/UniXNU-j716f-host-display-handoff/package/.gitkeep": {
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    "work/UniXNU-j716f-host-display-handoff/package/README.md": {
+      "bytes": 245,
+      "sha256": "4e38864e768e51f9579e4c71480ee4b768ec2c78d5815ee836aee6257e2280f9"
+    },
+    "work/UniXNU-j716f-host-display-handoff/patches/xnu/ipados17-series": {
+      "bytes": 577,
+      "sha256": "3ec566a1d6b16a49913e2ff575bb406fd8e89136cdf83e4bc517b5a80ff2ce0d"
+    },
+    "work/UniXNU-j716f-host-display-handoff/patches/xnu/j716f-platform-display-handoff.patch": {
+      "bytes": 2178,
+      "sha256": "7155e27f268eec1f9ebec37e10ec7d358e7c2c58ccb674ba74be6f7de42a1a3e"
+    },
+    "work/UniXNU-j716f-host-display-handoff/patches/xnu/series": {
+      "bytes": 38,
+      "sha256": "ed1bf8a8464dfcdcb736a2427737d073d15de3d307a0a34db158173f8f53f56a"
+    },
+    "work/UniXNU-j716f-host-display-handoff/porting.toml": {
+      "bytes": 14695,
+      "sha256": "8e3bd54b06388a38a9e51cfd1cc20adc4b5793e32b4c335921a31df74cc9b1b1"
+    },
+    "work/UniXNU-j716f-host-display-handoff/README.md": {
+      "bytes": 1114,
+      "sha256": "7ce577632eeae8858d8f8968d46bf9c4037fd112cbd1111f4b4d208f5ce261b3"
+    },
+    "work/UniXNU-j716f-host-display-handoff/scripts/build-j716f-display-handoff.py": {
+      "bytes": 442,
+      "sha256": "c265430fc4bc074c1270b18b1d90c3ce42edd64e2710465276a988c32a925f39"
+    },
+    "work/UniXNU-j716f-host-display-handoff/scripts/host.py": {
+      "bytes": 2285,
+      "sha256": "b20f1ac63e10611f83c81d3959208102913e5d06c2ad82cef83b55cfbb72bbcc"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/configs/sm8250.config": {
+      "bytes": 120,
+      "sha256": "9bef9d39a4c04f280e2ceb329e3cc3ed8dc399512dc3bdb042183b78322b4dac"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/dts/sm8250.dtsi": {
+      "bytes": 3485,
+      "sha256": "8d13592079ab7dd52d9a0e2c977bbbabe1abdae216e5a705b25302f16da72ff8"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h": {
+      "bytes": 1315,
+      "sha256": "5908dec841b44cb29972b21d5e6a588a336c2a08f4b59de7812d57547a184476"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c": {
+      "bytes": 3420,
+      "sha256": "3c33542e00b79d146c5f4b5be4e4520d0bbfb6df2a30d7414e228e10704513c9"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h": {
+      "bytes": 1865,
+      "sha256": "43d7aaba8821c400164b3e608efb2aac64907d59666ed9d506b276d88bb50c72"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/patches/xnu/native-smp-secondary.patch": {
+      "bytes": 1041,
+      "sha256": "cc16c2d53cbcc50eb2547e2c6f5b61f325348d07495378d9cdf187246b4d315c"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/patches/xnu/native-smp-type-clusters.patch": {
+      "bytes": 8675,
+      "sha256": "303ab9a6ca4bc0088fefaccfe0fdfdca71bbf807af2c748fd80dd8aef4b4aab7"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/patches/xnu/series": {
+      "bytes": 192,
+      "sha256": "8ed77759990a15c890169850e4b7f3f4760eb9f09b6fd9667c70e89f61ed91af"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/README.md": {
+      "bytes": 1681,
+      "sha256": "39689fd50481e19865feb5b9c5886b46322d64d293a833180a9f351af1e2f732"
+    },
+    "work/UniXNU-j716f-host-display-handoff/socs/sm8250/soc.toml": {
+      "bytes": 486,
+      "sha256": "48c614d2884d89abb1c21d8b60bb7e4bb06453c6b29918d697ea0995d6bbad01"
+    },
+    "work/UniXNU-j716f-host-display-handoff/unixnu.lock": {
+      "bytes": 694,
+      "sha256": "0bbf113d5be71b4c7141f67a82ffeee03ce03e578d03802d5fcca5ecfe0da1a9"
+    }
+  }
+}

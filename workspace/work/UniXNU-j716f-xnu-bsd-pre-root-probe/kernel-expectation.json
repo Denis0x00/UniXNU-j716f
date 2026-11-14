@@ -1,0 +1,2383 @@
+{
+  "schema_version": 1,
+  "status": "independently-frozen",
+  "base_module_sha256": "e719ba486a124329278f20ab66de23ff728c1ee9c2b88bf91f43fddf4c5016a1",
+  "baseline_contract_sha256": "a9cc41748ae620a2d1a3158fcf2b132c9fee1ab88aed2b36ddc1bb4af2d279a8",
+  "baseline_contract": {
+    "schema_version": 1,
+    "status": "independently-frozen",
+    "base_module_sha256": "c5c99f808794de69ba9d205c455d692d54b58bd212d551a26a4d4f2f402d23fd",
+    "baseline_contract_sha256": "a9c6cc45237f594adfeea6c1d31ef78215178a332b81275f08de60560753fa55",
+    "baseline_contract": {
+      "schema_version": 1,
+      "status": "independently-frozen",
+      "base_module_sha256": "f29d9846d093044e95eec346bcfb3a97d2a3ad488103ac2496ca7c019e768051",
+      "baseline_contract_sha256": "7ad304ec32d95b54687693a6d5e3193f4413f636cbac45ccaffb58e43aab2ccd",
+      "baseline_contract": {
+        "schema_version": 1,
+        "status": "independently-frozen",
+        "base_module_sha256": "40cf8a14cb913ad1c62c9f6511db9b8c887fb2f33997aa09215cfd3bf727cd04",
+        "baseline_contract_sha256": "7d3d71f89af7173cff0d0ebadc41a274ab4e45cf82815a3422b830d02e940bb0",
+        "baseline_contract": {
+          "schema_version": 1,
+          "status": "independently-frozen",
+          "base_module_sha256": "34cbd2a965faa449c05a92ff2ff01012234a14cf81c7c1ecae242924d2220f06",
+          "baseline_contract_sha256": "9b2230e304e9f279d83e64e9a87fb42ff859256540f78932e5919cad6cdb79e7",
+          "baseline_contract": {
+            "schema_version": 1,
+            "status": "independently-frozen",
+            "original": {
+              "sha256": "0e8eaab0a4045aa07155dfa537a7f8129893051644fdc7e40d96440a9eacbc7e",
+              "bytes": 51109888
+            },
+            "parser_source_sha256": "8ff6044aeeb96bcfbb62857af58e7ad798b50154d5c37ad54d6ddc673c51f030",
+            "protocol_header_sha256": "d871825f16e72b3923420b3c0aa54e5d5a2291e5c0272d582ce05f9a22a86d16",
+            "source_patch_sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708",
+            "layout": {
+              "entry": "0xfffffff007418488",
+              "first_cpu": "0xfffffff00741a05c",
+              "mmu": "0xfffffff00741a350",
+              "post_mmu": "0xfffffff00741a370",
+              "caves": {
+                "1": "0xfffffff007418500",
+                "2": "0xfffffff007418560",
+                "3": "0xfffffff0074185c0",
+                "4": "0xfffffff007418620"
+              },
+              "caller": {
+                "name": "_PE_init_iokit",
+                "start": "0xfffffff0079a6448",
+                "end": "0xfffffff0079a6850",
+                "sha256": "fd77579384999e6e83fd953f25e4ef7482ef063d50363dd9a687c6dfe899c9b2"
+              },
+              "callee": {
+                "name": "_InitIOKit",
+                "start": "0xfffffff0078e6a38",
+                "end": "0xfffffff0078e6b38",
+                "sha256": "c374c9d947320626f0141f0180a3dfb6c33156407f4a8155e24da17afd33dbb9"
+              },
+              "call_site": "0xfffffff0079a67e0",
+              "original_call_word": "0x97fd0096",
+              "argument": {
+                "adrp_va": "0xfffffff0079a67d8",
+                "adrp_word": "0xf0ffc2c8",
+                "load_va": "0xfffffff0079a67dc",
+                "load_word": "0xf9466100",
+                "storage_va": "0xfffffff007201cc0",
+                "pe_state_va": "0xfffffff007201c28",
+                "device_tree_offset": 152,
+                "saved_x0_va": "0xfffffff0078e6a48",
+                "saved_x0_word": "0xaa0003f3"
+              },
+              "direct_return": {
+                "va": "0xfffffff0078e6b18",
+                "word": "0xd65f03c0",
+                "restore_words": [
+                  "0xa9427bfd",
+                  "0xa9414ff4",
+                  "0x9100c3ff"
+                ]
+              },
+              "optional_tail": {
+                "va": "0xfffffff0078e6b08",
+                "word": "0xd61f0000",
+                "restore_words": [
+                  "0xa9427bfd",
+                  "0xa9414ff4",
+                  "0x9100c3ff"
+                ]
+              },
+              "configure_call": {
+                "va": "0xfffffff0079a67e4",
+                "word": "0x97fd00d5",
+                "target_va": "0xfffffff0078e6b38"
+              },
+              "console": {
+                "name": "_PE_create_console",
+                "start": "0xfffffff0079a6c40",
+                "end": "0xfffffff0079a6e04",
+                "sha256": "be2d3651ed3271ad35262b86249a5e240fe2210e3698fbebf98486310843d371"
+              }
+            },
+            "reset_settings": {
+              "entry_probe_reset_delay": 6,
+              "entry_probe_reset_after": "_InitIOKit",
+              "entry_probe_reset_in": "_PE_init_iokit",
+              "entry_probe_reset_occurrence": 1,
+              "entry_probe_reset_before": false
+            },
+            "expected": {
+              "sha256": "e45cf33cb9dd329af262219b4587a3674d35ee8145af02fb8ac6a7919687fb7e",
+              "changed_bytes": 194
+            },
+            "review": {
+              "new_uninstrumented_build_verified": true,
+              "early_log_source_and_binary_verified": true,
+              "layout_and_return_paths_reviewed": true,
+              "independent_expected_bytes_reviewed": true,
+              "source_crypto_seal_not_changed_by_probe": true
+            },
+            "review_evidence": {
+              "artifacts/j716f-host-iokit-cpu0-20261114/verification.json": {
+                "sha256": "a749da9143013457a57cb0340fe0476a39655bb90b494409b158cf29d8521754",
+                "bytes": 19793
+              },
+              "artifacts/j716f-host-iokit-cpu0-20261114/manifest.json": {
+                "sha256": "f2ed55761a8a7c4e312acbb0b4a7010640e4db164c3ce5ca8abbda5015163743",
+                "bytes": 6809
+              },
+              "artifacts/j716f-host-iokit-cpu0-20261114/kernel.json": {
+                "sha256": "f07a2aee3aca3173d5e60561a199fac441efa80fd0c40731245d395ce4f3da5a",
+                "bytes": 16981347
+              },
+              "analysis/xnu-iokit-matching-r26-20261114/xnu-compile-evidence/manifest.json": {
+                "sha256": "47964d1050bf84288e68dfeb0df3d6b7e282632397c8aa04cab6ff25e8c12cfd",
+                "bytes": 70054
+              },
+              "analysis/xnu-iokit-matching-r26-20261114/xnu-compile-evidence/evidence.tar.gz": {
+                "sha256": "9e4b7fd14bc4b7427a9dab49b9cc9ae1c498de8bd64637fd6457529d4bc91c5f",
+                "bytes": 181539
+              },
+              "analysis/xnu-iokit-matching-r26-20261114/machine-review.json": {
+                "sha256": "7fc7b8b12f5619ca501bbf04aedd8c532b5bb98b9144b61fe9f083216f597b02",
+                "bytes": 87577
+              },
+              "analysis/xnu-iokit-matching-r26-20261114/machine-code.json": {
+                "sha256": "92ef70b4bb6da2f797fc6fa32b56e9c54b4b75c19e08e64f4afb6a3aaccfcc34",
+                "bytes": 477111
+              },
+              "analysis/xnu-iokit-matching-r26-20261114/review_machine.py": {
+                "sha256": "90c54a025524d232bd02fc0b22a8ac06304debd55a70bcb0c888bba2d5d95d8d",
+                "bytes": 14638
+              },
+              "analysis/xnu-iokit-matching-r26-20261114/early-log-binary-discovery.json": {
+                "sha256": "048d8aa529659e8fccb845722accfccf7592355287ed7720c3ecdcadc1295f4e",
+                "bytes": 145161
+              },
+              "analysis/xnu-iokit-matching-r26-20261114/review_early_log_binary.py": {
+                "sha256": "98fb45d1fc84e106bf1aca5594c8d8169d27ba8bc9870fd201f16e59f94d84a2",
+                "bytes": 9856
+              },
+              "analysis/xnu-iokit-matching-r26-20261114/cpu0-source-review.json": {
+                "sha256": "038b3701fafa9c66fb91e9e94eaa493452e3c8be93e2b5d650737ea268bb63fd",
+                "bytes": 2000
+              },
+              "analysis/xnu-iokit-matching-r26-20261114/review_cpu0_source.py": {
+                "sha256": "a1659ff85bb86cbf8cff67690c8f560bba2fccd5ebb5609e38b2d73f6825c3c9",
+                "bytes": 3991
+              },
+              "analysis/xnu-iokit-matching-r26-20261114/collect_xnu_compile_evidence.py": {
+                "sha256": "d97c43cc0bd6ebe5e99aa2e0404ef672a2cdc021da1df765271bb206b99a5366",
+                "bytes": 13382
+              },
+              "analysis/xnu-iokit-matching-r26-20261114/discover_kernel.py": {
+                "sha256": "1d7b41456be46e5a3088d8402084a90d792126ba7a7b3d4bf8d19d212f1f885b",
+                "bytes": 3071
+              },
+              "analysis/xnu-early-log-r22-planning/early-log-binary-review.json": {
+                "sha256": "0b59bdf8ce78257632fd6aef6983ba02d60b14589ddee2a9b01c398bb25e31b7",
+                "bytes": 3458
+              }
+            }
+          },
+          "original": {
+            "sha256": "0e8eaab0a4045aa07155dfa537a7f8129893051644fdc7e40d96440a9eacbc7e",
+            "bytes": 51109888
+          },
+          "parser_source_sha256": "8ff6044aeeb96bcfbb62857af58e7ad798b50154d5c37ad54d6ddc673c51f030",
+          "protocol_header_sha256": "d871825f16e72b3923420b3c0aa54e5d5a2291e5c0272d582ce05f9a22a86d16",
+          "source_patch_sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708",
+          "layout": {
+            "entry": "0xfffffff007418488",
+            "first_cpu": "0xfffffff00741a05c",
+            "mmu": "0xfffffff00741a350",
+            "post_mmu": "0xfffffff00741a370",
+            "caves": {
+              "1": "0xfffffff007418500",
+              "2": "0xfffffff007418560",
+              "3": "0xfffffff0074185c0",
+              "4": "0xfffffff007418620"
+            },
+            "console": {
+              "name": "_PE_create_console",
+              "start": "0xfffffff0079a6c40",
+              "end": "0xfffffff0079a6e04",
+              "sha256": "be2d3651ed3271ad35262b86249a5e240fe2210e3698fbebf98486310843d371"
+            },
+            "caller": {
+              "name": "_kernel_bootstrap_thread",
+              "start": "0xfffffff0072c839c",
+              "end": "0xfffffff0072c88f8",
+              "sha256": "deb92769543f8bc19efc93cb42bac63f922f1ab7b7db1a72dc30a2446b2f460a"
+            },
+            "callee": {
+              "name": "_PE_lockdown_iokit",
+              "start": "0xfffffff0079a6850",
+              "end": "0xfffffff0079a6864",
+              "sha256": "5769c9699a92d9c5091eef0d932914344e2859943ea560e55cbc49eec50f4daa"
+            },
+            "call_site": "0xfffffff0072c8874",
+            "original_call_word": "0x941b77f7",
+            "old_calls": {
+              "InitIOKit": {
+                "va": "0xfffffff0079a67e0",
+                "word": "0x97fd0096",
+                "target_va": "0xfffffff0078e6a38"
+              },
+              "ConfigureIOKit": {
+                "va": "0xfffffff0079a67e4",
+                "word": "0x97fd00d5",
+                "target_va": "0xfffffff0078e6b38"
+              },
+              "machine_lockdown": {
+                "va": "0xfffffff0072c87f4",
+                "word": "0x94054d63",
+                "target_va": "0xfffffff00741bd80"
+              }
+            },
+            "argument_semantics": "void(void); PE tail callee loads gRootNub internally",
+            "normal_return": {
+              "function": "_StartIOKitMatching",
+              "va": "0xfffffff0078e6bac",
+              "word": "0xd65f03c0",
+              "restore_va": "0xfffffff0078e6ba4",
+              "restore_words": [
+                "0xa9417bfd",
+                "0x910083ff"
+              ],
+              "tail_branch_va": "0xfffffff0079a6860"
+            },
+            "matching": {
+              "functions": {
+                "start_matching": {
+                  "name": "_StartIOKitMatching",
+                  "start": "0xfffffff0078e6b68",
+                  "end": "0xfffffff0078e6be4",
+                  "sha256": "4aca6fd4bbfaed4e1cd8fb4530d33a7114327bc14a7e07b001bf5afb6489d309"
+                },
+                "start_service_matching": {
+                  "name": "__ZN22IOPlatformExpertDevice22startIOServiceMatchingEv",
+                  "start": "0xfffffff00793a91c",
+                  "end": "0xfffffff00793a964",
+                  "sha256": "97c7e439d991a438063505e08a163b87937f5d4f3a4a7fcd67d5e735756e72b1"
+                },
+                "register_service": {
+                  "name": "__ZN9IOService15registerServiceEj",
+                  "start": "0xfffffff0078f2e20",
+                  "end": "0xfffffff0078f3014",
+                  "sha256": "cbd3d1f535b3663da689592f756ce81f4f666bf55e762f581d5dd9a4d76d4076"
+                },
+                "service_start_matching": {
+                  "name": "__ZN9IOService13startMatchingEj",
+                  "start": "0xfffffff0078f3014",
+                  "end": "0xfffffff0078f330c",
+                  "sha256": "997f8dde647c185eba0d11e038332ec9468203873bd01a1e366ee162f4b13a90"
+                },
+                "start_job": {
+                  "name": "__ZN13_IOServiceJob8startJobEP9IOServiceij",
+                  "start": "0xfffffff0078f330c",
+                  "end": "0xfffffff0078f33cc",
+                  "sha256": "2c8cb976d007fc08098fde43f01da41de07622034bfa266028cbb380cae3926c"
+                },
+                "get_provider": {
+                  "name": "__ZNK9IOService11getProviderEv",
+                  "start": "0xfffffff0078f3f2c",
+                  "end": "0xfffffff0078f3fa0",
+                  "sha256": "b55a98dafbd5966d4f3beb91248ad80d7e7ffda2d0bb62f58ec3a87a514e2ecb"
+                }
+              },
+              "register_service_options": 0,
+              "root_class_register_service_vtable_slot": "0xfffffff0071c68e0",
+              "root_job_path": "asynchronous if ordinary registry/provider conditions reach startJob",
+              "return_proves_matching_complete": false,
+              "return_proves_job_submitted": false,
+              "worker_mmio_may_run_before_reset": true,
+              "offline_board_drivers_added": false
+            },
+            "mapping": {
+              "functions": {
+                "machine_lockdown": {
+                  "name": "_machine_lockdown",
+                  "start": "0xfffffff00741bd80",
+                  "end": "0xfffffff00741bdc0",
+                  "sha256": "1c2a9e934d91ffa9536ed159adcbfabde9654fe56c6218fafbfaa90a1f6dc0f2"
+                },
+                "prot_init": {
+                  "name": "_arm_vm_prot_init",
+                  "start": "0xfffffff00740f930",
+                  "end": "0xfffffff007410124",
+                  "sha256": "c6a0ceb1b4a1023fa88e118fe3ecfe47994bf9e76893355732cb9f6c4e3cb588"
+                },
+                "prot_finalize": {
+                  "name": "_arm_vm_prot_finalize",
+                  "start": "0xfffffff007410124",
+                  "end": "0xfffffff007410270",
+                  "sha256": "e767439b7d5ba674cdc1160d2a90db923ac08728a7edd137c1820ff3ef9a96ea"
+                },
+                "replace_bootstack": {
+                  "name": "_arm64_replace_bootstack",
+                  "start": "0xfffffff00741ebf0",
+                  "end": "0xfffffff00741ec20",
+                  "sha256": "3d194475ffb3315a69547d412b22e3b3f88fb20ceac840126a174806e873f8a7"
+                }
+              },
+              "text_exec": {
+                "start": "0xfffffff00723c000",
+                "end": "0xfffffff0079ec000",
+                "fileoff": 2326528,
+                "filesize": 8060928,
+                "maxprot": 5,
+                "initprot": 5
+              },
+              "cave_page": "0xfffffff007418000",
+              "text_exec_rox_call": "0xfffffff00740fd74",
+              "runtime_mapping_verified": false
+            }
+          },
+          "reset_settings": {
+            "entry_probe_reset_delay": 6,
+            "entry_probe_reset_after": "_PE_lockdown_iokit",
+            "entry_probe_reset_in": "_kernel_bootstrap_thread",
+            "entry_probe_reset_occurrence": 1,
+            "entry_probe_reset_before": false
+          },
+          "expected": {
+            "sha256": "5b8ac816752f11491f4a7e3db76194af25a6768cc4aba8fddb0eeec950ada01a",
+            "changed_bytes": 194
+          },
+          "review": {
+            "machine_source_and_abi_reviewed": true,
+            "post_lockdown_cave_mapping_reviewed": true,
+            "asynchronous_matching_limits_reviewed": true,
+            "independent_expected_bytes_reviewed": true
+          },
+          "review_evidence": {
+            "artifacts/j716f-host-iokit-cpu0-20261114/verification.json": {
+              "sha256": "a749da9143013457a57cb0340fe0476a39655bb90b494409b158cf29d8521754",
+              "bytes": 19793
+            },
+            "artifacts/j716f-host-iokit-cpu0-20261114/manifest.json": {
+              "sha256": "f2ed55761a8a7c4e312acbb0b4a7010640e4db164c3ce5ca8abbda5015163743",
+              "bytes": 6809
+            },
+            "artifacts/j716f-host-iokit-cpu0-20261114/kernel.json": {
+              "sha256": "f07a2aee3aca3173d5e60561a199fac441efa80fd0c40731245d395ce4f3da5a",
+              "bytes": 16981347
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/xnu-compile-evidence/manifest.json": {
+              "sha256": "47964d1050bf84288e68dfeb0df3d6b7e282632397c8aa04cab6ff25e8c12cfd",
+              "bytes": 70054
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/xnu-compile-evidence/evidence.tar.gz": {
+              "sha256": "9e4b7fd14bc4b7427a9dab49b9cc9ae1c498de8bd64637fd6457529d4bc91c5f",
+              "bytes": 181539
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/machine-review.json": {
+              "sha256": "7fc7b8b12f5619ca501bbf04aedd8c532b5bb98b9144b61fe9f083216f597b02",
+              "bytes": 87577
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/machine-code.json": {
+              "sha256": "92ef70b4bb6da2f797fc6fa32b56e9c54b4b75c19e08e64f4afb6a3aaccfcc34",
+              "bytes": 477111
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/review_machine.py": {
+              "sha256": "90c54a025524d232bd02fc0b22a8ac06304debd55a70bcb0c888bba2d5d95d8d",
+              "bytes": 14638
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/early-log-binary-discovery.json": {
+              "sha256": "048d8aa529659e8fccb845722accfccf7592355287ed7720c3ecdcadc1295f4e",
+              "bytes": 145161
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/review_early_log_binary.py": {
+              "sha256": "98fb45d1fc84e106bf1aca5594c8d8169d27ba8bc9870fd201f16e59f94d84a2",
+              "bytes": 9856
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/cpu0-source-review.json": {
+              "sha256": "038b3701fafa9c66fb91e9e94eaa493452e3c8be93e2b5d650737ea268bb63fd",
+              "bytes": 2000
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/review_cpu0_source.py": {
+              "sha256": "a1659ff85bb86cbf8cff67690c8f560bba2fccd5ebb5609e38b2d73f6825c3c9",
+              "bytes": 3991
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/collect_xnu_compile_evidence.py": {
+              "sha256": "d97c43cc0bd6ebe5e99aa2e0404ef672a2cdc021da1df765271bb206b99a5366",
+              "bytes": 13382
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/discover_kernel.py": {
+              "sha256": "1d7b41456be46e5a3088d8402084a90d792126ba7a7b3d4bf8d19d212f1f885b",
+              "bytes": 3071
+            },
+            "analysis/xnu-early-log-r22-planning/early-log-binary-review.json": {
+              "sha256": "0b59bdf8ce78257632fd6aef6983ba02d60b14589ddee2a9b01c398bb25e31b7",
+              "bytes": 3458
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/baseline-contract.json": {
+              "sha256": "288823b69bc34c259f848ffac4ca8cbecb63b0892828992241fa5e21daa3a69d",
+              "bytes": 5804
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/freeze_baseline.py": {
+              "sha256": "cd85d2ccfb81c26b9ed8490efb9c3e5aa6b25eadd4e667c2dc7cc2f6509d80a8",
+              "bytes": 11001
+            },
+            "analysis/xnu-iokit-matching-r26-20261114/early-log-binary-review.json": {
+              "sha256": "3b9bc1aab396b23456c0d236fe2f40d3eb562a96f5dd484157684d18cb0b4065",
+              "bytes": 878
+            },
+            "analysis/cpu0-asm-r26-20261114/new-kernel-audit.json": {
+              "sha256": "a6164e7c054113c023fd29142af7c2f69e7f8e7eb16fa4366d8bac048987e083",
+              "bytes": 42532
+            },
+            "work/UniXNU-j716f-host-iokit-cpu0/docs/cpu0-source-delta.json": {
+              "sha256": "f0914d4201f71bf275659356dffd3b2189cd946a8565a46089d734bc84d8691b",
+              "bytes": 1788
+            },
+            "work/UniXNU-j716f-host-iokit-cpu0/docs/armcpu-cpu0-separators.patch": {
+              "sha256": "a8819171d0cda86205cbb4f4bf1e880c7329e3b36eb6586a896fcd019a7a4909",
+              "bytes": 2151
+            }
+          }
+        },
+        "original": {
+          "sha256": "0e8eaab0a4045aa07155dfa537a7f8129893051644fdc7e40d96440a9eacbc7e",
+          "bytes": 51109888
+        },
+        "parser_source_sha256": "8ff6044aeeb96bcfbb62857af58e7ad798b50154d5c37ad54d6ddc673c51f030",
+        "protocol_header_sha256": "d871825f16e72b3923420b3c0aa54e5d5a2291e5c0272d582ce05f9a22a86d16",
+        "source_patch_sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708",
+        "layout": {
+          "entry": "0xfffffff007418488",
+          "first_cpu": "0xfffffff00741a05c",
+          "mmu": "0xfffffff00741a350",
+          "post_mmu": "0xfffffff00741a370",
+          "caves": {
+            "1": "0xfffffff007418500",
+            "2": "0xfffffff007418560",
+            "3": "0xfffffff0074185c0",
+            "4": "0xfffffff007418620"
+          },
+          "console": {
+            "name": "_PE_create_console",
+            "start": "0xfffffff0079a6c40",
+            "end": "0xfffffff0079a6e04",
+            "sha256": "be2d3651ed3271ad35262b86249a5e240fe2210e3698fbebf98486310843d371"
+          },
+          "mapping": {
+            "functions": {
+              "machine_lockdown": {
+                "name": "_machine_lockdown",
+                "start": "0xfffffff00741bd80",
+                "end": "0xfffffff00741bdc0",
+                "sha256": "1c2a9e934d91ffa9536ed159adcbfabde9654fe56c6218fafbfaa90a1f6dc0f2"
+              },
+              "prot_init": {
+                "name": "_arm_vm_prot_init",
+                "start": "0xfffffff00740f930",
+                "end": "0xfffffff007410124",
+                "sha256": "c6a0ceb1b4a1023fa88e118fe3ecfe47994bf9e76893355732cb9f6c4e3cb588"
+              },
+              "prot_finalize": {
+                "name": "_arm_vm_prot_finalize",
+                "start": "0xfffffff007410124",
+                "end": "0xfffffff007410270",
+                "sha256": "e767439b7d5ba674cdc1160d2a90db923ac08728a7edd137c1820ff3ef9a96ea"
+              },
+              "replace_bootstack": {
+                "name": "_arm64_replace_bootstack",
+                "start": "0xfffffff00741ebf0",
+                "end": "0xfffffff00741ec20",
+                "sha256": "3d194475ffb3315a69547d412b22e3b3f88fb20ceac840126a174806e873f8a7"
+              }
+            },
+            "text_exec": {
+              "start": "0xfffffff00723c000",
+              "end": "0xfffffff0079ec000",
+              "fileoff": 2326528,
+              "filesize": 8060928,
+              "maxprot": 5,
+              "initprot": 5
+            },
+            "cave_page": "0xfffffff007418000",
+            "text_exec_rox_call": "0xfffffff00740fd74",
+            "runtime_mapping_verified": false
+          },
+          "caller": {
+            "name": "_kernel_bootstrap_thread",
+            "start": "0xfffffff0072c839c",
+            "end": "0xfffffff0072c88f8",
+            "sha256": "deb92769543f8bc19efc93cb42bac63f922f1ab7b7db1a72dc30a2446b2f460a"
+          },
+          "callee": {
+            "name": "_kperf_init_early",
+            "start": "0xfffffff0073d9638",
+            "end": "0xfffffff0073d96b8",
+            "sha256": "3ff956446386774aff4e585000a7dca7b3df361ac4c516e9a81228f087758f03"
+          },
+          "call_site": "0xfffffff0072c8888",
+          "original_call_word": "0x9404436c",
+          "old_calls": {
+            "InitIOKit": {
+              "va": "0xfffffff0079a67e0",
+              "word": "0x97fd0096",
+              "target_va": "0xfffffff0078e6a38"
+            },
+            "ConfigureIOKit": {
+              "va": "0xfffffff0079a67e4",
+              "word": "0x97fd00d5",
+              "target_va": "0xfffffff0078e6b38"
+            },
+            "machine_lockdown": {
+              "va": "0xfffffff0072c87f4",
+              "word": "0x94054d63",
+              "target_va": "0xfffffff00741bd80"
+            },
+            "PE_lockdown_iokit": {
+              "va": "0xfffffff0072c8874",
+              "word": "0x941b77f7",
+              "target_va": "0xfffffff0079a6850"
+            }
+          },
+          "argument_semantics": "void(void); no arguments added or modified",
+          "normal_return": {
+            "function": "_kperf_init_early",
+            "va": "0xfffffff0073d96b0",
+            "word": "0xd65f03c0",
+            "restore_va": "0xfffffff0073d96a8",
+            "restore_words": [
+              "0xa9457bfd",
+              "0x910183ff"
+            ]
+          },
+          "cpu_gate": {
+            "functions": {
+              "cpu_wait": {
+                "name": "_ml_wait_max_cpus",
+                "start": "0xfffffff00741b7c8",
+                "end": "0xfffffff00741b878",
+                "sha256": "73246279fdc33923c457ca0586a65bd3916c928ccd513ae74ff01a25d7d73fec"
+              },
+              "cpu_set": {
+                "name": "_ml_set_max_cpus",
+                "start": "0xfffffff00741b768",
+                "end": "0xfffffff00741b7c8",
+                "sha256": "6be9e6016fcb4bb93ab1b5dfa9e050fdbb345d439700cf6b3e63a847bd72ee28"
+              },
+              "mutex_sleep": {
+                "name": "_lck_mtx_sleep",
+                "start": "0xfffffff00729ddc0",
+                "end": "0xfffffff00729deb0",
+                "sha256": "afc8a616f2acfa06fe2a52fab885d26eacc788514091e76ceb41e59cc7cc1004"
+              }
+            },
+            "wait_callsite": "0xfffffff0073d9654",
+            "state_va": "0xfffffff007afa86c",
+            "mutex_va": "0xfffffff007a90200",
+            "initial_state": 0,
+            "set_state": 1,
+            "wait_state": 2,
+            "sleep_only_if_not_set": true,
+            "sleep_has_deadline": false,
+            "return_supports_state_publication": true,
+            "return_proves_actual_sleep": false,
+            "return_proves_timer_irq": false,
+            "return_proves_processor_registration_complete": false,
+            "return_proves_matching_complete": false,
+            "return_proves_kperf_sampling": false,
+            "runtime_return_observed": false,
+            "next_unexecuted_bootstrap_call": "_bsd_init"
+          }
+        },
+        "reset_settings": {
+          "entry_probe_reset_delay": 6,
+          "entry_probe_reset_after": "_kperf_init_early",
+          "entry_probe_reset_in": "_kernel_bootstrap_thread",
+          "entry_probe_reset_occurrence": 1,
+          "entry_probe_reset_before": false
+        },
+        "expected": {
+          "sha256": "fe860ad7c7da8b1a0f7736b8f471e44012a65b94f258d08e9004cdc23afe29d8",
+          "changed_bytes": 194
+        },
+        "review": {
+          "new_call_and_normal_return_reviewed": true,
+          "previous_PE_hook_restored": true,
+          "conditional_cpu_wait_and_publication_limits_reviewed": true,
+          "independent_expected_bytes_reviewed": true
+        },
+        "review_evidence": {
+          "artifacts/j716f-host-iokit-cpu0-20261114/verification.json": {
+            "sha256": "a749da9143013457a57cb0340fe0476a39655bb90b494409b158cf29d8521754",
+            "bytes": 19793
+          },
+          "artifacts/j716f-host-iokit-cpu0-20261114/manifest.json": {
+            "sha256": "f2ed55761a8a7c4e312acbb0b4a7010640e4db164c3ce5ca8abbda5015163743",
+            "bytes": 6809
+          },
+          "artifacts/j716f-host-iokit-cpu0-20261114/kernel.json": {
+            "sha256": "f07a2aee3aca3173d5e60561a199fac441efa80fd0c40731245d395ce4f3da5a",
+            "bytes": 16981347
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/xnu-compile-evidence/manifest.json": {
+            "sha256": "47964d1050bf84288e68dfeb0df3d6b7e282632397c8aa04cab6ff25e8c12cfd",
+            "bytes": 70054
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/xnu-compile-evidence/evidence.tar.gz": {
+            "sha256": "9e4b7fd14bc4b7427a9dab49b9cc9ae1c498de8bd64637fd6457529d4bc91c5f",
+            "bytes": 181539
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/machine-review.json": {
+            "sha256": "7fc7b8b12f5619ca501bbf04aedd8c532b5bb98b9144b61fe9f083216f597b02",
+            "bytes": 87577
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/machine-code.json": {
+            "sha256": "92ef70b4bb6da2f797fc6fa32b56e9c54b4b75c19e08e64f4afb6a3aaccfcc34",
+            "bytes": 477111
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/review_machine.py": {
+            "sha256": "90c54a025524d232bd02fc0b22a8ac06304debd55a70bcb0c888bba2d5d95d8d",
+            "bytes": 14638
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/early-log-binary-discovery.json": {
+            "sha256": "048d8aa529659e8fccb845722accfccf7592355287ed7720c3ecdcadc1295f4e",
+            "bytes": 145161
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/review_early_log_binary.py": {
+            "sha256": "98fb45d1fc84e106bf1aca5594c8d8169d27ba8bc9870fd201f16e59f94d84a2",
+            "bytes": 9856
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/cpu0-source-review.json": {
+            "sha256": "038b3701fafa9c66fb91e9e94eaa493452e3c8be93e2b5d650737ea268bb63fd",
+            "bytes": 2000
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/review_cpu0_source.py": {
+            "sha256": "a1659ff85bb86cbf8cff67690c8f560bba2fccd5ebb5609e38b2d73f6825c3c9",
+            "bytes": 3991
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/collect_xnu_compile_evidence.py": {
+            "sha256": "d97c43cc0bd6ebe5e99aa2e0404ef672a2cdc021da1df765271bb206b99a5366",
+            "bytes": 13382
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/discover_kernel.py": {
+            "sha256": "1d7b41456be46e5a3088d8402084a90d792126ba7a7b3d4bf8d19d212f1f885b",
+            "bytes": 3071
+          },
+          "analysis/xnu-early-log-r22-planning/early-log-binary-review.json": {
+            "sha256": "0b59bdf8ce78257632fd6aef6983ba02d60b14589ddee2a9b01c398bb25e31b7",
+            "bytes": 3458
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/baseline-contract.json": {
+            "sha256": "288823b69bc34c259f848ffac4ca8cbecb63b0892828992241fa5e21daa3a69d",
+            "bytes": 5804
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/freeze_baseline.py": {
+            "sha256": "cd85d2ccfb81c26b9ed8490efb9c3e5aa6b25eadd4e667c2dc7cc2f6509d80a8",
+            "bytes": 11001
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/early-log-binary-review.json": {
+            "sha256": "3b9bc1aab396b23456c0d236fe2f40d3eb562a96f5dd484157684d18cb0b4065",
+            "bytes": 878
+          },
+          "analysis/cpu0-asm-r26-20261114/new-kernel-audit.json": {
+            "sha256": "a6164e7c054113c023fd29142af7c2f69e7f8e7eb16fa4366d8bac048987e083",
+            "bytes": 42532
+          },
+          "work/UniXNU-j716f-host-iokit-cpu0/docs/cpu0-source-delta.json": {
+            "sha256": "f0914d4201f71bf275659356dffd3b2189cd946a8565a46089d734bc84d8691b",
+            "bytes": 1788
+          },
+          "work/UniXNU-j716f-host-iokit-cpu0/docs/armcpu-cpu0-separators.patch": {
+            "sha256": "a8819171d0cda86205cbb4f4bf1e880c7329e3b36eb6586a896fcd019a7a4909",
+            "bytes": 2151
+          },
+          "analysis/xnu-cpu-wait-r27-20261114/machine-review.json": {
+            "sha256": "6c3c4f36db38b3b6ee7f61471d756e11f8f843501eec61e9281dbe8a132890d8",
+            "bytes": 3880
+          },
+          "analysis/xnu-cpu-wait-r27-20261114/machine-code.json": {
+            "sha256": "c6e34767ee38b49bc994215e5f9b87d21bb0bfeee315f2ad5b9e3f39c250d2fc",
+            "bytes": 75513
+          },
+          "analysis/xnu-cpu-wait-r27-20261114/review_machine.py": {
+            "sha256": "3781b64de7ca7e2bee74f3eb375ffaa030bfab5bc9ff3ed13e8fa15a17d79475",
+            "bytes": 10464
+          },
+          "analysis/xnu-iokit-matching-r26-20261114/kernel-expectation.json": {
+            "sha256": "511f899de2bbac4a5ca54ff2993b6f8867f8d637aa24a0248f6615fbabc3bfe1",
+            "bytes": 16577
+          }
+        }
+      },
+      "original": {
+        "sha256": "0e8eaab0a4045aa07155dfa537a7f8129893051644fdc7e40d96440a9eacbc7e",
+        "bytes": 51109888
+      },
+      "parser_source_sha256": "8ff6044aeeb96bcfbb62857af58e7ad798b50154d5c37ad54d6ddc673c51f030",
+      "protocol_header_sha256": "d871825f16e72b3923420b3c0aa54e5d5a2291e5c0272d582ce05f9a22a86d16",
+      "source_patch_sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708",
+      "layout": {
+        "entry": "0xfffffff007418488",
+        "first_cpu": "0xfffffff00741a05c",
+        "mmu": "0xfffffff00741a350",
+        "post_mmu": "0xfffffff00741a370",
+        "caves": {
+          "1": "0xfffffff007418500",
+          "2": "0xfffffff007418560",
+          "3": "0xfffffff0074185c0",
+          "4": "0xfffffff007418620"
+        },
+        "console": {
+          "name": "_PE_create_console",
+          "start": "0xfffffff0079a6c40",
+          "end": "0xfffffff0079a6e04",
+          "sha256": "be2d3651ed3271ad35262b86249a5e240fe2210e3698fbebf98486310843d371"
+        },
+        "mapping": {
+          "functions": {
+            "machine_lockdown": {
+              "name": "_machine_lockdown",
+              "start": "0xfffffff00741bd80",
+              "end": "0xfffffff00741bdc0",
+              "sha256": "1c2a9e934d91ffa9536ed159adcbfabde9654fe56c6218fafbfaa90a1f6dc0f2"
+            },
+            "prot_init": {
+              "name": "_arm_vm_prot_init",
+              "start": "0xfffffff00740f930",
+              "end": "0xfffffff007410124",
+              "sha256": "c6a0ceb1b4a1023fa88e118fe3ecfe47994bf9e76893355732cb9f6c4e3cb588"
+            },
+            "prot_finalize": {
+              "name": "_arm_vm_prot_finalize",
+              "start": "0xfffffff007410124",
+              "end": "0xfffffff007410270",
+              "sha256": "e767439b7d5ba674cdc1160d2a90db923ac08728a7edd137c1820ff3ef9a96ea"
+            },
+            "replace_bootstack": {
+              "name": "_arm64_replace_bootstack",
+              "start": "0xfffffff00741ebf0",
+              "end": "0xfffffff00741ec20",
+              "sha256": "3d194475ffb3315a69547d412b22e3b3f88fb20ceac840126a174806e873f8a7"
+            }
+          },
+          "text_exec": {
+            "start": "0xfffffff00723c000",
+            "end": "0xfffffff0079ec000",
+            "fileoff": 2326528,
+            "filesize": 8060928,
+            "maxprot": 5,
+            "initprot": 5
+          },
+          "cave_page": "0xfffffff007418000",
+          "text_exec_rox_call": "0xfffffff00740fd74",
+          "runtime_mapping_verified": false
+        },
+        "caller": {
+          "name": "_bsd_init",
+          "start": "0xfffffff0076e81b8",
+          "end": "0xfffffff0076e8bf4",
+          "sha256": "6c976d0b87055ce3de88987a40888e668dec077c9c7ce5a2de2062132966c65f"
+        },
+        "callee": {
+          "name": "_sysctl_mib_init",
+          "start": "0xfffffff0077537b4",
+          "end": "0xfffffff0077538e4",
+          "sha256": "2f45108ea830b13d0a32579d7bb0cf27bb5189d6df871084b2afa795624c3ce5"
+        },
+        "call_site": "0xfffffff0076e87c0",
+        "original_call_word": "0x9401abfd",
+        "old_calls": {
+          "InitIOKit": {
+            "va": "0xfffffff0079a67e0",
+            "word": "0x97fd0096",
+            "target_va": "0xfffffff0078e6a38"
+          },
+          "ConfigureIOKit": {
+            "va": "0xfffffff0079a67e4",
+            "word": "0x97fd00d5",
+            "target_va": "0xfffffff0078e6b38"
+          },
+          "machine_lockdown": {
+            "va": "0xfffffff0072c87f4",
+            "word": "0x94054d63",
+            "target_va": "0xfffffff00741bd80"
+          },
+          "PE_lockdown_iokit": {
+            "va": "0xfffffff0072c8874",
+            "word": "0x941b77f7",
+            "target_va": "0xfffffff0079a6850"
+          },
+          "kperf_init_early": {
+            "va": "0xfffffff0072c8888",
+            "word": "0x9404436c",
+            "target_va": "0xfffffff0073d9638"
+          }
+        },
+        "argument_semantics": "void(void); original SP and no argument registers altered before BL",
+        "normal_return": {
+          "function": "_sysctl_mib_init",
+          "va": "0xfffffff0077538c8",
+          "word": "0xd65f03c0",
+          "restore_va": "0xfffffff0077538bc",
+          "restore_words": [
+            "0xa9427bfd",
+            "0xa9414ff4",
+            "0xa8c357f6"
+          ]
+        },
+        "bsd_boundary": {
+          "autoconf_function": {
+            "name": "_bsd_autoconf",
+            "start": "0xfffffff0076e8bf4",
+            "end": "0xfffffff0076e8c4c",
+            "sha256": "0dd0d5ac384472dde0d71959a4499c8b1338d98521bee4ee7c84ec648f47c3dc"
+          },
+          "later_calls": {
+            "_kprintf": {
+              "va": "0xfffffff0076e87cc",
+              "target_va": "0xfffffff0079a74c0",
+              "word": "0x940afb3d"
+            },
+            "_kminit": {
+              "va": "0xfffffff0076e87d0",
+              "target_va": "0xfffffff007882370",
+              "word": "0x940666e8"
+            },
+            "_IOKitBSDInit": {
+              "va": "0xfffffff0076e8804",
+              "target_va": "0xfffffff00797e7c8",
+              "word": "0x940a57f1"
+            },
+            "_IOFindBSDRoot": {
+              "va": "0xfffffff0076e8898",
+              "target_va": "0xfffffff00797f6fc",
+              "word": "0x940a5b99"
+            },
+            "_vfs_mountroot": {
+              "va": "0xfffffff0076e88dc",
+              "target_va": "0xfffffff007499b7c",
+              "word": "0x97f6c4a8"
+            }
+          },
+          "stops_before_inlined_bsd_autoconf": true,
+          "stops_before_IOBSD_publication": true,
+          "stops_before_root_discovery_and_mount": true,
+          "required_boot_args": "-v serial=3 j716f-earlylog=1",
+          "native_probe_gates_present_but_not_requested": true,
+          "sysctl_wait_call": "0xfffffff007753860",
+          "prior_initialization_can_block": true,
+          "prior_initialization_can_start_workers": true,
+          "zero_side_effects_proved": false,
+          "timer_irq_delivery_proved": false,
+          "all_drivers_ready_proved": false,
+          "root_access_exercised": false,
+          "runtime_return_observed": false
+        }
+      },
+      "reset_settings": {
+        "entry_probe_reset_delay": 6,
+        "entry_probe_reset_after": "_sysctl_mib_init",
+        "entry_probe_reset_in": "_bsd_init",
+        "entry_probe_reset_occurrence": 1,
+        "entry_probe_reset_before": false
+      },
+      "expected": {
+        "sha256": "58d705d52a37401ab1da986f7e119c78f0d81b8084a56b166033442903cea89c",
+        "changed_bytes": 194
+      },
+      "review": {
+        "unique_bsd_call_and_return_reviewed": true,
+        "previous_kperf_hook_restored": true,
+        "pre_autoconf_root_boundary_reviewed": true,
+        "actual_native_probe_gates_reviewed": true,
+        "independent_expected_bytes_reviewed": true
+      },
+      "review_evidence": {
+        "artifacts/j716f-host-iokit-cpu0-20261114/verification.json": {
+          "sha256": "a749da9143013457a57cb0340fe0476a39655bb90b494409b158cf29d8521754",
+          "bytes": 19793
+        },
+        "artifacts/j716f-host-iokit-cpu0-20261114/manifest.json": {
+          "sha256": "f2ed55761a8a7c4e312acbb0b4a7010640e4db164c3ce5ca8abbda5015163743",
+          "bytes": 6809
+        },
+        "artifacts/j716f-host-iokit-cpu0-20261114/kernel.json": {
+          "sha256": "f07a2aee3aca3173d5e60561a199fac441efa80fd0c40731245d395ce4f3da5a",
+          "bytes": 16981347
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/xnu-compile-evidence/manifest.json": {
+          "sha256": "47964d1050bf84288e68dfeb0df3d6b7e282632397c8aa04cab6ff25e8c12cfd",
+          "bytes": 70054
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/xnu-compile-evidence/evidence.tar.gz": {
+          "sha256": "9e4b7fd14bc4b7427a9dab49b9cc9ae1c498de8bd64637fd6457529d4bc91c5f",
+          "bytes": 181539
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/machine-review.json": {
+          "sha256": "7fc7b8b12f5619ca501bbf04aedd8c532b5bb98b9144b61fe9f083216f597b02",
+          "bytes": 87577
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/machine-code.json": {
+          "sha256": "92ef70b4bb6da2f797fc6fa32b56e9c54b4b75c19e08e64f4afb6a3aaccfcc34",
+          "bytes": 477111
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/review_machine.py": {
+          "sha256": "90c54a025524d232bd02fc0b22a8ac06304debd55a70bcb0c888bba2d5d95d8d",
+          "bytes": 14638
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/early-log-binary-discovery.json": {
+          "sha256": "048d8aa529659e8fccb845722accfccf7592355287ed7720c3ecdcadc1295f4e",
+          "bytes": 145161
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/review_early_log_binary.py": {
+          "sha256": "98fb45d1fc84e106bf1aca5594c8d8169d27ba8bc9870fd201f16e59f94d84a2",
+          "bytes": 9856
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/cpu0-source-review.json": {
+          "sha256": "038b3701fafa9c66fb91e9e94eaa493452e3c8be93e2b5d650737ea268bb63fd",
+          "bytes": 2000
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/review_cpu0_source.py": {
+          "sha256": "a1659ff85bb86cbf8cff67690c8f560bba2fccd5ebb5609e38b2d73f6825c3c9",
+          "bytes": 3991
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/collect_xnu_compile_evidence.py": {
+          "sha256": "d97c43cc0bd6ebe5e99aa2e0404ef672a2cdc021da1df765271bb206b99a5366",
+          "bytes": 13382
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/discover_kernel.py": {
+          "sha256": "1d7b41456be46e5a3088d8402084a90d792126ba7a7b3d4bf8d19d212f1f885b",
+          "bytes": 3071
+        },
+        "analysis/xnu-early-log-r22-planning/early-log-binary-review.json": {
+          "sha256": "0b59bdf8ce78257632fd6aef6983ba02d60b14589ddee2a9b01c398bb25e31b7",
+          "bytes": 3458
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/baseline-contract.json": {
+          "sha256": "288823b69bc34c259f848ffac4ca8cbecb63b0892828992241fa5e21daa3a69d",
+          "bytes": 5804
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/freeze_baseline.py": {
+          "sha256": "cd85d2ccfb81c26b9ed8490efb9c3e5aa6b25eadd4e667c2dc7cc2f6509d80a8",
+          "bytes": 11001
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/early-log-binary-review.json": {
+          "sha256": "3b9bc1aab396b23456c0d236fe2f40d3eb562a96f5dd484157684d18cb0b4065",
+          "bytes": 878
+        },
+        "analysis/cpu0-asm-r26-20261114/new-kernel-audit.json": {
+          "sha256": "a6164e7c054113c023fd29142af7c2f69e7f8e7eb16fa4366d8bac048987e083",
+          "bytes": 42532
+        },
+        "work/UniXNU-j716f-host-iokit-cpu0/docs/cpu0-source-delta.json": {
+          "sha256": "f0914d4201f71bf275659356dffd3b2189cd946a8565a46089d734bc84d8691b",
+          "bytes": 1788
+        },
+        "work/UniXNU-j716f-host-iokit-cpu0/docs/armcpu-cpu0-separators.patch": {
+          "sha256": "a8819171d0cda86205cbb4f4bf1e880c7329e3b36eb6586a896fcd019a7a4909",
+          "bytes": 2151
+        },
+        "analysis/xnu-cpu-wait-r27-20261114/machine-review.json": {
+          "sha256": "6c3c4f36db38b3b6ee7f61471d756e11f8f843501eec61e9281dbe8a132890d8",
+          "bytes": 3880
+        },
+        "analysis/xnu-cpu-wait-r27-20261114/machine-code.json": {
+          "sha256": "c6e34767ee38b49bc994215e5f9b87d21bb0bfeee315f2ad5b9e3f39c250d2fc",
+          "bytes": 75513
+        },
+        "analysis/xnu-cpu-wait-r27-20261114/review_machine.py": {
+          "sha256": "3781b64de7ca7e2bee74f3eb375ffaa030bfab5bc9ff3ed13e8fa15a17d79475",
+          "bytes": 10464
+        },
+        "analysis/xnu-iokit-matching-r26-20261114/kernel-expectation.json": {
+          "sha256": "511f899de2bbac4a5ca54ff2993b6f8867f8d637aa24a0248f6615fbabc3bfe1",
+          "bytes": 16577
+        },
+        "analysis/xnu-bsd-pre-autoconf-r28-20261114/machine-review.json": {
+          "sha256": "5a4a12475e7d3cd263e4791db78609ebaa6449cf651c4201fa38f0b97779e2ff",
+          "bytes": 12383
+        },
+        "analysis/xnu-bsd-pre-autoconf-r28-20261114/machine-code.json": {
+          "sha256": "ea03c17cd55de1f015a1e60c2a4d623d938e2f45a517e4b3432c42f4a7622906",
+          "bytes": 344890
+        },
+        "analysis/xnu-bsd-pre-autoconf-r28-20261114/review_machine.py": {
+          "sha256": "3aea3b638affae34f26aa1a582b56795ff0c69131da78a1bbf2436d0fee00ebd",
+          "bytes": 13996
+        },
+        "analysis/xnu-cpu-wait-r27-20261114/kernel-expectation.json": {
+          "sha256": "ff0f2be34246095f44c95239263a08a0fbf2ff49a4536d607bfdd871b33a5cff",
+          "bytes": 28068
+        },
+        "analysis/xnu-r28-pre-autoconf-scope-20261114/README.md": {
+          "sha256": "9c8bcfce1d72369ba283fdbe9160d4eb73908068e8c737abe211d953bd7191b4",
+          "bytes": 5022
+        },
+        "analysis/xnu-r28-pre-autoconf-scope-20261114/evidence.json": {
+          "sha256": "8571c1c0907999b1e72030538114631d497ef64710a404006b1b8be6fe68362a",
+          "bytes": 6079
+        },
+        "analysis/xnu-bsd-r28-planning-20261114/source-evidence.json": {
+          "sha256": "dec271d4798db2b871ef5362d2b0bf161c50d4d7797eed3e264ab17e95d27413",
+          "bytes": 1213
+        },
+        "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/kern/bsd_init.c": {
+          "sha256": "deea5c12bc89797a97458dae6fb07f242ad05693560423310ccb6a3e952b9f18",
+          "bytes": 49853
+        },
+        "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/kern/kern_mib.c": {
+          "sha256": "0de8a80c230a831cc28bbce302049d6d108431f74d11758dd5f836e2b18dabdc",
+          "bytes": 61988
+        },
+        "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/vfs/vfs_init.c": {
+          "sha256": "734a379580255f13c95ae64decc3cbd20e2129347a7500429a76125d7f4da009",
+          "bytes": 18777
+        },
+        "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/devfs/devfs_vfsops.c": {
+          "sha256": "eae32ed673e1c3fd6850cb7582e1692826233021a4bd8e0d37add4666d55f5b8",
+          "bytes": 16076
+        },
+        "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/mockfs/mockfs_vfsops.c": {
+          "sha256": "3eb58dae4dd332a44a9940270104807ba130e7fc40996a8b12b664624ef76a15",
+          "bytes": 10507
+        },
+        "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/osfmk/kern/clock.c": {
+          "sha256": "001630fcf2089f7f8df7c39ee79f8ba9279b84aa06ec5d8883b016eb15fdc5b1",
+          "bytes": 54005
+        },
+        "analysis/xnu-bsd-r28-planning-20261114/source-evidence-02.json": {
+          "sha256": "26e152b7c92128d8fabb64e3937706de85fd189bd61b54be6a43a17a43e3b76e",
+          "bytes": 715
+        },
+        "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/bindfs/bind_vfsops.c": {
+          "sha256": "380965672ccd356582826f47a359ac7e993b496c067b9c19cb2e40ca8a635c03",
+          "bytes": 16464
+        },
+        "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/bindfs/bind_subr.c": {
+          "sha256": "4459888ee3c886fc98fb8fbea198214ed1d67b2ff125ac84578f57e3d7475722",
+          "bytes": 10867
+        },
+        "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/routefs/routefs_ops.c": {
+          "sha256": "d760109a28e30d88029fd047ab32ce6b3f604c359569a3691b14f1666838e57e",
+          "bytes": 19616
+        }
+      }
+    },
+    "original": {
+      "sha256": "0e8eaab0a4045aa07155dfa537a7f8129893051644fdc7e40d96440a9eacbc7e",
+      "bytes": 51109888
+    },
+    "parser_source_sha256": "8ff6044aeeb96bcfbb62857af58e7ad798b50154d5c37ad54d6ddc673c51f030",
+    "protocol_header_sha256": "d871825f16e72b3923420b3c0aa54e5d5a2291e5c0272d582ce05f9a22a86d16",
+    "source_patch_sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708",
+    "layout": {
+      "entry": "0xfffffff007418488",
+      "first_cpu": "0xfffffff00741a05c",
+      "mmu": "0xfffffff00741a350",
+      "post_mmu": "0xfffffff00741a370",
+      "caves": {
+        "1": "0xfffffff007418500",
+        "2": "0xfffffff007418560",
+        "3": "0xfffffff0074185c0",
+        "4": "0xfffffff007418620"
+      },
+      "console": {
+        "name": "_PE_create_console",
+        "start": "0xfffffff0079a6c40",
+        "end": "0xfffffff0079a6e04",
+        "sha256": "be2d3651ed3271ad35262b86249a5e240fe2210e3698fbebf98486310843d371"
+      },
+      "mapping": {
+        "functions": {
+          "machine_lockdown": {
+            "name": "_machine_lockdown",
+            "start": "0xfffffff00741bd80",
+            "end": "0xfffffff00741bdc0",
+            "sha256": "1c2a9e934d91ffa9536ed159adcbfabde9654fe56c6218fafbfaa90a1f6dc0f2"
+          },
+          "prot_init": {
+            "name": "_arm_vm_prot_init",
+            "start": "0xfffffff00740f930",
+            "end": "0xfffffff007410124",
+            "sha256": "c6a0ceb1b4a1023fa88e118fe3ecfe47994bf9e76893355732cb9f6c4e3cb588"
+          },
+          "prot_finalize": {
+            "name": "_arm_vm_prot_finalize",
+            "start": "0xfffffff007410124",
+            "end": "0xfffffff007410270",
+            "sha256": "e767439b7d5ba674cdc1160d2a90db923ac08728a7edd137c1820ff3ef9a96ea"
+          },
+          "replace_bootstack": {
+            "name": "_arm64_replace_bootstack",
+            "start": "0xfffffff00741ebf0",
+            "end": "0xfffffff00741ec20",
+            "sha256": "3d194475ffb3315a69547d412b22e3b3f88fb20ceac840126a174806e873f8a7"
+          }
+        },
+        "text_exec": {
+          "start": "0xfffffff00723c000",
+          "end": "0xfffffff0079ec000",
+          "fileoff": 2326528,
+          "filesize": 8060928,
+          "maxprot": 5,
+          "initprot": 5
+        },
+        "cave_page": "0xfffffff007418000",
+        "text_exec_rox_call": "0xfffffff00740fd74",
+        "runtime_mapping_verified": false
+      },
+      "caller": {
+        "name": "_bsd_init",
+        "start": "0xfffffff0076e81b8",
+        "end": "0xfffffff0076e8bf4",
+        "sha256": "6c976d0b87055ce3de88987a40888e668dec077c9c7ce5a2de2062132966c65f"
+      },
+      "callee": {
+        "name": "_IOKitBSDInit",
+        "start": "0xfffffff00797e7c8",
+        "end": "0xfffffff00797e80c",
+        "sha256": "290aa4e539fbc3cfa6d06b9cc1fc8b9fca7e739f7d8d0d8ec648033bb5b01727"
+      },
+      "call_site": "0xfffffff0076e8804",
+      "original_call_word": "0x940a57f1",
+      "old_calls": {
+        "InitIOKit": {
+          "va": "0xfffffff0079a67e0",
+          "word": "0x97fd0096",
+          "target_va": "0xfffffff0078e6a38"
+        },
+        "ConfigureIOKit": {
+          "va": "0xfffffff0079a67e4",
+          "word": "0x97fd00d5",
+          "target_va": "0xfffffff0078e6b38"
+        },
+        "machine_lockdown": {
+          "va": "0xfffffff0072c87f4",
+          "word": "0x94054d63",
+          "target_va": "0xfffffff00741bd80"
+        },
+        "PE_lockdown_iokit": {
+          "va": "0xfffffff0072c8874",
+          "word": "0x941b77f7",
+          "target_va": "0xfffffff0079a6850"
+        },
+        "kperf_init_early": {
+          "va": "0xfffffff0072c8888",
+          "word": "0x9404436c",
+          "target_va": "0xfffffff0073d9638"
+        },
+        "sysctl_mib_init": {
+          "va": "0xfffffff0076e87c0",
+          "word": "0x9401abfd",
+          "target_va": "0xfffffff0077537b4"
+        }
+      },
+      "argument_semantics": "kern_return_t(void); return value ignored by diagnostic wrapper; original SP preserved",
+      "normal_return": {
+        "function": "_IOKitBSDInit",
+        "va": "0xfffffff00797e808",
+        "word": "0xd65f03c0",
+        "restore_va": "0xfffffff00797e804",
+        "restore_words": [
+          "0xa8c17bfd"
+        ],
+        "return_value": 0
+      },
+      "bsd_boundary": {
+        "autoconf_function": {
+          "name": "_bsd_autoconf",
+          "start": "0xfffffff0076e8bf4",
+          "end": "0xfffffff0076e8c4c",
+          "sha256": "0dd0d5ac384472dde0d71959a4499c8b1338d98521bee4ee7c84ec648f47c3dc"
+        },
+        "later_calls": {
+          "_dtrace_postinit": {
+            "va": "0xfffffff0076e8808",
+            "target_va": "0xfffffff00745939c",
+            "word": "0x97f5c2e5"
+          },
+          "_net_init_run": {
+            "va": "0xfffffff0076e8838",
+            "target_va": "0xfffffff0074fb760",
+            "word": "0x97f84bca"
+          },
+          "_inittodr": {
+            "va": "0xfffffff0076e8840",
+            "target_va": "0xfffffff007756dec",
+            "word": "0x9401b96b"
+          },
+          "_IOFindBSDRoot": {
+            "va": "0xfffffff0076e8898",
+            "target_va": "0xfffffff00797f6fc",
+            "word": "0x940a5b99"
+          },
+          "_vfs_mountroot": {
+            "va": "0xfffffff0076e88dc",
+            "target_va": "0xfffffff007499b7c",
+            "word": "0x97f6c4a8"
+          }
+        },
+        "normal_inline_autoconf_sequence_reached": true,
+        "IOBSD_publication_attempted": true,
+        "IOBSD_publication_success_proved": false,
+        "matching_completion_proved": false,
+        "polled_corefile_callback_allocated_or_null": true,
+        "polled_corefile_callback_scheduled_here": false,
+        "stops_before_following_network_callbacks": true,
+        "stops_before_root_discovery_and_mount": true,
+        "required_boot_args": "-v serial=3 j716f-earlylog=1",
+        "prior_initialization_can_block": true,
+        "prior_initialization_can_start_workers": true,
+        "zero_side_effects_proved": false,
+        "timer_irq_delivery_proved": false,
+        "all_drivers_ready_proved": false,
+        "root_access_exercised": false,
+        "runtime_return_observed": false
+      }
+    },
+    "reset_settings": {
+      "entry_probe_reset_delay": 6,
+      "entry_probe_reset_after": "_IOKitBSDInit",
+      "entry_probe_reset_in": "_bsd_init",
+      "entry_probe_reset_occurrence": 1,
+      "entry_probe_reset_before": false
+    },
+    "expected": {
+      "sha256": "e1cfa21c9cae46399f3ffaccf2c71be61cb2a2724bb0d533ebdedb6206e80003",
+      "changed_bytes": 194
+    },
+    "review": {
+      "unique_bsd_call_and_return_reviewed": true,
+      "previous_sysctl_hook_restored": true,
+      "autoconf_publication_and_root_boundary_reviewed": true,
+      "actual_pseudodevice_callbacks_reviewed": true,
+      "independent_expected_bytes_reviewed": true
+    },
+    "review_evidence": {
+      "artifacts/j716f-host-iokit-cpu0-20261114/verification.json": {
+        "sha256": "a749da9143013457a57cb0340fe0476a39655bb90b494409b158cf29d8521754",
+        "bytes": 19793
+      },
+      "artifacts/j716f-host-iokit-cpu0-20261114/manifest.json": {
+        "sha256": "f2ed55761a8a7c4e312acbb0b4a7010640e4db164c3ce5ca8abbda5015163743",
+        "bytes": 6809
+      },
+      "artifacts/j716f-host-iokit-cpu0-20261114/kernel.json": {
+        "sha256": "f07a2aee3aca3173d5e60561a199fac441efa80fd0c40731245d395ce4f3da5a",
+        "bytes": 16981347
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/xnu-compile-evidence/manifest.json": {
+        "sha256": "47964d1050bf84288e68dfeb0df3d6b7e282632397c8aa04cab6ff25e8c12cfd",
+        "bytes": 70054
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/xnu-compile-evidence/evidence.tar.gz": {
+        "sha256": "9e4b7fd14bc4b7427a9dab49b9cc9ae1c498de8bd64637fd6457529d4bc91c5f",
+        "bytes": 181539
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/machine-review.json": {
+        "sha256": "7fc7b8b12f5619ca501bbf04aedd8c532b5bb98b9144b61fe9f083216f597b02",
+        "bytes": 87577
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/machine-code.json": {
+        "sha256": "92ef70b4bb6da2f797fc6fa32b56e9c54b4b75c19e08e64f4afb6a3aaccfcc34",
+        "bytes": 477111
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/review_machine.py": {
+        "sha256": "90c54a025524d232bd02fc0b22a8ac06304debd55a70bcb0c888bba2d5d95d8d",
+        "bytes": 14638
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/early-log-binary-discovery.json": {
+        "sha256": "048d8aa529659e8fccb845722accfccf7592355287ed7720c3ecdcadc1295f4e",
+        "bytes": 145161
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/review_early_log_binary.py": {
+        "sha256": "98fb45d1fc84e106bf1aca5594c8d8169d27ba8bc9870fd201f16e59f94d84a2",
+        "bytes": 9856
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/cpu0-source-review.json": {
+        "sha256": "038b3701fafa9c66fb91e9e94eaa493452e3c8be93e2b5d650737ea268bb63fd",
+        "bytes": 2000
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/review_cpu0_source.py": {
+        "sha256": "a1659ff85bb86cbf8cff67690c8f560bba2fccd5ebb5609e38b2d73f6825c3c9",
+        "bytes": 3991
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/collect_xnu_compile_evidence.py": {
+        "sha256": "d97c43cc0bd6ebe5e99aa2e0404ef672a2cdc021da1df765271bb206b99a5366",
+        "bytes": 13382
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/discover_kernel.py": {
+        "sha256": "1d7b41456be46e5a3088d8402084a90d792126ba7a7b3d4bf8d19d212f1f885b",
+        "bytes": 3071
+      },
+      "analysis/xnu-early-log-r22-planning/early-log-binary-review.json": {
+        "sha256": "0b59bdf8ce78257632fd6aef6983ba02d60b14589ddee2a9b01c398bb25e31b7",
+        "bytes": 3458
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/baseline-contract.json": {
+        "sha256": "288823b69bc34c259f848ffac4ca8cbecb63b0892828992241fa5e21daa3a69d",
+        "bytes": 5804
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/freeze_baseline.py": {
+        "sha256": "cd85d2ccfb81c26b9ed8490efb9c3e5aa6b25eadd4e667c2dc7cc2f6509d80a8",
+        "bytes": 11001
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/early-log-binary-review.json": {
+        "sha256": "3b9bc1aab396b23456c0d236fe2f40d3eb562a96f5dd484157684d18cb0b4065",
+        "bytes": 878
+      },
+      "analysis/cpu0-asm-r26-20261114/new-kernel-audit.json": {
+        "sha256": "a6164e7c054113c023fd29142af7c2f69e7f8e7eb16fa4366d8bac048987e083",
+        "bytes": 42532
+      },
+      "work/UniXNU-j716f-host-iokit-cpu0/docs/cpu0-source-delta.json": {
+        "sha256": "f0914d4201f71bf275659356dffd3b2189cd946a8565a46089d734bc84d8691b",
+        "bytes": 1788
+      },
+      "work/UniXNU-j716f-host-iokit-cpu0/docs/armcpu-cpu0-separators.patch": {
+        "sha256": "a8819171d0cda86205cbb4f4bf1e880c7329e3b36eb6586a896fcd019a7a4909",
+        "bytes": 2151
+      },
+      "analysis/xnu-cpu-wait-r27-20261114/machine-review.json": {
+        "sha256": "6c3c4f36db38b3b6ee7f61471d756e11f8f843501eec61e9281dbe8a132890d8",
+        "bytes": 3880
+      },
+      "analysis/xnu-cpu-wait-r27-20261114/machine-code.json": {
+        "sha256": "c6e34767ee38b49bc994215e5f9b87d21bb0bfeee315f2ad5b9e3f39c250d2fc",
+        "bytes": 75513
+      },
+      "analysis/xnu-cpu-wait-r27-20261114/review_machine.py": {
+        "sha256": "3781b64de7ca7e2bee74f3eb375ffaa030bfab5bc9ff3ed13e8fa15a17d79475",
+        "bytes": 10464
+      },
+      "analysis/xnu-iokit-matching-r26-20261114/kernel-expectation.json": {
+        "sha256": "511f899de2bbac4a5ca54ff2993b6f8867f8d637aa24a0248f6615fbabc3bfe1",
+        "bytes": 16577
+      },
+      "analysis/xnu-bsd-pre-autoconf-r28-20261114/machine-review.json": {
+        "sha256": "5a4a12475e7d3cd263e4791db78609ebaa6449cf651c4201fa38f0b97779e2ff",
+        "bytes": 12383
+      },
+      "analysis/xnu-bsd-pre-autoconf-r28-20261114/machine-code.json": {
+        "sha256": "ea03c17cd55de1f015a1e60c2a4d623d938e2f45a517e4b3432c42f4a7622906",
+        "bytes": 344890
+      },
+      "analysis/xnu-bsd-pre-autoconf-r28-20261114/review_machine.py": {
+        "sha256": "3aea3b638affae34f26aa1a582b56795ff0c69131da78a1bbf2436d0fee00ebd",
+        "bytes": 13996
+      },
+      "analysis/xnu-cpu-wait-r27-20261114/kernel-expectation.json": {
+        "sha256": "ff0f2be34246095f44c95239263a08a0fbf2ff49a4536d607bfdd871b33a5cff",
+        "bytes": 28068
+      },
+      "analysis/xnu-r28-pre-autoconf-scope-20261114/README.md": {
+        "sha256": "9c8bcfce1d72369ba283fdbe9160d4eb73908068e8c737abe211d953bd7191b4",
+        "bytes": 5022
+      },
+      "analysis/xnu-r28-pre-autoconf-scope-20261114/evidence.json": {
+        "sha256": "8571c1c0907999b1e72030538114631d497ef64710a404006b1b8be6fe68362a",
+        "bytes": 6079
+      },
+      "analysis/xnu-bsd-r28-planning-20261114/source-evidence.json": {
+        "sha256": "dec271d4798db2b871ef5362d2b0bf161c50d4d7797eed3e264ab17e95d27413",
+        "bytes": 1213
+      },
+      "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/kern/bsd_init.c": {
+        "sha256": "deea5c12bc89797a97458dae6fb07f242ad05693560423310ccb6a3e952b9f18",
+        "bytes": 49853
+      },
+      "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/kern/kern_mib.c": {
+        "sha256": "0de8a80c230a831cc28bbce302049d6d108431f74d11758dd5f836e2b18dabdc",
+        "bytes": 61988
+      },
+      "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/vfs/vfs_init.c": {
+        "sha256": "734a379580255f13c95ae64decc3cbd20e2129347a7500429a76125d7f4da009",
+        "bytes": 18777
+      },
+      "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/devfs/devfs_vfsops.c": {
+        "sha256": "eae32ed673e1c3fd6850cb7582e1692826233021a4bd8e0d37add4666d55f5b8",
+        "bytes": 16076
+      },
+      "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/mockfs/mockfs_vfsops.c": {
+        "sha256": "3eb58dae4dd332a44a9940270104807ba130e7fc40996a8b12b664624ef76a15",
+        "bytes": 10507
+      },
+      "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/osfmk/kern/clock.c": {
+        "sha256": "001630fcf2089f7f8df7c39ee79f8ba9279b84aa06ec5d8883b016eb15fdc5b1",
+        "bytes": 54005
+      },
+      "analysis/xnu-bsd-r28-planning-20261114/source-evidence-02.json": {
+        "sha256": "26e152b7c92128d8fabb64e3937706de85fd189bd61b54be6a43a17a43e3b76e",
+        "bytes": 715
+      },
+      "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/bindfs/bind_vfsops.c": {
+        "sha256": "380965672ccd356582826f47a359ac7e993b496c067b9c19cb2e40ca8a635c03",
+        "bytes": 16464
+      },
+      "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/bindfs/bind_subr.c": {
+        "sha256": "4459888ee3c886fc98fb8fbea198214ed1d67b2ff125ac84578f57e3d7475722",
+        "bytes": 10867
+      },
+      "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/routefs/routefs_ops.c": {
+        "sha256": "d760109a28e30d88029fd047ab32ce6b3f604c359569a3691b14f1666838e57e",
+        "bytes": 19616
+      },
+      "analysis/xnu-bsd-autoconf-r29-20261114/machine-review.json": {
+        "sha256": "cb76f505a4f55866e029a8bc814fa19ba95f8566aad104eecac5743afc6edbb8",
+        "bytes": 17702
+      },
+      "analysis/xnu-bsd-autoconf-r29-20261114/machine-code.json": {
+        "sha256": "a14faaf1e8ec80b6aae6f541f0622835130902bca015ea6434da7cb16880016d",
+        "bytes": 303423
+      },
+      "analysis/xnu-bsd-autoconf-r29-20261114/review_machine.py": {
+        "sha256": "33dcc1047331ab560a21afdb1dbce173d97152065d46798ec66630f46553f934",
+        "bytes": 13384
+      },
+      "analysis/xnu-bsd-pre-autoconf-r28-20261114/kernel-expectation.json": {
+        "sha256": "10eedf3d73176395381549360132f3b0a32d8bd162c9343324b90696b56046c4",
+        "bytes": 43776
+      },
+      "analysis/xnu-r29-iobsd-scope-20261114/README.md": {
+        "sha256": "6b31af05e92c98f09d8090fec7a250e92e645b375ac1ac6248f5e7da0d5065f8",
+        "bytes": 6295
+      },
+      "analysis/xnu-r29-iobsd-scope-20261114/evidence.json": {
+        "sha256": "c60cfb160945e2ad9d64bc2a2e7d6d1b3c7a2e20d08e933170d6b2a80892cb0c",
+        "bytes": 24166
+      },
+      "analysis/xnu-r29-iobsd-scope-20261114/audit_scope.py": {
+        "sha256": "48a137cf6150e9e19a990da847c2b33fa4c9e8e8217017e0ac60be4b93e0d2fd",
+        "bytes": 14417
+      },
+      "analysis/xnu-r29-iobsd-scope-20261114/iobsd-machine-code.json": {
+        "sha256": "726d5950d89859b05a1b6698d1bd716a5b4962f9f1a81651cf9c57e6c3f946d3",
+        "bytes": 65842
+      },
+      "analysis/xnu-r29-iobsd-scope-20261114/prelink-personalities.json": {
+        "sha256": "654c30e559b46622d19017cd944c39bf11a71e7b13d2e12a44d8f7326d403817",
+        "bytes": 24273
+      },
+      "analysis/xnu-r29-iobsd-scope-20261114/startup-catalogue-review.json": {
+        "sha256": "a7b0c26ac72d009893fe9c2fe94ba9dc3a0bdc7055367acac35a8caa7f0357f3",
+        "bytes": 126223
+      },
+      "analysis/xnu-r29-iobsd-scope-20261114/startup-catalogue-review.md": {
+        "sha256": "a0b411fdb64bc2c4ed7694b83dca5906c261a79abab1991544fa4f57b4df7749",
+        "bytes": 3766
+      },
+      "analysis/xnu-r29-iobsd-scope-20261114/startup-catalogue-review.py": {
+        "sha256": "cca57c792cf8952792b22bd1396aef1cbee6dce9eb6310a748ad29bbff888bdf",
+        "bytes": 7911
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/source-evidence-02.json": {
+        "sha256": "e6d12c0c67861284b2cb1d87c1d95d2b5801ebe45fdeb62d8cd7a215aa707334",
+        "bytes": 3732
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/iokit/KernelConfigTables.cpp": {
+        "sha256": "6df10584633949ab3574094b6afc8cf3bc954680edbcf84f32cd9b2ddf674233",
+        "bytes": 3940
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/libsa/bootstrap.cpp": {
+        "sha256": "12b0df9a60ce3381989fda1454aec3860763a3f6bf5fb230b1289569f80ba0a7",
+        "bytes": 26187
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/actual-driver/NativeAES.cpp": {
+        "sha256": "22227a14fb4fc336f2685dda72e52c6174dd27f3f36c993b70cb5bf18aed38c1",
+        "bytes": 13778
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/actual-driver/NativeAES.o": {
+        "sha256": "6024f3daba2cb53612fa82403c656ea7dfc348520a6b923f2feb6d9457e5824d",
+        "bytes": 207968
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/actual-driver/compile-command.json": {
+        "sha256": "8e0bc3b371c380fef25c2fca2458dd0b953bb3448aa18e3b11484cc12e6c890b",
+        "bytes": 9179
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/actual-driver/compile.log": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/actual-driver/original-bindings.o": {
+        "sha256": "3de8c3bdb79f644f4251f2976640c57b1ef60c4778bc3ee9fc3f95e672aaa788",
+        "bytes": 1848
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/actual-driver/libSoftwareAES.a": {
+        "sha256": "6e97ee579af8790dc3ffbe7856c35907933135bbb0dddb561732ea832734df4b",
+        "bytes": 212512
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/generated/KernelConfigTables.cpo.json": {
+        "sha256": "16f3c934a59ee148af9f4fbea8727ddef6e1fa170b60512093d7be6aa61390ae",
+        "bytes": 10038
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/generated/KernelConfigTables.cpo": {
+        "sha256": "6fb1133a8de48c35c0c2bbcaf766618091364c6a4410e6b3719f83cfe403ce7d",
+        "bytes": 3336
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/source-evidence.json": {
+        "sha256": "1fb87eaf85c34888087d16bd5d398d35d88a13842f1ee01050bc443b7a1d87d0",
+        "bytes": 6350
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/arm/km.c": {
+        "sha256": "a4e1c331b55542dc2114ff26be99b37426d4674d0b6ed7113fcbd3520b6aaa5d",
+        "bytes": 8436
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/kern/tty_pty.c": {
+        "sha256": "983581c56e318ddda95e87e1eef770c0916536ee303fec2a7b5d3c65157c2b73",
+        "bytes": 5838
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/kern/tty_ptmx.c": {
+        "sha256": "5fd8d4f37173d3d0369c553a1f6817e53dd5b33e3f566b65172eef371cffa2f8",
+        "bytes": 25458
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/net/bpf.c": {
+        "sha256": "b64be912e001e68a4c9716c443e24d9d8e5706735acf23da3ac07af27742da74",
+        "bytes": 110829
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/vfs/vfs_fsevents.c": {
+        "sha256": "535f5025dc3f9ede061221104cf748d0bb06e60754d0f2d0736da1e846b61499",
+        "bytes": 81097
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/random/randomdev.c": {
+        "sha256": "4137a0b7157e4149eceb15bd085e0c4852d4143b0d3fbf02ae08fd99552d5463",
+        "bytes": 5800
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/dtrace.c": {
+        "sha256": "2a7769495219053c795cf16936ccd2842d0117ca6af972a3dab9ef01c3cfb30e",
+        "bytes": 511252
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/lockstat.c": {
+        "sha256": "aee209d371b39a236c2186784930b0c7c023c12527f13491cf803d38cc4988bd",
+        "bytes": 9441
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/lockprof.c": {
+        "sha256": "a004374cad35c43d88464a874489fb5595c993b5e06771928f126785e1e0407e",
+        "bytes": 11328
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/sdt.c": {
+        "sha256": "7c04118cd00c34a0fb8d7fbdf2fc6b305a76c60d3b7b4a845a6060adfe3cf896",
+        "bytes": 21432
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/systrace.c": {
+        "sha256": "be8c6f8fca90cf95d97bd653056b2ad1c6b1c7a19ca36ba95eac5c848ac4efdd",
+        "bytes": 29192
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/fbt.c": {
+        "sha256": "52914300e7366f8a677a5659fcc429db7f01bd806cd9ccd43414c814ded99a12",
+        "bytes": 16603
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/profile_prvd.c": {
+        "sha256": "de6fbdf5c8fbc4c604f442bbacbaf63eafa2475d223620e1fc2b476e7744f9df",
+        "bytes": 18322
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/iokit/Kernel/IOService.cpp": {
+        "sha256": "f9b419cd07d8eefb8abe302cf15de4a2f8fc0e85e67f3e67ef9926e4c77d0812",
+        "bytes": 242626
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/iokit/Kernel/IOCatalogue.cpp": {
+        "sha256": "f31ba5b5f2d1593516e6a38e15d0f0f23e73ea925c116609cdbbb554d2ef516a",
+        "bytes": 39064
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/libkern/c++/OSKext.cpp": {
+        "sha256": "b650f42a264ad7b3a15d999349806556f7156429c9e5ca585f37049fb2c5639f",
+        "bytes": 515992
+      },
+      "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/generated/ioconf.c": {
+        "sha256": "6af0861f7f1497d3e49a34bdbfecd38317595a6ee50e66aa0301c12c96218b46",
+        "bytes": 734
+      },
+      "analysis/xnu-iokit-matching-runtime-r26-20261114/sources/xnu/bsd/kern/bsd_init.c": {
+        "sha256": "deea5c12bc89797a97458dae6fb07f242ad05693560423310ccb6a3e952b9f18",
+        "bytes": 49853
+      },
+      "analysis/xnu-iokit-matching-runtime-r26-20261114/sources/xnu/iokit/bsddev/IOKitBSDInit.cpp": {
+        "sha256": "34a07f785aa60aa854a1f654c0c9ad5c91df161f912c6991868698ae498c8eed",
+        "bytes": 47925
+      }
+    }
+  },
+  "original": {
+    "sha256": "0e8eaab0a4045aa07155dfa537a7f8129893051644fdc7e40d96440a9eacbc7e",
+    "bytes": 51109888
+  },
+  "parser_source_sha256": "8ff6044aeeb96bcfbb62857af58e7ad798b50154d5c37ad54d6ddc673c51f030",
+  "protocol_header_sha256": "d871825f16e72b3923420b3c0aa54e5d5a2291e5c0272d582ce05f9a22a86d16",
+  "source_patch_sha256": "b49a5a28d179cbf9dc35432f7f0b98906ea3d0e238f69a6f077bbcca4a548708",
+  "layout": {
+    "entry": "0xfffffff007418488",
+    "first_cpu": "0xfffffff00741a05c",
+    "mmu": "0xfffffff00741a350",
+    "post_mmu": "0xfffffff00741a370",
+    "caves": {
+      "1": "0xfffffff007418500",
+      "2": "0xfffffff007418560",
+      "3": "0xfffffff0074185c0",
+      "4": "0xfffffff007418620"
+    },
+    "console": {
+      "name": "_PE_create_console",
+      "start": "0xfffffff0079a6c40",
+      "end": "0xfffffff0079a6e04",
+      "sha256": "be2d3651ed3271ad35262b86249a5e240fe2210e3698fbebf98486310843d371"
+    },
+    "mapping": {
+      "functions": {
+        "machine_lockdown": {
+          "name": "_machine_lockdown",
+          "start": "0xfffffff00741bd80",
+          "end": "0xfffffff00741bdc0",
+          "sha256": "1c2a9e934d91ffa9536ed159adcbfabde9654fe56c6218fafbfaa90a1f6dc0f2"
+        },
+        "prot_init": {
+          "name": "_arm_vm_prot_init",
+          "start": "0xfffffff00740f930",
+          "end": "0xfffffff007410124",
+          "sha256": "c6a0ceb1b4a1023fa88e118fe3ecfe47994bf9e76893355732cb9f6c4e3cb588"
+        },
+        "prot_finalize": {
+          "name": "_arm_vm_prot_finalize",
+          "start": "0xfffffff007410124",
+          "end": "0xfffffff007410270",
+          "sha256": "e767439b7d5ba674cdc1160d2a90db923ac08728a7edd137c1820ff3ef9a96ea"
+        },
+        "replace_bootstack": {
+          "name": "_arm64_replace_bootstack",
+          "start": "0xfffffff00741ebf0",
+          "end": "0xfffffff00741ec20",
+          "sha256": "3d194475ffb3315a69547d412b22e3b3f88fb20ceac840126a174806e873f8a7"
+        }
+      },
+      "text_exec": {
+        "start": "0xfffffff00723c000",
+        "end": "0xfffffff0079ec000",
+        "fileoff": 2326528,
+        "filesize": 8060928,
+        "maxprot": 5,
+        "initprot": 5
+      },
+      "cave_page": "0xfffffff007418000",
+      "text_exec_rox_call": "0xfffffff00740fd74",
+      "runtime_mapping_verified": false
+    },
+    "caller": {
+      "name": "_bsd_init",
+      "start": "0xfffffff0076e81b8",
+      "end": "0xfffffff0076e8bf4",
+      "sha256": "6c976d0b87055ce3de88987a40888e668dec077c9c7ce5a2de2062132966c65f"
+    },
+    "callee": {
+      "name": "_inittodr",
+      "start": "0xfffffff007756dec",
+      "end": "0xfffffff007756e4c",
+      "sha256": "62acc79b4b0a3273dad316170597e8ea213047673242fae12d8f9ae24d978ed0"
+    },
+    "call_site": "0xfffffff0076e8840",
+    "original_call_word": "0x9401b96b",
+    "old_calls": {
+      "InitIOKit": {
+        "va": "0xfffffff0079a67e0",
+        "word": "0x97fd0096",
+        "target_va": "0xfffffff0078e6a38"
+      },
+      "ConfigureIOKit": {
+        "va": "0xfffffff0079a67e4",
+        "word": "0x97fd00d5",
+        "target_va": "0xfffffff0078e6b38"
+      },
+      "machine_lockdown": {
+        "va": "0xfffffff0072c87f4",
+        "word": "0x94054d63",
+        "target_va": "0xfffffff00741bd80"
+      },
+      "PE_lockdown_iokit": {
+        "va": "0xfffffff0072c8874",
+        "word": "0x941b77f7",
+        "target_va": "0xfffffff0079a6850"
+      },
+      "kperf_init_early": {
+        "va": "0xfffffff0072c8888",
+        "word": "0x9404436c",
+        "target_va": "0xfffffff0073d9638"
+      },
+      "sysctl_mib_init": {
+        "va": "0xfffffff0076e87c0",
+        "word": "0x9401abfd",
+        "target_va": "0xfffffff0077537b4"
+      },
+      "IOKitBSDInit": {
+        "va": "0xfffffff0076e8804",
+        "word": "0x940a57f1",
+        "target_va": "0xfffffff00797e7c8"
+      }
+    },
+    "argument_semantics": "void inittodr(time_t base); original x0=0 and original SP preserved; base is unused by actual callee",
+    "normal_return": {
+      "function": "_inittodr",
+      "va": "0xfffffff007756e48",
+      "word": "0xd65f03c0",
+      "restore_va": "0xfffffff007756e40",
+      "restore_words": [
+        "0xa9417bfd",
+        "0x910083ff"
+      ],
+      "return_value": "void"
+    },
+    "bsd_boundary": {
+      "grouped_calls": [
+        {
+          "va": "0xfffffff0076e8808",
+          "target_va": "0xfffffff00745939c",
+          "symbol": "_dtrace_postinit",
+          "word": "0x97f5c2e5"
+        },
+        {
+          "va": "0xfffffff0076e880c",
+          "target_va": "0xfffffff007510a7c",
+          "symbol": "_loopattach",
+          "word": "0x97f8a09c"
+        },
+        {
+          "va": "0xfffffff0076e8810",
+          "target_va": "0xfffffff00750fa84",
+          "symbol": "_ether_family_init",
+          "word": "0x97f89c9d"
+        },
+        {
+          "va": "0xfffffff0076e8814",
+          "target_va": "0xfffffff0075c6a40",
+          "symbol": "_cfil_init",
+          "word": "0x97fb788b"
+        },
+        {
+          "va": "0xfffffff0076e8818",
+          "target_va": "0xfffffff0075d5e64",
+          "symbol": "_pkt_mnglr_init",
+          "word": "0x97fbb593"
+        },
+        {
+          "va": "0xfffffff0076e881c",
+          "target_va": "0xfffffff007540b50",
+          "symbol": "_utun_register_control",
+          "word": "0x97f960cd"
+        },
+        {
+          "va": "0xfffffff0076e8820",
+          "target_va": "0xfffffff00768137c",
+          "symbol": "_ipsec_init",
+          "word": "0x97fe62d7"
+        },
+        {
+          "va": "0xfffffff0076e8824",
+          "target_va": "0xfffffff00752b7c8",
+          "symbol": "_netsrc_init",
+          "word": "0x97f90be9"
+        },
+        {
+          "va": "0xfffffff0076e8828",
+          "target_va": "0xfffffff00752bf50",
+          "symbol": "_nstat_init",
+          "word": "0x97f90dca"
+        },
+        {
+          "va": "0xfffffff0076e882c",
+          "target_va": "0xfffffff00765e110",
+          "symbol": "_mptcp_control_register",
+          "word": "0x97fdd639"
+        },
+        {
+          "va": "0xfffffff0076e8830",
+          "target_va": "0xfffffff007519444",
+          "symbol": "_if_redirect_init",
+          "word": "0x97f8c305"
+        },
+        {
+          "va": "0xfffffff0076e8834",
+          "target_va": "0xfffffff0075d9410",
+          "symbol": "_kctl_test_init",
+          "word": "0x97fbc2f7"
+        },
+        {
+          "va": "0xfffffff0076e8838",
+          "target_va": "0xfffffff0074fb760",
+          "symbol": "_net_init_run",
+          "word": "0x97f84bca"
+        }
+      ],
+      "later_calls": {
+        "_IOFindBSDRoot": {
+          "va": "0xfffffff0076e8898",
+          "target_va": "0xfffffff00797f6fc",
+          "word": "0x940a5b99"
+        },
+        "_vfs_mountroot": {
+          "va": "0xfffffff0076e88dc",
+          "target_va": "0xfffffff007499b7c",
+          "word": "0x97f6c4a8"
+        }
+      },
+      "last_BL_before_IOFindBSDRoot": true,
+      "stops_before_root_discovery_and_mount": true,
+      "net_init_run_invokes_registered_callbacks": true,
+      "live_callback_list_proved": false,
+      "calendar_correction_only_if_negative": true,
+      "calendar_branch_observed": false,
+      "required_boot_args": "-v serial=3 j716f-earlylog=1",
+      "prior_initialization_can_block": true,
+      "prior_initialization_can_start_workers": true,
+      "matching_completion_proved": false,
+      "network_hardware_ready_proved": false,
+      "zero_side_effects_proved": false,
+      "timer_irq_delivery_proved": false,
+      "RTC_persistence_proved": false,
+      "all_drivers_ready_proved": false,
+      "root_access_exercised": false,
+      "runtime_return_observed": false
+    }
+  },
+  "reset_settings": {
+    "entry_probe_reset_delay": 6,
+    "entry_probe_reset_after": "_inittodr",
+    "entry_probe_reset_in": "_bsd_init",
+    "entry_probe_reset_occurrence": 1,
+    "entry_probe_reset_before": false
+  },
+  "expected": {
+    "sha256": "29d75729fb8b383bb62adaab6d82408222e3c9459975c9e2ae92123fd91c9449",
+    "changed_bytes": 194
+  },
+  "review": {
+    "unique_bsd_call_and_return_reviewed": true,
+    "previous_iobsd_hook_restored": true,
+    "grouped_network_and_root_boundary_reviewed": true,
+    "calendar_negative_branch_reviewed": true,
+    "independent_expected_bytes_reviewed": true
+  },
+  "review_evidence": {
+    "artifacts/j716f-host-iokit-cpu0-20261114/verification.json": {
+      "sha256": "a749da9143013457a57cb0340fe0476a39655bb90b494409b158cf29d8521754",
+      "bytes": 19793
+    },
+    "artifacts/j716f-host-iokit-cpu0-20261114/manifest.json": {
+      "sha256": "f2ed55761a8a7c4e312acbb0b4a7010640e4db164c3ce5ca8abbda5015163743",
+      "bytes": 6809
+    },
+    "artifacts/j716f-host-iokit-cpu0-20261114/kernel.json": {
+      "sha256": "f07a2aee3aca3173d5e60561a199fac441efa80fd0c40731245d395ce4f3da5a",
+      "bytes": 16981347
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/xnu-compile-evidence/manifest.json": {
+      "sha256": "47964d1050bf84288e68dfeb0df3d6b7e282632397c8aa04cab6ff25e8c12cfd",
+      "bytes": 70054
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/xnu-compile-evidence/evidence.tar.gz": {
+      "sha256": "9e4b7fd14bc4b7427a9dab49b9cc9ae1c498de8bd64637fd6457529d4bc91c5f",
+      "bytes": 181539
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/machine-review.json": {
+      "sha256": "7fc7b8b12f5619ca501bbf04aedd8c532b5bb98b9144b61fe9f083216f597b02",
+      "bytes": 87577
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/machine-code.json": {
+      "sha256": "92ef70b4bb6da2f797fc6fa32b56e9c54b4b75c19e08e64f4afb6a3aaccfcc34",
+      "bytes": 477111
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/review_machine.py": {
+      "sha256": "90c54a025524d232bd02fc0b22a8ac06304debd55a70bcb0c888bba2d5d95d8d",
+      "bytes": 14638
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/early-log-binary-discovery.json": {
+      "sha256": "048d8aa529659e8fccb845722accfccf7592355287ed7720c3ecdcadc1295f4e",
+      "bytes": 145161
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/review_early_log_binary.py": {
+      "sha256": "98fb45d1fc84e106bf1aca5594c8d8169d27ba8bc9870fd201f16e59f94d84a2",
+      "bytes": 9856
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/cpu0-source-review.json": {
+      "sha256": "038b3701fafa9c66fb91e9e94eaa493452e3c8be93e2b5d650737ea268bb63fd",
+      "bytes": 2000
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/review_cpu0_source.py": {
+      "sha256": "a1659ff85bb86cbf8cff67690c8f560bba2fccd5ebb5609e38b2d73f6825c3c9",
+      "bytes": 3991
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/collect_xnu_compile_evidence.py": {
+      "sha256": "d97c43cc0bd6ebe5e99aa2e0404ef672a2cdc021da1df765271bb206b99a5366",
+      "bytes": 13382
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/discover_kernel.py": {
+      "sha256": "1d7b41456be46e5a3088d8402084a90d792126ba7a7b3d4bf8d19d212f1f885b",
+      "bytes": 3071
+    },
+    "analysis/xnu-early-log-r22-planning/early-log-binary-review.json": {
+      "sha256": "0b59bdf8ce78257632fd6aef6983ba02d60b14589ddee2a9b01c398bb25e31b7",
+      "bytes": 3458
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/baseline-contract.json": {
+      "sha256": "288823b69bc34c259f848ffac4ca8cbecb63b0892828992241fa5e21daa3a69d",
+      "bytes": 5804
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/freeze_baseline.py": {
+      "sha256": "cd85d2ccfb81c26b9ed8490efb9c3e5aa6b25eadd4e667c2dc7cc2f6509d80a8",
+      "bytes": 11001
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/early-log-binary-review.json": {
+      "sha256": "3b9bc1aab396b23456c0d236fe2f40d3eb562a96f5dd484157684d18cb0b4065",
+      "bytes": 878
+    },
+    "analysis/cpu0-asm-r26-20261114/new-kernel-audit.json": {
+      "sha256": "a6164e7c054113c023fd29142af7c2f69e7f8e7eb16fa4366d8bac048987e083",
+      "bytes": 42532
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/docs/cpu0-source-delta.json": {
+      "sha256": "f0914d4201f71bf275659356dffd3b2189cd946a8565a46089d734bc84d8691b",
+      "bytes": 1788
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/docs/armcpu-cpu0-separators.patch": {
+      "sha256": "a8819171d0cda86205cbb4f4bf1e880c7329e3b36eb6586a896fcd019a7a4909",
+      "bytes": 2151
+    },
+    "analysis/xnu-cpu-wait-r27-20261114/machine-review.json": {
+      "sha256": "6c3c4f36db38b3b6ee7f61471d756e11f8f843501eec61e9281dbe8a132890d8",
+      "bytes": 3880
+    },
+    "analysis/xnu-cpu-wait-r27-20261114/machine-code.json": {
+      "sha256": "c6e34767ee38b49bc994215e5f9b87d21bb0bfeee315f2ad5b9e3f39c250d2fc",
+      "bytes": 75513
+    },
+    "analysis/xnu-cpu-wait-r27-20261114/review_machine.py": {
+      "sha256": "3781b64de7ca7e2bee74f3eb375ffaa030bfab5bc9ff3ed13e8fa15a17d79475",
+      "bytes": 10464
+    },
+    "analysis/xnu-iokit-matching-r26-20261114/kernel-expectation.json": {
+      "sha256": "511f899de2bbac4a5ca54ff2993b6f8867f8d637aa24a0248f6615fbabc3bfe1",
+      "bytes": 16577
+    },
+    "analysis/xnu-bsd-pre-autoconf-r28-20261114/machine-review.json": {
+      "sha256": "5a4a12475e7d3cd263e4791db78609ebaa6449cf651c4201fa38f0b97779e2ff",
+      "bytes": 12383
+    },
+    "analysis/xnu-bsd-pre-autoconf-r28-20261114/machine-code.json": {
+      "sha256": "ea03c17cd55de1f015a1e60c2a4d623d938e2f45a517e4b3432c42f4a7622906",
+      "bytes": 344890
+    },
+    "analysis/xnu-bsd-pre-autoconf-r28-20261114/review_machine.py": {
+      "sha256": "3aea3b638affae34f26aa1a582b56795ff0c69131da78a1bbf2436d0fee00ebd",
+      "bytes": 13996
+    },
+    "analysis/xnu-cpu-wait-r27-20261114/kernel-expectation.json": {
+      "sha256": "ff0f2be34246095f44c95239263a08a0fbf2ff49a4536d607bfdd871b33a5cff",
+      "bytes": 28068
+    },
+    "analysis/xnu-r28-pre-autoconf-scope-20261114/README.md": {
+      "sha256": "9c8bcfce1d72369ba283fdbe9160d4eb73908068e8c737abe211d953bd7191b4",
+      "bytes": 5022
+    },
+    "analysis/xnu-r28-pre-autoconf-scope-20261114/evidence.json": {
+      "sha256": "8571c1c0907999b1e72030538114631d497ef64710a404006b1b8be6fe68362a",
+      "bytes": 6079
+    },
+    "analysis/xnu-bsd-r28-planning-20261114/source-evidence.json": {
+      "sha256": "dec271d4798db2b871ef5362d2b0bf161c50d4d7797eed3e264ab17e95d27413",
+      "bytes": 1213
+    },
+    "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/kern/bsd_init.c": {
+      "sha256": "deea5c12bc89797a97458dae6fb07f242ad05693560423310ccb6a3e952b9f18",
+      "bytes": 49853
+    },
+    "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/kern/kern_mib.c": {
+      "sha256": "0de8a80c230a831cc28bbce302049d6d108431f74d11758dd5f836e2b18dabdc",
+      "bytes": 61988
+    },
+    "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/vfs/vfs_init.c": {
+      "sha256": "734a379580255f13c95ae64decc3cbd20e2129347a7500429a76125d7f4da009",
+      "bytes": 18777
+    },
+    "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/devfs/devfs_vfsops.c": {
+      "sha256": "eae32ed673e1c3fd6850cb7582e1692826233021a4bd8e0d37add4666d55f5b8",
+      "bytes": 16076
+    },
+    "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/mockfs/mockfs_vfsops.c": {
+      "sha256": "3eb58dae4dd332a44a9940270104807ba130e7fc40996a8b12b664624ef76a15",
+      "bytes": 10507
+    },
+    "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/osfmk/kern/clock.c": {
+      "sha256": "001630fcf2089f7f8df7c39ee79f8ba9279b84aa06ec5d8883b016eb15fdc5b1",
+      "bytes": 54005
+    },
+    "analysis/xnu-bsd-r28-planning-20261114/source-evidence-02.json": {
+      "sha256": "26e152b7c92128d8fabb64e3937706de85fd189bd61b54be6a43a17a43e3b76e",
+      "bytes": 715
+    },
+    "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/bindfs/bind_vfsops.c": {
+      "sha256": "380965672ccd356582826f47a359ac7e993b496c067b9c19cb2e40ca8a635c03",
+      "bytes": 16464
+    },
+    "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/bindfs/bind_subr.c": {
+      "sha256": "4459888ee3c886fc98fb8fbea198214ed1d67b2ff125ac84578f57e3d7475722",
+      "bytes": 10867
+    },
+    "analysis/xnu-bsd-r28-planning-20261114/sources/xnu/bsd/miscfs/routefs/routefs_ops.c": {
+      "sha256": "d760109a28e30d88029fd047ab32ce6b3f604c359569a3691b14f1666838e57e",
+      "bytes": 19616
+    },
+    "analysis/xnu-bsd-autoconf-r29-20261114/machine-review.json": {
+      "sha256": "cb76f505a4f55866e029a8bc814fa19ba95f8566aad104eecac5743afc6edbb8",
+      "bytes": 17702
+    },
+    "analysis/xnu-bsd-autoconf-r29-20261114/machine-code.json": {
+      "sha256": "a14faaf1e8ec80b6aae6f541f0622835130902bca015ea6434da7cb16880016d",
+      "bytes": 303423
+    },
+    "analysis/xnu-bsd-autoconf-r29-20261114/review_machine.py": {
+      "sha256": "33dcc1047331ab560a21afdb1dbce173d97152065d46798ec66630f46553f934",
+      "bytes": 13384
+    },
+    "analysis/xnu-bsd-pre-autoconf-r28-20261114/kernel-expectation.json": {
+      "sha256": "10eedf3d73176395381549360132f3b0a32d8bd162c9343324b90696b56046c4",
+      "bytes": 43776
+    },
+    "analysis/xnu-r29-iobsd-scope-20261114/README.md": {
+      "sha256": "6b31af05e92c98f09d8090fec7a250e92e645b375ac1ac6248f5e7da0d5065f8",
+      "bytes": 6295
+    },
+    "analysis/xnu-r29-iobsd-scope-20261114/evidence.json": {
+      "sha256": "c60cfb160945e2ad9d64bc2a2e7d6d1b3c7a2e20d08e933170d6b2a80892cb0c",
+      "bytes": 24166
+    },
+    "analysis/xnu-r29-iobsd-scope-20261114/audit_scope.py": {
+      "sha256": "48a137cf6150e9e19a990da847c2b33fa4c9e8e8217017e0ac60be4b93e0d2fd",
+      "bytes": 14417
+    },
+    "analysis/xnu-r29-iobsd-scope-20261114/iobsd-machine-code.json": {
+      "sha256": "726d5950d89859b05a1b6698d1bd716a5b4962f9f1a81651cf9c57e6c3f946d3",
+      "bytes": 65842
+    },
+    "analysis/xnu-r29-iobsd-scope-20261114/prelink-personalities.json": {
+      "sha256": "654c30e559b46622d19017cd944c39bf11a71e7b13d2e12a44d8f7326d403817",
+      "bytes": 24273
+    },
+    "analysis/xnu-r29-iobsd-scope-20261114/startup-catalogue-review.json": {
+      "sha256": "a7b0c26ac72d009893fe9c2fe94ba9dc3a0bdc7055367acac35a8caa7f0357f3",
+      "bytes": 126223
+    },
+    "analysis/xnu-r29-iobsd-scope-20261114/startup-catalogue-review.md": {
+      "sha256": "a0b411fdb64bc2c4ed7694b83dca5906c261a79abab1991544fa4f57b4df7749",
+      "bytes": 3766
+    },
+    "analysis/xnu-r29-iobsd-scope-20261114/startup-catalogue-review.py": {
+      "sha256": "cca57c792cf8952792b22bd1396aef1cbee6dce9eb6310a748ad29bbff888bdf",
+      "bytes": 7911
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/source-evidence-02.json": {
+      "sha256": "e6d12c0c67861284b2cb1d87c1d95d2b5801ebe45fdeb62d8cd7a215aa707334",
+      "bytes": 3732
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/iokit/KernelConfigTables.cpp": {
+      "sha256": "6df10584633949ab3574094b6afc8cf3bc954680edbcf84f32cd9b2ddf674233",
+      "bytes": 3940
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/libsa/bootstrap.cpp": {
+      "sha256": "12b0df9a60ce3381989fda1454aec3860763a3f6bf5fb230b1289569f80ba0a7",
+      "bytes": 26187
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/actual-driver/NativeAES.cpp": {
+      "sha256": "22227a14fb4fc336f2685dda72e52c6174dd27f3f36c993b70cb5bf18aed38c1",
+      "bytes": 13778
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/actual-driver/NativeAES.o": {
+      "sha256": "6024f3daba2cb53612fa82403c656ea7dfc348520a6b923f2feb6d9457e5824d",
+      "bytes": 207968
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/actual-driver/compile-command.json": {
+      "sha256": "8e0bc3b371c380fef25c2fca2458dd0b953bb3448aa18e3b11484cc12e6c890b",
+      "bytes": 9179
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/actual-driver/compile.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/actual-driver/original-bindings.o": {
+      "sha256": "3de8c3bdb79f644f4251f2976640c57b1ef60c4778bc3ee9fc3f95e672aaa788",
+      "bytes": 1848
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/actual-driver/libSoftwareAES.a": {
+      "sha256": "6e97ee579af8790dc3ffbe7856c35907933135bbb0dddb561732ea832734df4b",
+      "bytes": 212512
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/generated/KernelConfigTables.cpo.json": {
+      "sha256": "16f3c934a59ee148af9f4fbea8727ddef6e1fa170b60512093d7be6aa61390ae",
+      "bytes": 10038
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/generated/KernelConfigTables.cpo": {
+      "sha256": "6fb1133a8de48c35c0c2bbcaf766618091364c6a4410e6b3719f83cfe403ce7d",
+      "bytes": 3336
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/source-evidence.json": {
+      "sha256": "1fb87eaf85c34888087d16bd5d398d35d88a13842f1ee01050bc443b7a1d87d0",
+      "bytes": 6350
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/arm/km.c": {
+      "sha256": "a4e1c331b55542dc2114ff26be99b37426d4674d0b6ed7113fcbd3520b6aaa5d",
+      "bytes": 8436
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/kern/tty_pty.c": {
+      "sha256": "983581c56e318ddda95e87e1eef770c0916536ee303fec2a7b5d3c65157c2b73",
+      "bytes": 5838
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/kern/tty_ptmx.c": {
+      "sha256": "5fd8d4f37173d3d0369c553a1f6817e53dd5b33e3f566b65172eef371cffa2f8",
+      "bytes": 25458
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/net/bpf.c": {
+      "sha256": "b64be912e001e68a4c9716c443e24d9d8e5706735acf23da3ac07af27742da74",
+      "bytes": 110829
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/vfs/vfs_fsevents.c": {
+      "sha256": "535f5025dc3f9ede061221104cf748d0bb06e60754d0f2d0736da1e846b61499",
+      "bytes": 81097
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/random/randomdev.c": {
+      "sha256": "4137a0b7157e4149eceb15bd085e0c4852d4143b0d3fbf02ae08fd99552d5463",
+      "bytes": 5800
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/dtrace.c": {
+      "sha256": "2a7769495219053c795cf16936ccd2842d0117ca6af972a3dab9ef01c3cfb30e",
+      "bytes": 511252
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/lockstat.c": {
+      "sha256": "aee209d371b39a236c2186784930b0c7c023c12527f13491cf803d38cc4988bd",
+      "bytes": 9441
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/lockprof.c": {
+      "sha256": "a004374cad35c43d88464a874489fb5595c993b5e06771928f126785e1e0407e",
+      "bytes": 11328
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/sdt.c": {
+      "sha256": "7c04118cd00c34a0fb8d7fbdf2fc6b305a76c60d3b7b4a845a6060adfe3cf896",
+      "bytes": 21432
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/systrace.c": {
+      "sha256": "be8c6f8fca90cf95d97bd653056b2ad1c6b1c7a19ca36ba95eac5c848ac4efdd",
+      "bytes": 29192
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/fbt.c": {
+      "sha256": "52914300e7366f8a677a5659fcc429db7f01bd806cd9ccd43414c814ded99a12",
+      "bytes": 16603
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/bsd/dev/dtrace/profile_prvd.c": {
+      "sha256": "de6fbdf5c8fbc4c604f442bbacbaf63eafa2475d223620e1fc2b476e7744f9df",
+      "bytes": 18322
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/iokit/Kernel/IOService.cpp": {
+      "sha256": "f9b419cd07d8eefb8abe302cf15de4a2f8fc0e85e67f3e67ef9926e4c77d0812",
+      "bytes": 242626
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/iokit/Kernel/IOCatalogue.cpp": {
+      "sha256": "f31ba5b5f2d1593516e6a38e15d0f0f23e73ea925c116609cdbbb554d2ef516a",
+      "bytes": 39064
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/xnu/libkern/c++/OSKext.cpp": {
+      "sha256": "b650f42a264ad7b3a15d999349806556f7156429c9e5ca585f37049fb2c5639f",
+      "bytes": 515992
+    },
+    "analysis/xnu-bsd-autoconf-r29-planning-20261114/sources/generated/ioconf.c": {
+      "sha256": "6af0861f7f1497d3e49a34bdbfecd38317595a6ee50e66aa0301c12c96218b46",
+      "bytes": 734
+    },
+    "analysis/xnu-iokit-matching-runtime-r26-20261114/sources/xnu/bsd/kern/bsd_init.c": {
+      "sha256": "deea5c12bc89797a97458dae6fb07f242ad05693560423310ccb6a3e952b9f18",
+      "bytes": 49853
+    },
+    "analysis/xnu-iokit-matching-runtime-r26-20261114/sources/xnu/iokit/bsddev/IOKitBSDInit.cpp": {
+      "sha256": "34a07f785aa60aa854a1f654c0c9ad5c91df161f912c6991868698ae498c8eed",
+      "bytes": 47925
+    },
+    "analysis/xnu-bsd-pre-root-r30-20261114/machine-review.json": {
+      "sha256": "8705489e85bf68a2d05c03332aed54fce25753af818df64f2766b5aca738a8b3",
+      "bytes": 16081
+    },
+    "analysis/xnu-bsd-pre-root-r30-20261114/machine-code.json": {
+      "sha256": "fa48ad6e5690f4e7d2421a381fd485edd3b7dd940b2160e9b49e0195ea9a38b3",
+      "bytes": 408142
+    },
+    "analysis/xnu-bsd-pre-root-r30-20261114/review_machine.py": {
+      "sha256": "ff6fac1b3d4859f829bff371ecc8be3840b13c35681e68baa974d20c9423252c",
+      "bytes": 10130
+    },
+    "analysis/xnu-bsd-autoconf-r29-20261114/kernel-expectation.json": {
+      "sha256": "6bb949a7a1950e64a58d5559a81b76fdf5d35c36b4a6a8b10360bd781151fa91",
+      "bytes": 69022
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/recommendation.md": {
+      "sha256": "ee09168b4fcc9ee2efa3d161824d8afb78a27fb5365b7757bd18559763367a80",
+      "bytes": 3118
+    },
+    "analysis/xnu-r30-network-scope-20261114/README.md": {
+      "sha256": "f3d55aba2bfeaac58e795bdbcaeb35e4a5ebe8808c7cb082401429565dc1b662",
+      "bytes": 2511
+    },
+    "analysis/xnu-r30-network-scope-20261114/evidence.json": {
+      "sha256": "560749760a73b313ce0ad3eafd004158eb86cd0f1a4ee3c019a60a36cb8cef74",
+      "bytes": 79302
+    },
+    "analysis/xnu-r30-network-scope-20261114/audit_scope.py": {
+      "sha256": "a107f5f453c7d8b5faaaf99cb71b1569de044b7c7ebae328e79c974f244d14d3",
+      "bytes": 12392
+    },
+    "analysis/xnu-r30-network-scope-20261114/machine-code.json": {
+      "sha256": "b62d61ed9b8b82bae54a6dbc86b0ccd27a209de898f9c75179808bd2e6aa8016",
+      "bytes": 457260
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/source-evidence-02.json": {
+      "sha256": "6b8fa2ffa6de2ac263341b12c06d028cc31bb56378481db5b9b5e9145b4d9a63",
+      "bytes": 3625
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/kern/bsd_init.c": {
+      "sha256": "deea5c12bc89797a97458dae6fb07f242ad05693560423310ccb6a3e952b9f18",
+      "bytes": 49853
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/net/ether_if_module.c": {
+      "sha256": "0df2648cd9004f65e6bbf9cd32da3e79a03e8327e499d6aad3252346670f40e1",
+      "bytes": 18236
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/net/if_ether.h": {
+      "sha256": "a19d8b01f66c873fb0d910be1e388474a7b1fd842fbbfd01df7394e91f4ced0d",
+      "bytes": 2979
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/net/kctl_test.c": {
+      "sha256": "ead0fe6c2b18d6d5b96ad2f18703909f6cf64375ca1d275d7db086fd8d5675dc",
+      "bytes": 6355
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/net/kctl_test.h": {
+      "sha256": "36ac498a91124108fbc1cf8025d5d87d78219b69c8a8bce19820d841a27e896d",
+      "bytes": 1552
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/osfmk/kern/clock.c": {
+      "sha256": "001630fcf2089f7f8df7c39ee79f8ba9279b84aa06ec5d8883b016eb15fdc5b1",
+      "bytes": 54005
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/source-evidence-03.json": {
+      "sha256": "315d8c84b6d16f91d112f8b9ea07ce765014e92134e80aabf90a9a35fc291243",
+      "bytes": 675
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/iokit/Kernel/IOPlatformExpert.cpp": {
+      "sha256": "97958e2d9e455dd525cd21ee68a919aed13d2a475e6154ba68d32a91796fe787",
+      "bytes": 58335
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/source-evidence.json": {
+      "sha256": "f5e864e872681ec45c9c9874d50b1829edde5290b70fc546672fa1c112529a8b",
+      "bytes": 9310
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/kern/kern_clock.c": {
+      "sha256": "185f2da76ba9f82ae2763a0c4d7c2af74b4ef47d232a1132f35ecb0c3b36e32a",
+      "bytes": 10866
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/kern/kern_control.c": {
+      "sha256": "d43862d5fe5a0006154ac139aa2e53880a5b065c12f9f83266d9462e7d09207a",
+      "bytes": 58274
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/kern/kern_time.c": {
+      "sha256": "dc667a7d202397f6510c46450ce19394b80e4f9aa8261336ba5f0cc937c95005",
+      "bytes": 23772
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/net/content_filter.c": {
+      "sha256": "8ba68af09efef2ae67ff6ccf25948e552a17332c3280568a4ebbe8cfcbafff4f",
+      "bytes": 216224
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/net/if_loop.c": {
+      "sha256": "483d46db308aba1048e056b189b4f2ccd6e43acdaffae975f9c6e274cec2e203",
+      "bytes": 21194
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/net/if_redirect.c": {
+      "sha256": "0559da77a319eea6bebf622f8072f01b29e4d1e6a0e73134bc32a65570f80828",
+      "bytes": 50882
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/net/if_utun.c": {
+      "sha256": "ebfc49d2cfbe1da97c6951891e5c6d489a6c8d65a5f2f9f853c4cb7d6e335dd9",
+      "bytes": 102377
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/net/init.c": {
+      "sha256": "1eae4c19b410c3058dae0cdbe9faccfca666f9e4c7894f9f34c32c1d8ca79d1f",
+      "bytes": 3071
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/net/init.h": {
+      "sha256": "50cea91a052df2daea87dae6682cbb561106126748b382296e5b725de228d0fa",
+      "bytes": 2786
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/net/netsrc.c": {
+      "sha256": "b4382d99a78c0e9f9accfd4d595d825bd16e4c0f3299863ba6a07274a8716550",
+      "bytes": 10193
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/net/ntstat.c": {
+      "sha256": "87cba67b680ee25bed1a1f833c24d61d6cfd08feda0cb0f2c305dfdddde4d70f",
+      "bytes": 238696
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/net/packet_mangler.c": {
+      "sha256": "6cbb54c319ca22db25b0420f5dabe06459623fbb6ab7506fd5718c5cd1f641bc",
+      "bytes": 28865
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/netinet/ip_input.c": {
+      "sha256": "779e43bf6b46822da02321814474533978e1ad82a453286050542f80462361df",
+      "bytes": 110764
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/netinet/mptcp_subr.c": {
+      "sha256": "9884af95007ebe897998320bbfbf36364cb5ca172af88fbcb36334c63fe7e4a7",
+      "bytes": 181839
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/netinet/mptcp_usrreq.c": {
+      "sha256": "5cd882f91581a91a418c77551cd2398430dcc9b9e5223aedf78d25e3de71dfe2",
+      "bytes": 60111
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/netinet/mptcp_var.h": {
+      "sha256": "3ec92ac8762e0346d9dc8d6fcdb5e2a3339725b8345855207644f958b91b68c0",
+      "bytes": 31053
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/netinet6/ip6_input.c": {
+      "sha256": "50d6c2d0de82a7b412731cd2452838e077cb807a90971a5dd6da9534960c29cf",
+      "bytes": 72086
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/netinet6/ipsec.c": {
+      "sha256": "4ea48e79becfba704da7adb6a263fd9ab5fc6bd8379df72b33a6961561c93f07",
+      "bytes": 144526
+    },
+    "analysis/xnu-r30-pre-root-planning-20261114/sources/xnu/bsd/sys/time.h": {
+      "sha256": "863406e0dbf0b08d6bf8558026207496e292c4c3698f0a85da6706316e6a1ba5",
+      "bytes": 10700
+    },
+    "artifacts/j716f-host-iokit-cpu0-20261114/native.macho": {
+      "sha256": "0e4c56e38bc9ad1e769885bd6912e98bb2d9d36a41fc43791fbdeec0aa326ff4",
+      "bytes": 18266504
+    },
+    "artifacts/j716f-host-iokit-cpu0-20261114/kernel.macho": {
+      "sha256": "0e8eaab0a4045aa07155dfa537a7f8129893051644fdc7e40d96440a9eacbc7e",
+      "bytes": 51109888
+    },
+    "analysis/tools/prepare_r6_followup.py": {
+      "sha256": "8ff6044aeeb96bcfbb62857af58e7ad798b50154d5c37ad54d6ddc673c51f030",
+      "bytes": 23764
+    },
+    "analysis/xnu-iokit-matching-runtime-r26-20261114/sources/drivers/ArmDTPlatform/ArmDTPlatform.cpp": {
+      "sha256": "5f3d2c5356e4e25865c987ae61a093bd6342bf7f45bfe096ab24e7f2b134ea5a",
+      "bytes": 12377
+    },
+    "analysis/xnu-bsd-autoconf-probe-20261114-r29/image-verification.windows.json": {
+      "sha256": "ebe0d44a8a4c2fd03879e3969e8af8c2c1f27567491f54d555cd94ece56df362",
+      "bytes": 14401
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/board.toml": {
+      "sha256": "3c5fc0cce95a43bfba5fa03bb76f2d97b249641f8a70e8ce2b028e539bac88b3",
+      "bytes": 977
+    },
+    "work/UniXNU-j716f-host-iokit-cpu0/configs/j716f_host_iokit_cpu0_defconfig": {
+      "sha256": "62adbce2cd5c90eff2bb63c1f7ce200e7b0df5dd6d69bebb0dd125c7a66ada8d",
+      "bytes": 767
+    },
+    "work/UniXNU-j716f-xnu-bsd-autoconf-probe/payload/unixnu.toml": {
+      "sha256": "e8df1f00e2c5303f623bff12e094f6cc1c880066d584c2b66b0247c161ee390d",
+      "bytes": 593
+    },
+    "work/J716fEarlyLog-20261114/include/J716fEarlyLog.h": {
+      "sha256": "d871825f16e72b3923420b3c0aa54e5d5a2291e5c0272d582ce05f9a22a86d16",
+      "bytes": 16638
+    }
+  }
+}
