@@ -1,6 +1,6 @@
 # TB-J716F：macOS Data seed 工作流
 
-本目录是准备合并到设备仓库的暂存源码，不是已推送的仓库，也不是已生成的 Data 镜像。保持目录结构复制 `.github/workflows/data-seed.yml` 和 `scripts/ci/`；本文可放到仓库文档目录。文件不包含本地设备序列号、唯一芯片身份、SSH 凭证、IPSW 或实机日志。
+本目录是设备仓库 Data runner 的暂存源码，不是已生成的 Data 镜像。保持目录结构复制 `.github/workflows/data-seed.yml` 和 `scripts/ci/`；本文可放到仓库文档目录。文件不包含本地设备序列号、唯一芯片身份、SSH 凭证、IPSW 或实机日志。
 
 ## 固定输入与官方调用
 
@@ -9,10 +9,16 @@
 官方 [`make-data-seed.py`](https://github.com/UniXNU/UniXNU/blob/7b730b231746667d8b7f54746c2c1ce45852611c/scripts/make-data-seed.py) 的第一个参数是 **OS 文件系统挂载根**，要求存在 `sbin/launchd` 与 `private/var`，不是 OS 镜像文件名，也不是 SystemOS cryptex 的挂载目录。本工作流先验证原始 OS SHA256，以 `hdiutil -readonly` 挂载，再用 `diskutil` 校验根卷 UUID、SystemVersion 的 17.7.11/21H461 及目录。之后原样调用：
 
 ```text
-python3 <fixed-core>/scripts/make-data-seed.py <read-only-OS-mount> <new-seed.dbr> --gib 16 --build 21H461
+python3 <compat-core>/scripts/make-data-seed.py <read-only-OS-mount> <new-seed.dbr> --gib 16 --build 21H461
 ```
 
-这个版本创建初始 32 MiB APFS、复制原始 `private/var`（排除 staged_system_apps）、添加运行时目录，继而调用同提交的 `seed-data-grow.py` 扩容，并用 DarwinBoot 的 DBRDISK1 工具打包。工作流没有修改官方脚本，也不使用为旧单一 launchd 哈希写死的 `prepare-owner-data-fixture.py`。保留官方默认 Setup 行为，不加 `--skip-setup`，不生成个人账户或设备身份。
+这个版本创建初始 32 MiB APFS、复制原始 `private/var`（排除 staged_system_apps）、添加运行时目录，继而调用同提交的 `seed-data-grow.py` 扩容，并用 DarwinBoot 的 DBRDISK1 工具打包。保留官方默认 Setup 行为，不加 `--skip-setup`，不生成个人账户或设备身份。
+
+首次真实运行在官方 grow 工具中报出 `No APFS container found on the attached seed`。因此 runner 在独立临时目录建立三个源码文件的字节校验副本：`make-data-seed.py` 和 packed helper 完全不变，只有 `seed-data-grow.py` 的挂载/容器发现/解除挂载段替换为 `apfs_seed_compat.py`；固定官方 checkout 不修改，输入锁、APFS 创建、复制、扩容命令、大小计算及打包算法不变。官方原文件、补丁后 grow 和兼容 helper 的 SHA256 均记录在 `grow-compatibility.json` 与最终 provenance 中。
+
+兼容发现仍只接受首次附加的整盘设备与 `PhysicalStores.DeviceIdentifier` **严格相等**，不把 `disk9` 扩大匹配成 `disk90` 或 `disk9s1`；要求唯一容器、唯一物理 store，且最终容器也在本镜像当前 attachment 中。用真实 `hdiutil` image-path 反查归属，发现最多 11 次、间隔 1 秒、发现段 deadline 15 秒；附加、诊断和清理另有超时，不代表整个流程只需 15 秒。失败时只输出本镜像的 attachment、实体信息与相关容器拓扑，不导出宿主整体磁盘清单。若首实体不合法，不猜测 detach 目标，由外层按本次 work 路径清理残余镜像。
+
+下载 OS 之前，先创建同样 32 MiB、layout NONE 的**空白诊断 APFS**，经官方 packed helper 和相同兼容 grow 链扩容。它只验证本台 macOS 的发现链，放在独立 preflight 子目录，绝不作为安装 Data、也不上传其镜像。预检失败立即停止，避免无谓重复下载约 5 GB OS。通过后，正式 Data 仍从已校验的原始 OS 重新创建。
 
 下载使用固定官方 `unixnu.ipsw.Ipsw` 的 HTTP range/ZIP 组件提取。wrapper 为初始 HEAD/探测的网络错误补充最多四次连接尝试（官方数据块已有重试）；不对 pin/身份不匹配重试，更不自动重建已有 Data。仅下载 OS（约 5.16 GB）与两份很小的原始 trust cache，再按官方工具捆绑并验证已知 SHA256。**SystemOS 本轮只核对 BuildManifest/ZIP 成员名、长度及 profile 中的 pin；不下载其 3.3 GB 内容，不声称本轮验证了它的实际 SHA256。** 先前本地 OS/SystemOS/trust 的完整身份是 pin 来源，不上传这些本地文件。
 
@@ -56,6 +62,8 @@ python3 scripts/ci/verify_data_seed.py <downloaded-artifact-directory>
 
 ## 本地验收状态
 
-本暂存包已通过 Python 语法、JSON/YAML 结构及 14 项纯字节/拒绝边界测试。测试夹具只检验解析和清理范围，不能制造一个已挂载或经过 APFS 驱动检验的文件系统。首次 GitHub macOS job **尚未运行**；只有 job 产生成功 artifact 后才能填入实际 Data UUID 和宣称 APFS 主机校验通过。
+首轮 [GitHub macOS job 43596100796](https://github.com/Denis0x00/UniXNU-j716f/actions/runs/43596100796) 已实际运行：原始 OS 下载与 SHA256、信任缓存捆绑、只读根卷 UUID/版本检查通过，随后在官方 APFS 容器发现阶段失败；清理成功，未发布 Data seed。失败日志没有保留当时的 APFS 拓扑，不能断言根因已经完全确定。
+
+兼容修订通过 26 项纯字节/设备归属拒绝测试，并针对固定 Git blob 验证了源码锁与唯一发现段替换。测试夹具不执行真实磁盘命令，不能代替下一轮 macOS preflight。只有新 job 产生成功 artifact 后才能填入实际 Data UUID 和宣称 APFS 主机校验通过。
 
 GitHub 行为参考：[workflow 语法](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)、[checkout](https://github.com/actions/checkout)、[artifact 上传](https://github.com/actions/upload-artifact)。

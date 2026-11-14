@@ -26,6 +26,8 @@ import tomllib
 from types import SimpleNamespace
 import uuid
 
+from apfs_seed_compat import prepare_overlay
+
 GIB = 1024 ** 3
 LOCK = Path(__file__).with_name('data_seed_inputs.json')
 
@@ -270,6 +272,33 @@ def fetch_inputs(log, core, work, pins, profile):
     return os_image, record
 
 
+def grow_preflight(log, overlay, work, evidence, gib):
+    """Exercise this host's raw APFS discovery before the 5 GB OS download.
+
+    This empty diagnostic filesystem is never used as installation Data.
+    """
+    root = work / 'apfs-discovery-preflight'
+    root.mkdir()
+    raw = root / 'empty.cdr'
+    log.command('hdiutil', 'create', '-size', '32m', '-layout', 'NONE', '-fs', 'APFS',
+                '-volname', 'DataDiscoveryPreflight', '-type', 'UDTO', raw)
+    helper = overlay / 'drivers/DarwinBoot/Test/packed_ramdisk.py'
+    spec = importlib.util.spec_from_file_location('preflight_packed_ramdisk', helper)
+    packed = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(packed)
+    base, grown = root / 'empty-base.dbr', root / 'empty-grown.dbr'
+    packed.pack(raw, base)
+    log.command(sys.executable, overlay / 'scripts/seed-data-grow.py', '--gib', gib, base, grown,
+                timeout=600)
+    result, _ = packed.inspect(grown)
+    require(result['bytes'] == gib * GIB, 'Preflight grew an unexpected logical capacity')
+    write_json(evidence / 'apfs-discovery-preflight.json', {
+        'status': 'passed', 'diagnostic_only': True, 'installation_seed': False,
+        'empty_filesystem': True, 'logical_gib': gib, 'hardware_tested': False,
+        'encoded_sha256': sha(grown),
+    })
+
+
 def create(log, args, pins):
     require(not args.work.exists() and not args.output.exists(), 'Refuse to replace an existing run or seed')
     require(3 <= args.gib <= 64, 'Runner Data size must be 3..64 GiB')
@@ -279,6 +308,10 @@ def create(log, args, pins):
     build = args.core / 'build'
     require(not build.exists(), 'Use a fresh official checkout without build outputs')
     build.mkdir()
+    overlay = args.work / 'grow-compat-core'
+    compatibility = prepare_overlay(args.core, overlay)
+    write_json(args.evidence / 'grow-compatibility.json', compatibility)
+    grow_preflight(log, overlay, args.work, args.evidence, args.gib)
     os_image, inputs = fetch_inputs(log, args.core, args.work, pins, profile)
     write_json(args.evidence / 'inputs.json', inputs)
     candidate = args.work / 'data-21H461.dbr'
@@ -291,7 +324,7 @@ def create(log, args, pins):
         require((os_mount / 'sbin/launchd').is_file() and (os_mount / 'private/var').is_dir(),
                 'Not the OS root expected by make-data-seed.py')
         launchd_hash = sha(os_mount / 'sbin/launchd')
-        log.command(sys.executable, args.core / 'scripts/make-data-seed.py', os_mount, candidate,
+        log.command(sys.executable, overlay / 'scripts/make-data-seed.py', os_mount, candidate,
                     '--gib', args.gib, '--build', pins['build'], timeout=3600)
     require(sha(os_image) == pins['os']['sha256'], 'Read-only original OS changed')
     helper = args.core / 'drivers/DarwinBoot/Test/packed_ramdisk.py'
@@ -327,6 +360,7 @@ def create(log, args, pins):
     report = dict(schema=1, build=pins['build'], version=pins['version'], first_install=True,
                   preserve_for_future_builds=True, logical_gib=args.gib, data_volume_uuid=volume_uuid,
                   core_commit=pins['core_commit'], darwinboot_commit=pins['darwinboot_commit'],
+                  grow_discovery_compatibility=compatibility,
                   script_sha256=script_hashes, inputs=inputs, source_launchd_sha256=launchd_hash,
                   encoded_bytes=metadata['encoded_bytes'], encoded_sha256=metadata['encoded_sha256'],
                   logical_bytes=logical, format_seed_identity_sha256=metadata['sha256'],
