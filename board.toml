@@ -10,7 +10,7 @@ os_profile = "ipados-17.7.11-21H461"
 description = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F) iPadOS 17.7.11 bring-up"
 
 [components]
-include = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "XnuPrelink", "DarwinBoot"]
+include = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "GopFramebuffer", "AppleKeyStoreState", "XnuPrelink", "DarwinBoot"]
 
 [kernel]
 defconfig = "j716f_defconfig"
@@ -29,10 +29,13 @@ archives = [
   "build-libpthread-kernel.py",
   "prepare-storage-headers.py",
   "build-j716f-storage-active.py",
+  "build-j716f-display-keystore.py",
 ]
 
 [kernel.embedded_components]
 RamBlock = "build-j716f-storage-active.py"
+GopFramebuffer = "build-j716f-display-keystore.py"
+AppleKeyStoreState = "build-j716f-display-keystore.py"
 
 [device_tree]
 source = "device:dts/j716f.dts"
@@ -97,6 +100,12 @@ unique_chip_id = "required"
 psci_method = "smc"
 packed_data_ramdisk = true
 owned_memory_size = 0x80000000
+
+[adt.product.string]
+artwork-display-gamut = "sRGB"
+
+[adt.product.u32]
+thin-bezel = 1
 
 [adt.defaults.u32]
 sleep-disabled = 1

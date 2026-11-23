@@ -1,6 +1,7 @@
 # TB-J716F / SM8250 / arm64 / iPadOS 17.7.11 (21H461)
-# Stage 7 host-verified bring-up: read-only SHNGROOT OS + SystemOS union mount
-# + RAM-backed 16 GiB APFS Data volume (NativeRamBlock) -> /sbin/launchd.
+# Stage 7+ host-verified bring-up: read-only SHNGROOT OS + SystemOS union mount
+# + RAM-backed 16 GiB APFS Data volume (NativeRamBlock)
+# + UEFI GOP IOMobileFramebufferLegacy (GopFramebuffer) + AppleKeyStoreState (aks=1).
 CONFIG_XNU_SOURCE_CORECRYPTO14=y
 CONFIG_XNU_SOURCE_PTHREAD=y
 CONFIG_XNU_ARM_DT_PLATFORM=y
@@ -9,7 +10,7 @@ CONFIG_XNU_CRYPTO_BOOTSTRAP="prelinked"
 # CONFIG_XNU_ARMVIRT_PLATFORM is not set
 # CONFIG_XNU_NATIVE_UFS is not set
 # CONFIG_XNU_NATIVE_ADRENO is not set
-# CONFIG_XNU_NATIVE_LEGACY_DISPLAY is not set
+CONFIG_XNU_NATIVE_LEGACY_DISPLAY=y
 # CONFIG_XNU_NATIVE_MOBILE_DISPLAY is not set
 # CONFIG_XNU_BOOT_PROGRESS is not set
 # CONFIG_XNU_SHENG_PMGR is not set

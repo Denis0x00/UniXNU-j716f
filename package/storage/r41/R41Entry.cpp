@@ -435,10 +435,23 @@ void publishRootWindows(WindowPublishState &p) {
   }
 
   // 3. Optional Stage 7 RAM Data disk: start NativeRamBlock only when DarwinBoot
-  // placed PackedRAMDisk or RAMDisk into /chosen/memory-map.
+  // placed a non-zero PackedRAMDisk or RAMDisk range into /chosen/memory-map.
   IORegistryEntry *mem_map = IORegistryEntry::fromPath("/chosen/memory-map", gIODTPlane);
-  const bool has_data_seed =
-      mem_map && (mem_map->getProperty("PackedRAMDisk") || mem_map->getProperty("RAMDisk"));
+  bool has_data_seed = false;
+  if (mem_map) {
+    const char *const keys[] = {"PackedRAMDisk", "RAMDisk"};
+    for (const char *key : keys) {
+      OSData *range = OSDynamicCast(OSData, mem_map->getProperty(key));
+      if (range && range->getLength() >= 16) {
+        uint64_t words[2] = {};
+        memcpy(words, range->getBytesNoCopy(), sizeof(words));
+        if (words[0] != 0 && words[1] != 0) {
+          has_data_seed = true;
+          break;
+        }
+      }
+    }
+  }
   OSSafeReleaseNULL(mem_map);
   if (has_data_seed) {
     IOService *ram_disk =

@@ -9,7 +9,7 @@ summary = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F, SM8250-AC) consolidated onto t
 [[area]]
 id = "configuration"
 status = "implemented"
-components = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "XnuPrelink", "DarwinBoot"]
+components = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "GopFramebuffer", "AppleKeyStoreState", "XnuPrelink", "DarwinBoot"]
 paths = [
   "board.toml",
   "feeds.toml",
@@ -241,35 +241,58 @@ result = "End-to-end host integration test for SM8250 UFS handoff, HCI, and SMMU
 
 [[area]]
 id = "display"
-status = "planned"
-components = []
-paths = ["patches/xnu/j716f-verbose-text-console.patch"]
+status = "implemented"
+components = ["GopFramebuffer", "AppleKeyStoreState"]
+paths = [
+  "patches/xnu/j716f-verbose-text-console.patch",
+  "package/display/**",
+  "scripts/build-j716f-display-keystore.py",
+]
 inputs = [
-  "2560x1600 32-bit inherited UEFI framebuffer at 0x9C000000 (Display Reserved 36 MiB).",
+  "2560x1600 32-bit BGRX inherited UEFI GOP framebuffer at 0x9C000000 (Display Reserved 36 MiB).",
+  "Unmodified upstream drivers/GopFramebuffer (NativeLegacyDisplay.cpp, NativeGOPPresenter.cpp) and drivers/AppleKeyStoreState (NativeKeyStoreEvents.cpp).",
 ]
 configuration = [
-  "UEFI J716fInheritedFbDxe provides GOP display ownership; XNU currently uses the inherited framebuffer text console (-v).",
+  "UEFI J716fInheritedFbDxe provides GOP display ownership (2560x1600 BGRX32 at 0x9C000000).",
+  "configs/j716f_stage7_defconfig enables CONFIG_XNU_NATIVE_LEGACY_DISPLAY=y and links build/native-legacy-display/libNativeLegacyDisplay.late.a built by scripts/build-j716f-display-keystore.py.",
+  "Stage 7+ kernel args enable offline-mobile-graphics-load=1, offline-legacy-register=1, offline-legacy-gop=1, offline-legacy-unit-scale=2, offline-legacy-pm=1, offline-legacy-validate=1, offline-legacy-transfer=1, offline-legacy-cpu-present=1, offline-legacy-phase=4, offline-key-events=1, and aks=1.",
 ]
 procedure = [
   "Verify UEFI menu rendering and XNU early framebuffer console output on boot_b.",
+  "Build and verify libNativeLegacyDisplay.late.a against 21H461 kernelcache.decompressed (-0x1000000 slide) via ./unixnu build kernel with j716f_stage7_defconfig.",
 ]
 findings = [
   "UEFI display ownership repair eliminated menu overlay corruption across untouched idle, navigation, QR export, and post-reset return.",
   "XNU verbose text console patch surfaces early kernel text on the inherited framebuffer.",
+  "Verified 100% byte-for-byte match of all 358 IOMobileFramebufferLegacy vtable slots, 9 abstract leaves, 7 IOSurface getters, vsync_notify, and setDisplayRefreshProperties against 21H461 kernelcache.decompressed (-0x1000000 slide) on Linux.",
+  "Integrated unmodified upstream GopFramebuffer and AppleKeyStoreState (aks=1) with clean J716F board probes (package/display/J716fLegacyDisplayProbe.cpp, J716fKeyStoreProbe.cpp); pending live tablet hardware verification.",
 ]
 completion = [
-  "Native XNU framebuffer/display driver (MobileDisplay / IOMobileFramebuffer) renders iPadOS WindowServer cleanly.",
+  "Native XNU framebuffer/display driver (GopFramebuffer / IOMobileFramebufferLegacy) and AppleKeyStoreState (aks=1) render iPadOS WindowServer/SpringBoard cleanly on hardware.",
 ]
 limits = [
-  "No native XNU display/IOMobileFramebuffer driver or dynamic mode-setting is enabled yet.",
+  "Stage 7+ GopFramebuffer + AppleKeyStoreState build is host-verified only (hardware_tested: false) until the tablet is connected.",
+  "Uses CPU scanout into the inherited 2560x1600 UEFI GOP framebuffer (no Adreno GPU copy client or dynamic DPU mode-setting yet).",
 ]
 next_action = [
-  "Integrate framebuffer/MobileDisplay driver after Stage 6 root mount completes.",
+  "Flash Stage 7+ boot.img to boot_b when the TB-J716F tablet is connected and verify NativeLegacyDisplay stage=10, AppleKeyStore publication, and frame presentation in JXLG logs.",
 ]
 [[area.evidence]]
 kind = "source"
 reference = "patches/xnu/j716f-verbose-text-console.patch"
 result = "Board XNU verbose framebuffer text console patch"
+[[area.evidence]]
+kind = "source"
+reference = "scripts/build-j716f-display-keystore.py"
+result = "Cross-platform 21H461 kernelcache ABI auditor and GopFramebuffer + AppleKeyStoreState late-init archive builder"
+[[area.evidence]]
+kind = "source"
+reference = "package/display/J716fLegacyDisplayProbe.cpp"
+result = "J716F board probe publishing UEFI GOP framebuffer as IOMobileFramebufferLegacy (phase 4 CPU scanout)"
+[[area.evidence]]
+kind = "source"
+reference = "package/display/J716fKeyStoreProbe.cpp"
+result = "J716F board probe publishing AppleKeyStoreState (aks=1, software key wrapping keyed from /chosen/unique-chip-id)"
 
 [[area]]
 id = "input"

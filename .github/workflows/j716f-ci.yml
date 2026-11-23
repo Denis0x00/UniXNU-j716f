@@ -36,6 +36,8 @@ jobs:
             drivers/ArmCpu \
             drivers/SoftwareAES \
             drivers/RamBlock \
+            drivers/GopFramebuffer \
+            drivers/AppleKeyStoreState \
             drivers/DarwinBoot \
             kits/XnuPrelink
 
@@ -107,7 +109,12 @@ jobs:
           ./unixnu tree
           TREE7="out/j716f/ipados-17.7.11-21H461/j716f_stage7/tree"
           test -f "$TREE7/drivers/RamBlock/NativeRamBlock.cpp"
+          test -f "$TREE7/drivers/GopFramebuffer/NativeLegacyDisplay.cpp"
+          test -f "$TREE7/drivers/AppleKeyStoreState/NativeKeyStoreEvents.cpp"
           test -f "$TREE7/kits/j716f/storage/r41/R41Entry.cpp"
+          test -f "$TREE7/kits/j716f/display/J716fLegacyDisplayProbe.cpp"
+          test -f "$TREE7/kits/j716f/display/J716fKeyStoreProbe.cpp"
+          test -f "$TREE7/scripts/build-j716f-display-keystore.py"
 
       - name: Verify and apply pending upstream UniXNU core patches
         run: |
@@ -216,6 +223,10 @@ jobs:
           for mode in happy-path bad-manifest-sha overlap-windows no-shngroot; do
             "$OUT/test_r41_root_window" --synthetic "$mode"
           done
+
+      - name: Run upstream GopFramebuffer fence-wait sanitizer regression check
+        run: |
+          (cd unixnu/drivers/GopFramebuffer && python3 Test/check-fence-wait.py)
 
       - name: Validate structured porting.toml against official UniXNU schema
         run: |
