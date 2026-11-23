@@ -99,6 +99,15 @@ jobs:
           test -f "$TREE/kits/j716f/storage/r41/R41RootWindowDevice.cpp"
           test -f "$TREE/scripts/build-j716f-storage-active.py"
 
+      - name: Verify and apply pending upstream UniXNU core patches
+        run: |
+          set -euo pipefail
+          for patch in device/patches/unixnu-core/*.patch; do
+            git -C unixnu apply --check "$PWD/$patch"
+            git -C unixnu apply "$PWD/$patch"
+          done
+          python3 unixnu/scripts/unixnu/test_bootimg.py -v
+
       - name: Compile DTS with dtc and verify Apple Device Tree (ADT) generation
         run: |
           set -euo pipefail
@@ -119,7 +128,8 @@ jobs:
               unique_chip_id='0123456789abcdef',
           )
           assert len(adt) > 4096, f'Unexpected small ADT size: {len(adt)}'
-          print(f'Generated valid Apple Device Tree ({len(adt)} bytes) from compiled dts/j716f.dts')
+          assert b'AAPL,phandle\x00' in adt, 'Generated ADT is missing AAPL,phandle alias'
+          print(f'Generated valid Apple Device Tree ({len(adt)} bytes, AAPL,phandle verified) from compiled dts/j716f.dts')
           PY
 
       - name: Compile and run SM8250 UFS/SMMU and r41 SHNGROOT C++ ASan/UBSan tests

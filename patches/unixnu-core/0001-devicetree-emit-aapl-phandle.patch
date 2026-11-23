@@ -1,0 +1,76 @@
+From: Denis0x00 <148704309+Denis0x00@users.noreply.github.com>
+Subject: [PATCH 1/2] devicetree: emit AAPL,phandle aliases and filter exported phandles
+
+XNU AddPHandle/FindPHandle indexes Apple Device Tree nodes by the
+AAPL,phandle property in native little-endian order. Emit matching
+AAPL,phandle aliases alongside standard phandle properties, validate any
+existing FDT alias, and restrict resolved references to nodes actually
+exported into the generated ADT.
+---
+diff --git a/scripts/unixnu/devicetree.py b/scripts/unixnu/devicetree.py
+index 3dde210..8ad4c58 100644
+--- a/scripts/unixnu/devicetree.py
++++ b/scripts/unixnu/devicetree.py
+@@ -216,7 +216,12 @@ def hardware_properties(entry, handles, base=0):
+             entry.strings(key)
+             properties.append((key, raw))
+         elif key in U32:
+-            properties.append((key, struct.pack('<I', entry.scalar(key))))
++            value = struct.pack('<I', entry.scalar(key))
++            properties.append((key, value))
++            if key == 'phandle':
++                # XNU AddPHandle/FindPHandle use the Apple alias, in native byte order.
++                # Existing FDT aliases are validated in generate and emitted only here.
++                properties.append(('AAPL,phandle', value))
+         elif key in U64:
+             cells = entry.cells(key)
+             if len(cells) not in (1, 2):
+@@ -227,6 +232,8 @@ def hardware_properties(entry, handles, base=0):
+                 raise Error(f'{entry.name}: {key} is a flag')
+             properties.append((key, b''))
+         elif key in REFERENCES:
++            if key == 'interrupt-parent':
++                entry.scalar(key)
+             cells, index = entry.cells(key), 0
+             while index < len(cells):
+                 target = handles.get(cells[index])
+@@ -245,7 +252,7 @@ def hardware_properties(entry, handles, base=0):
+             controller = handles.get(handle)
+             cells = entry.cells(key)
+             width = controller.scalar('#interrupt-cells') if controller else 0
+-            if not width or len(cells) % width:
++            if not width or not cells or len(cells) % width:
+                 raise Error(f'{entry.name}: interrupt provider or specifier is invalid')
+             properties.append((key, struct.pack(f'<{len(cells)}I', *cells)))
+             if 'interrupt-parent' not in entry.properties:
+@@ -292,6 +299,10 @@ def generate(dtb, config, *, unique_chip_id=None, data=False, trust=False, addon
+     entries = list(root.walk())
+     handles = {}
+     for entry in entries:
++        if 'AAPL,phandle' in entry.properties:
++            if ('phandle' not in entry.properties or
++                    entry.scalar('AAPL,phandle') != entry.scalar('phandle')):
++                raise Error(f'{entry.name}: AAPL,phandle must equal its standard phandle')
+         if 'phandle' in entry.properties:
+             handle = entry.scalar('phandle')
+             if not handle or handle in handles:
+@@ -403,11 +414,18 @@ def generate(dtb, config, *, unique_chip_id=None, data=False, trust=False, addon
+     if len(cpu_nodes) > 1:
+         if psci is None or psci.strings('method') not in (['smc'], ['hvc']):
+             raise Error('Multiple CPUs require a PSCI method')
+-        children.append(node('psci', hardware_properties(psci, handles)))
+     hardware = [entry for entry in entries if 'unixnu,adt-name' in entry.properties and entry.enabled()]
+     names = [entry.strings('unixnu,adt-name')[0] for entry in hardware]
+     if len(set(names)) != len(names):
+         raise Error('Exported ADT hardware names must be unique')
++    # A reference must resolve to a node whose phandle/Apple alias are actually
++    # emitted, not merely an enabled source node omitted from the generated ADT.
++    exported = {id(entry) for entry in hardware}
++    if len(cpu_nodes) > 1:
++        exported.add(id(psci))
++    handles = {handle: entry for handle, entry in handles.items() if id(entry) in exported}
++    if len(cpu_nodes) > 1:
++        children.append(node('psci', hardware_properties(psci, handles)))
+     base, size = arm_io_window(hardware)
+     children.append(node('arm-io', [('device_type', b'arm-io\0'), ('#address-cells', struct.pack('<I', 2)),
+                          ('#size-cells', struct.pack('<I', 2)), ('ranges', struct.pack('<QQQ', 0, base, size))],

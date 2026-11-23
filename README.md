@@ -17,6 +17,7 @@ porting.toml                   # Structured UniXNU porting record (14 areas)
 configs/j716f_defconfig        # Kernel defconfig (single-core CPU0 + DT panic region + storage archive)
 dts/j716f.dts                  # Board device tree (overlays socs/sm8250/dts/sm8250.dtsi)
 patches/xnu/                   # Board XNU patches (earlylog, verbose console, storage, APFS root probe)
+patches/unixnu-core/           # Pending upstream UniXNU core PR patches (AAPL,phandle & bootimg v2)
 package/storage/               # Board read-only SHNGROOT UFS window driver + r41 host model test
 socs/sm8250/                   # SM8250 SoC config, DTSI, UFS HCI/SMMU handoff library & host tests
 scripts/
@@ -53,6 +54,10 @@ git clone https://github.com/Denis0x00/UniXNU-j716f.git
 git clone https://github.com/Denis0x00/uefi-j716f.git
 
 cd UniXNU
+# Apply the two pending upstream UniXNU core patches required for TB-J716F
+# real-hardware ADT (AAPL,phandle) and Android boot image header v2:
+git apply ../UniXNU-j716f/patches/unixnu-core/*.patch
+
 ./unixnu defconfig j716f_defconfig -D ../UniXNU-j716f --os 17
 ./unixnu status --json --os 17
 ./unixnu tree --os 17

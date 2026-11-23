@@ -1,0 +1,114 @@
+name: package
+
+# Standard UniXNU device packaging workflow (docs/porting/packaging.md).
+# Runs scripts/package.sh on a macOS runner alongside UniXNU/UniXNU and
+# Denis0x00/uefi-j716f. Because the platform seed (UNIXNU_UNIQUE_CHIP_ID) is
+# baked into the images, run this only in a private/personal fork and delete
+# the run after downloading the artifacts.
+#
+# Additional hardware requirement: provide the normalized stock DTB
+# (see proprietary-files.txt) via a local checkout or DTB URL/secret when
+# assembling boot.img for real hardware.
+
+on:
+  workflow_dispatch:
+    inputs:
+      os:
+        description: "OS profile of the images"
+        type: choice
+        options: ["17"]
+        default: "17"
+      check_only:
+        description: "Run scripts/package.sh --check only (preflight & patch list)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: package-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    runs-on: macos-26
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: device
+          submodules: recursive
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: UniXNU/UniXNU
+          ref: main
+          path: UniXNU
+          submodules: recursive
+
+      - name: Apply pending upstream UniXNU core patches for TB-J716F
+        run: |
+          for patch in device/patches/unixnu-core/*.patch; do
+            git -C UniXNU apply --check "$PWD/$patch"
+            git -C UniXNU apply "$PWD/$patch"
+          done
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Denis0x00/uefi-j716f
+          ref: main
+          path: uefi-j716f
+          submodules: false
+
+      - name: Initialize required uefi-j716f Mu submodules
+        run: |
+          git -C uefi-j716f submodule update --init --depth 1 Common/Mu Common/Mu_OEM_Sample
+
+      - name: Install macOS host tools
+        run: |
+          brew install dtc llvm lld cmake mtools blacktop/tap/ipsw
+          ok=1
+          for t in clang xcodebuild make git ninja cmake dtc fdtget fdtput aea compression_tool \
+                   mformat mcopy ipsw; do
+            command -v "$t" >/dev/null || { echo "missing tool: $t"; ok=0; }
+          done
+          for t in lld-link llvm-lib llvm-rc llvm-nm llvm-objcopy; do
+            [ -f "/opt/homebrew/opt/llvm/bin/$t" ] || [ -f "/opt/homebrew/opt/lld/bin/$t" ] || { echo "missing tool: $t"; ok=0; }
+          done
+          [ "$ok" = 1 ]
+
+      - name: Validate platform seed
+        if: ${{ !inputs.check_only }}
+        env:
+          seed: ${{ secrets.UNIXNU_UNIQUE_CHIP_ID }}
+        run: |
+          if ! [[ "$seed" =~ ^[0-9a-fA-F]{8,16}$ ]]; then
+            echo 'Set the repository secret UNIXNU_UNIQUE_CHIP_ID (8-16 hex digits).' >&2
+            exit 1
+          fi
+
+      - name: Run scripts/package.sh
+        working-directory: device
+        env:
+          UNIXNU_UNIQUE_CHIP_ID: ${{ secrets.UNIXNU_UNIQUE_CHIP_ID }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ inputs.check_only }}" = "true" ]; then
+            scripts/package.sh --os "${{ inputs.os }}" --check --uefi ../uefi-j716f
+          else
+            scripts/package.sh --os "${{ inputs.os }}" --uefi ../uefi-j716f
+          fi
+
+      - name: Upload images
+        if: ${{ !inputs.check_only }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: images-j716f-${{ inputs.os }}
+          retention-days: 1
+          if-no-files-found: error
+          path: |
+            UniXNU/out/j716f/*/*/boot/boot.img
+            UniXNU/out/j716f/*/*/payload/payload.img
+            UniXNU/out/j716f/*/*/kernel/kernel.macho
+            UniXNU/out/j716f/*/*/package.manifest.json

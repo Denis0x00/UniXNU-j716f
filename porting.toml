@@ -48,6 +48,7 @@ findings = [
   "Enabled official UniXNU porting-record.yml CI alongside j716f-ci.yml (Format 2 tree assembly, DTS/ADT generation, and C++ ASan/UBSan storage/SMMU unit tests).",
   "Verified Format 2 tree layout path out/j716f/ipados-17.7.11-21H461/j716f/tree in CI.",
   "Initialized the 5 required UniXNU component submodules in CI before running ./unixnu status and ./unixnu tree, and passed hex string unique_chip_id to devicetree.generate().",
+  "Extracted two self-contained upstream PR patches under patches/unixnu-core/ (AAPL,phandle emission in devicetree.py and Android bootimg v2 support + unit tests in bootimg.py) and added standard .github/workflows/package.yml; CI verifies clean git apply, test_bootimg.py, and AAPL,phandle presence in the generated ADT against upstream UniXNU/UniXNU.",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -67,6 +68,14 @@ result = "Format 2 board manifest defining kernel, firmware, device tree, userda
 kind = "source"
 reference = "configs/j716f_defconfig"
 result = "Consolidated TB-J716F single-core bring-up kernel defconfig"
+[[area.evidence]]
+kind = "source"
+reference = "patches/unixnu-core/0001-devicetree-emit-aapl-phandle.patch"
+result = "Pending upstream UniXNU core patch emitting AAPL,phandle aliases for XNU FindPHandle"
+[[area.evidence]]
+kind = "source"
+reference = "patches/unixnu-core/0002-bootimg-support-header-version-2.patch"
+result = "Pending upstream UniXNU core patch adding Android boot header v2 support and offline layout unit tests"
 
 [[area]]
 id = "firmware"
