@@ -29,6 +29,10 @@ extern "C" IOService *native_legacy_display_allocate(void);
 extern "C" void j716f_gop_presenter_static_init(void) __asm__("__GLOBAL__sub_I_NativeGOPPresenter.cpp");
 extern "C" IOService *native_gop_presenter_create(void);
 extern "C" void j716f_keystore_probe(void);
+extern "C" void j716f_hid_input_probe(void);
+extern "C" void j716f_touch_probe(void);
+extern "C" void j716f_buttons_probe(void);
+extern "C" void j716f_cpufreq_probe(void);
 
 namespace {
 IOService *g_pending_display = nullptr;
@@ -280,8 +284,12 @@ void native_legacy_display_probe(void) {
 }
 
 void native_legacy_display_late_probe(void) {
-  // Always publish AppleKeyStore (when offline-key-events=1) even if display is not requested.
+  // Always publish AppleKeyStore and input probes when enabled by boot-args.
   j716f_keystore_probe();
+  j716f_hid_input_probe();
+  j716f_touch_probe();
+  j716f_buttons_probe();
+  j716f_cpufreq_probe();
 
   IOService *display = g_pending_display;
   if (!display) return;

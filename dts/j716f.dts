@@ -36,14 +36,8 @@
     };
 };
 
-// Stage one is single-core. Keep measured affinities in the SoC DTSI.
-&cpu1 { status = "disabled"; };
-&cpu2 { status = "disabled"; };
-&cpu3 { status = "disabled"; };
-&cpu4 { status = "disabled"; };
-&cpu5 { status = "disabled"; };
-&cpu6 { status = "disabled"; };
-&cpu7 { status = "disabled"; };
+// All 8 Kryo 585 cores (4x A55 E + 4x A77 P) from sm8250.dtsi are enabled in the ADT;
+// secondary CPU bring-up remains safely opt-in via the ArmCpu `smp=1` boot-arg.
 
 // This is an XNU hardware-description draft, NOT the Android boot image FDT.
 // Other firmware reservations, GOP, UFS/SMMU and peripheral providers are

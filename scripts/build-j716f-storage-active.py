@@ -92,6 +92,7 @@ BRINGUP_EXPORTS = tuple(
     '_native_verified_block_manifest_sha384',
     '_native_verified_block_volume_device',
     '_native_ram_block_volume_seed',
+    '_j716f_skip_setup_plist',
     '__GLOBAL__sub_I_IOBlockStorageDevice.cpp',
     '__GLOBAL__sub_I_R41RootWindowDevice.cpp',
     '__GLOBAL__sub_I_NativeRamBlock.cpp',

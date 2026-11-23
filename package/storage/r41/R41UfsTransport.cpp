@@ -571,6 +571,9 @@ Transport::CmdOutcome Transport::submitLocked(const uint8_t upiu[32], uint32_t d
       hce != 1U || (hcs & 3U) != 3U || ie != 0U || (is & kHciFatalMask) != 0U ||
       db != 0U || tdb != 0U || rsr != 1U ||
       (static_cast<uint64_t>(lo) | (static_cast<uint64_t>(hi) << 32)) != dma_.physical) {
+    if (platform_.log_fault) {
+      platform_.log_fault(platform_.context, "pre-submit", is, db, tdb, rsr, 0U, 0ULL);
+    }
     quarantine(static_cast<uint32_t>(Error::ReadTransferFailed));
     return out;
   }
@@ -616,25 +619,52 @@ Transport::CmdOutcome Transport::submitLocked(const uint8_t upiu[32], uint32_t d
   }
 
   bool done = false;
+  uint32_t polls_used = 0;
+  uint64_t last_now = t0;
   for (uint32_t poll = 0; poll < budget_.command_max_polls; ++poll) {
+    polls_used = poll + 1U;
     uint64_t now = 0;
     if (!read32(kHciBase + 0x58, db) || !read32(kHciBase + 0x78, tdb) ||
         !read32(kHciBase + 0x20, is) || !read32(kHciBase + 0x60, rsr) ||
         !platform_.ticks(platform_.context, &now) ||
         rsr != 1U || (is & kHciFatalMask) != 0U || now < t0) {
+      if (platform_.log_fault) {
+        platform_.log_fault(platform_.context, "poll-fatal", is, db, tdb, rsr,
+                            polls_used, now >= t0 ? (now - t0) : 0ULL);
+      }
       quarantine(static_cast<uint32_t>(Error::ReadTransferFailed));
       return out;
     }
+    last_now = now;
     if (db == 0U && tdb == 0U) {
       done = true;
       break;
     }
     if (now - t0 >= budget_.command_timeout_ticks) {
+      // Re-check doorbell once after preemption before declaring timeout.
+      if (read32(kHciBase + 0x58, db) && read32(kHciBase + 0x78, tdb) &&
+          db == 0U && tdb == 0U) {
+        done = true;
+        break;
+      }
+      if (platform_.log_fault) {
+        platform_.log_fault(platform_.context, "poll-timeout", is, db, tdb, rsr,
+                            polls_used, now - t0);
+      }
       quarantine(static_cast<uint32_t>(Error::ReadTransferFailed));
       return out;
     }
+    // Fast-spin the first 64 polls (<100us) for hot reads, then yield cleanly
+    // so slow NAND GC reads or single-core CPU0 load never exhaust the budget.
+    if (poll >= 64U && (poll & 63U) == 0U && platform_.pause) {
+      platform_.pause(platform_.context);
+    }
   }
   if (!done) {
+    if (platform_.log_fault) {
+      platform_.log_fault(platform_.context, "poll-exhausted", is, db, tdb, rsr,
+                          polls_used, last_now >= t0 ? (last_now - t0) : 0ULL);
+    }
     quarantine(static_cast<uint32_t>(Error::ReadTransferFailed));
     return out;
   }

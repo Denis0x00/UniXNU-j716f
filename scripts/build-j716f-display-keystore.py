@@ -33,6 +33,9 @@ EXPECTED_PURE_SLOTS = [211, 213, 245, 246, 306, 307, 337, 338, 345]
 EXPECTED_OWNED_SLOTS = sorted(
     [0, 1, 7, 14, 84, 86, 87, 141, 155, 184, 188, 288, 290, 296, 301] + EXPECTED_PURE_SLOTS
 )
+HID_VTABLE_LEN = 207
+EXPECTED_HID_PURE_SLOTS = [180]
+EXPECTED_HID_OWNED_SLOTS = [0, 1, 7, 14, 86, 87, 111, 171, 173, 180]
 
 
 def require(cond: bool, why: str) -> None:
@@ -234,6 +237,102 @@ def audit_kernelcache(kc_path: Path) -> tuple[int, list[int], list[int], dict[st
     return legacy_vptr, legacy_vt_slid, pure, fixed_bindings
 
 
+def audit_hid_kernelcache(kc_path: Path) -> tuple[int, list[int], dict[str, int]]:
+    blob = kc_path.read_bytes()
+    img = macho(blob)
+
+    def read_slid(va_slid: int, size: int) -> bytes:
+        at = backed_offset(img['segments'], va_slid + PRELINK_SLIDE, size, len(blob))
+        require(at is not None, f'unbacked HID kernelcache VA {va_slid:#x} (+slide)')
+        return blob[at : at + size]
+
+    hid_vptr = 0xFFFFFFF005D045C0
+    hid_vt_unslid = struct.unpack(f'<{HID_VTABLE_LEN}Q', read_slid(hid_vptr, HID_VTABLE_LEN * 8))
+    require(
+        all(hid_vt_unslid) and read_slid(hid_vptr + HID_VTABLE_LEN * 8, 24) == bytes(24),
+        'unexpected IOHIDDevice vtable extent or boundary',
+    )
+    pure_target = hid_vt_unslid[EXPECTED_HID_PURE_SLOTS[0]]
+    pure = [i for i, va in enumerate(hid_vt_unslid) if va == pure_target]
+    require(pure == EXPECTED_HID_PURE_SLOTS, f'unexpected IOHIDDevice abstract slots: {pure}')
+
+    hid_vt_slid = [va - PRELINK_SLIDE for va in hid_vt_unslid]
+    require(
+        read_slid(0xFFFFFFF004AD94F8, 0x20)
+        == bytes.fromhex('fd7bbfa9fd0300912bd90094489100f008011791080000f9fd7bc1a8c0035fd6'),
+        'IOHIDDevice C2 constructor / vptr store mismatch',
+    )
+    require(
+        read_slid(0xFFFFFFF004AD9AEC, 0x34)
+        == bytes.fromhex(
+            '680240f908a142f9e00313aae10314aa00013fd6680240f9603d003608d142f9e1630091e00313aa00013fd6a02d0035e00f40f9'
+        ),
+        'IOHIDDevice handleStart / report-descriptor ABI mismatch',
+    )
+    require(
+        hid_vt_slid[181] == 0xFFFFFFF004ADD0C4
+        and read_slid(0xFFFFFFF004ADD110, 28)
+        == bytes.fromhex('680240f9081543f9e00313aae20316aae30315aae40314aa00013fd6'),
+        'IOHIDDevice handleReport ABI mismatch',
+    )
+
+    fixed_bindings: dict[str, int] = {
+        '__ZN11IOHIDDeviceC2EPK11OSMetaClass': 0xFFFFFFF004AD94F8,
+        '__ZN11IOHIDDeviceD2Ev': 0xFFFFFFF004AD9518,
+        '__ZN11IOHIDDevice10gMetaClassE': 0xFFFFFFF006AE6FA0,
+        '__ZTV11IOHIDDevice': hid_vptr - 16,
+    }
+    return hid_vptr, hid_vt_slid, fixed_bindings
+
+
+def write_hid_abi_header() -> Path:
+    lines = [
+        '// SPDX-License-Identifier: BSD-2-Clause-Patent',
+        '// Generated from 21H461 IOHIDDevice vtable audit.',
+        '#pragma once',
+        '#include <IOKit/IOService.h>',
+        '#include <IOKit/IOMemoryDescriptor.h>',
+        'class IOHIDDevice : public IOService {',
+        ' OSDeclareAbstractStructors(IOHIDDevice)',
+        ' unsigned char originalPrivate[0xd0 - sizeof(IOService)];',
+        'public:',
+        ' using IOService::setProperty;',
+        ' IOReturn Dispatch(IORPC) override;',
+        ' void free() override;',
+        ' bool init(OSDictionary *properties = nullptr) override;',
+        ' bool setProperty(const OSSymbol *, OSObject *) override;',
+        ' bool willTerminate(IOService *, IOOptionBits) override;',
+        ' IOReturn configureReport(IOReportChannelList *, IOReportConfigureAction, void *, void *) override;',
+        ' IOReturn updateReport(IOReportChannelList *, IOReportUpdateAction, void *, void *) override;',
+        ' bool start(IOService *) override;',
+        ' void stop(IOService *) override;',
+        ' bool handleOpen(IOService *, IOOptionBits, void *) override;',
+        ' void handleClose(IOService *, IOOptionBits) override;',
+        ' bool handleIsOpen(const IOService *) const override;',
+        ' bool matchPropertyTable(OSDictionary *, SInt32 *) override;',
+        ' IOReturn message(UInt32, IOService *, void *) override;',
+        ' IOReturn newUserClient(task_t, void *, UInt32, OSDictionary *, IOUserClient **) override;',
+    ]
+    for i in range(168, HID_VTABLE_LEN):
+        if i == 171:
+            lines.append(' virtual OSString *newTransportString() const;')
+        elif i == 173:
+            lines.append(' virtual OSString *newProductString() const;')
+        elif i == 180:
+            lines.append(' virtual IOReturn newReportDescriptor(IOMemoryDescriptor **) const = 0;')
+        elif i == 181:
+            lines.append(' virtual IOReturn handleReport(IOMemoryDescriptor *, unsigned, IOOptionBits);')
+        else:
+            lines.append(
+                f' virtual __attribute__((deprecated("Unqualified prototype: never call from source"))) void opaque{i}();'
+            )
+    lines.append('};')
+    lines.append('static_assert(sizeof(IOHIDDevice) == 0xd0, "Original device instance size");')
+    header = OUT / 'OriginalHidDeviceABI.h'
+    header.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    return header
+
+
 def write_abi_header(pure: list[int]) -> Path:
     lines = [
         '// SPDX-License-Identifier: BSD-2-Clause-Patent',
@@ -371,6 +470,73 @@ def compile_cxx_from_record(
     run(cmd, cwd=Path(record['directory']))
 
 
+def find_c_record() -> dict | None:
+    base = ROOT / 'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837'
+    for rel in (
+        'osfmk/DEVELOPMENT/startup.o.json',
+        'bsd/DEVELOPMENT/bsd_init.o.json',
+    ):
+        cand = base / rel
+        if cand.is_file():
+            return json.loads(cand.read_text(encoding='utf-8').strip().rstrip(','))
+    osfmk_dir = base / 'osfmk/DEVELOPMENT'
+    if osfmk_dir.is_dir():
+        for cand in sorted(osfmk_dir.glob('*.o.json')):
+            if not cand.name.endswith('.cpo.json'):
+                return json.loads(cand.read_text(encoding='utf-8').strip().rstrip(','))
+    return None
+
+
+def compile_c_from_record(
+    c_record: dict | None,
+    cxx_record: dict,
+    source: Path,
+    dest: Path,
+    extra_flags: list[str],
+    allow_warnings: bool = False,
+) -> None:
+    record = c_record or cxx_record
+    args = record['arguments']
+    cmd: list[str] = []
+    i = 0
+    while i < len(args):
+        val = args[i]
+        if val == record['file']:
+            cmd.append(str(source))
+        elif val == '-o':
+            cmd.extend(['-o', str(dest)])
+            i += 1
+        elif val in ('-MF', '-MJ', '-MT', '-MQ'):
+            i += 1
+        elif val == '-x' and i + 1 < len(args):
+            i += 1
+        elif val == '-Xclang' and i + 1 < len(args) and args[i + 1].startswith('-W'):
+            i += 1
+        elif val.startswith('-W'):
+            pass
+        elif not c_record and (
+            val.startswith(('-std=', '-stdlib=', '-fc++'))
+            or val in ('-fno-rtti', '-fno-exceptions', '-fcheck-new', '-fapple-kext', '-mkernel')
+        ):
+            pass
+        else:
+            cmd.append(val)
+        i += 1
+    if not c_record:
+        cmd.extend(['-std=gnu11', '-mkernel'])
+    cmd.extend([
+        '-Wall',
+        '-Wextra',
+        '-Wno-unused-parameter',
+        '-I',
+        str(ROOT / '.cache/xnu-work/osfmk'),
+    ])
+    if not allow_warnings:
+        cmd.append('-Werror')
+    cmd.extend(extra_flags)
+    run(cmd, cwd=Path(record['directory']))
+
+
 def compile_late_from_record(
     record: dict,
     clang: Path,
@@ -434,18 +600,42 @@ def main() -> None:
 
     legacy_vptr, legacy_vt_slid, pure, bindings = audit_kernelcache(kc_path)
     header = write_abi_header(pure)
+    hid_vptr, hid_vt_slid, hid_bindings = audit_hid_kernelcache(kc_path)
+    hid_header = write_hid_abi_header()
 
     record_path = ROOT / 'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/iokit/DEVELOPMENT/IOPlatformExpert.cpo.json'
     require(record_path.is_file(), f'missing XNU compile record: {record_path}')
     record = json.loads(record_path.read_text(encoding='utf-8').strip().rstrip(','))
+    c_record = find_c_record()
 
     legacy_src = ROOT / 'drivers/GopFramebuffer/NativeLegacyDisplay.cpp'
     presenter_src = ROOT / 'drivers/GopFramebuffer/NativeGOPPresenter.cpp'
     keystore_src = ROOT / 'drivers/AppleKeyStoreState/NativeKeyStoreEvents.cpp'
     board_display_src = ROOT / 'kits/j716f/display/J716fLegacyDisplayProbe.cpp'
     board_keystore_src = ROOT / 'kits/j716f/display/J716fKeyStoreProbe.cpp'
+    input_dir = ROOT / 'kits/j716f/input'
+    hid_src = input_dir / 'NativeHidInput.cpp'
+    board_hid_src = input_dir / 'J716fHidInputProbe.cpp'
+    touch_state_src = input_dir / 'J716fTouchState.cpp'
+    touch_probe_src = input_dir / 'J716fTouchProbe.cpp'
+    buttons_src = input_dir / 'J716fButtons.c'
+    rpmh_src = input_dir / 'J716fQcomRpmh.c'
+    cpufreq_src = ROOT / 'kits/j716f/power/J716fCpuFreq.cpp'
 
-    for src in (legacy_src, presenter_src, keystore_src, board_display_src, board_keystore_src):
+    for src in (
+        legacy_src,
+        presenter_src,
+        keystore_src,
+        board_display_src,
+        board_keystore_src,
+        hid_src,
+        board_hid_src,
+        touch_state_src,
+        touch_probe_src,
+        buttons_src,
+        rpmh_src,
+        cpufreq_src,
+    ):
         require(src.is_file(), f'missing source: {src}')
 
     # 1. Compile unmodified upstream NativeLegacyDisplay.cpp and verify exact 358-slot vtable
@@ -504,6 +694,59 @@ def main() -> None:
         f'Legacy binding mismatch: missing={undefined_legacy - bound_legacy} extra={bound_legacy - undefined_legacy}',
     )
 
+    # 1b. Compile unmodified upstream NativeHidInput.cpp and verify exact 207-slot vtable
+    hid_obj = OUT / 'NativeHidInput.o'
+    compile_cxx_from_record(
+        record,
+        hid_src,
+        hid_obj,
+        ['-I', str(OUT), '-I', str(input_dir)],
+        allow_warnings=True,
+    )
+    hid_raw = hid_obj.read_bytes()
+    hid_img = macho(hid_raw)
+    hst = next(p for c, p, _ in hid_img['commands'] if c == 2)
+    hsy, hcount, hstrings, _ = struct.unpack_from('<4I', hid_raw, hst + 8)
+    hsymbols: list[tuple[str, int, int]] = []
+    for i in range(hcount):
+        ix, kind, _section, _, va = struct.unpack_from('<IBBHQ', hid_raw, hsy + i * 16)
+        hsymbols.append((hid_raw[hstrings + ix : hid_raw.index(b'\0', hstrings + ix)].decode(), va, kind))
+
+    hvtable = next(va for name, va, _ in hsymbols if name == '__ZTV14NativeHidInput')
+    hrelocs: dict[int, str] = {}
+    for segment in hid_img['segments']:
+        for sec in segment['sections']:
+            if sec['va'] <= hvtable < sec['va'] + sec['size']:
+                ro, rc = struct.unpack_from('<2I', hid_raw, sec['command_offset'] + 56)
+                for i in range(rc):
+                    offset, bits = struct.unpack_from('<2I', hid_raw, ro + i * 8)
+                    if (bits >> 27) & 1 and (bits >> 28) == 0 and ((bits >> 25) & 3) == 3:
+                        hrelocs[sec['va'] + offset] = hsymbols[bits & 0xFFFFFF][0]
+
+    hcompiled = [hrelocs.get(hvtable + 16 + i * 8) for i in range(HID_VTABLE_LEN)]
+    require(
+        all(hcompiled) and (hvtable + 16 + HID_VTABLE_LEN * 8) not in hrelocs,
+        'NativeHidInput vtable does not have exact 207 entries',
+    )
+    hid_owned: list[int] = []
+    for i, name in enumerate(hcompiled):
+        assert name is not None
+        if name.startswith(('__ZN14NativeHidInput', '__ZNK14NativeHidInput')):
+            hid_owned.append(i)
+        elif '11IOHIDDevice' in name:
+            require(i not in EXPECTED_HID_PURE_SLOTS, f'unresolved HID abstract slot {i}: {name}')
+            hid_bindings[name] = hid_vt_slid[i]
+        else:
+            require(i < 168, f'unexpected non-HID symbol at slot {i}: {name}')
+
+    require(hid_owned == EXPECTED_HID_OWNED_SLOTS, f'HID owned vtable slots mismatch: {hid_owned}')
+    undefined_hid = {n for n, _, k in hsymbols if k == 1 and '11IOHIDDevice' in n}
+    require(
+        undefined_hid == set(hid_bindings),
+        f'HID binding mismatch: missing={undefined_hid - set(hid_bindings)} extra={set(hid_bindings) - undefined_hid}',
+    )
+    bindings.update(hid_bindings)
+
     # 2. Assemble original-bindings.S -> original-bindings.o
     asm_path = OUT / 'original-bindings.S'
     asm_path.write_text(
@@ -528,6 +771,21 @@ def main() -> None:
         'NativeLegacyDisplay __text changed during late-init staging',
     )
 
+    # 3b. Late-init stage NativeHidInput.cpp (and confirm identical __text)
+    hid_late = OUT / 'NativeHidInput.late.o'
+    compile_late_from_record(
+        record,
+        clang,
+        hid_src,
+        hid_late,
+        ['-I', str(OUT), '-I', str(input_dir)],
+        allow_warnings=True,
+    )
+    require(
+        code_bytes(hid_raw) == code_bytes(hid_late.read_bytes()),
+        'NativeHidInput __text changed during late-init staging',
+    )
+
     # 4. Compile & late-init stage NativeGOPPresenter.cpp
     presenter_late = OUT / 'NativeGOPPresenter.late.o'
     compile_late_from_record(
@@ -550,11 +808,23 @@ def main() -> None:
         allow_warnings=True,
     )
 
-    # 6. Compile J716F board probes strictly with -Werror
+    # 6. Compile J716F display, keystore, HID, touch, and button drivers
     board_display_obj = OUT / 'J716fLegacyDisplayProbe.o'
     board_keystore_obj = OUT / 'J716fKeyStoreProbe.o'
+    board_hid_obj = OUT / 'J716fHidInputProbe.o'
+    touch_state_obj = OUT / 'J716fTouchState.o'
+    touch_probe_obj = OUT / 'J716fTouchProbe.o'
+    buttons_obj = OUT / 'J716fButtons.o'
+    rpmh_obj = OUT / 'J716fQcomRpmh.o'
+    cpufreq_obj = OUT / 'J716fCpuFreq.o'
     compile_cxx_from_record(record, board_display_src, board_display_obj, [], allow_warnings=False)
     compile_cxx_from_record(record, board_keystore_src, board_keystore_obj, [], allow_warnings=False)
+    compile_cxx_from_record(record, board_hid_src, board_hid_obj, ['-I', str(input_dir)], allow_warnings=False)
+    compile_cxx_from_record(record, touch_state_src, touch_state_obj, ['-I', str(input_dir)], allow_warnings=False)
+    compile_cxx_from_record(record, touch_probe_src, touch_probe_obj, ['-I', str(input_dir)], allow_warnings=True)
+    compile_c_from_record(c_record, record, buttons_src, buttons_obj, ['-I', str(input_dir)], allow_warnings=False)
+    compile_c_from_record(c_record, record, rpmh_src, rpmh_obj, ['-I', str(input_dir)], allow_warnings=False)
+    compile_cxx_from_record(record, cpufreq_src, cpufreq_obj, [], allow_warnings=False)
 
     # 7. Archive libNativeLegacyDisplay.late.a and write build-report.json
     archive = OUT / 'libNativeLegacyDisplay.late.a'
@@ -563,9 +833,16 @@ def main() -> None:
         legacy_late,
         presenter_late,
         keystore_late,
+        hid_late,
         bindings_obj,
         board_display_obj,
         board_keystore_obj,
+        board_hid_obj,
+        touch_state_obj,
+        touch_probe_obj,
+        buttons_obj,
+        rpmh_obj,
+        cpufreq_obj,
     ]
     run([ar, 'rcs', archive, *members])
 
@@ -577,17 +854,29 @@ def main() -> None:
         keystore_src,
         board_display_src,
         board_keystore_src,
+        hid_src,
+        board_hid_src,
+        touch_state_src,
+        touch_probe_src,
+        buttons_src,
+        rpmh_src,
+        cpufreq_src,
     ]
     report = {
         'source_sha256': {str(p.relative_to(ROOT)): sha256_file(p) for p in tracked_sources},
         'generated_abi_sha256': sha256_file(header),
+        'generated_hid_abi_sha256': sha256_file(hid_header),
         'kernelcache_sha256': sha256_file(kc_path),
         'compiled_object_sha256': sha256_file(legacy_obj),
         'late_object_sha256': sha256_file(legacy_late),
+        'hid_late_object_sha256': sha256_file(hid_late),
         'archive_sha256': sha256_file(archive),
         'legacy_vptr': hex(legacy_vptr),
+        'hid_vptr': hex(hid_vptr),
         'virtual_entries': LEGACY_VTABLE_LEN,
+        'hid_virtual_entries': HID_VTABLE_LEN,
         'owned_entries': owned,
+        'hid_owned_entries': hid_owned,
         'inherited_native_entries': inherited_native,
         'bindings_count': len(bindings),
         'hardware_tested': False,

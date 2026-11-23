@@ -114,6 +114,10 @@ jobs:
           test -f "$TREE7/kits/j716f/storage/r41/R41Entry.cpp"
           test -f "$TREE7/kits/j716f/display/J716fLegacyDisplayProbe.cpp"
           test -f "$TREE7/kits/j716f/display/J716fKeyStoreProbe.cpp"
+          test -f "$TREE7/kits/j716f/input/NativeHidInput.cpp"
+          test -f "$TREE7/kits/j716f/input/J716fTouchProbe.cpp"
+          test -f "$TREE7/kits/j716f/input/J716fButtons.c"
+          test -f "$TREE7/kits/j716f/power/J716fCpuFreq.cpp"
           test -f "$TREE7/scripts/build-j716f-display-keystore.py"
 
       - name: Verify and apply pending upstream UniXNU core patches
@@ -153,6 +157,9 @@ jobs:
               b'kernel-ctrr-to-be-enabled\x00',
               b'PackedRAMDisk\x00',
               b'darwinboot-memory-size\x00',
+              b'cpu7\x00',
+              b'cluster-type\x00',
+              b'buttons\x00',
           ):
               assert needle in adt, f'Generated ADT is missing {needle!r}'
           print(f'Generated valid Stage 7 Apple Device Tree ({len(adt)} bytes) from compiled dts/j716f.dts')

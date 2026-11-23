@@ -18,14 +18,16 @@ configs/
   j716f_defconfig              # Stage 6 single-core CPU0 + DT panic region + read-only storage archive
   j716f_stage7_defconfig       # Stage 7+ RAM Data + SystemOS union + GopFramebuffer + AppleKeyStoreState
 dts/j716f.dts                  # Board device tree (overlays socs/sm8250/dts/sm8250.dtsi)
-patches/xnu/                   # Board XNU patches (earlylog, verbose console, storage, APFS root probe)
+patches/xnu/                   # Board XNU patches (earlylog, verbose console, storage, APFS root probe, skip-setup)
 patches/unixnu-core/           # Pending upstream UniXNU core PR patches (AAPL,phandle & bootimg v2)
-package/storage/               # Board read-only SHNGROOT UFS window driver + volatile RAM store + r41 test
+package/storage/               # Board read-only SHNGROOT UFS window driver + volatile RAM store + skip-setup plists
 package/display/               # Board probes for upstream GopFramebuffer and AppleKeyStoreState (aks=1)
-socs/sm8250/                   # SM8250 SoC config, DTSI, UFS HCI/SMMU handoff library & host tests
+package/input/                 # Unmodified NativeHidInput (21H461 IOHIDDevice) + Goodix GT7386 I2C + PM8150 buttons
+package/power/                 # SM8250-AC EPSS 3-domain CPUfreq + L3 scaling driver (cpufreq=4)
+socs/sm8250/                   # SM8250 SoC config, DTSI, SMP/Edge patches, UFS HCI/SMMU library & host tests
 scripts/
   build-j716f-storage-active.py    # Builds libJ716fStorageBringup.a (r41 storage + NativeRamBlock)
-  build-j716f-display-keystore.py  # Audits 21H461 kernelcache & builds libNativeLegacyDisplay.late.a
+  build-j716f-display-keystore.py  # Audits 21H461 display/HID ABIs & builds libNativeLegacyDisplay.late.a
   package.sh                       # Standard UniXNU release entrypoint
   ci/                              # macOS first-install Data seed tools (see README-data-runner.md)
 ```
@@ -45,15 +47,29 @@ scripts/
   `SystemOS` (`disk1s1`), reading `/sbin/launchd` (`561,856 B`, Mach-O
   `0xfeedfacf`) and `SystemVersion.plist` (`574 B`) with zero UFS writes and
   zero I/O errors (`270` commands / `477` blocks, `quar=0`, `disp4=1`).
-- **Userspace, Display & KeyStore (Stage 7+ — Apple logo reached on hardware)**:
+- **Desktop, Input, 8-Core SMP & CPUfreq (Stage 7+ — SpringBoard desktop verified on hardware)**:
   `configs/j716f_stage7_defconfig` links unmodified upstream `RamBlock`,
-  `GopFramebuffer` (`NativeLegacyDisplay` + `NativeGOPPresenter`), and
-  `AppleKeyStoreState` (`aks=1`). Hardware bring-up booted `/sbin/launchd` and
-  rendered the real iPadOS Apple logo via the `2560x1600` BGRX32 GOP
-  framebuffer. A volatile 2-level sparse RAM-backed `native_ufs_store_*`
-  backend (512 MiB cap, zero UFS writes) was added in `R41Entry.cpp` to enable
-  read-write `/private/var` (`disk5s1`) for 16 GiB `data-21H461.dbr` seeds
-  (`data-reset=1 data-fua=1`).
+  `GopFramebuffer` (`NativeLegacyDisplay` + `NativeGOPPresenter`),
+  `AppleKeyStoreState` (`aks=1`), and `NativeHidInput` (`IOHIDDevice`, 207-slot
+  21H461 ABI verified) together with J716F board drivers:
+  - **Storage**: `R41UfsTransport` poll-yield/retry hardening eliminated post-Hello
+    UFS quarantine (0 errors through 240+ APFS `disk5` transactions), backed by
+    a volatile 2-level sparse RAM store (512 MiB cap, zero UFS writes) for
+    read-write `/private/var` (`data-reset=1 data-fua=1`).
+  - **Input**: Goodix GT7386 GENI I2C touchscreen (`J716fTouchProbe.cpp`) and
+    PM8150 SPMI hardware keys (`J716fButtons.c`, Power/VolUp/VolDown + lock/wake)
+    verified on hardware (`status=0x0`, `errs=0`).
+  - **Skip-Setup**: `j716f-skip-setup.patch` (`j716f-skip-setup=1`) seeds the 5
+    official binary preference plists into `/private/var` at mount time without
+    requiring macOS `hdiutil`, booting straight to the iPadOS 17.7.11 SpringBoard
+    desktop with wallpaper.
+  - **8-Core SMP & EPSS CPUfreq**: All 8 Kryo 585 cores (4× A55 E + 4× A77 P)
+    with Edge cluster scheduling (`smp=1 armcpu-spi-ipi=1 armcpu-self-ipi=1
+    armcpu-edge=1`) and SM8250-AC EPSS 3-domain CPUfreq + L3 scaling
+    (`J716fCpuFreq.cpp`, `cpufreq=4`) verified on hardware (~2.3× faster early
+    boot and smoother interactive desktop). `-v` is omitted from default
+    `kernel_args` so XNU stays in `kPEGraphicsMode` without scrolling text over
+    SpringBoard.
 
 See [porting.toml](porting.toml) for the full structured per-area record.
 

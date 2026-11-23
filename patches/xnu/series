@@ -5,3 +5,4 @@ j716f-storage-init.patch
 j716f-storage-dependency.patch
 j716f-power-probe-call.patch
 j716f-apfs-root-probe.patch
+j716f-skip-setup.patch

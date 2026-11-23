@@ -26,6 +26,7 @@
 #include <sys/param.h>
 #include <sys/types.h>
 
+#include "J716fSkipSetupData.h"
 #include "KnownBlockTrial.h"
 #include "R41RootWindowDevice.h"
 #include "R41UfsTransport.h"
@@ -322,6 +323,17 @@ void unlockIo(void *opaque) {
   if (c.io_lock) IOLockUnlock(c.io_lock);
 }
 
+void pausePoll(void *opaque) {
+  auto &c = *static_cast<KernelContext *>(opaque);
+  if (contextLive(c)) IOSleep(1);
+}
+
+void logFault(void *, const char *stage, uint32_t is, uint32_t db,
+              uint32_t tdb, uint32_t rsr, uint32_t polls, uint64_t dt) {
+  printf("[J716F r41] UFS fault stage=%s is=%08x db=%08x tdb=%08x rsr=%x polls=%u dt=%llu\n",
+         stage ? stage : "-", is, db, tdb, rsr, polls, static_cast<unsigned long long>(dt));
+}
+
 bool findUuidMediaInSubtree(IOService *root, const char *wanted_uuid, char *out_bsd, size_t bsd_cap) {
   IORegistryIterator *iter = IORegistryIterator::iterateOver(
       root, gIOServicePlane, kIORegistryIterateRecursively);
@@ -541,8 +553,9 @@ unsigned runPreRoot() {
 
   printf("[J716F r41] begin ro-apfs-root core-next smmu-writes=0 tz=unknown\n");
   const Platform plat{&kctx, readRamSlot, read32, read64, write32,
-                      barrier, ticks, cache, allocateDma, lockIo, unlockIo};
-  const Budget budget{freq * 2, 200000, 2};
+                      barrier, ticks, cache, allocateDma, lockIo, unlockIo,
+                      pausePoll, logFault};
+  const Budget budget{freq * 10, 1000000, 4};
   g_init_report = transport.initialize(plat, budget, j716f_first_block::reference);
   const InitReport &r = g_init_report;
 
@@ -936,4 +949,15 @@ __attribute__((weak)) int native_ufs_store_sync(void) {
 }
 
 __attribute__((weak)) unsigned native_ufs_store_gpt_check(void) { return 0; }
+
+int j716f_skip_setup_plist(unsigned index, const char **path, const uint8_t **data,
+                           unsigned *size) {
+  constexpr unsigned kCount =
+      static_cast<unsigned>(sizeof(kJ716fSkipSetupPlists) / sizeof(kJ716fSkipSetupPlists[0]));
+  if (index >= kCount) return 0;
+  if (path) *path = kJ716fSkipSetupPlists[index].path;
+  if (data) *data = kJ716fSkipSetupPlists[index].data;
+  if (size) *size = kJ716fSkipSetupPlists[index].size;
+  return 1;
+}
 }

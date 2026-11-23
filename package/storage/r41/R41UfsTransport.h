@@ -102,6 +102,10 @@ struct Platform {
   bool (*allocate_dma)(void *, sm8250_ufs::DmaView *out) = nullptr;
   void (*lock)(void *) = nullptr;
   void (*unlock)(void *) = nullptr;
+  void (*pause)(void *) = nullptr;
+  void (*log_fault)(void *, const char *stage, uint32_t is, uint32_t db,
+                    uint32_t tdb, uint32_t rsr, uint32_t polls,
+                    uint64_t elapsed_ticks) = nullptr;
 };
 
 struct LunInfo {

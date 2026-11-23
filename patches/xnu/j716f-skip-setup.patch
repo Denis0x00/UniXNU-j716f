@@ -1,0 +1,134 @@
+--- a/bsd/kern/kern_exec.c
++++ b/bsd/kern/kern_exec.c
+@@ -7970,6 +7970,123 @@
+ 	vnode_put(vp);
+ }
+ 
++extern int j716f_skip_setup_plist(unsigned, const char **, const uint8_t **, unsigned *) __attribute__((weak_import));
++static int
++j716f_skip_setup_mkdir(proc_t p, user_addr_t scratch, const char *path, int mobile_owner)
++{
++	struct mkdir_args request = {.path = scratch + 0xc00, .mode = 0755};
++	int32_t result = 0;
++	int error = copyout(path, request.path, strlen(path) + 1);
++	if (!error) {
++		error = mkdir(p, &request, &result);
++	}
++	if (error && error != EEXIST) {
++		return error;
++	}
++	if (mobile_owner) {
++		vnode_t vp = NULLVP;
++		error = vnode_lookup(path, VNODE_LOOKUP_NOFOLLOW, &vp, vfs_context_current());
++		if (!error) {
++			struct vnode_attr va;
++			VATTR_INIT(&va);
++			VATTR_SET(&va, va_uid, 501);
++			VATTR_SET(&va, va_gid, 501);
++			error = vnode_setattr(vp, &va, vfs_context_current());
++			vnode_put(vp);
++		}
++		return error;
++	}
++	return 0;
++}
++static int
++j716f_skip_setup_write(const char *path, const uint8_t *data, unsigned size, vfs_context_t ctx)
++{
++	vnode_t vp = NULLVP;
++	int error = vnode_open(path, O_CREAT | O_TRUNC | FWRITE | O_NOFOLLOW, 0600, 0, &vp, ctx);
++	if (error) {
++		return error;
++	}
++	int resid = 0;
++	error = vn_rdwr(UIO_WRITE, vp, (caddr_t)(uintptr_t)data, (int)size, 0, UIO_SYSSPACE, IO_NOAUTH | IO_UNIT,
++	    vfs_context_ucred(ctx), &resid, vfs_context_proc(ctx));
++	if (!error && resid) {
++		error = EIO;
++	}
++	if (!error) {
++		struct vnode_attr va;
++		VATTR_INIT(&va);
++		VATTR_SET(&va, va_mode, 0600);
++		VATTR_SET(&va, va_uid, 501);
++		VATTR_SET(&va, va_gid, 501);
++		VATTR_SET(&va, va_data_size, (uint64_t)size);
++		error = vnode_setattr(vp, &va, ctx);
++	}
++	if (!error) {
++		error = VNOP_FSYNC(vp, MNT_WAIT, ctx);
++	}
++	int close_error = vnode_close(vp, FWRITE, ctx);
++	return error ? error : close_error;
++}
++static void
++native_j716f_skip_setup_prepare(proc_t p, user_addr_t scratch)
++{
++	uint32_t enabled = 0;
++	if (!PE_parse_boot_argn("j716f-skip-setup", &enabled, sizeof(enabled)) || enabled != 1) {
++		return;
++	}
++	if (!j716f_skip_setup_plist) {
++		printf("[J716F skip-setup] skipped: plist table not linked\n");
++		return;
++	}
++	static const char *const mobile_dirs[] = {
++		"/private/var/mobile",
++		"/private/var/mobile/Library",
++		"/private/var/mobile/Library/Preferences",
++	};
++	static const char *const root_dirs[] = {
++		"/private/var/containers",
++		"/private/var/containers/Bundle",
++		"/private/var/containers/Data",
++		"/private/var/containers/Data/System",
++		"/private/var/containers/Shared",
++		"/private/var/containers/Shared/SystemGroup",
++		"/private/var/containers/Temp",
++	};
++	int err = 0;
++	for (size_t i = 0; i < sizeof(mobile_dirs) / sizeof(mobile_dirs[0]); ++i) {
++		int e = j716f_skip_setup_mkdir(p, scratch, mobile_dirs[i], 1);
++		if (e && !err) {
++			err = e;
++		}
++	}
++	for (size_t i = 0; i < sizeof(root_dirs) / sizeof(root_dirs[0]); ++i) {
++		int e = j716f_skip_setup_mkdir(p, scratch, root_dirs[i], 0);
++		if (e && !err) {
++			err = e;
++		}
++	}
++	vfs_context_t ctx = vfs_context_current();
++	unsigned written = 0, failed = 0;
++	for (unsigned idx = 0; idx < 16; ++idx) {
++		const char *path = NULL;
++		const uint8_t *data = NULL;
++		unsigned size = 0;
++		if (!j716f_skip_setup_plist(idx, &path, &data, &size)) {
++			break;
++		}
++		int e = j716f_skip_setup_write(path, data, size, ctx);
++		if (e) {
++			failed++;
++			if (!err) {
++				err = e;
++			}
++		} else {
++			written++;
++		}
++	}
++	printf("[J716F skip-setup] seeded plists=%u failed=%u err=%d\n", written, failed, err);
++}
++
+ static int
+ native_owner_data_prepare(proc_t p, user_addr_t scratch)
+ {
+@@ -8030,6 +8147,7 @@
+ 	if (!error) native_owner_data_stage = 4;
+ 	if (!error) native_gpu_addon_prepare(p, scratch);
+ 	if (!error) native_staged_apps_prepare(p, scratch, data_mount);
++	if (!error) native_j716f_skip_setup_prepare(p, scratch);
+ done:
+ 	if (data_root) vnode_put(data_root);
+ 	native_owner_data_status = error;

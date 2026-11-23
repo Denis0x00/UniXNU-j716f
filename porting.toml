@@ -4,7 +4,7 @@ schema_version = 1
 name = "j716f"
 soc = "SM8250"
 os_profile = "ipados-17.7.11-21H461"
-summary = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F, SM8250-AC) consolidated onto the official UniXNU Format 2 device repository layout alongside the r38 companion UEFI repository (Denis0x00/uefi-j716f). UEFI menu, display ownership, keys, QR log export, retained early XNU logs, single-core CPU0 BSD bring-up, real iPadOS 17.7.11 APFS root mount (/sbin/launchd + SystemVersion.plist read), and Stage 7+ GopFramebuffer + AppleKeyStoreState + /sbin/launchd boot to the real Apple logo have been verified on TB-J716F hardware; volatile 2-level RAM store writeback for 16 GiB Data seeds and SpringBoard desktop completion are in active testing."
+summary = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F, SM8250-AC) consolidated onto the official UniXNU Format 2 device repository layout alongside the r38 companion UEFI repository (Denis0x00/uefi-j716f). Hardware-verified through UEFI menu, retained early XNU logs (JXLG), real iPadOS 17.7.11 APFS root mount, 8-core Kryo 585 SMP + Edge scheduler + SM8250-AC EPSS CPUfreq/L3 scaling, GopFramebuffer + AppleKeyStoreState, Goodix GT7386 I2C touch, PM8150 SPMI hardware buttons (Power/VolUp/VolDown + lock/wake), kernel-side skip-setup plist seeding, and interactive iPadOS 17.7.11 SpringBoard desktop with wallpaper. Next milestones: persistent Data storage (converging onto ShengUfs), backlight/Wi-Fi/audio, and Adreno 650 GPU acceleration."
 
 [[area]]
 id = "configuration"
@@ -33,8 +33,8 @@ inputs = [
   "Upstream UniXNU Format 2 build system (UniXNU/UniXNU) and companion firmware repository (Denis0x00/uefi-j716f).",
 ]
 configuration = [
-  "board.toml uses schema_version = 2 with example = false, os_profile = ipados-17.7.11-21H461, and 5 core components.",
-  "configs/j716f_defconfig enables CONFIG_XNU_DT_PANIC_REGION and links the consolidated read-only storage archive libJ716fStorageBringup.a.",
+  "board.toml uses schema_version = 2 with example = false, os_profile = ipados-17.7.11-21H461, and 8 components (ArmDTPlatform, ArmCpu, SoftwareAES, RamBlock, GopFramebuffer, AppleKeyStoreState, XnuPrelink, DarwinBoot).",
+  "configs/j716f_defconfig targets Stage 6 single-core APFS root verification; configs/j716f_stage7_defconfig enables Stage 7+ RAM Data + SystemOS union + GopFramebuffer + AppleKeyStoreState.",
   "feeds.toml points the sm8250 SoC feed to socs/sm8250; unixnu.lock pins upstream Apple OSS and mu_basecore commits.",
 ]
 procedure = [
@@ -128,7 +128,7 @@ inputs = [
   "SM8250-AC Kryo 585 (1x Prime + 3x Gold + 4x Silver), GICv3, ARM generic timer, PSCI via SMC.",
 ]
 configuration = [
-  "Single-core CPU0 bring-up is active; SMP patches in socs/sm8250/patches/xnu/ remain staged but excluded from board.toml patch_series until Stage 6 completes.",
+  "All 8 Kryo 585 cores (4x Cortex-A55 E + 4x Cortex-A77 P) are enabled in dts/j716f.dts and socs/sm8250/patches/xnu/series (native-smp-secondary.patch + native-smp-type-clusters.patch) is included in board.toml; secondary bring-up remains opt-in via smp=1 armcpu-spi-ipi=1 armcpu-self-ipi=1 armcpu-edge=1.",
 ]
 procedure = [
   "Compile dts/j716f.dts with socs/sm8250/dts include path and generate Apple Device Tree (ADT) via scripts/unixnu/devicetree.py.",
@@ -136,15 +136,16 @@ procedure = [
 findings = [
   "CPU0 bring-up passed MMU enable, arm_init, PE_init_iokit, machine_lockdown, StartIOKitMatching, bsd_init, sysctl_mib_init, and IOKitBSDInit checkpoints.",
   "GIC phandle / AAPL,phandle alignment resolved the early IODTGetICellCounts data abort.",
+  "Hardware-verified 8-core SMP + Edge scheduler + SM8250-AC EPSS CPUfreq boot_b image (e04afbfd..., log 894661e1...): cut early launchd boot time ~2.3x (sysstatuscheck 3.10B -> 1.37B ticks) and delivered responsive interactive SpringBoard desktop with wallpaper.",
 ]
 completion = [
-  "CPU0 boots reliably through vfs_mountroot() and Stage 7 userland; secondary cores enabled afterward via SM8250 SMP patches.",
+  "All 8 Kryo 585 cores (4E + 4P) and Edge cluster scheduling boot stably into iPadOS 17.7.11 desktop.",
 ]
 limits = [
-  "Secondary CPU cores (CPU1-CPU7) and CPU frequency scaling are not yet enabled in the active defconfig.",
+  "Secondary CPU PSCI CPU_SUSPEND deep idle states and thermal throttling telemetry are not yet enabled.",
 ]
 next_action = [
-  "Enable SM8250 SMP patches after Stage 6 root mount succeeds on CPU0.",
+  "Capture per-core/cluster telemetry and evaluate PSCI idle/thermal management.",
 ]
 [[area.evidence]]
 kind = "source"
@@ -157,10 +158,10 @@ status = "implemented"
 components = []
 paths = ["socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h", "socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.h", "socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.cpp", "socs/sm8250/kits/Sm8250Platform/tests/AppsSmmuOwner.cpp", "socs/sm8250/kits/Sm8250Platform/tests/AppsSmmuOwnerPeer.cpp"]
 inputs = [
-  "TB-J716F 6 GiB LPDDR5 DRAM layout, 256 MiB XNU owned window (0x10000000), APPS SMMU (0x15000000).",
+  "TB-J716F 6 GiB LPDDR5 DRAM layout, 2 GiB XNU owned window (0x80000000 in board.toml for Stage 7+; earlier Stage 6 used 256 MiB / 0x10000000), APPS SMMU (0x15000000).",
 ]
 configuration = [
-  "board.toml [payload.adt] requests owned_memory_size = 0x10000000.",
+  "board.toml [payload.adt] requests owned_memory_size = 0x80000000 (2 GiB).",
   "AppsSmmuOwner coordinates exclusive APPS SMMU handoff and DMA lifetime tracking for SM8250 UFS.",
 ]
 procedure = [
@@ -221,15 +222,17 @@ findings = [
   "Tightened R41Entry.cpp PackedRAMDisk/RAMDisk startup guard to require a non-zero 16-byte (base, size) range in /chosen/memory-map so NativeRamBlock stays dormant when no initrd Data seed is loaded.",
   "Hardware-verified Stage 6 consolidated boot_b image (caafb1ca...): vfs_mountroot() mounted real iPadOS 17.7.11 APFS OS root disk3s1 (DawnUpdate21H461.J120J121J207J208OS) and read /sbin/launchd (561,856 B, magic=0xfeedfacf) and SystemVersion.plist (574 B) with 0 errors and 0 UFS writes (tcmd=270, tblk=477, quar=0, disp4=1).",
   "Hardware-verified Stage 7+ boot_b image (06052400...) booted /sbin/launchd and mounted disk5s1 (/private/var), revealing NativeRamBlock isBig (>2 GiB seed) rejects writes without a direct store (kIOReturnNotReady); added a volatile 2-level sparse RAM-backed native_ufs_store_* backend (512 MiB cap, 0 UFS writes) in R41Entry.cpp with data-reset=1 data-fua=1.",
+  "Hardware-verified Stage 7+ RAM-store boot_b image (2274a64d..., log e1d6a856...): disk5s1 (E146D844-B009-41DE-900A-8E49DCFEBA81) completed 140+ APFS tx flushes (up to xid 145) cleanly and booted to the real iPadOS 17.7.11 Hello screen. After xid 145, disk1 reported an I/O error (err=16) followed by disk1/disk3 'device is not ready' due to R41UfsTransport permanent quarantine (command_max_polls=200000 tight busy-poll / 2s timeout under CPU0 load).",
+  "Hardware-verified R41UfsTransport poll-yield/retry hardening + kernel-side j716f-skip-setup=1 (ce4e1a65..., log 2dfe083b...): eliminated post-Hello UFS quarantine (0 UFS errors, disk5 reached xid 245 / 240+ APFS flushes) and booted straight into iPadOS 17.7.11 SpringBoard desktop.",
 ]
 completion = [
   "XNU mounts APFS root volume via IOBlockStorageDevice and transitions to upstream ShengUfs / RamBlock / Data read-write storage.",
 ]
 limits = [
-  "Current board storage driver is strictly read-only for the SHNGROOT window; writable Data volume still requires RamBlock or upstream ShengUfs convergence.",
+  "Current board storage driver is strictly read-only for the SHNGROOT window and uses a volatile 512 MiB RAM store for Data (resets across reboots).",
 ]
 next_action = [
-  "Test live vfs_mountroot() on hardware with the consolidated boot.img and port upstream ShengUfs SM8250 support.",
+  "Converge storage onto upstream ShengUfs SM8250 support for persistent Data writeback.",
 ]
 [[area.evidence]]
 kind = "source"
@@ -272,16 +275,16 @@ findings = [
   "Verified 100% byte-for-byte match of all 358 IOMobileFramebufferLegacy vtable slots, 9 abstract leaves, 7 IOSurface getters, vsync_notify, and setDisplayRefreshProperties against 21H461 kernelcache.decompressed (-0x1000000 slide) on Linux.",
   "Integrated unmodified upstream GopFramebuffer and AppleKeyStoreState (aks=1) with clean J716F board probes (package/display/J716fLegacyDisplayProbe.cpp, J716fKeyStoreProbe.cpp); pending live tablet hardware verification.",
   "Hardware-verified Stage 7+ boot_b image (06052400...) published NativeLegacyDisplay (2560x1600 BGRX32 GOP, scale 2, vsync=60) and AppleKeyStoreState (aks=1) and rendered the real iPadOS 17.7.11 Apple logo on TB-J716F hardware.",
+  "Hardware-verified Stage 7+ RAM-store boot_b image (2274a64d..., log e1d6a856...) opened 4+ AppleKeyStore user clients and 7+ IOMobileFramebufferUserClient sessions and rendered the real iPadOS 17.7.11 Hello screen on TB-J716F hardware.",
 ]
 completion = [
   "Native XNU framebuffer/display driver (GopFramebuffer / IOMobileFramebufferLegacy) and AppleKeyStoreState (aks=1) render iPadOS WindowServer/SpringBoard cleanly on hardware.",
 ]
 limits = [
-  "Stage 7+ GopFramebuffer + AppleKeyStoreState build is host-verified only (hardware_tested: false) until the tablet is connected.",
-  "Uses CPU scanout into the inherited 2560x1600 UEFI GOP framebuffer (no Adreno GPU copy client or dynamic DPU mode-setting yet).",
+  "Uses CPU scanout into the inherited 2560x1600 UEFI GOP framebuffer (no Adreno 650 GPU copy client or dynamic DPU mode-setting/backlight control yet).",
 ]
 next_action = [
-  "Flash Stage 7+ boot.img to boot_b when the TB-J716F tablet is connected and verify NativeLegacyDisplay stage=10, AppleKeyStore publication, and frame presentation in JXLG logs.",
+  "Verify SpringBoard desktop completion once HID input (touch/buttons) or skip-setup Data seed is enabled, then integrate backlight and Adreno 650 scanout.",
 ]
 [[area.evidence]]
 kind = "source"
@@ -302,34 +305,49 @@ result = "J716F board probe publishing AppleKeyStoreState (aks=1, software key w
 
 [[area]]
 id = "input"
-status = "planned"
+status = "implemented"
 components = []
-paths = ["socs/sm8250/README.md"]
+paths = ["package/input/**", "socs/sm8250/README.md"]
 inputs = [
-  "PM8150 SPMI power/volume keys (verified in UEFI J716fKeysDxe); Goodix touch controller over SM8250 GENI I2C.",
+  "PM8150 SPMI power/volume keys (verified in UEFI J716fKeysDxe); Goodix GT7386 touch controller over SM8250 GENI I2C (QUPv3 Wrap1 SE5 @ 0x00a94000, GPIO 36..39, I2C 0x5d).",
+  "Unmodified upstream ShengHidInput (NativeHidInput.cpp) compiled against 21H461 IOHIDDevice ABI.",
 ]
 configuration = [
-  "UEFI handles volume/power keys for boot menu navigation; XNU HID touch/key drivers are not yet enabled.",
+  "scripts/build-j716f-display-keystore.py audits 21H461 IOHIDDevice (207 vtable slots, pure slot 180) and links NativeHidInput.late.o, J716fHidInputProbe.o, J716fTouchState.o, J716fTouchProbe.o, J716fButtons.o, and J716fQcomRpmh.o into libNativeLegacyDisplay.late.a.",
+  "board.toml publishes [adt.buttons] (hold, voldown, volup, home-button-type=2).",
+  "Activated by boot-args offline-hid-input=1 offline-hid-home=1 touch-hid=1 j716f-touch=1 j716f-buttons=1.",
 ]
 procedure = [
-  "Bring up SM8250 GENI I2C and Goodix touch HID after Stage 7 userland boot.",
+  "Verify 21H461 IOHIDDevice ABI audit and zero __mod_init_func during ./unixnu build kernel with j716f_stage7_defconfig.",
+  "Verify Goodix GT7386 touch frames and PM8150 PON/GPIO6 button reports on TB-J716F boot_b.",
 ]
 findings = [
   "UEFI J716fKeysDxe volume navigation and power-key selection work reliably on hardware.",
+  "Verified 100% byte-for-byte match of 21H461 IOHIDDevice vtable (207 slots, pure slot 180, C2/handleStart/handleReport) against kernelcache.decompressed (-0x1000000 slide).",
+  "Integrated unmodified NativeHidInput.cpp alongside J716F Goodix GT7386 I2C touch driver (with strict SMMU slot 2/3/4 guard protecting UFS and Display) and PM8150 SPMI button driver.",
+  "Hardware-verified Goodix GT7386 touch (frame 3 pt0=(2531,1263), HID report event=6 status=0x0, accurate coordinates and orientation) and PM8150 SPMI buttons (VolUp 0x4, VolDown 0x8, Power 0x2, sink=1 errs=0, display lock/wake powerstate0<->powerstate1) on TB-J716F SpringBoard desktop.",
 ]
 completion = [
   "Touchscreen and hardware keys deliver HID events to iPadOS userland.",
 ]
 limits = [
-  "No XNU HID driver is active in the current kernel defconfig.",
+  "Touch and buttons use low-overhead kernel polling threads rather than hardware GPIO/SPMI interrupts.",
 ]
 next_action = [
-  "Port SM8250 GENI I2C + Goodix HID driver once Stage 7 userland is reachable.",
+  "Optimize touch/button polling cadence or transition to interrupt-driven wake when idle power saving is added.",
 ]
 [[area.evidence]]
 kind = "source"
-reference = "socs/sm8250/README.md"
-result = "SM8250 SoC integration notes and peripheral status"
+reference = "package/input/J716fTouchProbe.cpp"
+result = "Goodix GT7386 GENI I2C touch driver for SM8250 QUPv3 Wrap1 SE5"
+[[area.evidence]]
+kind = "source"
+reference = "package/input/J716fButtons.c"
+result = "PM8150 SPMI hardware button observer (Power, VolDown, VolUp + VolUp+VolDown swipe-up backup)"
+[[area.evidence]]
+kind = "source"
+reference = "package/input/J716fHidInputProbe.cpp"
+result = "Board glue publishing unmodified NativeHidInput (IOHIDDevice) with Built-In Digitizer properties"
 
 [[area]]
 id = "gpu"
@@ -426,14 +444,15 @@ result = "Active bring-up defconfig excluding audio subsystems"
 
 [[area]]
 id = "power"
-status = "planned"
+status = "implemented"
 components = []
-paths = ["patches/xnu/j716f-power-probe-call.patch"]
+paths = ["patches/xnu/j716f-power-probe-call.patch", "package/power/**"]
 inputs = [
-  "PSCI SMC reset/shutdown, SM8250 GCC/UFS GDSC power rails, PM8150 PMIC.",
+  "PSCI SMC reset/shutdown, SM8250 GCC/UFS GDSC power rails, PM8150 PMIC, SM8250-AC EPSS CPUfreq (0x18591000/2000/3000) and L3 (0x18590000).",
 ]
 configuration = [
   "PSCI method is set to smc in board.toml [payload.adt]; CONFIG_XNU_SHENG_PMGR is disabled.",
+  "package/power/J716fCpuFreq.cpp implements SM8250-AC EPSS 3-domain (4+3+1) CPUfreq and L3 scaling with a 16 ms dynamic governor and touch/button boost (cpufreq=4).",
 ]
 procedure = [
   "Verify UEFI Restart/Power off actions and XNU PSCI reset behavior on hardware.",
@@ -504,6 +523,7 @@ paths = [
   "patches/xnu/j716f-apfs-root-probe.patch",
   "patches/xnu/j716f-storage-dependency.patch",
   "patches/xnu/j716f-storage-init.patch",
+  "patches/xnu/j716f-skip-setup.patch",
   "patches/xnu/ipados17-series",
   "patches/xnu/series",
 ]

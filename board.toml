@@ -15,9 +15,8 @@ include = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "GopFramebuffer
 [kernel]
 defconfig = "j716f_defconfig"
 config_fragments = ["arch:configs/common.config", "soc:configs/sm8250.config", "os:configs/ipados.config"]
-# SoC SMP/Edge/power patches remain excluded during single-core Stage 6 bring-up.
-# Keep the two required iPadOS 17 prelink patches via device:patches/xnu/ipados17-series.
-patch_series = ["arch:patches/xnu/series", "device:patches/xnu/ipados17-series", "device:patches/xnu/series"]
+# Enable SM8250 8-core SMP + E/P cluster Edge scheduler (secondary cores remain opt-in via smp=1).
+patch_series = ["arch:patches/xnu/series", "soc:patches/xnu/series", "device:patches/xnu/ipados17-series", "device:patches/xnu/series"]
 archives = [
   "build-corecrypto-14.py",
   "build-corecrypto-14.py --namespace",
@@ -87,7 +86,9 @@ volume = "J716FENTRY"
 size_mib = 80
 loader = "firmware"
 title = "TB-J716F iPadOS 17 (APFS root)"
-kernel_args = ["-v", "serial=3", "j716f-earlylog=1"]
+# Omit -v so XNU keeps kPEGraphicsMode (no scrolling text over SpringBoard);
+# serial=3 j716f-earlylog=1 retains full kernel logs in the JXLG RAM ring.
+kernel_args = ["serial=3", "j716f-earlylog=1"]
 timeout = -1
 tools = true
 panic_screen = false
@@ -116,6 +117,16 @@ vmm-present = 1
 [adt.chosen.u32]
 # SM8250 has no Apple CTRR hardware.
 kernel-ctrr-to-be-enabled = 0
+
+[adt.buttons.string]
+compatible = "buttons"
+device_type = "buttons"
+
+[adt.buttons.strings]
+button-names = ["hold", "voldown", "volup"]
+
+[adt.buttons.u32]
+home-button-type = 2
 
 [package]
 unixnu = "../UniXNU"
