@@ -289,9 +289,9 @@ R35Record makeSyntheticRecord() {
     s.hci[R35Hce] = 1U;
     s.hci[R35Hcs] = 0x0000000FU;  // DP, UTRLRDY, UTMRLRDY, UCRDY
     s.header_valid = 0xFU;
-    s.headers[0] = 0x48001E57U;   // ID0: 87 stream matching groups
-    s.headers[1] = 0x10000008U;   // ID1: 8 context banks
-    s.headers[2] = 0x00000222U;   // ID2: 40-bit IAS/OAS/UBSx
+    s.headers[0] = 0x48001E57U;   // ID0: S1TS + SMS + 87 stream matching groups
+    s.headers[1] = 0x30000008U;   // ID1: 16 pages, 8 context banks
+    s.headers[2] = 0x00001222U;   // ID2: PTFSv8_4KB + 40-bit IAS/OAS/UBSx
     s.headers[3] = 0x00000000U;   // sCR0
     s.stream_count = R35_GROUPS;
     for (unsigned i = 0; i < R35_GROUPS; ++i) {

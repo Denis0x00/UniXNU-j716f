@@ -29,6 +29,15 @@ jobs:
           path: unixnu
           persist-credentials: false
 
+      - name: Initialize required UniXNU component submodules
+        run: |
+          git -C unixnu submodule update --init --depth 1 \
+            drivers/ArmDTPlatform \
+            drivers/ArmCpu \
+            drivers/SoftwareAES \
+            drivers/DarwinBoot \
+            kits/XnuPrelink
+
       - name: Install host tools (dtc, clang++)
         run: |
           sudo apt-get update
@@ -107,7 +116,7 @@ jobs:
           adt = devicetree.generate(
               Path(sys.argv[1]),
               board,
-              unique_chip_id=0x0123456789ABCDEF,
+              unique_chip_id='0123456789abcdef',
           )
           assert len(adt) > 4096, f'Unexpected small ADT size: {len(adt)}'
           print(f'Generated valid Apple Device Tree ({len(adt)} bytes) from compiled dts/j716f.dts')
@@ -168,7 +177,7 @@ jobs:
           echo "=== Test 6: R41RootWindowModel (SHNGROOT manifest + window slicing) ==="
           clang -std=c11 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer \
             -I"$STOR/r41" -c "$STOR/r41/R35Record.c" -o "$OUT/R35Record.o"
-          clang++ $CXXFLAGS -I"$STOR/r41" -I"$STOR/include" -I"$PLAT" \
+          clang++ $CXXFLAGS -I"$STOR" -I"$STOR/r41" -I"$STOR/include" -I"$PLAT" \
             "$OUT/R35Record.o" \
             "$PLAT/AppsSmmuOwner.cpp" \
             "$STOR/r41/KnownBlockReference.cpp" \

@@ -47,6 +47,7 @@ findings = [
   "Excluded proprietary vendor DTB binaries and private device seeds from Git; documented user extraction in proprietary-files.txt.",
   "Enabled official UniXNU porting-record.yml CI alongside j716f-ci.yml (Format 2 tree assembly, DTS/ADT generation, and C++ ASan/UBSan storage/SMMU unit tests).",
   "Verified Format 2 tree layout path out/j716f/ipados-17.7.11-21H461/j716f/tree in CI.",
+  "Initialized the 5 required UniXNU component submodules in CI before running ./unixnu status and ./unixnu tree, and passed hex string unique_chip_id to devicetree.generate().",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -203,6 +204,7 @@ findings = [
   "Staged r41 hardware trial verified SHNGROOT userdata reads (223 blocks, 0 errors) and APFS SystemOS (disk1s1) / OS (disk3s1) container discovery.",
   "Removed legacy _inittodr diagnostic reset hook so the consolidated build proceeds straight into vfs_mountroot().",
   "Added self-contained --synthetic R35Record fixture mode to R41RootWindowModel.cpp so all 4 SHNGROOT verification modes run under ASan/UBSan in public CI without binary fixtures.",
+  "Verified all 4 R41RootWindowModel ASan/UBSan modes (happy-path, bad-manifest-sha, overlap-windows, no-shngroot) with SMMUv2 IDR1/IDR2 synthetic geometry.",
 ]
 completion = [
   "XNU mounts APFS root volume via IOBlockStorageDevice and transitions to upstream ShengUfs / RamBlock / Data read-write storage.",
