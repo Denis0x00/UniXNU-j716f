@@ -1,0 +1,7 @@
+# TB-J716F iPadOS 17.7.11 (21H461) board patch series.
+j716f-verbose-text-console.patch
+j716f-earlylog-console.patch
+j716f-storage-init.patch
+j716f-storage-dependency.patch
+j716f-power-probe-call.patch
+j716f-apfs-root-probe.patch

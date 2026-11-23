@@ -1,0 +1,19 @@
+# User-supplied proprietary and device-specific inputs (excluded from Git)
+#
+# 1. Normalized stock firmware DTB (required for ./unixnu bootimg):
+#    Local path: package/firmware/j716f-stock-base00-overlay01-normalized.dtb
+#    Source:     Extracted from TB-J716F stock ZUI 15.0.485 boot/dtbo
+#                (DTB index 0 + DTBO index 1) and stripped of device-unique
+#                boot identity properties.
+#    Note:       Alternatively pass --dtb <path> directly to ./unixnu bootimg.
+#
+# 2. Apple iPadOS 17.7.11 (21H461) IPSW members:
+#    Fetched automatically by official ./unixnu fetch / ./unixnu build payload
+#    according to UniXNU's pinned os_profile = "ipados-17.7.11-21H461".
+#
+# 3. Device-local unique chip ID seed (never commit):
+#    Supply via UNIXNU_UNIQUE_CHIP_ID environment variable or local build config
+#    when assembling a payload for real hardware.
+#
+# 4. First-install iPadOS Data seed (data-21H461.dbr):
+#    Generated on macOS via .github/workflows/data-seed.yml (see README-data-runner.md).

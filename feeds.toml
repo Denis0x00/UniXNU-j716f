@@ -1,0 +1,8 @@
+# Local SM8250 transition snapshot inside the device repository.
+# Original source: https://github.com/Denis0x00/UniXNU-j716f
+# Commit: bf2d0f32f706adbe414551e452f1426ed7c4bd19
+# See socs/sm8250/README.md and docs/source-provenance.json for local changes.
+[[source]]
+name = "sm8250"
+kind = "soc"
+local = "socs/sm8250"

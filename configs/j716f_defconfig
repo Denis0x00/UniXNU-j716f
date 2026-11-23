@@ -1,0 +1,22 @@
+# TB-J716F / SM8250 / arm64 / iPadOS 17.7.11 (21H461)
+# Single-core CPU0 bring-up with read-only SHNGROOT UFS window + APFS root probe.
+CONFIG_XNU_SOURCE_CORECRYPTO14=y
+CONFIG_XNU_SOURCE_PTHREAD=y
+CONFIG_XNU_ARM_DT_PLATFORM=y
+CONFIG_XNU_ARMCPU=y
+CONFIG_XNU_CRYPTO_BOOTSTRAP="prelinked"
+# CONFIG_XNU_ARMVIRT_PLATFORM is not set
+# CONFIG_XNU_NATIVE_UFS is not set
+# CONFIG_XNU_NATIVE_ADRENO is not set
+# CONFIG_XNU_NATIVE_LEGACY_DISPLAY is not set
+# CONFIG_XNU_NATIVE_MOBILE_DISPLAY is not set
+# CONFIG_XNU_BOOT_PROGRESS is not set
+# CONFIG_XNU_SHENG_PMGR is not set
+# CONFIG_XNU_OWNER_DATA_MOUNT is not set
+# CONFIG_XNU_OWNER_CACHE_MOUNT is not set
+
+# Use the device-tree panic region rather than BCM2837 fixed address.
+CONFIG_XNU_DT_PANIC_REGION=y
+
+# Consolidated SM8250 + board read-only UFS/SHNGROOT storage archive.
+CONFIG_XNU_EXTRA_LD_ARCHIVES="-Wl,-force_load,{tree}/build/j716f-storage-active/libJ716fStorageBringup.a"

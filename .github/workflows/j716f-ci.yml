@@ -1,0 +1,189 @@
+name: J716F device CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-test:
+    name: Format 2 CLI, DTS/ADT, C++ sanitizer tests & porting record
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout UniXNU-j716f
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: device
+          persist-credentials: false
+
+      - name: Checkout upstream UniXNU
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: UniXNU/UniXNU
+          ref: main
+          path: unixnu
+          persist-credentials: false
+
+      - name: Install host tools (dtc, clang++)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            device-tree-compiler clang
+
+      - name: Check repository hygiene (LF, modes, no proprietary binaries)
+        run: |
+          python3 - <<'PY'
+          import subprocess
+          from pathlib import Path
+
+          device = Path('device')
+          tracked = subprocess.check_output(['git', '-C', str(device), 'ls-files', '--stage', '-z']).split(b'\0')
+          forbidden_ext = {'.dtb', '.dtbo', '.img', '.fd', '.macho', '.ipsw', '.dmg', '.dbr', '.hex', '.key', '.pem'}
+          index = {}
+          for row in tracked:
+              if not row:
+                  continue
+              meta, raw_name = row.split(b'\t', 1)
+              mode, sha, _ = meta.decode().split()
+              name = raw_name.decode()
+              index[name] = mode
+              ext = Path(name).suffix.lower()
+              if ext in forbidden_ext:
+                  raise SystemExit(f'Forbidden binary/private artifact in Git: {name}')
+              if name.startswith(('patches/', 'scripts/', 'configs/', 'dts/')) or name.endswith(('.sh', '.py', '.toml', '.patch')):
+                  if b'\r\n' in (device / name).read_bytes():
+                      raise SystemExit(f'Expected LF line endings: {name}')
+
+          if index.get('scripts/package.sh') != '100755':
+              raise SystemExit(f'Expected executable bit on scripts/package.sh, got {index.get("scripts/package.sh")}')
+          print(f'Verified {len(index)} tracked files: LF endings, executable mode, 0 forbidden binaries')
+          PY
+
+      - name: Check shell and Python syntax + Data seed unit tests
+        run: |
+          bash -n device/scripts/package.sh
+          python3 - <<'PY'
+          import ast
+          from pathlib import Path
+          for py in sorted(Path('device').rglob('*.py')):
+              ast.parse(py.read_text(encoding='utf-8'), filename=str(py))
+          print('Python syntax checks passed')
+          PY
+          PYTHONPATH="$PWD/device/scripts/ci" python3 -m unittest discover -s device/scripts/ci -p 'test_*.py' -v
+
+      - name: Validate UniXNU Format 2 CLI (defconfig, status, tree, build package)
+        run: |
+          set -euo pipefail
+          DEVICE="$PWD/device"
+          cd unixnu
+          ./unixnu defconfig j716f_defconfig -D "$DEVICE" --os 17
+          ./unixnu status --json --os 17
+          ./unixnu tree --os 17
+          ./unixnu build package --os 17
+          test -f kits/j716f/storage/J716fStorageBringup.cpp
+          test -f kits/j716f/storage/r41/R41RootWindowDevice.cpp
+
+      - name: Compile DTS with dtc and verify Apple Device Tree (ADT) generation
+        run: |
+          set -euo pipefail
+          dtc -I dts -O dtb -@ -i device/socs/sm8250/dts -o "$RUNNER_TEMP/j716f.dtb" device/dts/j716f.dts
+          python3 - <<'PY'
+          import sys
+          import tomllib
+          from pathlib import Path
+
+          sys.path.insert(0, str(Path('unixnu/scripts').resolve()))
+          from unixnu import devicetree
+
+          board = tomllib.loads(Path('device/board.toml').read_text(encoding='utf-8'))
+          adt_cfg = board['payload']['adt']
+          dtb_bytes = Path(f"{__import__('os').environ['RUNNER_TEMP']}/j716f.dtb").read_bytes()
+          adt = devicetree.generate(
+              dtb_bytes,
+              adt_cfg,
+              unique_chip_id=0x0123456789ABCDEF,
+          )
+          assert len(adt) > 4096, f'Unexpected small ADT size: {len(adt)}'
+          print(f'Generated valid Apple Device Tree ({len(adt)} bytes) from compiled dts/j716f.dts')
+          PY
+
+      - name: Compile and run SM8250 UFS/SMMU and r41 SHNGROOT C++ ASan/UBSan tests
+        run: |
+          set -euo pipefail
+          PLAT="device/socs/sm8250/kits/Sm8250Platform"
+          STOR="device/package/storage"
+          OUT="$RUNNER_TEMP/j716f-tests"
+          mkdir -p "$OUT"
+
+          CXXFLAGS="-std=c++17 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer"
+          export ASAN_OPTIONS="detect_leaks=1:halt_on_error=1"
+          export UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1"
+
+          echo "=== Test 1: AppsSmmuOwner (multi-TU) ==="
+          clang++ $CXXFLAGS -pthread -I"$PLAT" \
+            "$PLAT/AppsSmmuOwner.cpp" \
+            "$PLAT/tests/AppsSmmuOwner.cpp" \
+            "$PLAT/tests/AppsSmmuOwnerPeer.cpp" \
+            -o "$OUT/test_apps_smmu_owner"
+          "$OUT/test_apps_smmu_owner"
+
+          echo "=== Test 2: Sm8250UfsDiagnostics ==="
+          clang++ $CXXFLAGS -I"$PLAT" -I"$STOR/include" \
+            "$PLAT/Sm8250UfsDiagnostics.cpp" \
+            "$PLAT/tests/Sm8250UfsDiagnostics.cpp" \
+            -o "$OUT/test_ufs_diagnostics"
+          "$OUT/test_ufs_diagnostics"
+
+          echo "=== Test 3: Sm8250UfsHandoff ==="
+          clang++ $CXXFLAGS -I"$PLAT" -I"$STOR/include" \
+            "$PLAT/AppsSmmuOwner.cpp" \
+            "$PLAT/Sm8250UfsHandoff.cpp" \
+            "$PLAT/tests/Sm8250UfsHandoff.cpp" \
+            -o "$OUT/test_ufs_handoff"
+          "$OUT/test_ufs_handoff"
+
+          echo "=== Test 4: Sm8250UfsHci ==="
+          clang++ $CXXFLAGS -I"$PLAT" -I"$STOR/include" \
+            "$PLAT/AppsSmmuOwner.cpp" \
+            "$PLAT/Sm8250UfsHci.cpp" \
+            "$PLAT/tests/Sm8250UfsHci.cpp" \
+            -o "$OUT/test_ufs_hci"
+          "$OUT/test_ufs_hci"
+
+          echo "=== Test 5: Sm8250UfsPipeline ==="
+          clang++ $CXXFLAGS -I"$PLAT" -I"$STOR/include" \
+            "$PLAT/AppsSmmuOwner.cpp" \
+            "$PLAT/Sm8250UfsHandoff.cpp" \
+            "$PLAT/Sm8250UfsHci.cpp" \
+            "$PLAT/tests/Sm8250UfsPipeline.cpp" \
+            -o "$OUT/test_ufs_pipeline"
+          "$OUT/test_ufs_pipeline"
+
+          echo "=== Test 6: R41RootWindowModel (SHNGROOT manifest + window slicing) ==="
+          clang -std=c11 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer \
+            -I"$STOR/r41" -c "$STOR/r41/R35Record.c" -o "$OUT/R35Record.o"
+          clang++ $CXXFLAGS -I"$STOR/r41" \
+            "$OUT/R35Record.o" \
+            "$STOR/r41/R41UfsTransport.cpp" \
+            "$STOR/r41/tests/R41RootWindowModel.cpp" \
+            -o "$OUT/test_r41_root_window"
+          "$OUT/test_r41_root_window"
+
+      - name: Validate structured porting.toml against official UniXNU schema
+        run: |
+          python3 unixnu/scripts/porting-record.py check --device device
+
+      - name: Summary
+        run: |
+          {
+            echo '## J716F Device CI'
+            echo '- Official `./unixnu` Format 2 `defconfig`, `status`, `tree`, and `build package` passed'
+            echo '- `dts/j716f.dts` compiled with `dtc` and converted to valid Apple Device Tree (ADT)'
+            echo '- All 6 C++ ASan/UBSan storage/SMMU/SHNGROOT unit tests compiled and passed'
+            echo '- Python Data seed tests and `porting.toml` schema validation passed'
+          } >> "$GITHUB_STEP_SUMMARY"

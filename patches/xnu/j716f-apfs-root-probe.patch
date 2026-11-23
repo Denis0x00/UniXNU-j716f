@@ -1,0 +1,55 @@
+--- a/bsd/kern/bsd_init.c
++++ b/bsd/kern/bsd_init.c
+@@ -1063,6 +1063,52 @@
+ 		if (require_rootauth) {
+ 			/* enforce sealedness */
+ 			int autherr = VNOP_IOCTL(rootvnode, FSIOC_KERNEL_ROOTAUTH, NULL, 0, vfs_context_kernel());
++			{
++				extern void j716f_r41_post_root_probe(const char *, const char *, int, int,
++				    int, unsigned long long, unsigned int, int, unsigned long long);
++				mount_t r41_mp = vnode_mount(rootvnode);
++				const char *r41_fstype = (r41_mp && vfs_statfs(r41_mp))
++				    ? vfs_statfs(r41_mp)->f_fstypename : "-";
++				int r41_rdonly = r41_mp ? ((vfs_flags(r41_mp) & MNT_RDONLY) != 0) : 0;
++				vnode_t lvp = NULLVP;
++				unsigned long long lsize = 0;
++				unsigned int lmagic = 0;
++				int lerr = vnode_lookup("/sbin/launchd", 0, &lvp, vfs_context_kernel());
++				if (lerr == 0 && lvp != NULLVP) {
++					struct vnode_attr va;
++					unsigned char hdr[4] = {0, 0, 0, 0};
++					int resid = 0;
++					VATTR_INIT(&va);
++					VATTR_WANTED(&va, va_data_size);
++					if (vnode_getattr(lvp, &va, vfs_context_kernel()) == 0 &&
++					    VATTR_IS_SUPPORTED(&va, va_data_size)) {
++						lsize = (unsigned long long)va.va_data_size;
++					}
++					if (vn_rdwr(UIO_READ, lvp, (caddr_t)hdr, 4, 0, UIO_SYSSPACE, 0,
++					    vfs_context_ucred(vfs_context_kernel()), &resid, kernproc) == 0 &&
++					    resid == 0) {
++						lmagic = ((unsigned int)hdr[0]) | ((unsigned int)hdr[1] << 8) |
++						    ((unsigned int)hdr[2] << 16) | ((unsigned int)hdr[3] << 24);
++					}
++					vnode_put(lvp);
++				}
++				vnode_t svp = NULLVP;
++				unsigned long long svsize = 0;
++				int sverr = vnode_lookup("/System/Library/CoreServices/SystemVersion.plist",
++				    0, &svp, vfs_context_kernel());
++				if (sverr == 0 && svp != NULLVP) {
++					struct vnode_attr va;
++					VATTR_INIT(&va);
++					VATTR_WANTED(&va, va_data_size);
++					if (vnode_getattr(svp, &va, vfs_context_kernel()) == 0 &&
++					    VATTR_IS_SUPPORTED(&va, va_data_size)) {
++						svsize = (unsigned long long)va.va_data_size;
++					}
++					vnode_put(svp);
++				}
++				j716f_r41_post_root_probe(rootdevice, r41_fstype, r41_rdonly, autherr,
++				    lerr, lsize, lmagic, sverr, svsize);
++			}
+ 			int owner_authorized = 0;
+ #if defined(XNU_OWNER_ROOT_AUDIT) && XNU_OWNER_ROOT_AUDIT
+ 			{

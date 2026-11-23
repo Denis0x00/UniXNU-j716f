@@ -1,0 +1,524 @@
+schema_version = 1
+
+[device]
+name = "j716f"
+soc = "SM8250"
+os_profile = "ipados-17.7.11-21H461"
+summary = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F, SM8250-AC) consolidated onto the official UniXNU Format 2 device repository layout alongside the r38 companion UEFI repository (Denis0x00/uefi-j716f). UEFI menu, display ownership, keys, QR log export, retained early XNU logs, single-core CPU0 BSD bring-up, and read-only SHNGROOT UFS/APFS container probing have been verified in staged hardware trials; full vfs_mountroot() completion, upstream ShengUfs/RamBlock/Data convergence, and Stage 7 userland remain in progress."
+
+[[area]]
+id = "configuration"
+status = "implemented"
+components = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "XnuPrelink", "DarwinBoot"]
+paths = [
+  "board.toml",
+  "feeds.toml",
+  "unixnu.lock",
+  "configs/**",
+  "patches/**",
+  "socs/sm8250/soc.toml",
+  "socs/sm8250/configs/**",
+  "socs/sm8250/patches/**",
+  "AGENTS.md",
+  "README.md",
+  "LICENSE",
+  ".gitattributes",
+  ".gitignore",
+  ".github/**",
+  "local.toml.example",
+  "proprietary-files.txt",
+]
+inputs = [
+  "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F), Snapdragon 870 (SM8250-AC), arm64, iPadOS 17.7.11 (21H461).",
+  "Upstream UniXNU Format 2 build system (UniXNU/UniXNU) and companion firmware repository (Denis0x00/uefi-j716f).",
+]
+configuration = [
+  "board.toml uses schema_version = 2 with example = false, os_profile = ipados-17.7.11-21H461, and 5 core components.",
+  "configs/j716f_defconfig enables CONFIG_XNU_DT_PANIC_REGION and links the consolidated read-only storage archive libJ716fStorageBringup.a.",
+  "feeds.toml points the sm8250 SoC feed to socs/sm8250; unixnu.lock pins upstream Apple OSS and mu_basecore commits.",
+]
+procedure = [
+  "Run ./unixnu defconfig j716f_defconfig -D ../UniXNU-j716f --os 17 followed by ./unixnu status --json --os 17 and ./unixnu tree --os 17.",
+  "Run ./unixnu build package --os 17, ./unixnu build firmware --os 17 --uefi ../uefi-j716f, and ./unixnu build kernel --os 17.",
+]
+findings = [
+  "Consolidated the split experimental targets into a single official UniXNU Format 2 device repository with clean root-level board.toml, package/, patches/, and scripts/.",
+  "Removed local-only core PCD coupling (J716F_MENU_DIAGNOSTIC) from default board.toml firmware defines so the board builds cleanly against unmodified upstream UniXNU/UniXNU.",
+  "Excluded proprietary vendor DTB binaries and private device seeds from Git; documented user extraction in proprietary-files.txt.",
+]
+completion = [
+  "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
+]
+limits = [
+  "Hardware bootimg assembly requires a user-supplied normalized stock DTB (DTB0 + DTBO1) and UNIXNU_UNIQUE_CHIP_ID outside Git.",
+  "Single-core CPU0 bring-up defconfig intentionally excludes SMP/power/display/GPU optional drivers until Stage 6 root mount is complete.",
+]
+next_action = [
+  "Complete live vfs_mountroot() verification on TB-J716F boot_b and converge storage onto upstream ShengUfs.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "board.toml"
+result = "Format 2 board manifest defining kernel, firmware, device tree, userdata geometry, payload, and bootimg settings"
+[[area.evidence]]
+kind = "source"
+reference = "configs/j716f_defconfig"
+result = "Consolidated TB-J716F single-core bring-up kernel defconfig"
+
+[[area]]
+id = "firmware"
+status = "implemented"
+components = ["DarwinBoot"]
+paths = ["dts/**", "socs/sm8250/dts/**", "package/.gitkeep", "package/README.md"]
+inputs = [
+  "Companion Mu-Silicium firmware repository https://github.com/Denis0x00/uefi-j716f (Platforms/Lenovo/j716fPkg/j716f.dsc).",
+  "Upstream UniXNU package/UniXNUPkg, drivers/DarwinBoot, and pinned microsoft/mu_basecore feed.",
+]
+configuration = [
+  "Targets AARCH64 DEBUG_CLANGPDB producing a 7 MiB (0x700000 / 7,340,032-byte) SILICIUM_UEFI.fd at 0xCE000000.",
+  "Includes J716fEarlyHandoffLib, J716fRamLogLib, J716fEarlyLogSecLib, J716fHandoffDiagnosticsDxe, and r35-r38 J716fR35RecordDxe/Lib.",
+]
+procedure = [
+  "Build via ./unixnu build firmware --os 17 --uefi ../uefi-j716f or the standalone EDK II build verified in uefi-j716f CI.",
+  "Verify memory descriptor non-overlap and early handoff sanitizer tests in Denis0x00/uefi-j716f.",
+]
+findings = [
+  "r38 UEFI firmware preserves early XNU logs across resets and publishes the SEC-captured UFS HCI + APPS SMMU handoff record in the RAM slot (0xB007E000).",
+  "Menu entry, volume/power key navigation, clean rendering, Advanced Logger QR export, and 80 MiB initrd ReadyToBoot CRC32 checks passed in staged hardware trials.",
+]
+completion = [
+  "SILICIUM_UEFI.fd builds cleanly against upstream UniXNU/UniXNU in CI and reliably hands off to DarwinBoot and XNU.",
+]
+limits = [
+  "Optional J716F_MENU_DIAGNOSTIC hold mode requires applying uefi-j716f/Resources/UniXNUPatches/j716f-menu-hold.patch to the local UniXNU core tree.",
+]
+next_action = [
+  "Keep firmware CI green against upstream UniXNU/UniXNU and transition UFS handoff once upstream ShengUfs SM8250 driver support lands.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "dts/j716f.dts"
+result = "TB-J716F board device tree overlay targeting SM8250"
+[[area.evidence]]
+kind = "source"
+reference = "https://github.com/Denis0x00/uefi-j716f"
+result = "Companion TB-J716F r38 UEFI firmware repository with EDK II CI build"
+
+[[area]]
+id = "cpu"
+status = "implemented"
+components = ["ArmCpu"]
+paths = ["socs/sm8250/dts/sm8250.dtsi", "socs/sm8250/patches/**"]
+inputs = [
+  "SM8250-AC Kryo 585 (1x Prime + 3x Gold + 4x Silver), GICv3, ARM generic timer, PSCI via SMC.",
+]
+configuration = [
+  "Single-core CPU0 bring-up is active; SMP patches in socs/sm8250/patches/xnu/ remain staged but excluded from board.toml patch_series until Stage 6 completes.",
+]
+procedure = [
+  "Compile dts/j716f.dts with socs/sm8250/dts include path and generate Apple Device Tree (ADT) via scripts/unixnu/devicetree.py.",
+]
+findings = [
+  "CPU0 bring-up passed MMU enable, arm_init, PE_init_iokit, machine_lockdown, StartIOKitMatching, bsd_init, sysctl_mib_init, and IOKitBSDInit checkpoints.",
+  "GIC phandle / AAPL,phandle alignment resolved the early IODTGetICellCounts data abort.",
+]
+completion = [
+  "CPU0 boots reliably through vfs_mountroot() and Stage 7 userland; secondary cores enabled afterward via SM8250 SMP patches.",
+]
+limits = [
+  "Secondary CPU cores (CPU1-CPU7) and CPU frequency scaling are not yet enabled in the active defconfig.",
+]
+next_action = [
+  "Enable SM8250 SMP patches after Stage 6 root mount succeeds on CPU0.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "socs/sm8250/dts/sm8250.dtsi"
+result = "SM8250 SoC DTSI defining CPU0, GICv3, generic timer, and PSCI method"
+
+[[area]]
+id = "memory"
+status = "implemented"
+components = []
+paths = ["socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h", "socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.h", "socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.cpp", "socs/sm8250/kits/Sm8250Platform/tests/AppsSmmuOwner.cpp", "socs/sm8250/kits/Sm8250Platform/tests/AppsSmmuOwnerPeer.cpp"]
+inputs = [
+  "TB-J716F 6 GiB LPDDR5 DRAM layout, 256 MiB XNU owned window (0x10000000), APPS SMMU (0x15000000).",
+]
+configuration = [
+  "board.toml [payload.adt] requests owned_memory_size = 0x10000000.",
+  "AppsSmmuOwner coordinates exclusive APPS SMMU handoff and DMA lifetime tracking for SM8250 UFS.",
+]
+procedure = [
+  "Compile and execute AppsSmmuOwner host sanitizer tests across translation units in CI.",
+]
+findings = [
+  "Firmware memory map reserves ABL FDT, 80 MiB initrd, Display Reserved, Boot Log, DXE Heap, UEFI FD, and XNU Window without overlap.",
+  "AppsSmmuOwner enforces single-owner acquisition, publication, DMA tracking, quarantine, and release semantics.",
+]
+completion = [
+  "All memory reservations remain non-overlapping and APPS SMMU DMA handoff operates stably under XNU storage I/O.",
+]
+limits = [
+  "General-purpose IOMMU/SMMU page-table management for additional peripherals (GPU/USB/Wi-Fi) is not yet implemented.",
+]
+next_action = [
+  "Verify memory budget sufficiency during APFS root mount and Stage 7 userland startup.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.cpp"
+result = "SM8250 APPS SMMU handoff ownership and DMA lifetime state machine"
+[[area.evidence]]
+kind = "source"
+reference = "socs/sm8250/kits/Sm8250Platform/tests/AppsSmmuOwner.cpp"
+result = "Multi-TU host ASan/UBSan test suite for AppsSmmuOwner"
+
+[[area]]
+id = "storage"
+status = "implemented"
+components = []
+paths = [
+  "package/storage/**",
+  "scripts/build-j716f-storage-active.py",
+  "socs/sm8250/kits/Sm8250Platform/Sm8250Ufs*.cpp",
+  "socs/sm8250/kits/Sm8250Platform/Sm8250Ufs*.h",
+  "socs/sm8250/kits/Sm8250Platform/tests/Sm8250Ufs*.cpp",
+]
+inputs = [
+  "SM8250 UFS host controller (0x1d84000), APPS SMMU (0x15000000), LUN 0 userdata GPT geometry (LBA 2315048..30693370, 4096 B/LBA).",
+  "SEC-published r38 RAM handoff record at 0xB007E000 and SHNGROOT manifest at userdata LBA 0.",
+]
+configuration = [
+  "scripts/build-j716f-storage-active.py compiles package/storage/ (staged to kits/j716f/storage) and socs/sm8250/kits/Sm8250Platform/ into libJ716fStorageBringup.a.",
+  "board.toml [userdata] records measured LUN 0 userdata LBA bounds; [payload.adt] pins root_match_volume_uuid.",
+]
+procedure = [
+  "Run C++ ASan/UBSan host tests (Sm8250UfsDiagnostics, Sm8250UfsHandoff, Sm8250UfsHci, Sm8250UfsPipeline, R41RootWindowModel) in CI.",
+  "Build kernel with ./unixnu build package && ./unixnu build kernel to verify ARM64 Mach-O archive linkage and symbol exports.",
+]
+findings = [
+  "Consolidated r41 read-only SHNGROOT window IOBlockStorageDevice sources directly under package/storage/ so ./unixnu builds cleanly without --local-module overrides.",
+  "Staged r41 hardware trial verified SHNGROOT userdata reads (223 blocks, 0 errors) and APFS SystemOS (disk1s1) / OS (disk3s1) container discovery.",
+  "Removed legacy _inittodr diagnostic reset hook so the consolidated build proceeds straight into vfs_mountroot().",
+]
+completion = [
+  "XNU mounts APFS root volume via IOBlockStorageDevice and transitions to upstream ShengUfs / RamBlock / Data read-write storage.",
+]
+limits = [
+  "Current board storage driver is strictly read-only for the SHNGROOT window; writable Data volume still requires RamBlock or upstream ShengUfs convergence.",
+]
+next_action = [
+  "Test live vfs_mountroot() on hardware with the consolidated boot.img and port upstream ShengUfs SM8250 support.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "package/storage/r41/R41RootWindowDevice.cpp"
+result = "Read-only SHNGROOT IOBlockStorageDevice window provider for XNU"
+[[area.evidence]]
+kind = "source"
+reference = "package/storage/r41/tests/R41RootWindowModel.cpp"
+result = "Host ASan/UBSan test verifying SHNGROOT manifest SHA-256 and 512-byte window slicing"
+[[area.evidence]]
+kind = "source"
+reference = "socs/sm8250/kits/Sm8250Platform/tests/Sm8250UfsPipeline.cpp"
+result = "End-to-end host integration test for SM8250 UFS handoff, HCI, and SMMU owner"
+
+[[area]]
+id = "display"
+status = "planned"
+components = []
+paths = ["patches/xnu/j716f-verbose-text-console.patch"]
+inputs = [
+  "2560x1600 32-bit inherited UEFI framebuffer at 0x9C000000 (Display Reserved 36 MiB).",
+]
+configuration = [
+  "UEFI J716fInheritedFbDxe provides GOP display ownership; XNU currently uses the inherited framebuffer text console (-v).",
+]
+procedure = [
+  "Verify UEFI menu rendering and XNU early framebuffer console output on boot_b.",
+]
+findings = [
+  "UEFI display ownership repair eliminated menu overlay corruption across untouched idle, navigation, QR export, and post-reset return.",
+  "XNU verbose text console patch surfaces early kernel text on the inherited framebuffer.",
+]
+completion = [
+  "Native XNU framebuffer/display driver (MobileDisplay / IOMobileFramebuffer) renders iPadOS WindowServer cleanly.",
+]
+limits = [
+  "No native XNU display/IOMobileFramebuffer driver or dynamic mode-setting is enabled yet.",
+]
+next_action = [
+  "Integrate framebuffer/MobileDisplay driver after Stage 6 root mount completes.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "patches/xnu/j716f-verbose-text-console.patch"
+result = "Board XNU verbose framebuffer text console patch"
+
+[[area]]
+id = "input"
+status = "planned"
+components = []
+paths = ["socs/sm8250/README.md"]
+inputs = [
+  "PM8150 SPMI power/volume keys (verified in UEFI J716fKeysDxe); Goodix touch controller over SM8250 GENI I2C.",
+]
+configuration = [
+  "UEFI handles volume/power keys for boot menu navigation; XNU HID touch/key drivers are not yet enabled.",
+]
+procedure = [
+  "Bring up SM8250 GENI I2C and Goodix touch HID after Stage 7 userland boot.",
+]
+findings = [
+  "UEFI J716fKeysDxe volume navigation and power-key selection work reliably on hardware.",
+]
+completion = [
+  "Touchscreen and hardware keys deliver HID events to iPadOS userland.",
+]
+limits = [
+  "No XNU HID driver is active in the current kernel defconfig.",
+]
+next_action = [
+  "Port SM8250 GENI I2C + Goodix HID driver once Stage 7 userland is reachable.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "socs/sm8250/README.md"
+result = "SM8250 SoC integration notes and peripheral status"
+
+[[area]]
+id = "gpu"
+status = "planned"
+components = []
+paths = ["socs/sm8250/configs/sm8250.config"]
+inputs = [
+  "Qualcomm Adreno 650 (SM8250).",
+]
+configuration = [
+  "CONFIG_XNU_NATIVE_ADRENO is disabled during Stage 5/6 bring-up.",
+]
+procedure = [
+  "Defer GPU bring-up until framebuffer display and Stage 7 userland boot stably.",
+]
+findings = [
+  "Software/framebuffer console is sufficient for kernel and storage bring-up.",
+]
+completion = [
+  "Adreno 650 IOGPU / Metal acceleration initializes cleanly.",
+]
+limits = [
+  "No GPU acceleration is implemented or enabled.",
+]
+next_action = [
+  "Evaluate upstream Adreno driver compatibility after Stage 7 framebuffer boot.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "socs/sm8250/configs/sm8250.config"
+result = "SM8250 base config keeping native GPU disabled during early bring-up"
+
+[[area]]
+id = "network"
+status = "planned"
+components = []
+paths = ["socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h", "socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c"]
+inputs = [
+  "TB-J716F Wi-Fi/BT (WCN685x / QCA6390) and USB-C gadget networking.",
+]
+configuration = [
+  "No Wi-Fi, Bluetooth, or USB networking driver is enabled in the current bring-up config.",
+]
+procedure = [
+  "Plan USB gadget or Wi-Fi bring-up after Stage 7 userland shell access is established.",
+]
+findings = [
+  "Early BSD software loopback and network control initialization passed in r28-r30 checkpoints.",
+]
+completion = [
+  "Working network connectivity (USB Ethernet or Wi-Fi) under iPadOS.",
+]
+limits = [
+  "No physical network interface driver is active.",
+]
+next_action = [
+  "Bring up USB peripheral or Wi-Fi networking after Stage 7.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h"
+result = "SM8250 GENI serial header retained for SoC platform support"
+
+[[area]]
+id = "audio"
+status = "planned"
+components = []
+paths = ["configs/j716f_defconfig"]
+inputs = [
+  "TB-J716F quad-speaker / WCD/WSA audio subsystem.",
+]
+configuration = [
+  "Audio drivers are disabled during kernel and storage bring-up.",
+]
+procedure = [
+  "Defer audio bring-up until Stage 7 userland is stable.",
+]
+findings = [
+  "Not yet investigated.",
+]
+completion = [
+  "Audio playback works in iPadOS userland.",
+]
+limits = [
+  "No audio driver is implemented.",
+]
+next_action = [
+  "Investigate SM8250 audio topology after Stage 7.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "configs/j716f_defconfig"
+result = "Active bring-up defconfig excluding audio subsystems"
+
+[[area]]
+id = "power"
+status = "planned"
+components = []
+paths = ["patches/xnu/j716f-power-probe-call.patch"]
+inputs = [
+  "PSCI SMC reset/shutdown, SM8250 GCC/UFS GDSC power rails, PM8150 PMIC.",
+]
+configuration = [
+  "PSCI method is set to smc in board.toml [payload.adt]; CONFIG_XNU_SHENG_PMGR is disabled.",
+]
+procedure = [
+  "Verify UEFI Restart/Power off actions and XNU PSCI reset behavior on hardware.",
+]
+findings = [
+  "UEFI Restart and Power off (with USB/charger disconnected) were verified on hardware.",
+  "XNU SMC PSCI system reset was verified across staged early-boot checkpoints.",
+  "GCC UFS power/clock state observation is wired via J716fStoragePower.",
+]
+completion = [
+  "Clean OS reboot/shutdown, battery telemetry, and runtime PMGR/clock control.",
+]
+limits = [
+  "No full PMGR clock/regulator driver or battery/charging driver is enabled in XNU yet.",
+]
+next_action = [
+  "Port SM8250 PMGR/clock support after Stage 6 root mount completes.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "patches/xnu/j716f-power-probe-call.patch"
+result = "Board XNU storage power observation hook"
+
+[[area]]
+id = "packaging"
+status = "implemented"
+components = ["XnuPrelink"]
+paths = ["scripts/package.sh", "scripts/ci/**", "README-data-runner.md"]
+inputs = [
+  "Android boot image v2 (pagesize 4096, max_image_bytes 96 MiB / 100663296), 80 MiB FAT payload, macOS-generated iPadOS 17.7.11 Data seed.",
+]
+configuration = [
+  "scripts/package.sh delegates directly to official ./unixnu release -D <device>.",
+  "scripts/ci/ and .github/workflows/data-seed.yml build and verify fresh macOS APFS Data seeds (data-21H461.dbr) without private device identities.",
+]
+procedure = [
+  "Run ./unixnu build payload --os 17 and ./unixnu bootimg --os 17 --uefi ../uefi-j716f --dtb <normalized-dtb>.",
+  "Run scripts/ci unit tests via unittest in CI.",
+]
+findings = [
+  "Eliminated external post-payload mcopy mutations; payload.img and boot.img are assembled end-to-end by official ./unixnu.",
+  "End-to-end clean VM build produced verified 85,725,184-byte boot.img, 7,340,032-byte SILICIUM_UEFI.fd, and 51,249,152-byte kernel.macho.",
+]
+completion = [
+  "Reproducible single-command ./unixnu release packaging with verified boot.img and Data seed.",
+]
+limits = [
+  "Normalized stock DTB and unique chip ID remain user-provided local inputs per proprietary-files.txt.",
+]
+next_action = [
+  "Validate consolidated boot.img on TB-J716F boot_b slot.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "scripts/package.sh"
+result = "Standard UniXNU Format 2 device packaging entry script"
+[[area.evidence]]
+kind = "source"
+reference = "scripts/ci/test_data_seed_tools.py"
+result = "Unit tests for macOS Data seed format and manifest verification"
+
+[[area]]
+id = "diagnostics"
+status = "implemented"
+components = []
+paths = [
+  "patches/xnu/j716f-earlylog-console.patch",
+  "patches/xnu/j716f-apfs-root-probe.patch",
+  "patches/xnu/j716f-storage-dependency.patch",
+  "patches/xnu/j716f-storage-init.patch",
+  "patches/xnu/ipados17-series",
+  "patches/xnu/series",
+]
+inputs = [
+  "Retained RAM early-log ring buffer (JXLG), UEFI Advanced Logger QR exporter, and XNU console boot-args (-v serial=3 j716f-earlylog=1).",
+]
+configuration = [
+  "patches/xnu/series applies earlylog console, verbose text console, storage init/dependency, power probe, and APFS root probe patches.",
+]
+procedure = [
+  "Trigger reset and enter UEFI Tools -> Advanced Logger to export retained XNU logs via QR.",
+]
+findings = [
+  "Retained early XNU logs survived both PSCI reset and long-power-button reset in hardware trials, enabling exact instruction-level diagnosis without hardware UART.",
+]
+completion = [
+  "Reliable kernel log capture through root mount and early userland bring-up.",
+]
+limits = [
+  "Bounded early-log RAM ring may wrap under verbose output; hardware UART is not required but remains unavailable externally.",
+]
+next_action = [
+  "Capture retained early XNU log from consolidated vfs_mountroot() hardware trial.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "patches/xnu/j716f-earlylog-console.patch"
+result = "Board XNU retained RAM early-log console patch"
+[[area.evidence]]
+kind = "source"
+reference = "patches/xnu/series"
+result = "Consolidated board XNU patch series"
+
+[[area]]
+id = "sensors"
+status = "planned"
+components = []
+paths = ["dts/j716f.dts"]
+inputs = [
+  "TB-J716F accelerometer/gyroscope/ambient light sensors (SLPI/SSC).",
+]
+configuration = [
+  "Sensor subsystems are not enabled in the current bring-up configuration.",
+]
+procedure = [
+  "Defer sensor bring-up until core iPadOS userland, display, and input work.",
+]
+findings = [
+  "Not yet investigated.",
+]
+completion = [
+  "Orientation and ambient light sensors report readings to iPadOS.",
+]
+limits = [
+  "No sensor driver is implemented.",
+]
+next_action = [
+  "Investigate sensor integration after Stage 7.",
+]
+[[area.evidence]]
+kind = "source"
+reference = "dts/j716f.dts"
+result = "Board device tree scoped to Stage 5/6 bring-up peripherals"

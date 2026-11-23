@@ -1,0 +1,101 @@
+schema_version = 2
+
+[board]
+example = false
+name = "j716f"
+kit = "j716f"
+soc = "SM8250"
+soc_source = "sm8250"
+os_profile = "ipados-17.7.11-21H461"
+description = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F) iPadOS 17.7.11 bring-up"
+
+[components]
+include = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "XnuPrelink", "DarwinBoot"]
+
+[kernel]
+defconfig = "j716f_defconfig"
+config_fragments = ["arch:configs/common.config", "soc:configs/sm8250.config", "os:configs/ipados.config"]
+# SoC SMP/Edge/power patches remain excluded during single-core Stage 6 bring-up.
+# Keep the two required iPadOS 17 prelink patches via device:patches/xnu/ipados17-series.
+patch_series = ["arch:patches/xnu/series", "device:patches/xnu/ipados17-series", "device:patches/xnu/series"]
+archives = [
+  "build-corecrypto-14.py",
+  "build-corecrypto-14.py --namespace",
+  "component:ArmDTPlatform",
+  "component:ArmCpu",
+  "component:SoftwareAES",
+  "build-software-aes-bindings.py",
+  "build-mockfs-fixture.py",
+  "build-libpthread-kernel.py",
+  "build-j716f-storage-active.py",
+]
+
+[device_tree]
+source = "device:dts/j716f.dts"
+include_dirs = ["soc:dts"]
+
+[firmware]
+# Companion ../uefi-j716f carries the consolidated r38 menu, DarwinBoot, early-log and UFS handoff integration.
+config = "j716f"
+dsc = "Platforms/Lenovo/j716fPkg/j716f.dsc"
+fd = "Build/j716fPkg/{target}_CLANGPDB/FV/SILICIUM_UEFI.fd"
+submodules = ["Common/Mu", "Common/Mu_OEM_Sample"]
+packages = [
+  "{uefi}",
+  "{uefi}/Platforms/Lenovo",
+  "{uefi}/Common/Mu",
+  "{uefi}/Common/Mu_OEM_Sample",
+  "{edk2}",
+  "{uefi}/Silicon/Qualcomm",
+  "{uefi}/Silicon/Silicium",
+  "{tree}/package",
+  "{tree}/drivers/DarwinBoot",
+]
+
+[firmware.defines]
+DEVICE_MODEL = "j716f"
+ENABLE_SECUREBOOT = 0
+# Optional: enable J716F_MENU_DIAGNOSTIC = 1 only when the companion UniXNU
+# checkout has uefi-j716f/Resources/UniXNUPatches/j716f-menu-hold.patch applied.
+
+[bootimg]
+# User-supplied normalized stock DTB0 + DTBO1 placed locally at
+# package/firmware/j716f-stock-base00-overlay01-normalized.dtb (excluded from Git;
+# see proprietary-files.txt) or overridden via --dtb.
+dtb = "kits/j716f/firmware/j716f-stock-base00-overlay01-normalized.dtb"
+max_image_bytes = 100663296
+
+[bootimg.image]
+header_version = 2
+pagesize = 4096
+
+[userdata]
+# Measured TB-J716F LUN 0 GPT geometry for userdata.
+first_lba = 2315048
+last_lba = 30693370
+lba_bytes = 4096
+
+[payload]
+volume = "J716FENTRY"
+size_mib = 80
+loader = "firmware"
+title = "TB-J716F iPadOS 17 (APFS root)"
+kernel_args = ["-v", "serial=3", "j716f-earlylog=1"]
+timeout = -1
+tools = true
+panic_screen = false
+trust_cache_sha256 = ["7416ca4f8377146626bb284e2133c76bee6cb4e3ee0af5d648b186235a7323a7"]
+
+[payload.adt]
+root_match_volume_uuid = "04769D26-2CA0-4825-B443-E2E5F88300F2"
+chip_id = "8011"
+unique_chip_id = "required"
+psci_method = "smc"
+owned_memory_size = 0x10000000
+
+[package]
+unixnu = "../UniXNU"
+boot_partition_bytes = 100663296
+
+[package.defconfig]
+"ipados-17.7.11-21H461" = "j716f_defconfig"
