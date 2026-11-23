@@ -50,6 +50,7 @@ findings = [
   "Initialized the 5 required UniXNU component submodules in CI before running ./unixnu status and ./unixnu tree, and passed hex string unique_chip_id to devicetree.generate().",
   "Extracted two self-contained upstream PR patches under patches/unixnu-core/ (AAPL,phandle emission in devicetree.py and Android bootimg v2 support + unit tests in bootimg.py) and added standard .github/workflows/package.yml; CI verifies clean git apply, test_bootimg.py, and AAPL,phandle presence in the generated ADT against upstream UniXNU/UniXNU.",
   "Added Stage 7 host-build defconfig (configs/j716f_stage7_defconfig), RamBlock embedded component selection, and platform ADT defaults (vmm-present=1, sleep-disabled=1, kernel-ctrr-to-be-enabled=0, packed_data_ramdisk=true, owned_memory_size=2 GiB).",
+  "Wired GopFramebuffer and AppleKeyStoreState into board.toml embedded_components, enabled CONFIG_XNU_NATIVE_LEGACY_DISPLAY=y in configs/j716f_stage7_defconfig, added [adt.product] display properties, and enabled the upstream GopFramebuffer fence-wait sanitizer check in j716f-ci.yml.",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -216,6 +217,7 @@ findings = [
   "Added self-contained --synthetic R35Record fixture mode to R41RootWindowModel.cpp so all 4 SHNGROOT verification modes run under ASan/UBSan in public CI without binary fixtures.",
   "Verified all 4 R41RootWindowModel ASan/UBSan modes (happy-path, bad-manifest-sha, overlap-windows, no-shngroot) with SMMUv2 IDR1/IDR2 synthetic geometry.",
   "Prepared Stage 7 storage bridge in R41Entry.cpp and build-j716f-storage-active.py: embedded unmodified upstream NativeRamBlock.cpp (late-init), added j716f-r41-continue=1 boot-arg, and implemented native_verified_block_root_authorized/manifest_sha384/volume_device for owner SystemOS union mount and RAM Data mount.",
+  "Tightened R41Entry.cpp PackedRAMDisk/RAMDisk startup guard to require a non-zero 16-byte (base, size) range in /chosen/memory-map so NativeRamBlock stays dormant when no initrd Data seed is loaded.",
 ]
 completion = [
   "XNU mounts APFS root volume via IOBlockStorageDevice and transitions to upstream ShengUfs / RamBlock / Data read-write storage.",
