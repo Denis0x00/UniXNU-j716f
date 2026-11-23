@@ -3,6 +3,7 @@
 #include <IOKit/IOBSD.h>
 #include <IOKit/IOBufferMemoryDescriptor.h>
 #include <IOKit/IODeviceMemory.h>
+#include <IOKit/IODeviceTreeSupport.h>
 #include <IOKit/IOLib.h>
 #include <IOKit/IOLocks.h>
 #include <IOKit/IOMemoryDescriptor.h>
@@ -13,13 +14,17 @@
 #include <kern/thread.h>
 #include <libkern/OSKextLib.h>
 #include <libkern/c++/OSBoolean.h>
+#include <libkern/c++/OSData.h>
 #include <libkern/c++/OSNumber.h>
 #include <libkern/c++/OSString.h>
 #include <libkern/c++/OSSymbol.h>
+#include <libkern/crypto/sha2.h>
 #include <libkern/libkern.h>
 #include <mach/kmod.h>
 #include <machine/machine_routines.h>
 #include <pexpert/pexpert.h>
+#include <sys/param.h>
+#include <sys/types.h>
 
 #include "KnownBlockTrial.h"
 #include "R41RootWindowDevice.h"
@@ -30,6 +35,7 @@ extern "C" int get_preemption_level(void);
 extern kmod_info_t g_kernel_kmod_info;
 extern "C" void j716f_r41_base_init(void) __asm__("__GLOBAL__sub_I_IOBlockStorageDevice.cpp");
 extern "C" void j716f_r41_block_init(void) __asm__("__GLOBAL__sub_I_R41RootWindowDevice.cpp");
+extern "C" void j716f_ram_block_init(void) __asm__("__GLOBAL__sub_I_NativeRamBlock.cpp");
 extern "C" __attribute__((weak)) void (*arm64_platform_sleep_hook)(boolean_t) = nullptr;
 
 namespace {
@@ -378,6 +384,7 @@ void publishRootWindows(WindowPublishState &p) {
   if (!mod_handle) return;
   j716f_r41_base_init();
   j716f_r41_block_init();
+  j716f_ram_block_init();
   if (OSMetaClass::postModLoad(mod_handle) != kOSReturnSuccess) return;
   p.classes_registered = true;
 
@@ -425,6 +432,50 @@ void publishRootWindows(WindowPublishState &p) {
     if (!p.os_ready) dumpSubtreeMedia("OS", g_os_device);
   } else if (os_dev) {
     os_dev->release();
+  }
+
+  // 3. Optional Stage 7 RAM Data disk: start NativeRamBlock only when DarwinBoot
+  // placed PackedRAMDisk or RAMDisk into /chosen/memory-map.
+  IORegistryEntry *mem_map = IORegistryEntry::fromPath("/chosen/memory-map", gIODTPlane);
+  const bool has_data_seed =
+      mem_map && (mem_map->getProperty("PackedRAMDisk") || mem_map->getProperty("RAMDisk"));
+  OSSafeReleaseNULL(mem_map);
+  if (has_data_seed) {
+    IOService *ram_disk =
+        OSDynamicCast(IOService, OSMetaClass::allocClassWithName("NativeRamBlock"));
+    if (ram_disk) {
+      if (ram_disk->init() && ram_disk->attach(provider) && ram_disk->start(provider)) {
+        printf("[J716F r41] NativeRamBlock Data disk started\n");
+        // Give APFS a brief window to publish the Data volume IOMedia before load_init_program().
+        for (unsigned step = 0; step < 50; ++step) {
+          IOSleep(100);
+          IORegistryIterator *it = IORegistryIterator::iterateOver(
+              ram_disk, gIOServicePlane, kIORegistryIterateRecursively);
+          bool data_ready = false;
+          if (it) {
+            IORegistryEntry *e = nullptr;
+            while ((e = it->getNextObject()) != nullptr) {
+              if (!e->metaCast("IOMedia")) continue;
+              OSString *u = OSDynamicCast(OSString, e->getProperty("UUID"));
+              OSString *b = OSDynamicCast(OSString, e->getProperty(kIOBSDNameKey));
+              if (u && u->getLength() == 36 && b && b->getLength() > 0) {
+                printf("[J716F r41] NativeRamBlock Data volume ready: bsd=%s uuid=%s (%ums)\n",
+                       b->getCStringNoCopy(), u->getCStringNoCopy(), (step + 1) * 100);
+                data_ready = true;
+                break;
+              }
+            }
+            it->release();
+          }
+          if (data_ready) break;
+        }
+      } else {
+        printf("[J716F r41] NativeRamBlock Data disk start failed\n");
+        ram_disk->release();
+      }
+    } else {
+      printf("[J716F r41] NativeRamBlock class allocation failed\n");
+    }
   }
 
   provider->release();
@@ -548,10 +599,98 @@ void reportPostRootAndRestart(const char *root_dev, const char *fs_type, int rea
            post.cb2_fsr, post.cb3_fsr, post.cb2_tlbstatus, post.cb3_tlbstatus,
            post.utrlrsr, post.utrldbr);
   }
+  unsigned continue_boot = 0;
+  if (PE_parse_boot_argn("j716f-r41-continue", &continue_boot, sizeof(continue_boot)) &&
+      continue_boot == 1) {
+    printf("[J716F r41] j716f-r41-continue=1: continuing past APFS root probe into Stage 7\n");
+    return;
+  }
   printf("[J716F r41] APFS root probe complete; restarting to UEFI menu for JXLG export\n");
   IOSleep(1000);
   PEHaltRestart(kPERestartCPU);
   panic("[J716F r41] PEHaltRestart returned after APFS root probe");
+}
+
+int authenticateWindowProvider(IOService *provider, const char *uuid, uint8_t *digest_out) {
+  if (!provider || !uuid || strlen(uuid) != 36) return -1;
+  const auto &m = g_init_report.gpt.manifest;
+  if (!transport.online() || !m.valid) return -1;
+
+  int win_idx = -1;
+  const char *expected_uuid = nullptr;
+  if (provider == g_os_device && m.os_index >= 0) {
+    win_idx = m.os_index;
+    expected_uuid = kOsRootUuid;
+  } else if (provider == g_sysos_device && m.systemos_index >= 0) {
+    win_idx = m.systemos_index;
+    expected_uuid = kSystemOsUuid;
+  } else {
+    return -1;
+  }
+
+  if (!strEq(uuid, expected_uuid)) return 0;
+  if (digest_out) {
+    static const char kDomain[] = "J716F.SHNGROOT.Window.v1";
+    const auto &w = m.windows[win_idx];
+    SHA384_CTX ctx;
+    SHA384_Init(&ctx);
+    SHA384_Update(&ctx, kDomain, sizeof(kDomain));
+    SHA384_Update(&ctx, w.sha256, sizeof(w.sha256));
+    SHA384_Update(&ctx, &w.abs_offset, sizeof(w.abs_offset));
+    SHA384_Update(&ctx, &w.size_bytes, sizeof(w.size_bytes));
+    SHA384_Update(&ctx, expected_uuid, 36);
+    SHA384_Final(digest_out, &ctx);
+  }
+  return 1;
+}
+
+int verifiedVolumeQuery(dev_t device, const char *expected_uuid, uint8_t *manifest_digest) {
+  OSDictionary *matching = IOService::serviceMatching("IOMedia");
+  OSDictionary *properties = OSDictionary::withCapacity(2);
+  OSNumber *mjr = OSNumber::withNumber(
+      static_cast<unsigned>(major(static_cast<uint32_t>(device))), 32);
+  OSNumber *mnr = OSNumber::withNumber(
+      static_cast<unsigned>(minor(static_cast<uint32_t>(device))), 32);
+  bool ready = matching && properties && mjr && mnr &&
+               properties->setObject(kIOBSDMajorKey, mjr) &&
+               properties->setObject(kIOBSDMinorKey, mnr) &&
+               matching->setObject("IOPropertyMatch", properties);
+  OSSafeReleaseNULL(mnr);
+  OSSafeReleaseNULL(mjr);
+  OSSafeReleaseNULL(properties);
+  OSIterator *iterator = ready ? IOService::getMatchingServices(matching) : nullptr;
+  OSSafeReleaseNULL(matching);
+  if (!iterator) return 0;
+
+  bool authenticated = false;
+  unsigned matches = 0;
+  while (OSObject *object = iterator->getNextObject()) {
+    IOService *media = OSDynamicCast(IOService, object);
+    if (!media) continue;
+    if (++matches != 1) {
+      authenticated = false;
+      break;
+    }
+    OSString *uuid = OSDynamicCast(OSString, media->getProperty("UUID"));
+    if (!uuid || uuid->getLength() != 36 ||
+        (expected_uuid && strcmp(expected_uuid, uuid->getCStringNoCopy()))) {
+      continue;
+    }
+    unsigned depth = 0;
+    for (IOService *prov = media; prov && depth < 64; prov = prov->getProvider(), ++depth) {
+      const int auth = authenticateWindowProvider(prov, uuid->getCStringNoCopy(), manifest_digest);
+      if (auth >= 0) {
+        authenticated = (auth == 1);
+        break;
+      }
+    }
+  }
+  iterator->release();
+  if (!authenticated || matches != 1) {
+    if (manifest_digest) bzero(manifest_digest, SHA384_DIGEST_LENGTH);
+    return 0;
+  }
+  return 1;
 }
 
 }  // namespace j716f_r41_kernel
@@ -568,4 +707,84 @@ extern "C" void j716f_r41_post_root_probe(const char *root_dev, const char *fs_t
   j716f_r41_kernel::reportPostRootAndRestart(
       root_dev, fs_type, readonly, autherr, launchd_err, launchd_size,
       launchd_magic, sysver_err, sysver_size);
+}
+
+extern "C" int native_verified_block_root_authorized(dev_t device) {
+  return j716f_r41_kernel::verifiedVolumeQuery(device, nullptr, nullptr);
+}
+
+extern "C" int native_verified_block_manifest_sha384(dev_t device, const char *uuid,
+                                                     uint8_t digest[48]) {
+  if (!digest) return 0;
+  bzero(digest, SHA384_DIGEST_LENGTH);
+  if (!uuid || strlen(uuid) != 36) return 0;
+  return j716f_r41_kernel::verifiedVolumeQuery(device, uuid, digest);
+}
+
+extern "C" int native_verified_block_volume_device(const char *uuid, dev_t *device,
+                                                   char *path, size_t size) {
+  if (!uuid || !device || !path || size < 6 || strlen(uuid) != 36) return 0;
+  *device = NODEV;
+  path[0] = '\0';
+  OSDictionary *matching = IOService::serviceMatching("IOMedia");
+  OSDictionary *properties = OSDictionary::withCapacity(1);
+  OSString *wanted = OSString::withCString(uuid);
+  bool ready = matching && properties && wanted &&
+               properties->setObject("UUID", wanted) &&
+               matching->setObject("IOPropertyMatch", properties);
+  OSSafeReleaseNULL(wanted);
+  OSSafeReleaseNULL(properties);
+  OSIterator *iterator = ready ? IOService::getMatchingServices(matching) : nullptr;
+  OSSafeReleaseNULL(matching);
+  if (!iterator) return 0;
+
+  unsigned matches = 0;
+  bool authenticated = false;
+  dev_t candidate = NODEV;
+  char candidate_path[64] = {};
+  while (OSObject *object = iterator->getNextObject()) {
+    IOService *media = OSDynamicCast(IOService, object);
+    if (!media) continue;
+    if (++matches != 1) {
+      authenticated = false;
+      break;
+    }
+    OSString *identity = OSDynamicCast(OSString, media->getProperty("UUID"));
+    OSString *name = OSDynamicCast(OSString, media->getProperty(kIOBSDNameKey));
+    OSNumber *mjr = OSDynamicCast(OSNumber, media->getProperty(kIOBSDMajorKey));
+    OSNumber *mnr = OSDynamicCast(OSNumber, media->getProperty(kIOBSDMinorKey));
+    if (!identity || strcmp(identity->getCStringNoCopy(), uuid) || !name || !mjr || !mnr ||
+        !name->getLength() || name->getLength() >= sizeof(candidate_path) - 6 ||
+        name->getLength() >= size - 6 || mjr->unsigned64BitValue() > 255 ||
+        mnr->unsigned64BitValue() > 0xffffff) {
+      continue;
+    }
+    candidate = static_cast<dev_t>(makedev(mjr->unsigned32BitValue(), mnr->unsigned32BitValue()));
+    if (!native_verified_block_root_authorized(candidate)) continue;
+    snprintf(candidate_path, sizeof(candidate_path), "/dev/%s", name->getCStringNoCopy());
+    authenticated = true;
+  }
+  iterator->release();
+  if (!authenticated || matches != 1) return 0;
+  *device = candidate;
+  strlcpy(path, candidate_path, size);
+  return 1;
+}
+
+// Weak fallback stubs for optional NativeRamBlock hooks when persistent UFS
+// writeback or payload-addon-release.patch is absent (static kernel ld requires
+// definitions for weak_import symbols). All return 0/false so Data stays
+// volatile in RAM and no UFS write can occur.
+extern "C" {
+__attribute__((weak)) bool ml_static_mfree_prepare(vm_offset_t, vm_size_t) { return false; }
+__attribute__((weak)) unsigned native_ufs_store_mode(void) { return 0; }
+__attribute__((weak)) int native_ufs_store_open(uint64_t, uint64_t *, const char **why) {
+  if (why) *why = "read-only-j716f-storage";
+  return 0;
+}
+__attribute__((weak)) int native_ufs_store_read(uint64_t, uint32_t, void *) { return 0; }
+__attribute__((weak)) int native_ufs_store_write(uint64_t, uint32_t, const void *) { return 0; }
+__attribute__((weak)) int native_ufs_store_write_cached(uint64_t, uint32_t, const void *) { return 0; }
+__attribute__((weak)) int native_ufs_store_sync(void) { return 0; }
+__attribute__((weak)) unsigned native_ufs_store_gpt_check(void) { return 0; }
 }

@@ -35,6 +35,7 @@ jobs:
             drivers/ArmDTPlatform \
             drivers/ArmCpu \
             drivers/SoftwareAES \
+            drivers/RamBlock \
             drivers/DarwinBoot \
             kits/XnuPrelink
 
@@ -98,6 +99,15 @@ jobs:
           test -f "$TREE/kits/j716f/storage/J716fStorageBringup.cpp"
           test -f "$TREE/kits/j716f/storage/r41/R41RootWindowDevice.cpp"
           test -f "$TREE/scripts/build-j716f-storage-active.py"
+          test -f "$TREE/drivers/RamBlock/NativeRamBlock.cpp"
+
+          ./unixnu defconfig j716f_stage7_defconfig -D "$DEVICE"
+          ./unixnu status --json > "$RUNNER_TEMP/status-stage7.json"
+          cat "$RUNNER_TEMP/status-stage7.json"
+          ./unixnu tree
+          TREE7="out/j716f/ipados-17.7.11-21H461/j716f_stage7/tree"
+          test -f "$TREE7/drivers/RamBlock/NativeRamBlock.cpp"
+          test -f "$TREE7/kits/j716f/storage/r41/R41Entry.cpp"
 
       - name: Verify and apply pending upstream UniXNU core patches
         run: |
@@ -126,10 +136,19 @@ jobs:
               Path(sys.argv[1]),
               board,
               unique_chip_id='0123456789abcdef',
+              data=True,
+              trust=True,
           )
           assert len(adt) > 4096, f'Unexpected small ADT size: {len(adt)}'
-          assert b'AAPL,phandle\x00' in adt, 'Generated ADT is missing AAPL,phandle alias'
-          print(f'Generated valid Apple Device Tree ({len(adt)} bytes, AAPL,phandle verified) from compiled dts/j716f.dts')
+          for needle in (
+              b'AAPL,phandle\x00',
+              b'vmm-present\x00',
+              b'kernel-ctrr-to-be-enabled\x00',
+              b'PackedRAMDisk\x00',
+              b'darwinboot-memory-size\x00',
+          ):
+              assert needle in adt, f'Generated ADT is missing {needle!r}'
+          print(f'Generated valid Stage 7 Apple Device Tree ({len(adt)} bytes) from compiled dts/j716f.dts')
           PY
 
       - name: Compile and run SM8250 UFS/SMMU and r41 SHNGROOT C++ ASan/UBSan tests

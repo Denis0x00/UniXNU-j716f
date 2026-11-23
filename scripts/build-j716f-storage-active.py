@@ -88,8 +88,13 @@ BRINGUP_EXPORTS = tuple(
     '_j716f_r41_base_class_size',
     '_j716f_r41_create_window_device',
     '_j716f_r41_window_stats',
+    '_native_verified_block_root_authorized',
+    '_native_verified_block_manifest_sha384',
+    '_native_verified_block_volume_device',
+    '_native_ram_block_volume_seed',
     '__GLOBAL__sub_I_IOBlockStorageDevice.cpp',
     '__GLOBAL__sub_I_R41RootWindowDevice.cpp',
+    '__GLOBAL__sub_I_NativeRamBlock.cpp',
 )
 
 
@@ -338,6 +343,15 @@ OSDefineOperatorMethods(IOBlockStorageDevice)
     blk_late_obj = compile_late_init(record, blk_src, out, includes, allow_warnings=False)
     report['objects'][blk_late_obj.name] = inspect_object(blk_late_obj, check_stack=True, allow_mod_init=False)
     objects.append(blk_late_obj)
+
+    ram_src = ROOT / 'drivers/RamBlock/NativeRamBlock.cpp'
+    if not ram_src.is_file():
+        raise ValueError('Missing RamBlock component source at ' + str(ram_src))
+    # Upstream NativeRamBlock::attachStore() uses a 4240-byte stack frame; match
+    # official build-arm-driver.py / build-sheng-source-storage.py warning flags.
+    ram_late_obj = compile_late_init(record, ram_src, out, includes + [ram_src.parent], allow_warnings=True)
+    report['objects'][ram_late_obj.name] = inspect_object(ram_late_obj, check_stack=False, allow_mod_init=False)
+    objects.append(ram_late_obj)
 
     archive = out / 'libJ716fStorageBringup.a'
     temporary = out / 'libJ716fStorageBringup.new.a'

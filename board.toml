@@ -10,7 +10,7 @@ os_profile = "ipados-17.7.11-21H461"
 description = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F) iPadOS 17.7.11 bring-up"
 
 [components]
-include = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "XnuPrelink", "DarwinBoot"]
+include = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "XnuPrelink", "DarwinBoot"]
 
 [kernel]
 defconfig = "j716f_defconfig"
@@ -27,8 +27,12 @@ archives = [
   "build-software-aes-bindings.py",
   "build-mockfs-fixture.py",
   "build-libpthread-kernel.py",
+  "prepare-storage-headers.py",
   "build-j716f-storage-active.py",
 ]
+
+[kernel.embedded_components]
+RamBlock = "build-j716f-storage-active.py"
 
 [device_tree]
 source = "device:dts/j716f.dts"
@@ -91,7 +95,18 @@ root_match_volume_uuid = "04769D26-2CA0-4825-B443-E2E5F88300F2"
 chip_id = "8011"
 unique_chip_id = "required"
 psci_method = "smc"
-owned_memory_size = 0x10000000
+packed_data_ramdisk = true
+owned_memory_size = 0x80000000
+
+[adt.defaults.u32]
+sleep-disabled = 1
+# No Apple PMGR or SEP: report a virtual platform so AMFI does not wait for ApplePMGRNub.
+vmm-present = 1
+"kern.maxvnodes" = 66560
+
+[adt.chosen.u32]
+# SM8250 has no Apple CTRR hardware.
+kernel-ctrr-to-be-enabled = 0
 
 [package]
 unixnu = "../UniXNU"
