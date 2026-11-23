@@ -52,6 +52,7 @@ findings = [
   "Added Stage 7 host-build defconfig (configs/j716f_stage7_defconfig), RamBlock embedded component selection, and platform ADT defaults (vmm-present=1, sleep-disabled=1, kernel-ctrr-to-be-enabled=0, packed_data_ramdisk=true, owned_memory_size=2 GiB).",
   "Wired GopFramebuffer and AppleKeyStoreState into board.toml embedded_components, enabled CONFIG_XNU_NATIVE_LEGACY_DISPLAY=y in configs/j716f_stage7_defconfig, added [adt.product] display properties, and enabled the upstream GopFramebuffer fence-wait sanitizer check in j716f-ci.yml.",
   "Updated README.md with verified Stage 6 APFS root mount and Stage 7+ Apple logo hardware milestones plus j716f_stage7_defconfig build instructions.",
+  "Enabled soc:patches/xnu/series (8-core SMP + Edge scheduler) and [adt.buttons] in board.toml, omitted -v from default payload kernel_args for clean kPEGraphicsMode desktop output, and expanded j716f-ci.yml to validate input/power package sources and 8-core/buttons ADT nodes.",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -100,6 +101,7 @@ procedure = [
 findings = [
   "r38 UEFI firmware preserves early XNU logs across resets and publishes the SEC-captured UFS HCI + APPS SMMU handoff record in the RAM slot (0xB007E000).",
   "Menu entry, volume/power key navigation, clean rendering, Advanced Logger QR export, and 80 MiB initrd ReadyToBoot CRC32 checks passed in staged hardware trials.",
+  "Enabled all 8 Kryo 585 cores (cpu0..cpu7) in dts/j716f.dts and verified r38 SILICIUM_UEFI.fd handoff through 8-core SMP iPadOS 17.7.11 SpringBoard desktop with wallpaper.",
 ]
 completion = [
   "SILICIUM_UEFI.fd builds cleanly against upstream UniXNU/UniXNU in CI and reliably hands off to DarwinBoot and XNU.",
@@ -276,6 +278,7 @@ findings = [
   "Integrated unmodified upstream GopFramebuffer and AppleKeyStoreState (aks=1) with clean J716F board probes (package/display/J716fLegacyDisplayProbe.cpp, J716fKeyStoreProbe.cpp); pending live tablet hardware verification.",
   "Hardware-verified Stage 7+ boot_b image (06052400...) published NativeLegacyDisplay (2560x1600 BGRX32 GOP, scale 2, vsync=60) and AppleKeyStoreState (aks=1) and rendered the real iPadOS 17.7.11 Apple logo on TB-J716F hardware.",
   "Hardware-verified Stage 7+ RAM-store boot_b image (2274a64d..., log e1d6a856...) opened 4+ AppleKeyStore user clients and 7+ IOMobileFramebufferUserClient sessions and rendered the real iPadOS 17.7.11 Hello screen on TB-J716F hardware.",
+  "Extended build-j716f-display-keystore.py (13 objects, 245 verified 21H461 bindings) and J716fLegacyDisplayProbe.cpp to launch HID/touch/buttons/CPUfreq probes alongside GopFramebuffer, and verified full SpringBoard desktop with wallpaper and clean kPEGraphicsMode output on hardware.",
 ]
 completion = [
   "Native XNU framebuffer/display driver (GopFramebuffer / IOMobileFramebufferLegacy) and AppleKeyStoreState (aks=1) render iPadOS WindowServer/SpringBoard cleanly on hardware.",
@@ -461,6 +464,7 @@ findings = [
   "UEFI Restart and Power off (with USB/charger disconnected) were verified on hardware.",
   "XNU SMC PSCI system reset was verified across staged early-boot checkpoints.",
   "GCC UFS power/clock state observation is wired via J716fStoragePower.",
+  "Added SM8250-AC EPSS 3-domain CPUfreq (0x18591000/2000/3000) and L3 (0x18590000, vote 0x320) scaling driver in package/power/J716fCpuFreq.cpp verified from TB-J716F stock DTB; hardware-verified ~2.26x faster early boot and responsive desktop alongside 8-core SMP.",
 ]
 completion = [
   "Clean OS reboot/shutdown, battery telemetry, and runtime PMGR/clock control.",
@@ -538,6 +542,7 @@ procedure = [
 ]
 findings = [
   "Retained early XNU logs survived both PSCI reset and long-power-button reset in hardware trials, enabling exact instruction-level diagnosis without hardware UART.",
+  "Added patches/xnu/j716f-skip-setup.patch (gated by j716f-skip-setup=1) to seed the 5 official skip-setup binary plists into /private/var without macOS hdiutil; retained JXLG logs verified desktop, touch, buttons, and 8-core SMP boots on hardware.",
 ]
 completion = [
   "Reliable kernel log capture through root mount and early userland bring-up.",
@@ -573,6 +578,7 @@ procedure = [
 ]
 findings = [
   "Not yet investigated.",
+  "dts/j716f.dts enabled cpu1..cpu7 for 8-core SMP bring-up; SLPI/SSC sensor nodes remain deferred.",
 ]
 completion = [
   "Orientation and ambient light sensors report readings to iPadOS.",
