@@ -253,7 +253,75 @@ bool cbAllocDma(void *ctx, sm8250_ufs::DmaView *out) {
 void cbLock(void *ctx) { auto &hw = *static_cast<AlignedFake *>(ctx); assert(hw.lock_depth == 0); ++hw.lock_depth; }
 void cbUnlock(void *ctx) { auto &hw = *static_cast<AlignedFake *>(ctx); assert(hw.lock_depth == 1); --hw.lock_depth; }
 
+R35Record makeSyntheticRecord() {
+  R35Record r = {};
+  r.magic = R35_MAGIC;
+  r.version = R35_VERSION;
+  r.bytes = R35_RECORD_BYTES;
+  r.profile = R35_PROFILE;
+  r.source = 1;
+  r.boot_sequence = 1;
+  r.mode = R35StopAndMaintain;
+  r.boot_id = 0x4A37313646544553ULL;
+  r.status = R35Maintained;
+  r.phase = R35Done;
+  r.host_stopped = 1;
+  r.disabled_mask = 0xCU;
+  r.synchronized_mask = 0xCU;
+  r.routes_unchanged = 1;
+  r.display_config_unchanged = 1;
+  r.old_namespace_captured = 1;
+  r.detacher_policy = R35PreserveUfsBanks;
+  r.preserve_banks = 0x1CU;
+  r.selected_slots[0] = 2;
+  r.selected_slots[1] = 3;
+  r.selected_banks[0] = 2;
+  r.selected_banks[1] = 3;
+  r.finished = 1;
+  r.post_detacher_recorded = 1;
+  r.post_detacher_preserved = 1;
+  r.maintenance_record_valid = 1;
+
+  auto fillSnapshot = [](R35Snapshot &s) {
+    s.hci_valid = (1U << R35_HCI_WORDS) - 1U;
+    s.hci[R35Cap] = 0x0100001FU;  // 64-bit addressing capable, bit 30 clear
+    s.hci[R35Ver] = 0x00000300U;  // UFS 3.0
+    s.hci[R35Hce] = 1U;
+    s.hci[R35Hcs] = 0x0000000FU;  // DP, UTRLRDY, UTMRLRDY, UCRDY
+    s.header_valid = 0xFU;
+    s.headers[0] = 0x48001E57U;   // ID0: 87 stream matching groups
+    s.headers[1] = 0x10000008U;   // ID1: 8 context banks
+    s.headers[2] = 0x00000222U;   // ID2: 40-bit IAS/OAS/UBSx
+    s.headers[3] = 0x00000000U;   // sCR0
+    s.stream_count = R35_GROUPS;
+    for (unsigned i = 0; i < R35_GROUPS; ++i) {
+      s.streams[i].valid = 3U;
+    }
+    s.streams[2].smr = 0x800004E0U;
+    s.streams[2].s2cr = 2U;
+    s.streams[3].smr = 0x800000E0U;
+    s.streams[3].s2cr = 3U;
+    s.streams[4].smr = 0x84020820U;
+    s.streams[4].s2cr = 4U;
+    for (unsigned idx = 0; idx < 3; ++idx) {
+      s.context[idx].bank = idx + 2;
+      s.context[idx].valid32 = R35_CONTEXT_ALL;
+      s.context[idx].valid64 = 3U;
+      s.context[idx].words[R35Cbar] = 0x00010000U;
+      s.context[idx].words[R35Cba2r] = 1U;
+    }
+  };
+  fillSnapshot(r.before);
+  fillSnapshot(r.after);
+  r.crc32 = r35_record_crc(&r);
+  assert(r35_record_validate(&r));
+  return r;
+}
+
 R35Record loadRecordFile(const char *path) {
+  if (strcmp(path, "--synthetic") == 0) {
+    return makeSyntheticRecord();
+  }
   FILE *f = fopen(path, "rb");
   assert(f);
   R35Record r = {};

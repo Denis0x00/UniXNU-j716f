@@ -82,9 +82,10 @@ jobs:
           DEVICE="$PWD/device"
           cd unixnu
           ./unixnu defconfig j716f_defconfig -D "$DEVICE" --os 17
-          ./unixnu status --json --os 17
+          ./unixnu status --json --os 17 > "$RUNNER_TEMP/status.json"
+          cat "$RUNNER_TEMP/status.json"
           ./unixnu tree --os 17
-          TREE="out/j716f/tree"
+          TREE="out/j716f/ipados-17.7.11-21H461/j716f/tree"
           test -f "$TREE/kits/j716f/storage/J716fStorageBringup.cpp"
           test -f "$TREE/kits/j716f/storage/r41/R41RootWindowDevice.cpp"
           test -f "$TREE/scripts/build-j716f-storage-active.py"
@@ -167,12 +168,16 @@ jobs:
           echo "=== Test 6: R41RootWindowModel (SHNGROOT manifest + window slicing) ==="
           clang -std=c11 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer \
             -I"$STOR/r41" -c "$STOR/r41/R35Record.c" -o "$OUT/R35Record.o"
-          clang++ $CXXFLAGS -I"$STOR/r41" \
+          clang++ $CXXFLAGS -I"$STOR/r41" -I"$STOR/include" -I"$PLAT" \
             "$OUT/R35Record.o" \
+            "$PLAT/AppsSmmuOwner.cpp" \
+            "$STOR/r41/KnownBlockReference.cpp" \
             "$STOR/r41/R41UfsTransport.cpp" \
             "$STOR/r41/tests/R41RootWindowModel.cpp" \
             -o "$OUT/test_r41_root_window"
-          "$OUT/test_r41_root_window"
+          for mode in happy-path bad-manifest-sha overlap-windows no-shngroot; do
+            "$OUT/test_r41_root_window" --synthetic "$mode"
+          done
 
       - name: Validate structured porting.toml against official UniXNU schema
         run: |

@@ -46,6 +46,7 @@ findings = [
   "Removed local-only core PCD coupling (J716F_MENU_DIAGNOSTIC) from default board.toml firmware defines so the board builds cleanly against unmodified upstream UniXNU/UniXNU.",
   "Excluded proprietary vendor DTB binaries and private device seeds from Git; documented user extraction in proprietary-files.txt.",
   "Enabled official UniXNU porting-record.yml CI alongside j716f-ci.yml (Format 2 tree assembly, DTS/ADT generation, and C++ ASan/UBSan storage/SMMU unit tests).",
+  "Verified Format 2 tree layout path out/j716f/ipados-17.7.11-21H461/j716f/tree in CI.",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -201,6 +202,7 @@ findings = [
   "Consolidated r41 read-only SHNGROOT window IOBlockStorageDevice sources directly under package/storage/ so ./unixnu builds cleanly without --local-module overrides.",
   "Staged r41 hardware trial verified SHNGROOT userdata reads (223 blocks, 0 errors) and APFS SystemOS (disk1s1) / OS (disk3s1) container discovery.",
   "Removed legacy _inittodr diagnostic reset hook so the consolidated build proceeds straight into vfs_mountroot().",
+  "Added self-contained --synthetic R35Record fixture mode to R41RootWindowModel.cpp so all 4 SHNGROOT verification modes run under ASan/UBSan in public CI without binary fixtures.",
 ]
 completion = [
   "XNU mounts APFS root volume via IOBlockStorageDevice and transitions to upstream ShengUfs / RamBlock / Data read-write storage.",
