@@ -784,20 +784,156 @@ extern "C" int native_verified_block_volume_device(const char *uuid, dev_t *devi
   return 1;
 }
 
-// Weak fallback stubs for optional NativeRamBlock hooks when persistent UFS
-// writeback or payload-addon-release.patch is absent (static kernel ld requires
-// definitions for weak_import symbols). All return 0/false so Data stays
-// volatile in RAM and no UFS write can occur.
+// Volatile 2-level sparse RAM-backed store for NativeRamBlock when a >2 GiB
+// APFS Data seed (e.g. 16 GiB data-21H461.dbr) runs in direct mode without
+// persistent UFS writeback. Strictly RAM-only: zero UFS writes can ever occur.
+namespace j716f_ram_store {
+constexpr uint32_t kBlockBytes = 4096;
+constexpr uint32_t kL2Shift = 10;
+constexpr uint32_t kL2Count = 1U << kL2Shift;
+constexpr uint32_t kL2Mask = kL2Count - 1U;
+constexpr uint32_t kMaxL1 = 4112;  // Covers up to 4,210,688 blocks (>16 GiB + overlay header/bitmap)
+constexpr uint32_t kMaxResidentPages = 131072;  // 512 MiB hard cap
+
+IOLock *g_lock = nullptr;
+uint8_t ***g_l1 = nullptr;
+uint64_t g_total_blocks = 0;
+uint32_t g_resident_pages = 0;
+bool g_open = false;
+
+bool isAllZero(const uint8_t *p) {
+  for (size_t i = 0; i < kBlockBytes; ++i) {
+    if (p[i] != 0) return false;
+  }
+  return true;
+}
+
+bool enabled() {
+  unsigned v = 0;
+  if (PE_parse_boot_argn("j716f-ram-store", &v, sizeof(v))) {
+    return v == 1;
+  }
+  return PE_parse_boot_argn("data-reset", &v, sizeof(v)) && (v == 1 || v == 2);
+}
+}  // namespace j716f_ram_store
+
 extern "C" {
 __attribute__((weak)) bool ml_static_mfree_prepare(vm_offset_t, vm_size_t) { return false; }
-__attribute__((weak)) unsigned native_ufs_store_mode(void) { return 0; }
-__attribute__((weak)) int native_ufs_store_open(uint64_t, uint64_t *, const char **why) {
-  if (why) *why = "read-only-j716f-storage";
-  return 0;
+
+__attribute__((weak)) unsigned native_ufs_store_mode(void) {
+  return j716f_ram_store::enabled() ? 2U : 0U;
 }
-__attribute__((weak)) int native_ufs_store_read(uint64_t, uint32_t, void *) { return 0; }
-__attribute__((weak)) int native_ufs_store_write(uint64_t, uint32_t, const void *) { return 0; }
-__attribute__((weak)) int native_ufs_store_write_cached(uint64_t, uint32_t, const void *) { return 0; }
-__attribute__((weak)) int native_ufs_store_sync(void) { return 0; }
+
+__attribute__((weak)) int native_ufs_store_open(uint64_t blocks, uint64_t *first,
+                                                const char **why) {
+  using namespace j716f_ram_store;
+  if (!enabled()) {
+    if (why) *why = "read-only-j716f-storage";
+    return 0;
+  }
+  if (!blocks || blocks > static_cast<uint64_t>(kMaxL1) * kL2Count) {
+    if (why) *why = "ram-store-too-large";
+    return 0;
+  }
+  if (!g_lock) g_lock = IOLockAlloc();
+  if (!g_lock) {
+    if (why) *why = "ram-store-lock";
+    return 0;
+  }
+  IOLockLock(g_lock);
+  if (!g_l1) {
+    g_l1 = static_cast<uint8_t ***>(IOMallocZero(static_cast<size_t>(kMaxL1) * sizeof(uint8_t **)));
+  }
+  if (!g_l1) {
+    IOLockUnlock(g_lock);
+    if (why) *why = "ram-store-oom";
+    return 0;
+  }
+  g_total_blocks = blocks;
+  g_open = true;
+  if (first) *first = 0;
+  IOLockUnlock(g_lock);
+  printf("[J716F r41] volatile RAM Data store opened: blocks=%llu cap=%uMiB (0 UFS writes)\n",
+         static_cast<unsigned long long>(blocks), (kMaxResidentPages * kBlockBytes) >> 20);
+  return 1;
+}
+
+__attribute__((weak)) int native_ufs_store_read(uint64_t block, uint32_t count, void *dst) {
+  using namespace j716f_ram_store;
+  if (!dst || !count || !g_open || !g_lock || block > g_total_blocks ||
+      count > g_total_blocks - block) {
+    return 0;
+  }
+  uint8_t *out = static_cast<uint8_t *>(dst);
+  IOLockLock(g_lock);
+  for (uint32_t i = 0; i < count; ++i) {
+    const uint64_t b = block + i;
+    const uint32_t l1_idx = static_cast<uint32_t>(b >> kL2Shift);
+    const uint32_t l2_idx = static_cast<uint32_t>(b & kL2Mask);
+    uint8_t **l2 = g_l1[l1_idx];
+    uint8_t *page = l2 ? l2[l2_idx] : nullptr;
+    if (page) {
+      memcpy(out + static_cast<size_t>(i) * kBlockBytes, page, kBlockBytes);
+    } else {
+      bzero(out + static_cast<size_t>(i) * kBlockBytes, kBlockBytes);
+    }
+  }
+  IOLockUnlock(g_lock);
+  return 1;
+}
+
+__attribute__((weak)) int native_ufs_store_write(uint64_t block, uint32_t count, const void *src) {
+  using namespace j716f_ram_store;
+  if (!src || !count || !g_open || !g_lock || block > g_total_blocks ||
+      count > g_total_blocks - block) {
+    return 0;
+  }
+  const uint8_t *in = static_cast<const uint8_t *>(src);
+  IOLockLock(g_lock);
+  for (uint32_t i = 0; i < count; ++i) {
+    const uint64_t b = block + i;
+    const uint32_t l1_idx = static_cast<uint32_t>(b >> kL2Shift);
+    const uint32_t l2_idx = static_cast<uint32_t>(b & kL2Mask);
+    const uint8_t *src_page = in + static_cast<size_t>(i) * kBlockBytes;
+    uint8_t **l2 = g_l1[l1_idx];
+    uint8_t *page = l2 ? l2[l2_idx] : nullptr;
+    if (!page) {
+      if (isAllZero(src_page)) continue;
+      if (g_resident_pages >= kMaxResidentPages) {
+        IOLockUnlock(g_lock);
+        printf("[J716F r41] volatile RAM Data store full (%u pages)\n", g_resident_pages);
+        return 0;
+      }
+      if (!l2) {
+        l2 = static_cast<uint8_t **>(IOMallocZero(static_cast<size_t>(kL2Count) * sizeof(uint8_t *)));
+        if (!l2) {
+          IOLockUnlock(g_lock);
+          return 0;
+        }
+        g_l1[l1_idx] = l2;
+      }
+      page = static_cast<uint8_t *>(IOMallocZero(kBlockBytes));
+      if (!page) {
+        IOLockUnlock(g_lock);
+        return 0;
+      }
+      l2[l2_idx] = page;
+      ++g_resident_pages;
+    }
+    memcpy(page, src_page, kBlockBytes);
+  }
+  IOLockUnlock(g_lock);
+  return 1;
+}
+
+__attribute__((weak)) int native_ufs_store_write_cached(uint64_t block, uint32_t count,
+                                                        const void *src) {
+  return native_ufs_store_write(block, count, src);
+}
+
+__attribute__((weak)) int native_ufs_store_sync(void) {
+  return j716f_ram_store::g_open ? 1 : 0;
+}
+
 __attribute__((weak)) unsigned native_ufs_store_gpt_check(void) { return 0; }
 }

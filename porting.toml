@@ -4,7 +4,7 @@ schema_version = 1
 name = "j716f"
 soc = "SM8250"
 os_profile = "ipados-17.7.11-21H461"
-summary = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F, SM8250-AC) consolidated onto the official UniXNU Format 2 device repository layout alongside the r38 companion UEFI repository (Denis0x00/uefi-j716f). UEFI menu, display ownership, keys, QR log export, retained early XNU logs, single-core CPU0 BSD bring-up, and read-only SHNGROOT UFS/APFS container probing have been verified in staged hardware trials; full vfs_mountroot() completion, upstream ShengUfs/RamBlock/Data convergence, and Stage 7 userland remain in progress."
+summary = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F, SM8250-AC) consolidated onto the official UniXNU Format 2 device repository layout alongside the r38 companion UEFI repository (Denis0x00/uefi-j716f). UEFI menu, display ownership, keys, QR log export, retained early XNU logs, single-core CPU0 BSD bring-up, real iPadOS 17.7.11 APFS root mount (/sbin/launchd + SystemVersion.plist read), and Stage 7+ GopFramebuffer + AppleKeyStoreState + /sbin/launchd boot to the real Apple logo have been verified on TB-J716F hardware; volatile 2-level RAM store writeback for 16 GiB Data seeds and SpringBoard desktop completion are in active testing."
 
 [[area]]
 id = "configuration"
@@ -51,6 +51,7 @@ findings = [
   "Extracted two self-contained upstream PR patches under patches/unixnu-core/ (AAPL,phandle emission in devicetree.py and Android bootimg v2 support + unit tests in bootimg.py) and added standard .github/workflows/package.yml; CI verifies clean git apply, test_bootimg.py, and AAPL,phandle presence in the generated ADT against upstream UniXNU/UniXNU.",
   "Added Stage 7 host-build defconfig (configs/j716f_stage7_defconfig), RamBlock embedded component selection, and platform ADT defaults (vmm-present=1, sleep-disabled=1, kernel-ctrr-to-be-enabled=0, packed_data_ramdisk=true, owned_memory_size=2 GiB).",
   "Wired GopFramebuffer and AppleKeyStoreState into board.toml embedded_components, enabled CONFIG_XNU_NATIVE_LEGACY_DISPLAY=y in configs/j716f_stage7_defconfig, added [adt.product] display properties, and enabled the upstream GopFramebuffer fence-wait sanitizer check in j716f-ci.yml.",
+  "Updated README.md with verified Stage 6 APFS root mount and Stage 7+ Apple logo hardware milestones plus j716f_stage7_defconfig build instructions.",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -218,6 +219,8 @@ findings = [
   "Verified all 4 R41RootWindowModel ASan/UBSan modes (happy-path, bad-manifest-sha, overlap-windows, no-shngroot) with SMMUv2 IDR1/IDR2 synthetic geometry.",
   "Prepared Stage 7 storage bridge in R41Entry.cpp and build-j716f-storage-active.py: embedded unmodified upstream NativeRamBlock.cpp (late-init), added j716f-r41-continue=1 boot-arg, and implemented native_verified_block_root_authorized/manifest_sha384/volume_device for owner SystemOS union mount and RAM Data mount.",
   "Tightened R41Entry.cpp PackedRAMDisk/RAMDisk startup guard to require a non-zero 16-byte (base, size) range in /chosen/memory-map so NativeRamBlock stays dormant when no initrd Data seed is loaded.",
+  "Hardware-verified Stage 6 consolidated boot_b image (caafb1ca...): vfs_mountroot() mounted real iPadOS 17.7.11 APFS OS root disk3s1 (DawnUpdate21H461.J120J121J207J208OS) and read /sbin/launchd (561,856 B, magic=0xfeedfacf) and SystemVersion.plist (574 B) with 0 errors and 0 UFS writes (tcmd=270, tblk=477, quar=0, disp4=1).",
+  "Hardware-verified Stage 7+ boot_b image (06052400...) booted /sbin/launchd and mounted disk5s1 (/private/var), revealing NativeRamBlock isBig (>2 GiB seed) rejects writes without a direct store (kIOReturnNotReady); added a volatile 2-level sparse RAM-backed native_ufs_store_* backend (512 MiB cap, 0 UFS writes) in R41Entry.cpp with data-reset=1 data-fua=1.",
 ]
 completion = [
   "XNU mounts APFS root volume via IOBlockStorageDevice and transitions to upstream ShengUfs / RamBlock / Data read-write storage.",
@@ -268,6 +271,7 @@ findings = [
   "XNU verbose text console patch surfaces early kernel text on the inherited framebuffer.",
   "Verified 100% byte-for-byte match of all 358 IOMobileFramebufferLegacy vtable slots, 9 abstract leaves, 7 IOSurface getters, vsync_notify, and setDisplayRefreshProperties against 21H461 kernelcache.decompressed (-0x1000000 slide) on Linux.",
   "Integrated unmodified upstream GopFramebuffer and AppleKeyStoreState (aks=1) with clean J716F board probes (package/display/J716fLegacyDisplayProbe.cpp, J716fKeyStoreProbe.cpp); pending live tablet hardware verification.",
+  "Hardware-verified Stage 7+ boot_b image (06052400...) published NativeLegacyDisplay (2560x1600 BGRX32 GOP, scale 2, vsync=60) and AppleKeyStoreState (aks=1) and rendered the real iPadOS 17.7.11 Apple logo on TB-J716F hardware.",
 ]
 completion = [
   "Native XNU framebuffer/display driver (GopFramebuffer / IOMobileFramebufferLegacy) and AppleKeyStoreState (aks=1) render iPadOS WindowServer/SpringBoard cleanly on hardware.",

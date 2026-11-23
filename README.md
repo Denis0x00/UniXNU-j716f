@@ -14,32 +14,46 @@ board.toml                     # Format 2 board manifest (kernel, firmware, payl
 feeds.toml                     # Local SM8250 SoC feed pointer (socs/sm8250)
 unixnu.lock                    # Pinned upstream Apple OSS & mu_basecore commits
 porting.toml                   # Structured UniXNU porting record (14 areas)
-configs/j716f_defconfig        # Kernel defconfig (single-core CPU0 + DT panic region + storage archive)
+configs/
+  j716f_defconfig              # Stage 6 single-core CPU0 + DT panic region + read-only storage archive
+  j716f_stage7_defconfig       # Stage 7+ RAM Data + SystemOS union + GopFramebuffer + AppleKeyStoreState
 dts/j716f.dts                  # Board device tree (overlays socs/sm8250/dts/sm8250.dtsi)
 patches/xnu/                   # Board XNU patches (earlylog, verbose console, storage, APFS root probe)
 patches/unixnu-core/           # Pending upstream UniXNU core PR patches (AAPL,phandle & bootimg v2)
-package/storage/               # Board read-only SHNGROOT UFS window driver + r41 host model test
+package/storage/               # Board read-only SHNGROOT UFS window driver + volatile RAM store + r41 test
+package/display/               # Board probes for upstream GopFramebuffer and AppleKeyStoreState (aks=1)
 socs/sm8250/                   # SM8250 SoC config, DTSI, UFS HCI/SMMU handoff library & host tests
 scripts/
-  build-j716f-storage-active.py  # Builds libJ716fStorageBringup.a from kits/j716f/storage
-  package.sh                     # Standard UniXNU release entrypoint
-  ci/                            # macOS first-install Data seed tools (see README-data-runner.md)
+  build-j716f-storage-active.py    # Builds libJ716fStorageBringup.a (r41 storage + NativeRamBlock)
+  build-j716f-display-keystore.py  # Audits 21H461 kernelcache & builds libNativeLegacyDisplay.late.a
+  package.sh                       # Standard UniXNU release entrypoint
+  ci/                              # macOS first-install Data seed tools (see README-data-runner.md)
 ```
 
 ## Bring-Up Status
 
 - **UEFI & Display (`uefi-j716f` r38)**: Verified boot menu, volume/power key
   navigation, clean rendering, Advanced Logger QR export, retained early XNU
-  RAM log across resets, and SEC-to-XNU UFS/SMMU RAM handoff slot (`0xB007E000`).
-- **Kernel & Early BSD (Stage 5)**: Verified CPU0 bring-up through MMU enable,
-  `arm_init`, `PE_init_iokit`, `machine_lockdown`, `StartIOKitMatching`,
-  `bsd_init`, `sysctl_mib_init`, and `IOKitBSDInit`.
-- **Storage & APFS Root (Stage 6 in progress)**: Read-only `SHNGROOT` UFS
-  window driver (`package/storage/` + `socs/sm8250/kits/Sm8250Platform/`)
-  verified `SHNGROOT` userdata reads (223 blocks, 0 errors) and APFS
-  `SystemOS` (`disk1s1`) / `OS` (`disk3s1`) container probes on hardware.
-  Active work focuses on live `vfs_mountroot()` completion and converging onto
-  the upstream `ShengUfs` / `RamBlock` / `Data` path.
+  RAM log (`JXLG`) across resets, 80 MiB initrd ReadyToBoot CRC32 checks, and
+  SEC-to-XNU UFS/SMMU RAM handoff slot (`0xB007E000`).
+- **Kernel & Early BSD (Stage 5 — verified on hardware)**: Verified CPU0
+  bring-up through MMU enable, `arm_init`, `PE_init_iokit`, `machine_lockdown`,
+  `StartIOKitMatching`, `bsd_init`, `sysctl_mib_init`, and `IOKitBSDInit`.
+- **Storage & APFS Root Mount (Stage 6 — verified on hardware)**: Consolidated
+  official `./unixnu` build verified `vfs_mountroot()` mounting the real iPadOS
+  17.7.11 APFS OS root (`disk3s1`, `DawnUpdate21H461.J120J121J207J208OS`) and
+  `SystemOS` (`disk1s1`), reading `/sbin/launchd` (`561,856 B`, Mach-O
+  `0xfeedfacf`) and `SystemVersion.plist` (`574 B`) with zero UFS writes and
+  zero I/O errors (`270` commands / `477` blocks, `quar=0`, `disp4=1`).
+- **Userspace, Display & KeyStore (Stage 7+ — Apple logo reached on hardware)**:
+  `configs/j716f_stage7_defconfig` links unmodified upstream `RamBlock`,
+  `GopFramebuffer` (`NativeLegacyDisplay` + `NativeGOPPresenter`), and
+  `AppleKeyStoreState` (`aks=1`). Hardware bring-up booted `/sbin/launchd` and
+  rendered the real iPadOS Apple logo via the `2560x1600` BGRX32 GOP
+  framebuffer. A volatile 2-level sparse RAM-backed `native_ufs_store_*`
+  backend (512 MiB cap, zero UFS writes) was added in `R41Entry.cpp` to enable
+  read-write `/private/var` (`disk5s1`) for 16 GiB `data-21H461.dbr` seeds
+  (`data-reset=1 data-fua=1`).
 
 See [porting.toml](porting.toml) for the full structured per-area record.
 
@@ -58,12 +72,17 @@ cd UniXNU
 # real-hardware ADT (AAPL,phandle) and Android boot image header v2:
 git apply ../UniXNU-j716f/patches/unixnu-core/*.patch
 
+# Stage 6 (APFS root mount baseline)
 ./unixnu defconfig j716f_defconfig -D ../UniXNU-j716f --os 17
 ./unixnu status --json --os 17
 ./unixnu tree --os 17
 ./unixnu build package --os 17
 ./unixnu build firmware --os 17 --uefi ../uefi-j716f
 ./unixnu build kernel --os 17
+
+# Stage 7+ (RAM Data + SystemOS union + GopFramebuffer + AppleKeyStoreState)
+./unixnu defconfig j716f_stage7_defconfig -D ../UniXNU-j716f
+./unixnu build kernel
 ```
 
 To assemble `payload.img` and `boot.img`, supply the user-owned inputs listed in
