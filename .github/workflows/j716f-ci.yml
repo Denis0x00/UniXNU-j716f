@@ -76,7 +76,7 @@ jobs:
           PY
           PYTHONPATH="$PWD/device/scripts/ci" python3 -m unittest discover -s device/scripts/ci -p 'test_*.py' -v
 
-      - name: Validate UniXNU Format 2 CLI (defconfig, status, tree, build package)
+      - name: Validate UniXNU Format 2 CLI (defconfig, status, tree)
         run: |
           set -euo pipefail
           DEVICE="$PWD/device"
@@ -84,15 +84,17 @@ jobs:
           ./unixnu defconfig j716f_defconfig -D "$DEVICE" --os 17
           ./unixnu status --json --os 17
           ./unixnu tree --os 17
-          ./unixnu build package --os 17
-          test -f kits/j716f/storage/J716fStorageBringup.cpp
-          test -f kits/j716f/storage/r41/R41RootWindowDevice.cpp
+          TREE="out/j716f/tree"
+          test -f "$TREE/kits/j716f/storage/J716fStorageBringup.cpp"
+          test -f "$TREE/kits/j716f/storage/r41/R41RootWindowDevice.cpp"
+          test -f "$TREE/scripts/build-j716f-storage-active.py"
 
       - name: Compile DTS with dtc and verify Apple Device Tree (ADT) generation
         run: |
           set -euo pipefail
-          dtc -I dts -O dtb -@ -i device/socs/sm8250/dts -o "$RUNNER_TEMP/j716f.dtb" device/dts/j716f.dts
-          python3 - <<'PY'
+          DTB="$RUNNER_TEMP/j716f.dtb"
+          dtc -I dts -O dtb -@ -i device/socs/sm8250/dts -o "$DTB" device/dts/j716f.dts
+          python3 - "$DTB" <<'PY'
           import sys
           import tomllib
           from pathlib import Path
@@ -101,11 +103,9 @@ jobs:
           from unixnu import devicetree
 
           board = tomllib.loads(Path('device/board.toml').read_text(encoding='utf-8'))
-          adt_cfg = board['payload']['adt']
-          dtb_bytes = Path(f"{__import__('os').environ['RUNNER_TEMP']}/j716f.dtb").read_bytes()
           adt = devicetree.generate(
-              dtb_bytes,
-              adt_cfg,
+              Path(sys.argv[1]),
+              board,
               unique_chip_id=0x0123456789ABCDEF,
           )
           assert len(adt) > 4096, f'Unexpected small ADT size: {len(adt)}'

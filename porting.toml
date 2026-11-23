@@ -45,6 +45,7 @@ findings = [
   "Consolidated the split experimental targets into a single official UniXNU Format 2 device repository with clean root-level board.toml, package/, patches/, and scripts/.",
   "Removed local-only core PCD coupling (J716F_MENU_DIAGNOSTIC) from default board.toml firmware defines so the board builds cleanly against unmodified upstream UniXNU/UniXNU.",
   "Excluded proprietary vendor DTB binaries and private device seeds from Git; documented user extraction in proprietary-files.txt.",
+  "Enabled official UniXNU porting-record.yml CI alongside j716f-ci.yml (Format 2 tree assembly, DTS/ADT generation, and C++ ASan/UBSan storage/SMMU unit tests).",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
