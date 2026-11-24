@@ -383,15 +383,16 @@ findings = [
   "Verified TB-J716F stock DTB gpu-opp-table_v2 (7 GPU OPPs 305..670 MHz / RPMh levels 64..320) and implemented Phase 2 GMU cold-start + HFI startup + GX power engine (package/gpu/J716fA650Gmu.c/h) linked against unmodified upstream kits/AdrenoFirmware, verified under ASan/UBSan by J716fA650GmuTest.c.",
   "Audited TB-J716F stock DTB kgsl-smmu@3da0000 (qsmmu-v500, no dma-coherent, gfx_0_tbu 0x0..0x3ff + gfx_1_tbu 0x400..0x7ff, gmu_kernel iommus <0x181 0x05 0x400>) and implemented Phase 2b KGSL SMMU 4 KiB GMU context (J716fA650GmuContext.c/h on unmodified kits/ArmSmmu4K, bank 1 / ASID 1 / slots 2,3 -> SIDs 0x0005,0x0405, non-coherent table walks + dc cvac) plus Modes 7-8 in J716fGpuProbe.cpp; verified under ASan/UBSan by J716fA650GmuContextTest.c.",
   "Hardware-verified j716f-gpu=1 and j716f-gpu=8 on TB-J716F over live USB Debug COM9: CX GDSC powered on (0x00222001->0xf8222000), KGSL SMMU probed (cr0=0x00230406, id0=0x4c017e06 6 SMRs/EXIDS=0, id1=0x20000005 5 banks, id2=0x00005511 36-bit OAS, gfsr=0), AOP cmd-db ARC/BCM levels verified (gfx.lvl 0/48/64/128/144/192/224/256/320/384/416, SH0/MC0/ACV/CN0), GMU 200 MHz clocks up (step=5 fail=0, sysrst=1), and ArmSmmu4K Bank 1 programmed and enabled (tbl=13, ttbr0=0x1000129203000, readback valid); unused faulting S2CRs read 0x00f2c2ff on QSMMUv500 so added safe unused-FAULT S2CR normalization to canonical 0x00020000 in J716fA650GmuContext.c before unmodified ArmSmmu4KAttachStreams.",
+  "Hardware-verified full Phase 2b Mode 7-8 end-to-end on TB-J716F (a650_gmu.bin 41548 B, live USB Debug COM9): GMUCTX st=0 step=6 (ArmSmmu4K Bank 1 / ASID 1 / 2 verified routes smr=0x80000005/0x80000405 s2cr=0x00000001, 13 table pages, 36-bit OAS), GMU cold-start LOAD st=0 ph=8 (16 blocks, FW ver=0x20010008, init=0x100, hfi=0x1, rdy=11, ao=0), HFI st=0 stg=8 ack=0xc6 err=0 sent=4 (<1 ms), and GX power-on at OPP 7 (670 MHz): GX on vote=0 oob=2 gx=0x000000c0->0x00000000 gdscr=0xf8222800 rbbm=0x00000001 gbif=0/3 rh=0/0 with zero faults while booting iPadOS 17.7.11 desktop.",
 ]
 completion = [
   "Adreno 650 GMU cold-start, ArmSmmu4K GPU/GMU contexts, CP/zap shader bring-up, and AdrenoMetal/Turnip acceleration.",
 ]
 limits = [
-  "Phase 2b completes host-verified KGSL SMMU GMU context + Modes 7-8 (GMU cold-start and GX power bring-up); hardware verification on TB-J716F, Phase 3 GPU bank 0 SMMU/CP/SQE/zap bring-up, and AdrenoMetal/Turnip remain pending.",
+  "Phase 2b (CX/SMMU/cmd-db/GMU cold-start/HFI/GX 670 MHz power-on) is hardware-verified on TB-J716F; Phase 3 (GPU Bank 0 SMMU + CP/SQE ring + zap shader + AdrenoMetal/Turnip 3D acceleration) remains pending.",
 ]
 next_action = [
-  "Verify j716f-gpu=1/3/5/6/7/8 live over USB Debug on TB-J716F hardware (supplying local a650_gmu.bin for modes 7-8), then proceed to Phase 3 GPU bank 0 SMMU + CP/SQE ring + AdrenoMetal.",
+  "Implement Phase 3 GPU Bank 0 / ASID 2 ArmSmmu4K context, AdrenoPM4 CP/SQE microcode ring initialization (Mode 9-10), zap shader TZ authentication, and AdrenoMetal/Turnip integration.",
 ]
 [[area.evidence]]
 kind = "source"
