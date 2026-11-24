@@ -626,12 +626,21 @@ def main() -> None:
     gpu_dir = ROOT / 'kits/j716f/gpu'
     gpu_probe_src = gpu_dir / 'J716fGpuProbe.cpp'
     gpu_gmu_src = gpu_dir / 'J716fA650Gmu.c'
+    gpu_gmu_ctx_src = gpu_dir / 'J716fA650GmuContext.c'
     adreno_fw_dir = ROOT / 'kits/AdrenoFirmware'
     adreno_fw_srcs = [
         adreno_fw_dir / 'AdrenoFirmware.c',
         adreno_fw_dir / 'AdrenoHfi.c',
         adreno_fw_dir / 'AdrenoHfiStartup.c',
         adreno_fw_dir / 'AdrenoHfiVotes.c',
+    ]
+    smmu_dir = ROOT / 'kits/ArmSmmu4K'
+    smmu_srcs = [
+        smmu_dir / 'ArmSmmu4K.c',
+        smmu_dir / 'ArmSmmu4KContext.c',
+        smmu_dir / 'ArmSmmu4KProgram.c',
+        smmu_dir / 'ArmSmmu4KStreams.c',
+        smmu_dir / 'ArmSmmu4KMmio.c',
     ]
     usb_dir = ROOT / 'kits/j716f/usb'
     usb_cdc_src = usb_dir / 'J716fUsbDebugCdc.cpp'
@@ -652,7 +661,9 @@ def main() -> None:
         battery_src,
         gpu_probe_src,
         gpu_gmu_src,
+        gpu_gmu_ctx_src,
         *adreno_fw_srcs,
+        *smmu_srcs,
         usb_cdc_src,
     ):
         require(src.is_file(), f'missing source: {src}')
@@ -839,8 +850,50 @@ def main() -> None:
     battery_late = OUT / 'J716fBattery.late.o'
     gpu_probe_obj = OUT / 'J716fGpuProbe.o'
     gpu_gmu_obj = OUT / 'J716fA650Gmu.o'
+    gpu_gmu_ctx_obj = OUT / 'J716fA650GmuContext.o'
     adreno_fw_objs = [OUT / f'{s.stem}.o' for s in adreno_fw_srcs]
+    smmu_objs = [OUT / f'{s.stem}.o' for s in smmu_srcs]
     usb_cdc_obj = OUT / 'J716fUsbDebugCdc.o'
+
+    # Optional local-only GMU firmware embedding (never required for public/CI builds).
+    gmu_fw_path: Path | None = None
+    if os.environ.get('J716F_GMU_FIRMWARE'):
+        gmu_fw_path = Path(os.environ['J716F_GMU_FIRMWARE'])
+        require(gmu_fw_path.is_file(), f'J716F_GMU_FIRMWARE does not exist: {gmu_fw_path}')
+    elif os.environ.get('J716F_GPU_FIRMWARE_DIR'):
+        cand = Path(os.environ['J716F_GPU_FIRMWARE_DIR']) / 'a650_gmu.bin'
+        if cand.is_file():
+            gmu_fw_path = cand
+    gmu_fw_src = OUT / 'J716fGmuFirmware.c'
+    gmu_fw_obj = OUT / 'J716fGmuFirmware.o'
+    gmu_fw_bytes = 0
+    gmu_fw_sha256: str | None = None
+    if gmu_fw_path is not None:
+        blob = gmu_fw_path.read_bytes()
+        require(
+            16 <= len(blob) <= 0x100000 and len(blob) % 4 == 0,
+            f'invalid GMU firmware image {gmu_fw_path} ({len(blob)} bytes)',
+        )
+        gmu_fw_bytes = len(blob)
+        gmu_fw_sha256 = hashlib.sha256(blob).hexdigest()
+        gmu_fw_src.write_text(
+            f'/* Local optional GMU firmware ({gmu_fw_path.name}, sha256 {gmu_fw_sha256}) */\n'
+            '#include <stdint.h>\n'
+            'const uint8_t j716f_gpu_gmu_firmware[] __attribute__((aligned(16))) = {'
+            + ','.join(str(b) for b in blob)
+            + '};\n'
+            f'const uint32_t j716f_gpu_gmu_firmware_size = {gmu_fw_bytes}u;\n',
+            encoding='utf-8',
+        )
+    else:
+        gmu_fw_src.write_text(
+            '/* Public/CI build stub: no proprietary a650_gmu.bin linked. */\n'
+            '#include <stdint.h>\n'
+            'const uint8_t j716f_gpu_gmu_firmware[16] __attribute__((aligned(16))) = {0};\n'
+            'const uint32_t j716f_gpu_gmu_firmware_size = 0u;\n',
+            encoding='utf-8',
+        )
+
     compile_cxx_from_record(record, board_display_src, board_display_obj, [], allow_warnings=False)
     compile_cxx_from_record(record, board_keystore_src, board_keystore_obj, [], allow_warnings=False)
     compile_cxx_from_record(record, board_hid_src, board_hid_obj, ['-I', str(input_dir)], allow_warnings=False)
@@ -857,9 +910,17 @@ def main() -> None:
         ['-I', str(power_dir)],
         allow_warnings=False,
     )
-    compile_cxx_from_record(record, gpu_probe_src, gpu_probe_obj, ['-I', str(gpu_dir)], allow_warnings=False)
+    compile_cxx_from_record(
+        record,
+        gpu_probe_src,
+        gpu_probe_obj,
+        ['-I', str(gpu_dir), '-I', str(adreno_fw_dir), '-I', str(smmu_dir)],
+        allow_warnings=False,
+    )
     for fw_src, fw_obj in zip(adreno_fw_srcs, adreno_fw_objs):
         compile_c_from_record(c_record, record, fw_src, fw_obj, ['-I', str(adreno_fw_dir)], allow_warnings=False)
+    for smmu_src, smmu_obj in zip(smmu_srcs, smmu_objs):
+        compile_c_from_record(c_record, record, smmu_src, smmu_obj, ['-I', str(smmu_dir)], allow_warnings=False)
     compile_c_from_record(
         c_record,
         record,
@@ -868,6 +929,15 @@ def main() -> None:
         ['-I', str(gpu_dir), '-I', str(adreno_fw_dir)],
         allow_warnings=False,
     )
+    compile_c_from_record(
+        c_record,
+        record,
+        gpu_gmu_ctx_src,
+        gpu_gmu_ctx_obj,
+        ['-I', str(gpu_dir), '-I', str(smmu_dir)],
+        allow_warnings=False,
+    )
+    compile_c_from_record(c_record, record, gmu_fw_src, gmu_fw_obj, [], allow_warnings=False)
     compile_cxx_from_record(
         record,
         usb_cdc_src,
@@ -896,7 +966,10 @@ def main() -> None:
         cpufreq_obj,
         gpu_probe_obj,
         gpu_gmu_obj,
+        gpu_gmu_ctx_obj,
+        gmu_fw_obj,
         *adreno_fw_objs,
+        *smmu_objs,
         usb_cdc_obj,
     ]
     run([ar, 'rcs', archive, *members])
@@ -919,7 +992,9 @@ def main() -> None:
         battery_src,
         gpu_probe_src,
         gpu_gmu_src,
+        gpu_gmu_ctx_src,
         *adreno_fw_srcs,
+        *smmu_srcs,
         usb_cdc_src,
     ]
     report = {
@@ -939,6 +1014,8 @@ def main() -> None:
         'hid_owned_entries': hid_owned,
         'inherited_native_entries': inherited_native,
         'bindings_count': len(bindings),
+        'gmu_firmware_bytes': gmu_fw_bytes,
+        'gmu_firmware_sha256': gmu_fw_sha256,
         'hardware_tested': False,
     }
     (OUT / 'build-report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')

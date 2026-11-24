@@ -56,6 +56,7 @@ findings = [
   "Expanded j716f-ci.yml to verify package/usb staging, run the C ASan/UBSan J716fUsbDebugWireTest harness, and run the Python GSC1/PNG host unit tests (scripts/ci/test_usb_debug_wire.py).",
   "Expanded j716f-ci.yml to verify package/power/J716fBattery.cpp and package/gpu/J716fGpuProbe.cpp staging and run ASan/UBSan host tests J716fBatteryBoardTest and J716fGpuPowerBoardTest (9 C/C++ host tests total).",
   "Selected official upstream AdrenoFirmware, AdrenoPM4, and ArmSmmu4K kits in board.toml and added Test 10 (J716fA650GmuTest under ASan/UBSan against upstream kits/AdrenoFirmware) in j716f-ci.yml.",
+  "Added Test 11 (J716fA650GmuContextTest under ASan/UBSan against unmodified upstream kits/ArmSmmu4K) in j716f-ci.yml and documented optional local J716F_GPU_FIRMWARE_DIR extraction in proprietary-files.txt.",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -285,6 +286,7 @@ findings = [
   "Extended build-j716f-display-keystore.py (14 objects) and J716fLegacyDisplayProbe.cpp to compile and invoke j716f_usb_debug_probe() ahead of j716f_touch_probe() so synchronous RPMh TCS 0 votes never race.",
   "Extended build-j716f-display-keystore.py (16 objects) and J716fLegacyDisplayProbe.cpp to compile and invoke late-staged J716fBattery (IOPMPowerSource) and opt-in Adreno 650 Phase 1 probe (J716fGpuProbe).",
   "Extended build-j716f-display-keystore.py (21 objects) to compile J716fA650Gmu.c and unmodified upstream kits/AdrenoFirmware (AdrenoFirmware, AdrenoHfi, AdrenoHfiStartup, AdrenoHfiVotes) with -Werror into libNativeLegacyDisplay.late.a.",
+  "Extended build-j716f-display-keystore.py (28 objects) to compile J716fA650GmuContext.c, unmodified upstream kits/ArmSmmu4K (ArmSmmu4K, Context, Program, Streams, Mmio), and an optional local J716F_GPU_FIRMWARE_DIR GMU firmware stub/blob generator with -Werror into libNativeLegacyDisplay.late.a.",
 ]
 completion = [
   "Native XNU framebuffer/display driver (GopFramebuffer / IOMobileFramebufferLegacy) and AppleKeyStoreState (aks=1) render iPadOS WindowServer/SpringBoard cleanly on hardware.",
@@ -367,26 +369,28 @@ inputs = [
   "Qualcomm Adreno 650 v2.0 (SM8250-AC, chipid 0x06050002, kgsl-3d0@3d00000, gmu@3d6a000, gpucc@3d90000, kgsl-smmu@3da0000, rscc@3de0000, SPI 300, pil_gpu@8681a000, cmd-db@80860000).",
 ]
 configuration = [
-  "Phase 1 staged GPU power/clock/KGSL-SMMU/GMU/cmd-db probe (package/gpu/J716fGpuProbe.cpp + J716fGpuPowerBoard.h) is compiled into libNativeLegacyDisplay.late.a and remains strictly opt-in via boot-arg j716f-gpu=<1|2|3|5|6> (default 0).",
+  "Staged GPU bring-up probe (package/gpu/J716fGpuProbe.cpp, J716fGpuPowerBoard.h, J716fA650Gmu.c, J716fA650GmuContext.c) is compiled into libNativeLegacyDisplay.late.a and remains strictly opt-in via boot-arg j716f-gpu=<1..8> (default 0).",
+  "Optional local GMU firmware (a650_gmu.bin) can be linked via J716F_GPU_FIRMWARE_DIR or J716F_GMU_FIRMWARE; public/CI builds link a 0-byte stub so modes 7-8 report missing firmware cleanly without failing builds.",
 ]
 procedure = [
-  "Run C ASan/UBSan host unit test package/gpu/tests/J716fGpuPowerBoardTest.c covering modes 0..6, prerequisite gating, RCG timeouts, and AOP cmd-db parsing.",
-  "Inspect live Phase 1 hardware probe output via USB Debug command 'gpu' with j716f-gpu=1..6 before advancing to Phase 2 GMU cold-start and AdrenoMetal.",
+  "Run C ASan/UBSan host unit tests J716fGpuPowerBoardTest (modes 0..6), J716fA650GmuTest (GMU cold-start/HFI/GX), and J716fA650GmuContextTest (KGSL SMMU ArmSmmu4K 4K page-table walk and SMR stream routing).",
+  "Inspect live hardware probe output via USB Debug command 'gpu' with j716f-gpu=1..8 before advancing to Phase 3 CP/SQE ring bring-up and AdrenoMetal.",
 ]
 findings = [
   "Software/framebuffer console is sufficient for kernel and storage bring-up.",
   "Verified exact TB-J716F stock DTB Adreno 650 register geometry (chipid 0x06050002, UBWC 4, HBB 16, SPI 300, kgsl-3d0@3d00000, gmu@3d6a000, pdc@b290000/b490000, gpucc@3d90000, kgsl-smmu@3da0000, rscc@3de0000, pil_gpu@8681a000).",
   "Implemented and host-verified Phase 1 staged GPU probe (package/gpu/J716fGpuPowerBoard.h + J716fGpuProbe.cpp + ASan/UBSan J716fGpuPowerBoardTest.c) with strict per-mode write whitelist and USB Debug 'gpu' command reporting.",
   "Verified TB-J716F stock DTB gpu-opp-table_v2 (7 GPU OPPs 305..670 MHz / RPMh levels 64..320) and implemented Phase 2 GMU cold-start + HFI startup + GX power engine (package/gpu/J716fA650Gmu.c/h) linked against unmodified upstream kits/AdrenoFirmware, verified under ASan/UBSan by J716fA650GmuTest.c.",
+  "Audited TB-J716F stock DTB kgsl-smmu@3da0000 (qsmmu-v500, no dma-coherent, gfx_0_tbu 0x0..0x3ff + gfx_1_tbu 0x400..0x7ff, gmu_kernel iommus <0x181 0x05 0x400>) and implemented Phase 2b KGSL SMMU 4 KiB GMU context (J716fA650GmuContext.c/h on unmodified kits/ArmSmmu4K, bank 1 / ASID 1 / slots 2,3 -> SIDs 0x0005,0x0405, non-coherent table walks + dc cvac) plus Modes 7-8 in J716fGpuProbe.cpp; verified under ASan/UBSan by J716fA650GmuContextTest.c.",
 ]
 completion = [
   "Adreno 650 GMU cold-start, ArmSmmu4K GPU/GMU contexts, CP/zap shader bring-up, and AdrenoMetal/Turnip acceleration.",
 ]
 limits = [
-  "Phase 1 covers GCC/GPUCC/CX GDSC/KGSL SMMU/GMU clock observation and AOP cmd-db parsing only; GMU cold-start, GX power, CP ring init, and AdrenoMetal are planned for Phase 2.",
+  "Phase 2b completes host-verified KGSL SMMU GMU context + Modes 7-8 (GMU cold-start and GX power bring-up); hardware verification on TB-J716F, Phase 3 GPU bank 0 SMMU/CP/SQE/zap bring-up, and AdrenoMetal/Turnip remain pending.",
 ]
 next_action = [
-  "Verify Phase 1 j716f-gpu=1/3/5/6 live over USB Debug on TB-J716F hardware, then integrate ArmSmmu4K + A650 GMU cold-start + AdrenoMetal.",
+  "Verify j716f-gpu=1/3/5/6/7/8 live over USB Debug on TB-J716F hardware (supplying local a650_gmu.bin for modes 7-8), then proceed to Phase 3 GPU bank 0 SMMU + CP/SQE ring + AdrenoMetal.",
 ]
 [[area.evidence]]
 kind = "source"
@@ -568,6 +572,7 @@ findings = [
   "Added patches/xnu/j716f-skip-setup.patch (gated by j716f-skip-setup=1) to seed the 5 official skip-setup binary plists into /private/var without macOS hdiutil; retained JXLG logs verified desktop, touch, buttons, and 8-core SMP boots on hardware.",
   "Upgraded j716f-earlylog-console.patch with a bounded atomic spinlock for all-8-CPU capture plus a 256 KiB live RAM log ring (PE_j716f_klog_read), added opt-in bare-metal SM8250 DWC3 USB CDC-ACM driver under package/usb/ (j716f-usb=1, strict SMMU slot 2/3/4 guard, adaptive idle polling, zero HUD overlay), and added host CLI scripts/j716f-usb-debug.py with GSC1 PNG capture and C/Python wire unit tests.",
   "Added 'gpu' interactive command to J716fUsbDebugCdc.cpp and scripts/j716f-usb-debug.py probe to dump Adreno 650 Phase 1 power/clock/KGSL-SMMU/GMU/cmd-db diagnostics live over USB CDC-ACM.",
+  "Expanded J716fUsbDebugCdc.cpp 'gpu' snapshot buffer to 3072 B (static) so all 18 Phase 2b Mode 7-8 KGSL SMMU/GMU/HFI/GX diagnostic rows transmit without truncation or kernel stack pressure.",
 ]
 completion = [
   "Reliable kernel log capture through root mount and early userland bring-up.",

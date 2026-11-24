@@ -17,3 +17,12 @@
 #
 # 4. First-install iPadOS Data seed (data-21H461.dbr):
 #    Generated on macOS via .github/workflows/data-seed.yml (see README-data-runner.md).
+#
+# 5. Optional Adreno 650 GPU firmware (only needed for j716f-gpu=7/8+ hardware tests; never commit):
+#    Local directory: set J716F_GPU_FIRMWARE_DIR=/path/to/dir (or J716F_GMU_FIRMWARE=/path/to/a650_gmu.bin)
+#    Expected files:
+#      - a650_gmu.bin  (GMU firmware, required for j716f-gpu=7/8 GMU cold-start & GX power)
+#      - a650_sqe.fw   (CP SQE microcode, reserved for Phase 3 command processor)
+#      - a650_zap.elf  (Zap shader ELF, reserved for Phase 3 TZ authentication)
+#    Source: Extracted from TB-J716F stock vendor/firmware or linux-firmware/qcom/.
+#    Note:   Public and CI builds omit these blobs and link an empty 0-byte stub cleanly.

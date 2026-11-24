@@ -506,7 +506,7 @@ static void handleCommand(TerminalSession &s, const char *raw) {
         }
     } else if (strEq(raw, "gpu") || strEq(raw, "gpu.status")) {
         if (&j716f_gpu_snapshot) {
-            char gbuf[2048];
+            static char gbuf[3072];
             j716f_gpu_snapshot(gbuf, sizeof(gbuf));
             s.reply.writeStr(gbuf);
         } else {
