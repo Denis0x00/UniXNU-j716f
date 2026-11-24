@@ -365,7 +365,7 @@ def cmd_exec(args: argparse.Namespace) -> int:
 
 
 def cmd_probe(args: argparse.Namespace) -> int:
-    args.commands = ["ping", "status", "cpufreq", "battery", "smp", "display", "touch", "usb"]
+    args.commands = ["ping", "status", "cpufreq", "battery", "gpu", "smp", "display", "touch", "usb"]
     args.no_replay = False
     args.cmd_timeout = 2.0
     return cmd_exec(args)

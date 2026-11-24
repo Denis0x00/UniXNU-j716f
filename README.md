@@ -24,6 +24,7 @@ package/storage/               # Board read-only SHNGROOT UFS window driver + vo
 package/display/               # Board probes for upstream GopFramebuffer and AppleKeyStoreState (aks=1)
 package/input/                 # Unmodified NativeHidInput (21H461 IOHIDDevice) + Goodix GT7386 I2C + PM8150 buttons
 package/power/                 # SM8250-AC EPSS 3-domain CPUfreq + L3 (cpufreq=4) & PM8150B battery (j716f-battery=1)
+package/gpu/                   # Adreno 650 v2.0 Phase 1 staged power/clock/KGSL-SMMU/GMU/cmd-db probe (j716f-gpu=1..6)
 package/usb/                   # Bare-metal SM8250 DWC3 USB CDC-ACM debug terminal (j716f-usb=1) & wire tests
 socs/sm8250/                   # SM8250 SoC config, DTSI, SMP/Edge patches, UFS HCI/SMMU library & host tests
 scripts/

@@ -25,6 +25,7 @@ extern uint32_t PE_j716f_klog_read(uint64_t from_seq, char *dst, uint32_t max_le
                                    uint64_t *out_next_seq) __attribute__((weak_import));
 extern void j716f_cpufreq_snapshot(char *out, size_t cap) __attribute__((weak_import));
 extern void j716f_battery_snapshot(char *out, size_t cap) __attribute__((weak_import));
+extern void j716f_gpu_snapshot(char *out, size_t cap) __attribute__((weak_import));
 extern uint64_t sheng_cpu_idle_mach(int cpu) __attribute__((weak_import));
 
 extern volatile uint32_t armcpu_smp_running __attribute__((weak_import));
@@ -444,9 +445,9 @@ static void handleCommand(TerminalSession &s, const char *raw) {
     if (strEq(raw, "ping")) {
         s.reply.writeStr("[usb] PONG TB-J716F\r\n");
     } else if (strEq(raw, "features")) {
-        s.reply.writeStr("FEATURES: ping help status info uptime cpufreq battery smp display touch input usb bootargs log replay log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot\r\n");
+        s.reply.writeStr("FEATURES: ping help status info uptime cpufreq battery gpu smp display touch input usb bootargs log replay log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot\r\n");
     } else if (strEq(raw, "help")) {
-        s.reply.writeStr("Commands: ping status cpufreq battery smp display touch usb bootargs log log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot\r\n");
+        s.reply.writeStr("Commands: ping status cpufreq battery gpu smp display touch usb bootargs log log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot\r\n");
     } else if (strEq(raw, "info") || strEq(raw, "uptime") || strEq(raw, "status")) {
         const uint32_t cpus = &armcpu_smp_running ? armcpu_smp_running : 0u;
         const uint32_t edge = &armcpu_cpu_init_completed ? armcpu_cpu_init_completed : 0u;
@@ -502,6 +503,14 @@ static void handleCommand(TerminalSession &s, const char *raw) {
             s.reply.writeStr(buf);
         } else {
             s.reply.writeStr("[usb] BATTERY: unavailable\r\n");
+        }
+    } else if (strEq(raw, "gpu") || strEq(raw, "gpu.status")) {
+        if (&j716f_gpu_snapshot) {
+            char gbuf[2048];
+            j716f_gpu_snapshot(gbuf, sizeof(gbuf));
+            s.reply.writeStr(gbuf);
+        } else {
+            s.reply.writeStr("[usb] GPU: unavailable\r\n");
         }
     } else if (strEq(raw, "smp")) {
         snprintf(buf, sizeof(buf), "[usb] SMP: running=%u edge_init=%u\r\n",

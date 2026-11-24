@@ -54,6 +54,7 @@ findings = [
   "Updated README.md with verified Stage 6 APFS root mount and Stage 7+ Apple logo hardware milestones plus j716f_stage7_defconfig build instructions.",
   "Enabled soc:patches/xnu/series (8-core SMP + Edge scheduler) and [adt.buttons] in board.toml, omitted -v from default payload kernel_args for clean kPEGraphicsMode desktop output, and expanded j716f-ci.yml to validate input/power package sources and 8-core/buttons ADT nodes.",
   "Expanded j716f-ci.yml to verify package/usb staging, run the C ASan/UBSan J716fUsbDebugWireTest harness, and run the Python GSC1/PNG host unit tests (scripts/ci/test_usb_debug_wire.py).",
+  "Expanded j716f-ci.yml to verify package/power/J716fBattery.cpp and package/gpu/J716fGpuProbe.cpp staging and run ASan/UBSan host tests J716fBatteryBoardTest and J716fGpuPowerBoardTest (9 C/C++ host tests total).",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -281,6 +282,7 @@ findings = [
   "Hardware-verified Stage 7+ RAM-store boot_b image (2274a64d..., log e1d6a856...) opened 4+ AppleKeyStore user clients and 7+ IOMobileFramebufferUserClient sessions and rendered the real iPadOS 17.7.11 Hello screen on TB-J716F hardware.",
   "Extended build-j716f-display-keystore.py (13 objects, 245 verified 21H461 bindings) and J716fLegacyDisplayProbe.cpp to launch HID/touch/buttons/CPUfreq probes alongside GopFramebuffer, and verified full SpringBoard desktop with wallpaper and clean kPEGraphicsMode output on hardware.",
   "Extended build-j716f-display-keystore.py (14 objects) and J716fLegacyDisplayProbe.cpp to compile and invoke j716f_usb_debug_probe() ahead of j716f_touch_probe() so synchronous RPMh TCS 0 votes never race.",
+  "Extended build-j716f-display-keystore.py (16 objects) and J716fLegacyDisplayProbe.cpp to compile and invoke late-staged J716fBattery (IOPMPowerSource) and opt-in Adreno 650 Phase 1 probe (J716fGpuProbe).",
 ]
 completion = [
   "Native XNU framebuffer/display driver (GopFramebuffer / IOMobileFramebufferLegacy) and AppleKeyStoreState (aks=1) render iPadOS WindowServer/SpringBoard cleanly on hardware.",
@@ -356,34 +358,45 @@ result = "Board glue publishing unmodified NativeHidInput (IOHIDDevice) with Bui
 
 [[area]]
 id = "gpu"
-status = "planned"
+status = "implemented"
 components = []
-paths = ["socs/sm8250/configs/sm8250.config"]
+paths = ["socs/sm8250/configs/sm8250.config", "package/gpu/**"]
 inputs = [
-  "Qualcomm Adreno 650 (SM8250).",
+  "Qualcomm Adreno 650 v2.0 (SM8250-AC, chipid 0x06050002, kgsl-3d0@3d00000, gmu@3d6a000, gpucc@3d90000, kgsl-smmu@3da0000, rscc@3de0000, SPI 300, pil_gpu@8681a000, cmd-db@80860000).",
 ]
 configuration = [
-  "CONFIG_XNU_NATIVE_ADRENO is disabled during Stage 5/6 bring-up.",
+  "Phase 1 staged GPU power/clock/KGSL-SMMU/GMU/cmd-db probe (package/gpu/J716fGpuProbe.cpp + J716fGpuPowerBoard.h) is compiled into libNativeLegacyDisplay.late.a and remains strictly opt-in via boot-arg j716f-gpu=<1|2|3|5|6> (default 0).",
 ]
 procedure = [
-  "Defer GPU bring-up until framebuffer display and Stage 7 userland boot stably.",
+  "Run C ASan/UBSan host unit test package/gpu/tests/J716fGpuPowerBoardTest.c covering modes 0..6, prerequisite gating, RCG timeouts, and AOP cmd-db parsing.",
+  "Inspect live Phase 1 hardware probe output via USB Debug command 'gpu' with j716f-gpu=1..6 before advancing to Phase 2 GMU cold-start and AdrenoMetal.",
 ]
 findings = [
   "Software/framebuffer console is sufficient for kernel and storage bring-up.",
+  "Verified exact TB-J716F stock DTB Adreno 650 register geometry (chipid 0x06050002, UBWC 4, HBB 16, SPI 300, kgsl-3d0@3d00000, gmu@3d6a000, pdc@b290000/b490000, gpucc@3d90000, kgsl-smmu@3da0000, rscc@3de0000, pil_gpu@8681a000).",
+  "Implemented and host-verified Phase 1 staged GPU probe (package/gpu/J716fGpuPowerBoard.h + J716fGpuProbe.cpp + ASan/UBSan J716fGpuPowerBoardTest.c) with strict per-mode write whitelist and USB Debug 'gpu' command reporting.",
 ]
 completion = [
-  "Adreno 650 IOGPU / Metal acceleration initializes cleanly.",
+  "Adreno 650 GMU cold-start, ArmSmmu4K GPU/GMU contexts, CP/zap shader bring-up, and AdrenoMetal/Turnip acceleration.",
 ]
 limits = [
-  "No GPU acceleration is implemented or enabled.",
+  "Phase 1 covers GCC/GPUCC/CX GDSC/KGSL SMMU/GMU clock observation and AOP cmd-db parsing only; GMU cold-start, GX power, CP ring init, and AdrenoMetal are planned for Phase 2.",
 ]
 next_action = [
-  "Evaluate upstream Adreno driver compatibility after Stage 7 framebuffer boot.",
+  "Verify Phase 1 j716f-gpu=1/3/5/6 live over USB Debug on TB-J716F hardware, then integrate ArmSmmu4K + A650 GMU cold-start + AdrenoMetal.",
 ]
 [[area.evidence]]
 kind = "source"
 reference = "socs/sm8250/configs/sm8250.config"
-result = "SM8250 base config keeping native GPU disabled during early bring-up"
+result = "SM8250 base config keeping full native GPU acceleration disabled during Phase 1 bring-up"
+[[area.evidence]]
+kind = "source"
+reference = "package/gpu/J716fGpuPowerBoard.h"
+result = "TB-J716F Adreno 650 v2.0 Phase 1 prerequisite-gated power/clock/SMMU/GMU/cmd-db state machine"
+[[area.evidence]]
+kind = "source"
+reference = "package/gpu/tests/J716fGpuPowerBoardTest.c"
+result = "Host ASan/UBSan unit test verifying modes 0..6 safety invariants and AOP cmd-db parsing"
 
 [[area]]
 id = "network"
@@ -551,6 +564,7 @@ findings = [
   "Retained early XNU logs survived both PSCI reset and long-power-button reset in hardware trials, enabling exact instruction-level diagnosis without hardware UART.",
   "Added patches/xnu/j716f-skip-setup.patch (gated by j716f-skip-setup=1) to seed the 5 official skip-setup binary plists into /private/var without macOS hdiutil; retained JXLG logs verified desktop, touch, buttons, and 8-core SMP boots on hardware.",
   "Upgraded j716f-earlylog-console.patch with a bounded atomic spinlock for all-8-CPU capture plus a 256 KiB live RAM log ring (PE_j716f_klog_read), added opt-in bare-metal SM8250 DWC3 USB CDC-ACM driver under package/usb/ (j716f-usb=1, strict SMMU slot 2/3/4 guard, adaptive idle polling, zero HUD overlay), and added host CLI scripts/j716f-usb-debug.py with GSC1 PNG capture and C/Python wire unit tests.",
+  "Added 'gpu' interactive command to J716fUsbDebugCdc.cpp and scripts/j716f-usb-debug.py probe to dump Adreno 650 Phase 1 power/clock/KGSL-SMMU/GMU/cmd-db diagnostics live over USB CDC-ACM.",
 ]
 completion = [
   "Reliable kernel log capture through root mount and early userland bring-up.",

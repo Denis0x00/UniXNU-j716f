@@ -623,6 +623,8 @@ def main() -> None:
     power_dir = ROOT / 'kits/j716f/power'
     cpufreq_src = power_dir / 'J716fCpuFreq.cpp'
     battery_src = power_dir / 'J716fBattery.cpp'
+    gpu_dir = ROOT / 'kits/j716f/gpu'
+    gpu_probe_src = gpu_dir / 'J716fGpuProbe.cpp'
     usb_dir = ROOT / 'kits/j716f/usb'
     usb_cdc_src = usb_dir / 'J716fUsbDebugCdc.cpp'
 
@@ -640,6 +642,7 @@ def main() -> None:
         rpmh_src,
         cpufreq_src,
         battery_src,
+        gpu_probe_src,
         usb_cdc_src,
     ):
         require(src.is_file(), f'missing source: {src}')
@@ -824,6 +827,7 @@ def main() -> None:
     rpmh_obj = OUT / 'J716fQcomRpmh.o'
     cpufreq_obj = OUT / 'J716fCpuFreq.o'
     battery_late = OUT / 'J716fBattery.late.o'
+    gpu_probe_obj = OUT / 'J716fGpuProbe.o'
     usb_cdc_obj = OUT / 'J716fUsbDebugCdc.o'
     compile_cxx_from_record(record, board_display_src, board_display_obj, [], allow_warnings=False)
     compile_cxx_from_record(record, board_keystore_src, board_keystore_obj, [], allow_warnings=False)
@@ -841,6 +845,7 @@ def main() -> None:
         ['-I', str(power_dir)],
         allow_warnings=False,
     )
+    compile_cxx_from_record(record, gpu_probe_src, gpu_probe_obj, ['-I', str(gpu_dir)], allow_warnings=False)
     compile_cxx_from_record(
         record,
         usb_cdc_src,
@@ -867,6 +872,7 @@ def main() -> None:
         buttons_obj,
         rpmh_obj,
         cpufreq_obj,
+        gpu_probe_obj,
         usb_cdc_obj,
     ]
     run([ar, 'rcs', archive, *members])
@@ -887,6 +893,7 @@ def main() -> None:
         rpmh_src,
         cpufreq_src,
         battery_src,
+        gpu_probe_src,
         usb_cdc_src,
     ]
     report = {
