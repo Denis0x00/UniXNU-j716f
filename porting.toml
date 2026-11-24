@@ -9,7 +9,7 @@ summary = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F, SM8250-AC) consolidated onto t
 [[area]]
 id = "configuration"
 status = "implemented"
-components = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "GopFramebuffer", "AppleKeyStoreState", "XnuPrelink", "DarwinBoot"]
+components = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "GopFramebuffer", "AppleKeyStoreState", "XnuPrelink", "DarwinBoot", "AdrenoFirmware", "AdrenoPM4", "ArmSmmu4K"]
 paths = [
   "board.toml",
   "feeds.toml",
@@ -55,6 +55,7 @@ findings = [
   "Enabled soc:patches/xnu/series (8-core SMP + Edge scheduler) and [adt.buttons] in board.toml, omitted -v from default payload kernel_args for clean kPEGraphicsMode desktop output, and expanded j716f-ci.yml to validate input/power package sources and 8-core/buttons ADT nodes.",
   "Expanded j716f-ci.yml to verify package/usb staging, run the C ASan/UBSan J716fUsbDebugWireTest harness, and run the Python GSC1/PNG host unit tests (scripts/ci/test_usb_debug_wire.py).",
   "Expanded j716f-ci.yml to verify package/power/J716fBattery.cpp and package/gpu/J716fGpuProbe.cpp staging and run ASan/UBSan host tests J716fBatteryBoardTest and J716fGpuPowerBoardTest (9 C/C++ host tests total).",
+  "Selected official upstream AdrenoFirmware, AdrenoPM4, and ArmSmmu4K kits in board.toml and added Test 10 (J716fA650GmuTest under ASan/UBSan against upstream kits/AdrenoFirmware) in j716f-ci.yml.",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -283,6 +284,7 @@ findings = [
   "Extended build-j716f-display-keystore.py (13 objects, 245 verified 21H461 bindings) and J716fLegacyDisplayProbe.cpp to launch HID/touch/buttons/CPUfreq probes alongside GopFramebuffer, and verified full SpringBoard desktop with wallpaper and clean kPEGraphicsMode output on hardware.",
   "Extended build-j716f-display-keystore.py (14 objects) and J716fLegacyDisplayProbe.cpp to compile and invoke j716f_usb_debug_probe() ahead of j716f_touch_probe() so synchronous RPMh TCS 0 votes never race.",
   "Extended build-j716f-display-keystore.py (16 objects) and J716fLegacyDisplayProbe.cpp to compile and invoke late-staged J716fBattery (IOPMPowerSource) and opt-in Adreno 650 Phase 1 probe (J716fGpuProbe).",
+  "Extended build-j716f-display-keystore.py (21 objects) to compile J716fA650Gmu.c and unmodified upstream kits/AdrenoFirmware (AdrenoFirmware, AdrenoHfi, AdrenoHfiStartup, AdrenoHfiVotes) with -Werror into libNativeLegacyDisplay.late.a.",
 ]
 completion = [
   "Native XNU framebuffer/display driver (GopFramebuffer / IOMobileFramebufferLegacy) and AppleKeyStoreState (aks=1) render iPadOS WindowServer/SpringBoard cleanly on hardware.",
@@ -359,7 +361,7 @@ result = "Board glue publishing unmodified NativeHidInput (IOHIDDevice) with Bui
 [[area]]
 id = "gpu"
 status = "implemented"
-components = []
+components = ["AdrenoFirmware", "AdrenoPM4", "ArmSmmu4K"]
 paths = ["socs/sm8250/configs/sm8250.config", "package/gpu/**"]
 inputs = [
   "Qualcomm Adreno 650 v2.0 (SM8250-AC, chipid 0x06050002, kgsl-3d0@3d00000, gmu@3d6a000, gpucc@3d90000, kgsl-smmu@3da0000, rscc@3de0000, SPI 300, pil_gpu@8681a000, cmd-db@80860000).",
@@ -375,6 +377,7 @@ findings = [
   "Software/framebuffer console is sufficient for kernel and storage bring-up.",
   "Verified exact TB-J716F stock DTB Adreno 650 register geometry (chipid 0x06050002, UBWC 4, HBB 16, SPI 300, kgsl-3d0@3d00000, gmu@3d6a000, pdc@b290000/b490000, gpucc@3d90000, kgsl-smmu@3da0000, rscc@3de0000, pil_gpu@8681a000).",
   "Implemented and host-verified Phase 1 staged GPU probe (package/gpu/J716fGpuPowerBoard.h + J716fGpuProbe.cpp + ASan/UBSan J716fGpuPowerBoardTest.c) with strict per-mode write whitelist and USB Debug 'gpu' command reporting.",
+  "Verified TB-J716F stock DTB gpu-opp-table_v2 (7 GPU OPPs 305..670 MHz / RPMh levels 64..320) and implemented Phase 2 GMU cold-start + HFI startup + GX power engine (package/gpu/J716fA650Gmu.c/h) linked against unmodified upstream kits/AdrenoFirmware, verified under ASan/UBSan by J716fA650GmuTest.c.",
 ]
 completion = [
   "Adreno 650 GMU cold-start, ArmSmmu4K GPU/GMU contexts, CP/zap shader bring-up, and AdrenoMetal/Turnip acceleration.",

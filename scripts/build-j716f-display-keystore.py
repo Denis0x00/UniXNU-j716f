@@ -625,6 +625,14 @@ def main() -> None:
     battery_src = power_dir / 'J716fBattery.cpp'
     gpu_dir = ROOT / 'kits/j716f/gpu'
     gpu_probe_src = gpu_dir / 'J716fGpuProbe.cpp'
+    gpu_gmu_src = gpu_dir / 'J716fA650Gmu.c'
+    adreno_fw_dir = ROOT / 'kits/AdrenoFirmware'
+    adreno_fw_srcs = [
+        adreno_fw_dir / 'AdrenoFirmware.c',
+        adreno_fw_dir / 'AdrenoHfi.c',
+        adreno_fw_dir / 'AdrenoHfiStartup.c',
+        adreno_fw_dir / 'AdrenoHfiVotes.c',
+    ]
     usb_dir = ROOT / 'kits/j716f/usb'
     usb_cdc_src = usb_dir / 'J716fUsbDebugCdc.cpp'
 
@@ -643,6 +651,8 @@ def main() -> None:
         cpufreq_src,
         battery_src,
         gpu_probe_src,
+        gpu_gmu_src,
+        *adreno_fw_srcs,
         usb_cdc_src,
     ):
         require(src.is_file(), f'missing source: {src}')
@@ -828,6 +838,8 @@ def main() -> None:
     cpufreq_obj = OUT / 'J716fCpuFreq.o'
     battery_late = OUT / 'J716fBattery.late.o'
     gpu_probe_obj = OUT / 'J716fGpuProbe.o'
+    gpu_gmu_obj = OUT / 'J716fA650Gmu.o'
+    adreno_fw_objs = [OUT / f'{s.stem}.o' for s in adreno_fw_srcs]
     usb_cdc_obj = OUT / 'J716fUsbDebugCdc.o'
     compile_cxx_from_record(record, board_display_src, board_display_obj, [], allow_warnings=False)
     compile_cxx_from_record(record, board_keystore_src, board_keystore_obj, [], allow_warnings=False)
@@ -846,6 +858,16 @@ def main() -> None:
         allow_warnings=False,
     )
     compile_cxx_from_record(record, gpu_probe_src, gpu_probe_obj, ['-I', str(gpu_dir)], allow_warnings=False)
+    for fw_src, fw_obj in zip(adreno_fw_srcs, adreno_fw_objs):
+        compile_c_from_record(c_record, record, fw_src, fw_obj, ['-I', str(adreno_fw_dir)], allow_warnings=False)
+    compile_c_from_record(
+        c_record,
+        record,
+        gpu_gmu_src,
+        gpu_gmu_obj,
+        ['-I', str(gpu_dir), '-I', str(adreno_fw_dir)],
+        allow_warnings=False,
+    )
     compile_cxx_from_record(
         record,
         usb_cdc_src,
@@ -873,6 +895,8 @@ def main() -> None:
         rpmh_obj,
         cpufreq_obj,
         gpu_probe_obj,
+        gpu_gmu_obj,
+        *adreno_fw_objs,
         usb_cdc_obj,
     ]
     run([ar, 'rcs', archive, *members])
@@ -894,6 +918,8 @@ def main() -> None:
         cpufreq_src,
         battery_src,
         gpu_probe_src,
+        gpu_gmu_src,
+        *adreno_fw_srcs,
         usb_cdc_src,
     ]
     report = {

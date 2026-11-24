@@ -10,7 +10,7 @@ os_profile = "ipados-17.7.11-21H461"
 description = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F) iPadOS 17.7.11 bring-up"
 
 [components]
-include = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "GopFramebuffer", "AppleKeyStoreState", "XnuPrelink", "DarwinBoot"]
+include = ["ArmDTPlatform", "ArmCpu", "SoftwareAES", "RamBlock", "GopFramebuffer", "AppleKeyStoreState", "XnuPrelink", "DarwinBoot", "AdrenoFirmware", "AdrenoPM4", "ArmSmmu4K"]
 
 [kernel]
 defconfig = "j716f_defconfig"
