@@ -371,12 +371,12 @@ inputs = [
   "Qualcomm Adreno 650 v2.0 (SM8250-AC, chipid 0x06050002, kgsl-3d0@3d00000, gmu@3d6a000, gpucc@3d90000, kgsl-smmu@3da0000, rscc@3de0000, SPI 300, pil_gpu@8681a000, cmd-db@80860000).",
 ]
 configuration = [
-  "Staged GPU bring-up probe (package/gpu/J716fGpuProbe.cpp, J716fGpuPowerBoard.h, J716fA650Gmu.c, J716fA650GmuContext.c) is compiled into libNativeLegacyDisplay.late.a and remains strictly opt-in via boot-arg j716f-gpu=<1..8> (default 0).",
-  "Optional local GMU firmware (a650_gmu.bin) can be linked via J716F_GPU_FIRMWARE_DIR or J716F_GMU_FIRMWARE; public/CI builds link a 0-byte stub so modes 7-8 report missing firmware cleanly without failing builds.",
+  "Staged GPU bring-up probe (package/gpu/J716fGpuProbe.cpp, J716fGpuPowerBoard.h, J716fA650Gmu.c, J716fA650GmuContext.c, J716fA650Cp.c) is compiled into libNativeLegacyDisplay.late.a and remains strictly opt-in via boot-arg j716f-gpu=<1..9> (default 0).",
+  "Optional local GMU and SQE firmware (a650_gmu.bin, a650_sqe.fw) can be linked via J716F_GPU_FIRMWARE_DIR or J716F_GMU_FIRMWARE / J716F_SQE_FIRMWARE; public/CI builds link 0-byte stubs so modes 7-9 report missing firmware cleanly without failing builds.",
 ]
 procedure = [
-  "Run C ASan/UBSan host unit tests J716fGpuPowerBoardTest (modes 0..6), J716fA650GmuTest (GMU cold-start/HFI/GX), and J716fA650GmuContextTest (KGSL SMMU ArmSmmu4K 4K page-table walk and SMR stream routing).",
-  "Inspect live hardware probe output via USB Debug command 'gpu' with j716f-gpu=1..8 before advancing to Phase 3 CP/SQE ring bring-up and AdrenoMetal.",
+  "Run C ASan/UBSan host unit tests J716fGpuPowerBoardTest (modes 0..6), J716fA650GmuTest (GMU cold-start/HFI/GX), J716fA650GmuContextTest (KGSL SMMU Bank 1 GMU context), and J716fA650CpTest (KGSL SMMU Bank 0 GPU context + A650 hw_init + AdrenoPM4 Ring 0).",
+  "Inspect live hardware probe output via USB Debug command 'gpu' with j716f-gpu=1..9 before advancing to Phase 3b zap shader TZ authentication, GPU SPI 300 IRQ, and AdrenoMetal/Turnip.",
 ]
 findings = [
   "Software/framebuffer console is sufficient for kernel and storage bring-up.",
@@ -387,15 +387,16 @@ findings = [
   "Hardware-verified j716f-gpu=1 and j716f-gpu=8 on TB-J716F over live USB Debug COM9: CX GDSC powered on (0x00222001->0xf8222000), KGSL SMMU probed (cr0=0x00230406, id0=0x4c017e06 6 SMRs/EXIDS=0, id1=0x20000005 5 banks, id2=0x00005511 36-bit OAS, gfsr=0), AOP cmd-db ARC/BCM levels verified (gfx.lvl 0/48/64/128/144/192/224/256/320/384/416, SH0/MC0/ACV/CN0), GMU 200 MHz clocks up (step=5 fail=0, sysrst=1), and ArmSmmu4K Bank 1 programmed and enabled (tbl=13, ttbr0=0x1000129203000, readback valid); unused faulting S2CRs read 0x00f2c2ff on QSMMUv500 so added safe unused-FAULT S2CR normalization to canonical 0x00020000 in J716fA650GmuContext.c before unmodified ArmSmmu4KAttachStreams.",
   "Hardware-verified full Phase 2b Mode 7-8 end-to-end on TB-J716F (a650_gmu.bin 41548 B, live USB Debug COM9): GMUCTX st=0 step=6 (ArmSmmu4K Bank 1 / ASID 1 / 2 verified routes smr=0x80000005/0x80000405 s2cr=0x00000001, 13 table pages, 36-bit OAS), GMU cold-start LOAD st=0 ph=8 (16 blocks, FW ver=0x20010008, init=0x100, hfi=0x1, rdy=11, ao=0), HFI st=0 stg=8 ack=0xc6 err=0 sent=4 (<1 ms), and GX power-on at OPP 7 (670 MHz): GX on vote=0 oob=2 gx=0x000000c0->0x00000000 gdscr=0xf8222800 rbbm=0x00000001 gbif=0/3 rh=0/0 with zero faults while booting iPadOS 17.7.11 desktop.",
   "Implemented and host-verified Phase 3 Mode 9 (package/gpu/J716fA650Cp.c/h + J716fA650CpTest.c): KGSL SMMU Bank 0 / ASID 2 GPU context (4 routes on remaining SMR slots 0,1,4,5 -> SIDs 0x0000,0x0001,0x0400,0x0401, CB0 ACTLR CPRE clear + TLBIALL), A650 hw_init (49-entry HWCG, UBWC HBB=16, UCHE, 39-entry CP_PROTECT, APRIV), SQE microcode load, Ring 0 + CP_ME_INIT + CP_MEM_WRITE (0xA6500C0D) on unmodified upstream kits/ArmSmmu4K and kits/AdrenoPM4.",
+  "Hardware-verified full Phase 3 Mode 9 end-to-end on TB-J716F first try (boot_b SHA-256 48708981..., a650_gmu.bin 41548 B + a650_sqe.fw 31964 B, live USB Debug COM9): GPUCTX st=0 step=7 (ArmSmmu4K Bank 0 / ASID 2 / 4 routes smr=0x80000000 s2cr=0x00000000, tbl=3, ttbr0=0x2000129344000, CB0 ACTLR 3->1), CP st=0 step=6 (sqe=31960/0, hwcg=0->0x8aa8aa82, CP_ME_INIT fence f1=1(2), CP_MEM_WRITE fence f2=2(2) DMA marker mk=0xa6500c0d verified in DRAM), CPSTATE rbbm=0x00000001 (idle), rptr=0x1b == wptr=0x1b, hwf=0, cpi=0, int0=0x00000001, cb0_fsr=0x00000400 (AArch64 FORMAT bit only, zero faults under ArmSmmu4K FSR_FAULT mask 0xc00001fe) while booting iPadOS 17.7.11 desktop.",
 ]
 completion = [
   "Adreno 650 GMU cold-start, ArmSmmu4K GPU/GMU contexts, CP/zap shader bring-up, and AdrenoMetal/Turnip acceleration.",
 ]
 limits = [
-  "Phase 2b (CX/SMMU/cmd-db/GMU cold-start/HFI/GX 670 MHz power-on) is hardware-verified on TB-J716F; Phase 3 (GPU Bank 0 SMMU + CP/SQE ring + zap shader + AdrenoMetal/Turnip 3D acceleration) remains pending.",
+  "Phase 3 Mode 9 (KGSL SMMU Bank 0 / ASID 2 GPU context + A650 hw_init + SQE microcode + Ring 0 CP_ME_INIT + CP_MEM_WRITE DMA roundtrip) is hardware-verified on TB-J716F; Phase 3b (a650_zap.mbn TZ shader authentication + GPU SPI 300 IRQ) and Phase 4 (KMD VM/Submit/UserClient/Accelerator + AdrenoMetal/Turnip 3D acceleration) remain pending.",
 ]
 next_action = [
-  "Implement Phase 3 GPU Bank 0 / ASID 2 ArmSmmu4K context, AdrenoPM4 CP/SQE microcode ring initialization (Mode 9-10), zap shader TZ authentication, and AdrenoMetal/Turnip integration.",
+  "Implement Phase 3b zap shader TZ authentication (a650_zap.mbn via SCM SMC into pil_gpu_region@8681a000) and GPU SPI 300 interrupt handling, then build Phase 4 Adreno 650 KMD and AdrenoMetal/Turnip gpuaddon.bin.",
 ]
 [[area.evidence]]
 kind = "source"
@@ -409,6 +410,10 @@ result = "TB-J716F Adreno 650 v2.0 Phase 1 prerequisite-gated power/clock/SMMU/G
 kind = "source"
 reference = "package/gpu/tests/J716fGpuPowerBoardTest.c"
 result = "Host ASan/UBSan unit test verifying modes 0..6 safety invariants and AOP cmd-db parsing"
+[[area.evidence]]
+kind = "source"
+reference = "package/gpu/J716fA650Cp.c"
+result = "Hardware-verified Phase 3 Mode 9 KGSL SMMU Bank 0 GPU context, A650 hw_init, SQE microcode load, and Ring 0 CP_ME_INIT / CP_MEM_WRITE"
 
 [[area]]
 id = "network"
