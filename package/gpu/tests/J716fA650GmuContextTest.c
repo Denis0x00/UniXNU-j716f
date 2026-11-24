@@ -356,12 +356,78 @@ static void test_error_guards(void) {
     free(table_pool);
 }
 
+static void test_real_j716f_qsmmuv500_reset_s2cr(void) {
+    /* Exact KGSL SMMU register values measured on TB-J716F hardware:
+     * cr0=00230406 id0=4c017e06 id1=20000005 id2=00005511 unused s2cr=00f2c2ff. */
+    FakeKgslSmmu smmu;
+    ArmSmmu4KIo io;
+    J716fGmuCtxConfig cfg;
+    J716fGmuCtxState state;
+    J716fGmuCtxReport rep;
+    PublishSpy spy = {0, 0, 0};
+    uint32_t scr0 = 0x00230406u, id0 = 0x4C017E06u, id1 = 0x20000005u, id2 = 0x00005511u;
+    uint32_t qsmmu_fault = 0x00F2C2FFu;
+    uint32_t s2cr0 = 0u, s2cr2 = 0u, s2cr3 = 0u;
+    unsigned i;
+    uint64_t *table_pool = (uint64_t *)aligned_alloc(4096u, J716F_GMU_TABLE_BYTES);
+    assert(table_pool != NULL);
+
+    memset(&smmu, 0, sizeof(smmu));
+    smmu.simulate_tbi_ro = 1u;
+    smmu.simulate_asidpne_ro = 1u;
+    memcpy(smmu.regs + 0x000u, &scr0, 4u);
+    memcpy(smmu.regs + 0x020u, &id0, 4u);
+    memcpy(smmu.regs + 0x024u, &id1, 4u);
+    memcpy(smmu.regs + 0x028u, &id2, 4u);
+    for (i = 0u; i < 6u; ++i) {
+        memcpy(smmu.regs + 0xC00u + 4u * i, &qsmmu_fault, 4u);
+    }
+
+    io.cookie = &smmu;
+    io.register_bytes = sizeof(smmu.regs);
+    io.read32 = smmu_rd32;
+    io.read64 = smmu_rd64;
+    io.write32 = smmu_wr32;
+    io.write64 = smmu_wr64;
+    io.barrier = smmu_barrier;
+
+    populate_valid_pa(&cfg, table_pool);
+    cfg.publish_cookie = &spy;
+    cfg.publish_tables = fake_publish;
+
+    memset(&state, 0, sizeof(state));
+    assert(J716fGmuCtxBringup(&io, &cfg, &state, &rep) == ArmSmmu4KSuccess);
+    assert(rep.step == J716F_GMU_CTX_STEP_READY);
+    assert(rep.output_bits == 36u && rep.table_pages == 13u && rep.routes_verified == 2u);
+    /* Slots 2 & 3 now route to bank 1; slot 0 stays untouched at 0x00f2c2ff. */
+    assert(smmu_rd32(&smmu, 0xC00u + 4u * 0u, &s2cr0) == 0 && s2cr0 == qsmmu_fault);
+    assert(smmu_rd32(&smmu, 0xC00u + 4u * 2u, &s2cr2) == 0 && s2cr2 == J716F_GMU_SMMU_BANK);
+    assert(smmu_rd32(&smmu, 0xC00u + 4u * 3u, &s2cr3) == 0 && s2cr3 == J716F_GMU_SMMU_BANK);
+
+    /* Non-FAULT S2CR (e.g. TYPE=0 translation on slot 2) must NOT be normalized and must fail with ArmSmmu4KBusy. */
+    memset(&smmu, 0, sizeof(smmu));
+    memcpy(smmu.regs + 0x000u, &scr0, 4u);
+    memcpy(smmu.regs + 0x020u, &id0, 4u);
+    memcpy(smmu.regs + 0x024u, &id1, 4u);
+    memcpy(smmu.regs + 0x028u, &id2, 4u);
+    for (i = 0u; i < 6u; ++i) {
+        uint32_t v = (i == 2u) ? 0x00000000u : qsmmu_fault;
+        memcpy(smmu.regs + 0xC00u + 4u * i, &v, 4u);
+    }
+    memset(&state, 0, sizeof(state));
+    assert(J716fGmuCtxBringup(&io, &cfg, &state, &rep) == ArmSmmu4KBusy);
+    assert(rep.step == J716F_GMU_CTX_STEP_ATTACH && rep.route_status == (uint32_t)ArmSmmu4KBusy);
+
+    free(table_pool);
+}
+
 int main(void) {
     test_decode_oas();
     test_build_ranges_validation();
     test_full_bringup(0u, 1u, 0u); /* Legacy SMR, 36-bit OAS */
     test_full_bringup(0u, 2u, 1u); /* Legacy SMR, 40-bit OAS + QSMMUv500 TBI/ASIDPNE quirks */
     test_full_bringup(1u, 2u, 1u); /* EXIDS SMR, 40-bit OAS + QSMMUv500 quirks */
+    test_real_j716f_qsmmuv500_reset_s2cr();
     test_error_guards();
     printf("J716fA650GmuContextTest: PASS\n");
     return 0;

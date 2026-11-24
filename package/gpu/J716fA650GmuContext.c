@@ -140,6 +140,40 @@ static void readback_summary(const ArmSmmu4KIo *io,
     (void)io->read64(io->cookie, (size_t)prog->context_offset + 0x20u, &report->ttbr0);
 }
 
+static ArmSmmu4KStatus normalize_unused_fault_s2cr(const ArmSmmu4KIo *io,
+                                                   uint32_t id0,
+                                                   const ArmSmmu4KStream *routes,
+                                                   unsigned route_count) {
+    const unsigned exids = (id0 >> 8) & 1u;
+    const uint32_t valid_s2cr_bit = exids ? (1u << 10) : 0u;
+    const uint32_t canonical_fault = (UINT32_C(2) << 16);
+    unsigned i;
+
+    for (i = 0u; i < route_count; ++i) {
+        const size_t smr_off = 0x800u + 4u * routes[i].slot;
+        const size_t s2cr_off = 0xC00u + 4u * routes[i].slot;
+        uint32_t smr = 0u, s2cr = 0u;
+        unsigned live;
+        if (smr_off + 4u > io->register_bytes || s2cr_off + 4u > io->register_bytes) {
+            return ArmSmmu4KBadRange;
+        }
+        if (io->read32(io->cookie, smr_off, &smr) || io->read32(io->cookie, s2cr_off, &s2cr)) {
+            return ArmSmmu4KIoError;
+        }
+        live = exids ? ((s2cr & valid_s2cr_bit) != 0u) : ((smr & (UINT32_C(1) << 31)) != 0u);
+        /* TB-J716F QSMMUv500 leaves unused faulting S2CRs at 0x00f2c2ff (TYPE=2 FAULT with
+         * non-zero reset attribute/CBNDX bits that hardware ignores while TYPE==FAULT).
+         * Only when a leased slot is ALREADY invalid and ALREADY TYPE==FAULT, normalize it
+         * to canonical FAULT (0x00020000) so unmodified upstream ArmSmmu4KAttachStreams accepts it. */
+        if (!live && ((s2cr >> 16) & 3u) == 2u && (s2cr & ~valid_s2cr_bit) != canonical_fault) {
+            if (io->write32(io->cookie, s2cr_off, canonical_fault) || io->barrier(io->cookie)) {
+                return ArmSmmu4KIoError;
+            }
+        }
+    }
+    return ArmSmmu4KSuccess;
+}
+
 ArmSmmu4KStatus J716fGmuCtxBringup(const ArmSmmu4KIo *io,
                                    const J716fGmuCtxConfig *cfg,
                                    J716fGmuCtxState *state,
@@ -232,8 +266,14 @@ ArmSmmu4KStatus J716fGmuCtxBringup(const ArmSmmu4KIo *io,
     readback_summary(io, &prog, cfg->bank, cfg->routes[0].slot, report);
     if (st != ArmSmmu4KSuccess) return st;
 
-    /* Step 5: Attach GMU stream routes with unmodified ArmSmmu4KAttachStreams. */
+    /* Step 5: Normalize unused faulting S2CR reset bits on leased slots, then attach with unmodified ArmSmmu4KAttachStreams. */
     report->step = J716F_GMU_CTX_STEP_ATTACH;
+    st = normalize_unused_fault_s2cr(io, report->id0, cfg->routes, cfg->route_count);
+    if (st != ArmSmmu4KSuccess) {
+        report->route_status = (uint32_t)st;
+        readback_summary(io, &prog, cfg->bank, cfg->routes[0].slot, report);
+        return st;
+    }
     st = ArmSmmu4KAttachStreams(io, &state->stream_state, cfg->routes, cfg->route_count,
                                 cfg->bank, &state->ctx_cfg, &sres);
     report->route_status = (uint32_t)st;
