@@ -125,8 +125,9 @@ jobs:
           test -f "$TREE7/kits/j716f/gpu/J716fGpuProbe.cpp"
           test -f "$TREE7/kits/j716f/gpu/J716fA650Gmu.c"
           test -f "$TREE7/kits/j716f/gpu/J716fA650GmuContext.c"
+          test -f "$TREE7/kits/j716f/gpu/J716fA650Cp.c"
           test -f "$TREE7/kits/AdrenoFirmware/AdrenoHfiStartup.c"
-          test -f "$TREE7/kits/AdrenoPM4/AdrenoPM4.h"
+          test -f "$TREE7/kits/AdrenoPM4/AdrenoPM4.c"
           test -f "$TREE7/kits/ArmSmmu4K/ArmSmmu4K.h"
           test -f "$TREE7/kits/ArmSmmu4K/ArmSmmu4KStreams.c"
           test -f "$TREE7/kits/j716f/usb/J716fUsbDebugCdc.cpp"
@@ -284,6 +285,20 @@ jobs:
             -o "$OUT/test_a650_gmu_context"
           "$OUT/test_a650_gmu_context"
 
+          echo "=== Test 12: J716fA650Cp (Phase 3 Bank 0 GPU SMMU + A650 hw_init + SQE/CP PM4 Ring 0) ==="
+          clang -std=c11 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer \
+            -I"unixnu/kits/ArmSmmu4K" -I"unixnu/kits/AdrenoPM4" -I"device/package/gpu" \
+            "unixnu/kits/ArmSmmu4K/ArmSmmu4K.c" \
+            "unixnu/kits/ArmSmmu4K/ArmSmmu4KContext.c" \
+            "unixnu/kits/ArmSmmu4K/ArmSmmu4KProgram.c" \
+            "unixnu/kits/ArmSmmu4K/ArmSmmu4KStreams.c" \
+            "unixnu/kits/AdrenoPM4/AdrenoPM4.c" \
+            "device/package/gpu/J716fA650GmuContext.c" \
+            "device/package/gpu/J716fA650Cp.c" \
+            "device/package/gpu/tests/J716fA650CpTest.c" \
+            -o "$OUT/test_a650_cp"
+          "$OUT/test_a650_cp"
+
       - name: Run upstream GopFramebuffer fence-wait sanitizer regression check
         run: |
           (cd unixnu/drivers/GopFramebuffer && python3 Test/check-fence-wait.py)
@@ -298,6 +313,6 @@ jobs:
             echo '## J716F Device CI'
             echo '- Official `./unixnu` Format 2 `defconfig`, `status`, `tree`, and `build package` passed'
             echo '- `dts/j716f.dts` compiled with `dtc` and converted to valid Apple Device Tree (ADT)'
-            echo '- All 11 C/C++ ASan/UBSan storage/SMMU/SHNGROOT/USB/battery/GPU/GMU/KGSL-SMMU unit tests compiled and passed'
+            echo '- All 12 C/C++ ASan/UBSan storage/SMMU/SHNGROOT/USB/battery/GPU/GMU/CP unit tests compiled and passed'
             echo '- Python Data seed & USB GSC1 wire tests and `porting.toml` schema validation passed'
           } >> "$GITHUB_STEP_SUMMARY"

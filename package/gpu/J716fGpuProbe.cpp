@@ -8,6 +8,7 @@
 //   6  mode 5 + bring up GMU 200 MHz clocks first (GMU itself remains in reset; no GMU/GPU register writes)
 //   7  mode 6 + KGSL SMMU ArmSmmu4K GMU context (bank 1 / ASID 1 / slots 2,3 -> SIDs 0x0005,0x0405) + A650GmuColdStart
 //   8  mode 7 + A650GmuPowerGx (j716f-gpu-perf=<1..7>, default 7 = 670 MHz) + read-only GX/RBBM/GBIF verification
+//   9  mode 8 + KGSL SMMU Bank 0 / ASID 2 GPU context (slots 0,1,4,5) + A650 hw_init + SQE Ring 0 + CP_ME_INIT + CP_MEM_WRITE
 
 #include <IOKit/IOBufferMemoryDescriptor.h>
 #include <IOKit/IODeviceMemory.h>
@@ -23,12 +24,15 @@
 
 extern "C" {
 #include "ArmSmmu4KMmio.h"
+#include "J716fA650Cp.h"
 #include "J716fA650Gmu.h"
 #include "J716fA650GmuContext.h"
 #include "J716fGpuPowerBoard.h"
 
 extern const uint8_t j716f_gpu_gmu_firmware[];
 extern const uint32_t j716f_gpu_gmu_firmware_size;
+extern const uint8_t j716f_gpu_sqe_firmware[];
+extern const uint32_t j716f_gpu_sqe_firmware_size;
 
 enum {
     kRowSummary = 0,
@@ -49,6 +53,9 @@ enum {
     kRowHfi,
     kRowAfter,
     kRowGx,
+    kRowGpuCtx,
+    kRowCp,
+    kRowCpState,
     kGpuRows,
 };
 
@@ -60,6 +67,8 @@ struct gpb_gmu_state j716f_gpu_gmu_state = {};
 J716fGmuCtxReport j716f_gpu_gmu_ctx = {};
 A650GmuStartupResult j716f_gpu_cold = {};
 A650GmuGxResult j716f_gpu_gx = {};
+J716fGpuCtxReport j716f_gpu_ctx = {};
+J716fA650CpReport j716f_gpu_cp = {};
 }
 
 namespace {
@@ -106,6 +115,11 @@ ArmSmmu4KIo gSmmuIo = {};
 J716fGmuCtxState gGmuCtxState = {};
 ContigBuffer gGmuBufs[J716F_GMU_BUF_COUNT] = {};
 ContigBuffer gGmuTableBuf = {};
+
+// Mode 9 persistent GPU Bank 0 SMMU state and DMA buffers (retained once Bank 0 is touched).
+J716fGpuCtxState gGpuCtxState = {};
+ContigBuffer gGpuBufs[J716F_GPU_BUF_COUNT] = {};
+ContigBuffer gGpuTableBuf = {};
 
 volatile uint8_t *gGmuWin[A650GmuWindows] = {};
 A650GmuDevice gGmuDev = {};
@@ -291,6 +305,27 @@ uint32_t gpuReadDword(uint32_t dword) {
     uint32_t v = 0xDEADBEEFu;
     (void)rd(nullptr, GPB_WIN_GPU, dword * 4u, &v);
     return v;
+}
+
+int cpGpuRead(void *, uint32_t dword, uint32_t *out) {
+    if (!gVa[GPB_WIN_GPU] || dword >= GPB_GPU_WINDOW / 4u || !out) return 1;
+    *out = *reinterpret_cast<volatile uint32_t *>(gVa[GPB_WIN_GPU] + dword * 4u);
+    return 0;
+}
+
+int cpGpuWrite(void *, uint32_t dword, uint32_t value) {
+    if (!gVa[GPB_WIN_GPU] || dword >= GPB_GPU_WINDOW / 4u) return 1;
+    *reinterpret_cast<volatile uint32_t *>(gVa[GPB_WIN_GPU] + dword * 4u) = value;
+    __asm__ volatile("dsb sy" ::: "memory");
+    return 0;
+}
+
+int cpGmuRead(void *, size_t byteOff, uint32_t *out) {
+    return gmuRead(nullptr, A650GmuCore, byteOff, out);
+}
+
+int cpGmuWrite(void *, size_t byteOff, uint32_t value) {
+    return gmuWrite(nullptr, A650GmuCore, byteOff, value);
 }
 
 void probeCmdDb() {
@@ -543,6 +578,117 @@ void runMode8PowerGx() {
     }
 }
 
+void runMode9CpSmoke() {
+    char *ctxRow = j716f_gpu_rows[kRowGpuCtx];
+    char *cpRow = j716f_gpu_rows[kRowCp];
+    char *stRow = j716f_gpu_rows[kRowCpState];
+    const size_t cap = sizeof(j716f_gpu_rows[0]);
+
+    j716f_gpu_step = 110u;
+    if (j716f_gpu_sqe_firmware_size < 8u) {
+        snprintf(ctxRow, cap, "GPUCTX no SQE firmware linked (build with J716F_GPU_FIRMWARE_DIR)");
+        return;
+    }
+    if (!gSmmuFullMap || !gVa[GPB_WIN_GPU] || !gGmuWin[A650GmuCore] || !j716f_gpu_gmu_ctx.output_bits) {
+        snprintf(ctxRow, cap, "GPUCTX missing prerequisite mappings");
+        return;
+    }
+
+    const unsigned outputBits = j716f_gpu_gmu_ctx.output_bits;
+    J716fGpuCtxConfig ctxCfg = {};
+    J716fGpuCtxInitDefaultConfig(&ctxCfg);
+    unsigned coherentOpt = 0;
+    if (PE_parse_boot_argn("j716f-gpu-coherent", &coherentOpt, sizeof(coherentOpt))) {
+        ctxCfg.coherent_walk = coherentOpt ? 1u : 0u;
+    }
+
+    for (unsigned i = 0; i < J716F_GPU_BUF_COUNT; ++i) {
+        if (!allocContigBuffer(static_cast<size_t>(ctxCfg.regions[i].bytes), outputBits, true, &gGpuBufs[i])) {
+            for (unsigned j = 0; j < i; ++j) releaseContigBuffer(&gGpuBufs[j]);
+            snprintf(ctxRow, cap, "GPUCTX alloc buf %u (%llu B) failed", i,
+                     static_cast<unsigned long long>(ctxCfg.regions[i].bytes));
+            return;
+        }
+        ctxCfg.regions[i].physical = gGpuBufs[i].phys;
+    }
+    if (!allocContigBuffer(J716F_GPU_TABLE_BYTES, outputBits, false, &gGpuTableBuf)) {
+        for (unsigned j = 0; j < J716F_GPU_BUF_COUNT; ++j) releaseContigBuffer(&gGpuBufs[j]);
+        snprintf(ctxRow, cap, "GPUCTX alloc tables (%u B) failed", J716F_GPU_TABLE_BYTES);
+        return;
+    }
+    ctxCfg.table_physical = gGpuTableBuf.phys;
+    ctxCfg.table_cpu = reinterpret_cast<uint64_t *>(gGpuTableBuf.cachedVa);
+    ctxCfg.table_capacity_pages = J716F_GPU_TABLE_PAGES;
+    ctxCfg.publish_tables = publishTablePages;
+
+    j716f_gpu_step = 115u;
+    const ArmSmmu4KStatus ctxSt = J716fGpuCtxBringup(&gSmmuIo, &ctxCfg, &gGpuCtxState, &j716f_gpu_ctx);
+    const J716fGpuCtxReport &g = j716f_gpu_ctx;
+    snprintf(ctxRow, cap,
+             "GPUCTX st=%u step=%u b=%u p=%u/%u/%u r=%u/%u tbl=%u ttbr0=%llx smr=%08x s2cr=%08x actlr=%x>%x",
+             static_cast<unsigned>(ctxSt), g.step, g.build_status, g.program_status,
+             g.program_readback_valid, g.program_enabled, g.route_status, g.routes_verified,
+             g.table_pages, static_cast<unsigned long long>(g.ttbr0), g.smr, g.s2cr,
+             g.actlr_before, g.actlr_after);
+    if (ctxSt != ArmSmmu4KSuccess) return;
+
+    j716f_gpu_step = 120u;
+    J716fA650CpIo cpIo = {};
+    cpIo.cookie = nullptr;
+    cpIo.gpu_read32 = cpGpuRead;
+    cpIo.gpu_write32 = cpGpuWrite;
+    cpIo.gmu_read32 = cpGmuRead;
+    cpIo.gmu_write32 = cpGmuWrite;
+    cpIo.barrier = gmuBarrier;
+    cpIo.delay_us = delayUs;
+
+    unsigned hwcg = 1u;
+    unsigned apriv = 1u;
+    PE_parse_boot_argn("j716f-gpu-hwcg", &hwcg, sizeof(hwcg));
+    PE_parse_boot_argn("j716f-gpu-apriv", &apriv, sizeof(apriv));
+
+    J716fA650CpConfig cpCfg = {};
+    cpCfg.sqe_firmware = j716f_gpu_sqe_firmware;
+    cpCfg.sqe_firmware_bytes = j716f_gpu_sqe_firmware_size;
+    cpCfg.sqe_cpu = reinterpret_cast<volatile uint8_t *>(gGpuBufs[J716F_GPU_BUF_SQE].wcVa);
+    cpCfg.sqe_bytes = gGpuBufs[J716F_GPU_BUF_SQE].bytes;
+    cpCfg.sqe_iova = J716F_GPU_SQE_IOVA;
+    cpCfg.ring_cpu = gGpuBufs[J716F_GPU_BUF_RING].wcVa;
+    cpCfg.ring_bytes = gGpuBufs[J716F_GPU_BUF_RING].bytes;
+    cpCfg.ring_iova = J716F_GPU_RING_IOVA;
+    cpCfg.memptrs_cpu = gGpuBufs[J716F_GPU_BUF_MEMPTRS].wcVa;
+    cpCfg.memptrs_bytes = gGpuBufs[J716F_GPU_BUF_MEMPTRS].bytes;
+    cpCfg.memptrs_iova = J716F_GPU_MEMPTRS_IOVA;
+    cpCfg.scratch_cpu = gGpuBufs[J716F_GPU_BUF_SCRATCH].wcVa;
+    cpCfg.scratch_bytes = gGpuBufs[J716F_GPU_BUF_SCRATCH].bytes;
+    cpCfg.scratch_iova = J716F_GPU_SCRATCH_IOVA;
+    cpCfg.hwcg_enable = hwcg ? 1u : 0u;
+    cpCfg.apriv_enable = apriv ? 1u : 0u;
+    cpCfg.fence_poll_budget = 10000u;
+    cpCfg.poll_delay_us = 20u;
+
+    const J716fCpStatus cpSt = J716fA650CpStart(&cpIo, &cpCfg, &j716f_gpu_cp);
+    const J716fA650CpReport &c = j716f_gpu_cp;
+    j716f_gpu_step = (cpSt == J716fCpSuccess) ? 130u : 129u;
+    snprintf(cpRow, cap,
+             "CP st=%u step=%u sqe=%u/%u f1=%u(%u) f2=%u(%u) mk=%08x hwcg=%x>%x sptp=%x>%x",
+             static_cast<unsigned>(cpSt), c.step, c.sqe_bytes, c.sqe_mismatch_index,
+             c.init_fence_seen, c.init_polls, c.write_fence_seen, c.write_polls,
+             c.marker_value, c.hwcg_before, c.hwcg_after, c.sptp_before, c.sptp_after);
+
+    uint32_t cb0Fsr = 0, cb0FarLo = 0, cb0FarHi = 0;
+    if (gGpuCtxState.bank0_offset) {
+        const size_t cb0 = static_cast<size_t>(gGpuCtxState.bank0_offset);
+        (void)gSmmuIo.read32(gSmmuIo.cookie, cb0 + 0x58u, &cb0Fsr);
+        (void)gSmmuIo.read32(gSmmuIo.cookie, cb0 + 0x60u, &cb0FarLo);
+        (void)gSmmuIo.read32(gSmmuIo.cookie, cb0 + 0x64u, &cb0FarHi);
+    }
+    snprintf(stRow, cap,
+             "CPSTATE rbbm=%08x rptr=%x wptr=%x hwf=%x cpi=%x int0=%08x cb0_fsr=%08x far=%08x%08x",
+             c.rbbm_status, c.rptr, c.wptr, c.hw_fault, c.cp_int, c.rbbm_int0,
+             cb0Fsr, cb0FarHi, cb0FarLo);
+}
+
 void probeThread(void *, wait_result_t) {
     // Wait briefly so Display, USB Debug, and multi-core log ring are online first.
     IOSleep(4000);
@@ -614,6 +760,9 @@ void probeThread(void *, wait_result_t) {
     if (gMode >= 8u && gColdOk) {
         runMode8PowerGx();
     }
+    if (gMode >= 9u && gColdOk && j716f_gpu_gx.gx_on) {
+        runMode9CpSmoke();
+    }
 
     if (j716f_gpu_step < 100u && gMode < 7u) {
         j716f_gpu_step = 100u;
@@ -629,8 +778,8 @@ void probeThread(void *, wait_result_t) {
 
 extern "C" void j716f_gpu_snapshot(char *out, size_t cap) {
     if (!out || cap == 0) return;
-    int n = snprintf(out, cap, "[usb] GPU: mode=%u step=%u fw=%u\r\n",
-                     gMode, j716f_gpu_step, j716f_gpu_gmu_firmware_size);
+    int n = snprintf(out, cap, "[usb] GPU: mode=%u step=%u fw=%u sqe=%u\r\n",
+                     gMode, j716f_gpu_step, j716f_gpu_gmu_firmware_size, j716f_gpu_sqe_firmware_size);
     for (unsigned i = 0; i < kGpuRows && n > 0 && static_cast<size_t>(n) < cap; ++i) {
         if (!j716f_gpu_rows[i][0]) continue;
         n += snprintf(out + n, cap - static_cast<size_t>(n), "[usb] GPU[%u]: %s\r\n", i, j716f_gpu_rows[i]);
@@ -640,7 +789,7 @@ extern "C" void j716f_gpu_snapshot(char *out, size_t cap) {
 extern "C" void j716f_gpu_probe(void) {
     static int started = 0;
     unsigned mode = 0;
-    if (!PE_parse_boot_argn("j716f-gpu", &mode, sizeof(mode)) || !mode || mode > 8u) {
+    if (!PE_parse_boot_argn("j716f-gpu", &mode, sizeof(mode)) || !mode || mode > 9u) {
         return;
     }
     if (__atomic_exchange_n(&started, 1, __ATOMIC_ACQ_REL)) return;

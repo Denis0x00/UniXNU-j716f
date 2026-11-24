@@ -627,6 +627,7 @@ def main() -> None:
     gpu_probe_src = gpu_dir / 'J716fGpuProbe.cpp'
     gpu_gmu_src = gpu_dir / 'J716fA650Gmu.c'
     gpu_gmu_ctx_src = gpu_dir / 'J716fA650GmuContext.c'
+    gpu_cp_src = gpu_dir / 'J716fA650Cp.c'
     adreno_fw_dir = ROOT / 'kits/AdrenoFirmware'
     adreno_fw_srcs = [
         adreno_fw_dir / 'AdrenoFirmware.c',
@@ -634,6 +635,8 @@ def main() -> None:
         adreno_fw_dir / 'AdrenoHfiStartup.c',
         adreno_fw_dir / 'AdrenoHfiVotes.c',
     ]
+    adreno_pm4_dir = ROOT / 'kits/AdrenoPM4'
+    adreno_pm4_src = adreno_pm4_dir / 'AdrenoPM4.c'
     smmu_dir = ROOT / 'kits/ArmSmmu4K'
     smmu_srcs = [
         smmu_dir / 'ArmSmmu4K.c',
@@ -662,6 +665,8 @@ def main() -> None:
         gpu_probe_src,
         gpu_gmu_src,
         gpu_gmu_ctx_src,
+        gpu_cp_src,
+        adreno_pm4_src,
         *adreno_fw_srcs,
         *smmu_srcs,
         usb_cdc_src,
@@ -851,11 +856,13 @@ def main() -> None:
     gpu_probe_obj = OUT / 'J716fGpuProbe.o'
     gpu_gmu_obj = OUT / 'J716fA650Gmu.o'
     gpu_gmu_ctx_obj = OUT / 'J716fA650GmuContext.o'
+    gpu_cp_obj = OUT / 'J716fA650Cp.o'
+    adreno_pm4_obj = OUT / 'AdrenoPM4.o'
     adreno_fw_objs = [OUT / f'{s.stem}.o' for s in adreno_fw_srcs]
     smmu_objs = [OUT / f'{s.stem}.o' for s in smmu_srcs]
     usb_cdc_obj = OUT / 'J716fUsbDebugCdc.o'
 
-    # Optional local-only GMU firmware embedding (never required for public/CI builds).
+    # Optional local-only GMU & SQE firmware embedding (never required for public/CI builds).
     gmu_fw_path: Path | None = None
     if os.environ.get('J716F_GMU_FIRMWARE'):
         gmu_fw_path = Path(os.environ['J716F_GMU_FIRMWARE'])
@@ -894,6 +901,44 @@ def main() -> None:
             encoding='utf-8',
         )
 
+    sqe_fw_path: Path | None = None
+    if os.environ.get('J716F_SQE_FIRMWARE'):
+        sqe_fw_path = Path(os.environ['J716F_SQE_FIRMWARE'])
+        require(sqe_fw_path.is_file(), f'J716F_SQE_FIRMWARE does not exist: {sqe_fw_path}')
+    elif os.environ.get('J716F_GPU_FIRMWARE_DIR'):
+        cand = Path(os.environ['J716F_GPU_FIRMWARE_DIR']) / 'a650_sqe.fw'
+        if cand.is_file():
+            sqe_fw_path = cand
+    sqe_fw_src = OUT / 'J716fSqeFirmware.c'
+    sqe_fw_obj = OUT / 'J716fSqeFirmware.o'
+    sqe_fw_bytes = 0
+    sqe_fw_sha256: str | None = None
+    if sqe_fw_path is not None:
+        blob = sqe_fw_path.read_bytes()
+        require(
+            8 <= len(blob) <= 0x20004 and len(blob) % 4 == 0,
+            f'invalid SQE firmware image {sqe_fw_path} ({len(blob)} bytes)',
+        )
+        sqe_fw_bytes = len(blob)
+        sqe_fw_sha256 = hashlib.sha256(blob).hexdigest()
+        sqe_fw_src.write_text(
+            f'/* Local optional SQE firmware ({sqe_fw_path.name}, sha256 {sqe_fw_sha256}) */\n'
+            '#include <stdint.h>\n'
+            'const uint8_t j716f_gpu_sqe_firmware[] __attribute__((aligned(16))) = {'
+            + ','.join(str(b) for b in blob)
+            + '};\n'
+            f'const uint32_t j716f_gpu_sqe_firmware_size = {sqe_fw_bytes}u;\n',
+            encoding='utf-8',
+        )
+    else:
+        sqe_fw_src.write_text(
+            '/* Public/CI build stub: no proprietary a650_sqe.fw linked. */\n'
+            '#include <stdint.h>\n'
+            'const uint8_t j716f_gpu_sqe_firmware[16] __attribute__((aligned(16))) = {0};\n'
+            'const uint32_t j716f_gpu_sqe_firmware_size = 0u;\n',
+            encoding='utf-8',
+        )
+
     compile_cxx_from_record(record, board_display_src, board_display_obj, [], allow_warnings=False)
     compile_cxx_from_record(record, board_keystore_src, board_keystore_obj, [], allow_warnings=False)
     compile_cxx_from_record(record, board_hid_src, board_hid_obj, ['-I', str(input_dir)], allow_warnings=False)
@@ -914,11 +959,12 @@ def main() -> None:
         record,
         gpu_probe_src,
         gpu_probe_obj,
-        ['-I', str(gpu_dir), '-I', str(adreno_fw_dir), '-I', str(smmu_dir)],
+        ['-I', str(gpu_dir), '-I', str(adreno_fw_dir), '-I', str(adreno_pm4_dir), '-I', str(smmu_dir)],
         allow_warnings=False,
     )
     for fw_src, fw_obj in zip(adreno_fw_srcs, adreno_fw_objs):
         compile_c_from_record(c_record, record, fw_src, fw_obj, ['-I', str(adreno_fw_dir)], allow_warnings=False)
+    compile_c_from_record(c_record, record, adreno_pm4_src, adreno_pm4_obj, ['-I', str(adreno_pm4_dir)], allow_warnings=False)
     for smmu_src, smmu_obj in zip(smmu_srcs, smmu_objs):
         compile_c_from_record(c_record, record, smmu_src, smmu_obj, ['-I', str(smmu_dir)], allow_warnings=False)
     compile_c_from_record(
@@ -937,7 +983,16 @@ def main() -> None:
         ['-I', str(gpu_dir), '-I', str(smmu_dir)],
         allow_warnings=False,
     )
+    compile_c_from_record(
+        c_record,
+        record,
+        gpu_cp_src,
+        gpu_cp_obj,
+        ['-I', str(gpu_dir), '-I', str(adreno_pm4_dir), '-I', str(smmu_dir)],
+        allow_warnings=False,
+    )
     compile_c_from_record(c_record, record, gmu_fw_src, gmu_fw_obj, [], allow_warnings=False)
+    compile_c_from_record(c_record, record, sqe_fw_src, sqe_fw_obj, [], allow_warnings=False)
     compile_cxx_from_record(
         record,
         usb_cdc_src,
@@ -967,7 +1022,10 @@ def main() -> None:
         gpu_probe_obj,
         gpu_gmu_obj,
         gpu_gmu_ctx_obj,
+        gpu_cp_obj,
         gmu_fw_obj,
+        sqe_fw_obj,
+        adreno_pm4_obj,
         *adreno_fw_objs,
         *smmu_objs,
         usb_cdc_obj,
@@ -993,6 +1051,8 @@ def main() -> None:
         gpu_probe_src,
         gpu_gmu_src,
         gpu_gmu_ctx_src,
+        gpu_cp_src,
+        adreno_pm4_src,
         *adreno_fw_srcs,
         *smmu_srcs,
         usb_cdc_src,
@@ -1016,6 +1076,8 @@ def main() -> None:
         'bindings_count': len(bindings),
         'gmu_firmware_bytes': gmu_fw_bytes,
         'gmu_firmware_sha256': gmu_fw_sha256,
+        'sqe_firmware_bytes': sqe_fw_bytes,
+        'sqe_firmware_sha256': sqe_fw_sha256,
         'hardware_tested': False,
     }
     (OUT / 'build-report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
