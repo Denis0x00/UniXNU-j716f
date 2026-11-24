@@ -183,6 +183,9 @@ ArmSmmu4KStatus J716fGpuCtxBringup(const ArmSmmu4KIo *io,
                                    J716fGpuCtxState *state,
                                    J716fGpuCtxReport *report);
 
+J716fCpStatus J716fA650HwInitAndLoadSqe(const J716fA650CpIo *io,
+                                        const J716fA650CpConfig *cfg,
+                                        J716fA650CpReport *report);
 J716fCpStatus J716fA650CpStart(const J716fA650CpIo *io,
                                const J716fA650CpConfig *cfg,
                                J716fA650CpReport *report);

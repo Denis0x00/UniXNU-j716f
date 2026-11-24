@@ -101,6 +101,48 @@ def find_kernelcache() -> Path:
     )
 
 
+def find_upstream_dir(rel: str) -> Path:
+    for base in (ROOT, *ROOT.parents[:5]):
+        cand = base / rel
+        if cand.is_dir():
+            return cand
+    raise SystemExit(f'Cannot locate upstream UniXNU directory: {rel}')
+
+
+def audit_accelerator_kernelcache(kc_path: Path) -> dict[str, int]:
+    """Verify exact 21H461 IOAcceleratorES base bindings (136 B, 168 vtable slots, 0 operational overrides)."""
+    raw = kc_path.read_bytes()
+    im = macho(raw)
+    segs = im['segments']
+
+    def read_slid(prelinked_va: int, n: int) -> bytes:
+        at = backed_offset(segs, prelinked_va + PRELINK_SLIDE, n, len(raw))
+        return raw[at : at + n]
+
+    expected = {
+        'C2': (0xFFFFFFF004BD3B20, '9ed90924d429e607b964fdc110c4b6f7bedf6ade17ec2b021ed60279b42987ec'),
+        'D2': (0xFFFFFFF004BD3B64, '456b2a9a418a432e7f58612f92318c20a88f5292ccbfe294a1f5f0404a300617'),
+        'getMetaClass': (0xFFFFFFF004BD3BAC, '9daad2c67183fcc551bd461dac5b03fd1fc140c96995a09ec2a54d59532c0ce9'),
+    }
+    for label, (va, digest) in expected.items():
+        got = hashlib.sha256(read_slid(va, 32)).hexdigest()
+        require(got == digest, f'21H461 IOAcceleratorES {label} hash mismatch: {got} != {digest}')
+
+    # Confirm vtable slots 0 (D2) and 7 (getMetaClass) at slid IOAcceleratorES vptr 0xfffffff005d439a0
+    vptr_prelinked = 0xFFFFFFF005D439A0
+    vt_raw = struct.unpack('<8Q', read_slid(vptr_prelinked, 64))
+    require(
+        (vt_raw[0] - PRELINK_SLIDE) == 0xFFFFFFF004BD3B64
+        and (vt_raw[7] - PRELINK_SLIDE) == 0xFFFFFFF004BD3BAC,
+        '21H461 IOAcceleratorES vtable D2/getMetaClass slot mismatch',
+    )
+    return {
+        '__ZN15IOAcceleratorESC2EPK11OSMetaClass': 0xFFFFFFF004BD3B20,
+        '__ZN15IOAcceleratorESD2Ev': 0xFFFFFFF004BD3B64,
+        '__ZN15IOAcceleratorES10gMetaClassE': 0xFFFFFFF006AEB688,
+    }
+
+
 def code_bytes(raw: bytes) -> bytes:
     info = macho(raw)
     sec = next(s for g in info['segments'] for s in g['sections'] if s['name'] == '__text')
@@ -602,6 +644,7 @@ def main() -> None:
     header = write_abi_header(pure)
     hid_vptr, hid_vt_slid, hid_bindings = audit_hid_kernelcache(kc_path)
     hid_header = write_hid_abi_header()
+    accel_bindings = audit_accelerator_kernelcache(kc_path)
 
     record_path = ROOT / 'build/xnu/ios-obj/DEVELOPMENT_ARM64_BCM2837/iokit/DEVELOPMENT/IOPlatformExpert.cpo.json'
     require(record_path.is_file(), f'missing XNU compile record: {record_path}')
@@ -628,6 +671,29 @@ def main() -> None:
     gpu_gmu_src = gpu_dir / 'J716fA650Gmu.c'
     gpu_gmu_ctx_src = gpu_dir / 'J716fA650GmuContext.c'
     gpu_cp_src = gpu_dir / 'J716fA650Cp.c'
+    gpu_zap_src = gpu_dir / 'J716fA650Zap.c'
+    gpu_irq_src = gpu_dir / 'J716fA650Irq.cpp'
+    gpu_ring_src = gpu_dir / 'J716fA650Ring.cpp'
+    gpu_ctx_src = gpu_dir / 'J716fA650GpuContext.cpp'
+    adreno740_dir = find_upstream_dir('drivers/Adreno740')
+    adreno_metal_dir = find_upstream_dir('drivers/AdrenoMetal')
+    adreno740_kmd_names = (
+        'NativeAdrenoCpu.cpp',
+        'NativeAdrenoMemory.cpp',
+        'NativeAdrenoPool.cpp',
+        'NativeAdrenoSmmuMemory.cpp',
+        'NativeAdrenoSmmuContext.cpp',
+        'NativeAdrenoVm.cpp',
+        'NativeAdrenoClient.cpp',
+        'NativeAdrenoUserClient.cpp',
+        'NativeAdrenoSubmit.cpp',
+        'NativeAdrenoPreempt.cpp',
+        'NativeAdrenoTimer.cpp',
+        'NativeAdrenoSha256.cpp',
+        'NativeAdrenoPublish.cpp',
+    )
+    adreno740_kmd_srcs = [adreno740_dir / n for n in adreno740_kmd_names]
+    adreno_accel_src = adreno740_dir / 'NativeAdrenoAccelerator.cpp'
     adreno_fw_dir = ROOT / 'kits/AdrenoFirmware'
     adreno_fw_srcs = [
         adreno_fw_dir / 'AdrenoFirmware.c',
@@ -638,13 +704,7 @@ def main() -> None:
     adreno_pm4_dir = ROOT / 'kits/AdrenoPM4'
     adreno_pm4_src = adreno_pm4_dir / 'AdrenoPM4.c'
     smmu_dir = ROOT / 'kits/ArmSmmu4K'
-    smmu_srcs = [
-        smmu_dir / 'ArmSmmu4K.c',
-        smmu_dir / 'ArmSmmu4KContext.c',
-        smmu_dir / 'ArmSmmu4KProgram.c',
-        smmu_dir / 'ArmSmmu4KStreams.c',
-        smmu_dir / 'ArmSmmu4KMmio.c',
-    ]
+    smmu_srcs = sorted(smmu_dir.glob('ArmSmmu4K*.c'))
     usb_dir = ROOT / 'kits/j716f/usb'
     usb_cdc_src = usb_dir / 'J716fUsbDebugCdc.cpp'
 
@@ -666,6 +726,12 @@ def main() -> None:
         gpu_gmu_src,
         gpu_gmu_ctx_src,
         gpu_cp_src,
+        gpu_zap_src,
+        gpu_irq_src,
+        gpu_ring_src,
+        gpu_ctx_src,
+        *adreno740_kmd_srcs,
+        adreno_accel_src,
         adreno_pm4_src,
         *adreno_fw_srcs,
         *smmu_srcs,
@@ -781,6 +847,7 @@ def main() -> None:
         f'HID binding mismatch: missing={undefined_hid - set(hid_bindings)} extra={set(hid_bindings) - undefined_hid}',
     )
     bindings.update(hid_bindings)
+    bindings.update(accel_bindings)
 
     # 2. Assemble original-bindings.S -> original-bindings.o
     asm_path = OUT / 'original-bindings.S'
@@ -857,6 +924,12 @@ def main() -> None:
     gpu_gmu_obj = OUT / 'J716fA650Gmu.o'
     gpu_gmu_ctx_obj = OUT / 'J716fA650GmuContext.o'
     gpu_cp_obj = OUT / 'J716fA650Cp.o'
+    gpu_zap_obj = OUT / 'J716fA650Zap.o'
+    gpu_irq_obj = OUT / 'J716fA650Irq.o'
+    gpu_ring_obj = OUT / 'J716fA650Ring.o'
+    gpu_ctx_obj = OUT / 'J716fA650GpuContext.o'
+    adreno740_kmd_objs = [OUT / f'{s.stem}.o' for s in adreno740_kmd_srcs]
+    adreno_accel_late = OUT / 'NativeAdrenoAccelerator.late.o'
     adreno_pm4_obj = OUT / 'AdrenoPM4.o'
     adreno_fw_objs = [OUT / f'{s.stem}.o' for s in adreno_fw_srcs]
     smmu_objs = [OUT / f'{s.stem}.o' for s in smmu_srcs]
@@ -939,6 +1012,55 @@ def main() -> None:
             encoding='utf-8',
         )
 
+    zap_fw_path: Path | None = None
+    if os.environ.get('J716F_ZAP_FIRMWARE'):
+        zap_fw_path = Path(os.environ['J716F_ZAP_FIRMWARE'])
+        require(zap_fw_path.is_file(), f'J716F_ZAP_FIRMWARE does not exist: {zap_fw_path}')
+    elif os.environ.get('J716F_GPU_FIRMWARE_DIR'):
+        for name in ('a650_zap.mbn', 'a650_zap.elf'):
+            cand = Path(os.environ['J716F_GPU_FIRMWARE_DIR']) / name
+            if cand.is_file():
+                zap_fw_path = cand
+                break
+    zap_fw_src = OUT / 'J716fZapFirmware.c'
+    zap_fw_obj = OUT / 'J716fZapFirmware.o'
+    zap_fw_bytes = 0
+    zap_fw_sha256: str | None = None
+    if zap_fw_path is not None:
+        blob = zap_fw_path.read_bytes()
+        require(
+            52 <= len(blob) <= 0x20000 and blob[:4] == b'\x7fELF',
+            f'invalid ZAP firmware image {zap_fw_path} ({len(blob)} bytes)',
+        )
+        zap_fw_bytes = len(blob)
+        zap_fw_sha256 = hashlib.sha256(blob).hexdigest()
+        zap_fw_src.write_text(
+            f'/* Local optional ZAP firmware ({zap_fw_path.name}, sha256 {zap_fw_sha256}) */\n'
+            '#include <stdint.h>\n'
+            'const uint8_t j716f_gpu_zap_firmware[] __attribute__((aligned(16))) = {'
+            + ','.join(str(b) for b in blob)
+            + '};\n'
+            f'const uint32_t j716f_gpu_zap_firmware_size = {zap_fw_bytes}u;\n',
+            encoding='utf-8',
+        )
+    else:
+        zap_fw_src.write_text(
+            '/* Public/CI build stub: no proprietary a650_zap.mbn linked. */\n'
+            '#include <stdint.h>\n'
+            'const uint8_t j716f_gpu_zap_firmware[16] __attribute__((aligned(16))) = {0};\n'
+            'const uint32_t j716f_gpu_zap_firmware_size = 0u;\n',
+            encoding='utf-8',
+        )
+
+    gpu_kmd_inc = [
+        '-I', str(gpu_dir),
+        '-I', str(adreno740_dir),
+        '-I', str(adreno_metal_dir),
+        '-I', str(adreno_fw_dir),
+        '-I', str(adreno_pm4_dir),
+        '-I', str(smmu_dir),
+    ]
+
     compile_cxx_from_record(record, board_display_src, board_display_obj, [], allow_warnings=False)
     compile_cxx_from_record(record, board_keystore_src, board_keystore_obj, [], allow_warnings=False)
     compile_cxx_from_record(record, board_hid_src, board_hid_obj, ['-I', str(input_dir)], allow_warnings=False)
@@ -959,8 +1081,54 @@ def main() -> None:
         record,
         gpu_probe_src,
         gpu_probe_obj,
-        ['-I', str(gpu_dir), '-I', str(adreno_fw_dir), '-I', str(adreno_pm4_dir), '-I', str(smmu_dir)],
+        gpu_kmd_inc,
         allow_warnings=False,
+    )
+    compile_cxx_from_record(record, gpu_irq_src, gpu_irq_obj, gpu_kmd_inc, allow_warnings=False)
+    compile_cxx_from_record(record, gpu_ring_src, gpu_ring_obj, gpu_kmd_inc, allow_warnings=False)
+    compile_cxx_from_record(record, gpu_ctx_src, gpu_ctx_obj, gpu_kmd_inc, allow_warnings=False)
+    xnu17_gpu_compat = OUT / 'j716f_xnu17_gpu_compat.h'
+    xnu17_gpu_compat.write_text(
+        '#pragma once\n'
+        '#include <stdint.h>\n'
+        '#include <kern/task.h>\n'
+        '#ifndef PRIO_DARWIN_GPU_ALLOW\n'
+        '#define PRIO_DARWIN_GPU_ALLOW 0x1\n'
+        '#endif\n'
+        '#ifndef PRIO_DARWIN_GPU_DENY\n'
+        '#define PRIO_DARWIN_GPU_DENY 0x2\n'
+        '#endif\n'
+        '#ifndef PRIO_DARWIN_GPU_BACKGROUND\n'
+        '#define PRIO_DARWIN_GPU_BACKGROUND 0x4\n'
+        '#endif\n'
+        '#ifndef PRIO_DARWIN_GPU_UTILITY\n'
+        '#define PRIO_DARWIN_GPU_UTILITY 0x8\n'
+        '#endif\n'
+        'static inline int32_t task_get_gpu_role(task_t task) {\n'
+        '    (void)task;\n'
+        '    return PRIO_DARWIN_GPU_ALLOW;\n'
+        '}\n',
+        encoding='utf-8',
+    )
+
+    for kmd_src, kmd_obj in zip(adreno740_kmd_srcs, adreno740_kmd_objs):
+        extra = gpu_kmd_inc + ['-Wno-overloaded-virtual']
+        if kmd_src.name == 'NativeAdrenoUserClient.cpp':
+            extra = extra + ['-include', str(xnu17_gpu_compat)]
+        compile_cxx_from_record(
+            record,
+            kmd_src,
+            kmd_obj,
+            extra,
+            allow_warnings=True,
+        )
+    compile_late_from_record(
+        record,
+        clang,
+        adreno_accel_src,
+        adreno_accel_late,
+        ['-I', str(adreno740_dir), '-I', str(adreno_metal_dir), '-Wno-overloaded-virtual'],
+        allow_warnings=True,
     )
     for fw_src, fw_obj in zip(adreno_fw_srcs, adreno_fw_objs):
         compile_c_from_record(c_record, record, fw_src, fw_obj, ['-I', str(adreno_fw_dir)], allow_warnings=False)
@@ -991,8 +1159,17 @@ def main() -> None:
         ['-I', str(gpu_dir), '-I', str(adreno_pm4_dir), '-I', str(smmu_dir)],
         allow_warnings=False,
     )
+    compile_c_from_record(
+        c_record,
+        record,
+        gpu_zap_src,
+        gpu_zap_obj,
+        ['-I', str(gpu_dir)],
+        allow_warnings=False,
+    )
     compile_c_from_record(c_record, record, gmu_fw_src, gmu_fw_obj, [], allow_warnings=False)
     compile_c_from_record(c_record, record, sqe_fw_src, sqe_fw_obj, [], allow_warnings=False)
+    compile_c_from_record(c_record, record, zap_fw_src, zap_fw_obj, [], allow_warnings=False)
     compile_cxx_from_record(
         record,
         usb_cdc_src,
@@ -1010,6 +1187,7 @@ def main() -> None:
         keystore_late,
         hid_late,
         battery_late,
+        adreno_accel_late,
         bindings_obj,
         board_display_obj,
         board_keystore_obj,
@@ -1023,8 +1201,14 @@ def main() -> None:
         gpu_gmu_obj,
         gpu_gmu_ctx_obj,
         gpu_cp_obj,
+        gpu_zap_obj,
+        gpu_irq_obj,
+        gpu_ring_obj,
+        gpu_ctx_obj,
+        *adreno740_kmd_objs,
         gmu_fw_obj,
         sqe_fw_obj,
+        zap_fw_obj,
         adreno_pm4_obj,
         *adreno_fw_objs,
         *smmu_objs,
@@ -1052,19 +1236,29 @@ def main() -> None:
         gpu_gmu_src,
         gpu_gmu_ctx_src,
         gpu_cp_src,
+        gpu_zap_src,
+        gpu_irq_src,
+        gpu_ring_src,
+        gpu_ctx_src,
+        *adreno740_kmd_srcs,
+        adreno_accel_src,
         adreno_pm4_src,
         *adreno_fw_srcs,
         *smmu_srcs,
         usb_cdc_src,
     ]
+    def rel_key(p: Path) -> str:
+        return os.path.relpath(p, ROOT)
+
     report = {
-        'source_sha256': {str(p.relative_to(ROOT)): sha256_file(p) for p in tracked_sources},
+        'source_sha256': {rel_key(p): sha256_file(p) for p in tracked_sources},
         'generated_abi_sha256': sha256_file(header),
         'generated_hid_abi_sha256': sha256_file(hid_header),
         'kernelcache_sha256': sha256_file(kc_path),
         'compiled_object_sha256': sha256_file(legacy_obj),
         'late_object_sha256': sha256_file(legacy_late),
         'hid_late_object_sha256': sha256_file(hid_late),
+        'accel_late_object_sha256': sha256_file(adreno_accel_late),
         'archive_sha256': sha256_file(archive),
         'legacy_vptr': hex(legacy_vptr),
         'hid_vptr': hex(hid_vptr),
@@ -1078,6 +1272,8 @@ def main() -> None:
         'gmu_firmware_sha256': gmu_fw_sha256,
         'sqe_firmware_bytes': sqe_fw_bytes,
         'sqe_firmware_sha256': sqe_fw_sha256,
+        'zap_firmware_bytes': zap_fw_bytes,
+        'zap_firmware_sha256': zap_fw_sha256,
         'hardware_tested': False,
     }
     (OUT / 'build-report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')

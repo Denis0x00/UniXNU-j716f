@@ -46,8 +46,8 @@
 #define A650_REG_CP_AHB_CNTL        0x098Du
 #define A650_REG_GBIF_HALT          0x3C45u
 
-/* A6XX interrupt mask (matching Linux A6XX_INT_MASK) */
-#define A650_RBBM_INT_MASK          0x058940FFu
+/* A6XX interrupt mask (exact Linux A6XX_INT_MASK from a6xx_gpu.c, including bit 20 CP_CACHE_FLUSH_TS) */
+#define A650_RBBM_INT_MASK          0x03D0E242u
 
 /* GMU core byte offsets used during hw_init */
 #define A650_GMU_SPTPRAC_CLK_CTRL   (0x0080u * 4u)
@@ -405,6 +405,8 @@ static int a650_hw_init(const J716fA650CpIo *io, const J716fA650CpConfig *cfg, J
         gw64(io, 0x0E05u, 0x0001FFFFFFFFFFC0ULL) ||
         gw64(io, 0x0E09u, 0x0001FFFFFFFFF000ULL) ||
         gw64(io, 0x0E07u, 0x0001FFFFFFFFF000ULL) ||
+        gw64(io, 0x0E0Bu, 0x01000000ULL) ||        /* UCHE_GMEM_RANGE_MIN (16 MiB) */
+        gw64(io, 0x0E0Du, 0x010FFFFFULL) ||        /* UCHE_GMEM_RANGE_MAX (16..17 MiB, 1 MiB GMEM) */
         gw32(io, 0x0E18u, 0x0804u) || gw32(io, 0x0E17u, 0x4u) ||
         gw32(io, A650_REG_CP_ROQ_THRESH_2, 0x02000140u) ||
         gw32(io, A650_REG_CP_ROQ_THRESH_1, 0x8040362Cu) ||
@@ -503,6 +505,51 @@ static int wait_fence(const J716fA650CpIo *io,
         if (io->delay_us && delay_us) io->delay_us(io->cookie, delay_us);
     }
     return 1;
+}
+
+J716fCpStatus J716fA650HwInitAndLoadSqe(const J716fA650CpIo *io,
+                                        const J716fA650CpConfig *cfg,
+                                        J716fA650CpReport *report) {
+    uint32_t sqe_len;
+    uint32_t i;
+
+    if (!report) return J716fCpArgument;
+    memset(report, 0, sizeof(*report));
+    if (!io || !cfg || !io->gpu_read32 || !io->gpu_write32 || !io->gmu_read32 || !io->gmu_write32 || !io->barrier) {
+        return J716fCpArgument;
+    }
+    if (!cfg->sqe_cpu || (cfg->sqe_iova & 4095ULL)) return J716fCpArgument;
+    if (!cfg->sqe_firmware || cfg->sqe_firmware_bytes < 8u || (cfg->sqe_firmware_bytes & 3u) ||
+        cfg->sqe_firmware_bytes - 4u > cfg->sqe_bytes) {
+        return J716fCpFirmware;
+    }
+
+    report->step = 1u;
+    sqe_len = (uint32_t)(cfg->sqe_firmware_bytes - 4u);
+    report->sqe_bytes = sqe_len;
+    for (i = 0u; i < sqe_len; ++i) {
+        cfg->sqe_cpu[i] = cfg->sqe_firmware[4u + i];
+    }
+    if (io->barrier(io->cookie)) return J716fCpIoError;
+    for (i = 0u; i < sqe_len; ++i) {
+        if (cfg->sqe_cpu[i] != cfg->sqe_firmware[4u + i]) {
+            report->sqe_mismatch_index = i + 1u;
+            return J716fCpReadbackMismatch;
+        }
+    }
+
+    report->step = 2u;
+    if (a650_hw_init(io, cfg, report)) {
+        capture_cp_state(io, report);
+        return J716fCpIoError;
+    }
+
+    report->step = 3u;
+    if (gw64(io, A650_REG_CP_SQE_INSTR_BASE, cfg->sqe_iova) || io->barrier(io->cookie)) {
+        capture_cp_state(io, report);
+        return J716fCpIoError;
+    }
+    return J716fCpSuccess;
 }
 
 J716fCpStatus J716fA650CpStart(const J716fA650CpIo *io,

@@ -9,30 +9,91 @@
 //   7  mode 6 + KGSL SMMU ArmSmmu4K GMU context (bank 1 / ASID 1 / slots 2,3 -> SIDs 0x0005,0x0405) + A650GmuColdStart
 //   8  mode 7 + A650GmuPowerGx (j716f-gpu-perf=<1..7>, default 7 = 670 MHz) + read-only GX/RBBM/GBIF verification
 //   9  mode 8 + KGSL SMMU Bank 0 / ASID 2 GPU context (slots 0,1,4,5) + A650 hw_init + SQE Ring 0 + CP_ME_INIT + CP_MEM_WRITE
+//  10  mode 8 + Phase 3b: NativeAdrenoGpuContext Bank 0 + A650 hw_init + NativeAdrenoRing + a650_zap.mbn TZ auth +
+//      CP_SET_SECURE_MODE 0 + CP_MEMCPY 1023-dw DMA + GPU SPI 300 IRQ + CP SMMU aperture SCM
+//  11  mode 10 + Phase 4a: Full A650 KMD (NativeAdrenoSubmit + native_adreno_publish + CP_SMMU_TABLE_UPDATE check +
+//      2x IOUserClient/NativeAdrenoABI v2 wrapper rounds + optional AGXAccelerator via j716f-gpu-metal=1)
 
 #include <IOKit/IOBufferMemoryDescriptor.h>
 #include <IOKit/IODeviceMemory.h>
 #include <IOKit/IOLib.h>
 #include <IOKit/IOMemoryDescriptor.h>
+#include <IOKit/IOPlatformExpert.h>
+#include <IOKit/IOService.h>
+#include <IOKit/IOUserClient.h>
 #include <kern/clock.h>
+#include <kern/sched_prim.h>
 #include <kern/task.h>
 #include <kern/thread.h>
+#include <libkern/OSKextLib.h>
+#include <libkern/c++/OSMetaClass.h>
+#include <mach/kmod.h>
 #include <pexpert/pexpert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
+
+#include "AdrenoPM4.h"
+#include "NativeAdrenoABI.h"
+#include "NativeAdrenoGpuContext.h"
+#include "NativeAdrenoMemory.h"
+#include "NativeAdrenoRing.h"
+#include "NativeAdrenoSubmit.h"
+#include "NativeAdrenoTimer.h"
+#include "NativeAdrenoUserClient.h"
 
 extern "C" {
 #include "ArmSmmu4KMmio.h"
 #include "J716fA650Cp.h"
 #include "J716fA650Gmu.h"
 #include "J716fA650GmuContext.h"
+#include "J716fA650Zap.h"
 #include "J716fGpuPowerBoard.h"
 
 extern const uint8_t j716f_gpu_gmu_firmware[];
 extern const uint32_t j716f_gpu_gmu_firmware_size;
 extern const uint8_t j716f_gpu_sqe_firmware[];
 extern const uint32_t j716f_gpu_sqe_firmware_size;
+extern const uint8_t j716f_gpu_zap_firmware[];
+extern const uint32_t j716f_gpu_zap_firmware_size;
+
+/* Optional weak hooks referenced by unmodified upstream drivers/Adreno740 KMD objects */
+extern volatile uint32_t native_adreno_diag;
+extern uint64_t (*native_adreno_vm_now_us)(void);
+volatile uint32_t native_gpu_dcvs[15] __attribute__((weak)) = {};
+int boot_log_export_put(uint32_t, uint32_t, uint32_t, const void *, uint32_t) __attribute__((weak));
+int boot_log_export_put(uint32_t, uint32_t, uint32_t, const void *, uint32_t) { return -1; }
+kern_return_t iokit_physical_descriptor_close_notify(IOMemoryDescriptor *, void (*)(void *), void *) __attribute__((weak));
+kern_return_t iokit_physical_descriptor_close_notify(IOMemoryDescriptor *, void (*)(void *), void *) {
+    return KERN_NOT_SUPPORTED;
+}
+unsigned int native_pmap_user_mappings(ppnum_t, void **, uint64_t *, char *) __attribute__((weak));
+unsigned int native_pmap_user_mappings(ppnum_t, void **, uint64_t *, char *) { return 0; }
+
+extern kmod_info_t g_kernel_kmod_info;
+extern int get_preemption_level(void);
+extern boolean_t ml_get_interrupts_enabled(void);
+extern boolean_t ml_at_interrupt_context(void);
+
+extern IOReturn armcpu_spi_attach(uint32_t intid, bool edge, void (*handler)(void *), void *context,
+                                  uint32_t *readback, uint64_t *router) __attribute__((weak));
+extern volatile uint64_t armcpu_spi_unhandled __attribute__((weak));
+
+extern IOReturn native_adreno_publish(NativeAdrenoVm *, NativeAdrenoSubmit *, NativeAdrenoRing *,
+                                      const NativeAdrenoRingClock *, const NativeAdrenoTimer *,
+                                      const NativeAdrenoAbiDeviceInfo *, uint32_t, uint32_t) __attribute__((weak));
+extern uint32_t native_adreno_publish_stats(uint32_t *) __attribute__((weak));
+extern IOService *native_adreno_published_service(void) __attribute__((weak));
+extern void native_adreno_gpu_interrupt(uint32_t status) __attribute__((weak));
+extern volatile uint32_t native_adreno_cp_aperture[4] __attribute__((weak));
+extern volatile uint32_t native_adreno_cp_check[6] __attribute__((weak));
+extern volatile uint32_t native_adreno_io_coherent __attribute__((weak));
+extern volatile uint32_t native_adreno_wc_enabled __attribute__((weak));
+extern volatile uint32_t j716f_gpu_actlr_before __attribute__((weak));
+extern volatile uint32_t j716f_gpu_actlr_after __attribute__((weak));
+extern void native_adreno_accelerator_static_init(void) asm("__GLOBAL__sub_I_NativeAdrenoAccelerator.cpp") __attribute__((weak));
+extern IOService *native_adreno_accelerator_allocate(void) __attribute__((weak));
+extern unsigned native_adreno_accelerator_instance_size(void) __attribute__((weak));
 
 enum {
     kRowSummary = 0,
@@ -56,6 +117,11 @@ enum {
     kRowGpuCtx,
     kRowCp,
     kRowCpState,
+    kRowZap,
+    kRowIrq,
+    kRowKmd,
+    kRowUcWrap,
+    kRowMetal,
     kGpuRows,
 };
 
@@ -69,6 +135,7 @@ A650GmuStartupResult j716f_gpu_cold = {};
 A650GmuGxResult j716f_gpu_gx = {};
 J716fGpuCtxReport j716f_gpu_ctx = {};
 J716fA650CpReport j716f_gpu_cp = {};
+J716fZapReport j716f_gpu_zap = {};
 }
 
 namespace {
@@ -689,6 +756,635 @@ void runMode9CpSmoke() {
              cb0Fsr, cb0FarHi, cb0FarLo);
 }
 
+/* ============================================================================
+ * Phase 3b (Mode 10) + Phase 4a (Mode 11): Full A650 KMD + Zap + SPI 300 IRQ
+ * ============================================================================ */
+
+NativeAdrenoGpuBuffer gKmdBufs[GpuBufferCount] = {};
+IOMemoryMap *gKmdWcMaps[GpuBufferCount] = {};
+volatile uint8_t *gKmdWcCpu[GpuBufferCount] = {};
+NativeAdrenoRing gKmdRing;
+NativeAdrenoSubmit gKmdSubmit;
+NativeAdrenoTimer gKmdTimer;
+NativeAdrenoMemory gZapMetaMem;
+
+volatile bool gIrqAttached = false;
+volatile uint32_t gIrqCount = 0;
+volatile uint32_t gIrqSeen = 0;
+volatile uint32_t gIrqLast = 0;
+volatile uint32_t gIrqEmpty = 0;
+
+uint64_t kmdNowUs(void *) {
+    uint64_t us = 0;
+    (void)gmuNow(nullptr, &us);
+    return us;
+}
+
+uint64_t kmdVmNowUs(void) {
+    return kmdNowUs(nullptr);
+}
+
+int kmdRingPublish(void *, const volatile uint32_t *, size_t) {
+    __asm__ volatile("dsb sy" ::: "memory");
+    return 0;
+}
+
+int kmdRingAcquire(void *, volatile uint32_t *, size_t) {
+    __asm__ volatile("dsb sy" ::: "memory");
+    return 0;
+}
+
+int kmdRingIdle(void *) {
+    if (gIrqAttached && ml_get_interrupts_enabled() && !ml_at_interrupt_context() && get_preemption_level() == 0) {
+        assert_wait_timeout(reinterpret_cast<event_t>(const_cast<uint32_t *>(&gIrqCount)),
+                            THREAD_UNINT, 1000u, NSEC_PER_USEC);
+        (void)thread_block(THREAD_CONTINUE_NULL);
+    } else {
+        IODelay(20);
+    }
+    return 0;
+}
+
+int kmdFenceStatus(void *, int clear, uint32_t *status) {
+    uint32_t v = 0;
+    if (gmuRead(nullptr, A650GmuCore, GPB_GMU_AHB_FENCE_STATUS, &v)) return -1;
+    if (clear && (v & 1u)) {
+        (void)gmuWrite(nullptr, A650GmuCore, GPB_GMU_REG(0x9314u), 1u);
+    }
+    if (status) *status = v;
+    return 0;
+}
+
+int kmdTimerRead(void *, uint32_t reg, uint32_t *val) {
+    return cpGpuRead(nullptr, reg, val);
+}
+
+void gpuIrqHandler(void *) {
+    uint32_t status = 0;
+    if (cpGpuRead(nullptr, 0x0201u, &status) != 0) return;
+    if (status) {
+        (void)cpGpuWrite(nullptr, 0x0037u, status); /* RBBM_INT_CLEAR_CMD */
+        __asm__ volatile("dsb sy" ::: "memory");
+    }
+    gIrqLast = status;
+    gIrqSeen = gIrqSeen | status;
+    gIrqCount = gIrqCount + 1u;
+    gIrqEmpty = status ? 0u : gIrqEmpty + 1u;
+    if (gIrqEmpty > 100000u) {
+        (void)cpGpuWrite(nullptr, 0x0038u, 0u); /* Storm guard: mask GPU IRQs */
+    }
+    if (native_adreno_gpu_interrupt) {
+        native_adreno_gpu_interrupt(status);
+    }
+    thread_wakeup(reinterpret_cast<event_t>(const_cast<uint32_t *>(&gIrqCount)));
+}
+
+void scmRawSmc(void *,
+               uint64_t x0, uint64_t x1, uint64_t x2, uint64_t x3,
+               uint64_t x4, uint64_t x5, uint64_t x6,
+               uint64_t *out_x0, uint64_t *out_x1, uint64_t *out_x6) {
+    register uint64_t r0 asm("x0") = x0;
+    register uint64_t r1 asm("x1") = x1;
+    register uint64_t r2 asm("x2") = x2;
+    register uint64_t r3 asm("x3") = x3;
+    register uint64_t r4 asm("x4") = x4;
+    register uint64_t r5 asm("x5") = x5;
+    register uint64_t r6 asm("x6") = x6;
+    register uint64_t r7 asm("x7") = 0;
+    __asm__ volatile("smc #0"
+                     : "+r"(r0), "+r"(r1), "+r"(r2), "+r"(r3), "+r"(r4), "+r"(r5), "+r"(r6), "+r"(r7)
+                     :
+                     : "x8", "x9", "x10", "x11", "x12", "x13", "x14", "x15", "x16", "x17", "memory");
+    if (out_x0) *out_x0 = r0;
+    if (out_x1) *out_x1 = r1;
+    if (out_x6) *out_x6 = r6;
+}
+
+void scmSleepMs(void *, uint32_t ms) {
+    IOSleep(ms);
+}
+
+int zapPrepareMeta(void *, const uint8_t *meta, size_t /*meta_bytes*/, size_t aligned_bytes, uint64_t *out_pa) {
+    if (!meta || !aligned_bytes || !out_pa) return -1;
+    if (gZapMetaMem.allocate(aligned_bytes, 36u, true, aligned_bytes) != kIOReturnSuccess ||
+        gZapMetaMem.spanCount() != 1) {
+        return -1;
+    }
+    uint8_t *dst = static_cast<uint8_t *>(gZapMetaMem.mapping());
+    if (!dst) return -1;
+    memcpy(dst, meta, aligned_bytes);
+    if (gZapMetaMem.publishForDevice(0, aligned_bytes, true) != kIOReturnSuccess) {
+        return -1;
+    }
+    *out_pa = gZapMetaMem.spans()[0].physical;
+    return 0;
+}
+
+int zapLoadPil(void *, uint64_t pil_phys, uint64_t pil_bytes,
+               const uint8_t *fw, size_t fw_size, const J716fZapPlan *plan) {
+    IODeviceMemory *dev = IODeviceMemory::withRange(pil_phys, pil_bytes);
+    if (!dev) return -1;
+    IOMemoryMap *map = dev->map(kIOMapAnywhere | kIOMapWriteCombineCache);
+    dev->release();
+    if (!map) return -1;
+
+    volatile uint8_t *region = reinterpret_cast<volatile uint8_t *>(map->getVirtualAddress());
+    const uint64_t base = plan->relocatable ? plan->min_paddr : pil_phys;
+    int rc = 0;
+    for (uint32_t i = 0; i < plan->seg_count; ++i) {
+        const J716fZapSeg &s = plan->segs[i];
+        if (s.p_paddr < base) { rc = -1; break; }
+        const uint64_t at = static_cast<uint64_t>(s.p_paddr) - base;
+        if (at + s.p_memsz > pil_bytes || s.p_filesz > s.p_memsz ||
+            static_cast<uint64_t>(s.p_offset) + s.p_filesz > fw_size) {
+            rc = -1;
+            break;
+        }
+        for (uint64_t b = 0; b < s.p_filesz; ++b) region[at + b] = fw[s.p_offset + b];
+        for (uint64_t b = s.p_filesz; b < s.p_memsz; ++b) region[at + b] = 0;
+    }
+    __asm__ volatile("dsb sy" ::: "memory");
+    /* Unmap CPU view strictly BEFORE TZ PAS_AUTH_AND_RESET takes region ownership. */
+    map->release();
+    return rc;
+}
+
+bool kmdSubmitAndWait(const uint32_t *words, size_t count, uint32_t *outFence) {
+    uint32_t fence = 0, seen = 0;
+    if (gKmdRing.submit(words, count, &fence) != kIOReturnSuccess) return false;
+    if (outFence) *outFence = fence;
+    const NativeAdrenoRingClock clk = {nullptr, kmdNowUs, kmdRingIdle};
+    return gKmdRing.wait(fence, &clk, 200000u, &seen) == NativeAdrenoRingFenceComplete;
+}
+
+uint32_t kmdReadCb0Fsr() {
+    uint32_t fsr = 0;
+    if (gSmmuFullMap) {
+        /* Bank 0 context offset on QSMMUv500 (num_pages=8 -> 0x8000) */
+        const volatile uint8_t *base = reinterpret_cast<const volatile uint8_t *>(gSmmuFullMap->getVirtualAddress());
+        fsr = *reinterpret_cast<const volatile uint32_t *>(base + 0x8058u);
+    }
+    return fsr;
+}
+
+IOReturn kmdWrapperCall(IOUserClient *uc, uint32_t method, const void *in, void *out) {
+    IOExternalMethodArguments a = {};
+    a.version = kIOExternalMethodArgumentsCurrentVersion;
+    a.selector = method;
+    const size_t is = NativeAdrenoUserClient::inputSize(method);
+    const size_t os = NativeAdrenoUserClient::outputSize(method);
+    a.structureInput = is ? in : nullptr;
+    a.structureInputSize = static_cast<uint32_t>(is);
+    a.structureOutput = os ? out : nullptr;
+    a.structureOutputSize = static_cast<uint32_t>(os);
+    return uc->externalMethod(method, &a, nullptr, nullptr, nullptr);
+}
+
+int kmdWrapperRound(IOService *svc, uint32_t pattern, int &ok, int &n, IOReturn &err, int &errAt, uint64_t &tsTicks) {
+    auto step = [&](IOReturn s) {
+        const int idx = n++;
+        if (s == kIOReturnSuccess) {
+            ++ok;
+            return true;
+        }
+        if (err == kIOReturnSuccess) {
+            err = s;
+            errAt = idx;
+        }
+        return false;
+    };
+
+    IOUserClient *uc = nullptr;
+    if (!step(svc->newUserClient(kernel_task, nullptr, 0, nullptr, &uc)) || !uc) return -1;
+
+    NativeAdrenoAbiParams params = {};
+    step(kmdWrapperCall(uc, NativeAdrenoMethodQuery, nullptr, &params));
+    NativeAdrenoAbiDeviceInfo info = {};
+    step(kmdWrapperCall(uc, NativeAdrenoMethodGetDeviceInfo, nullptr, &info));
+    step((info.chip_id == GPB_CHIPID_A650_V2 && info.gmem_bytes == (1u << 20)) ? kIOReturnSuccess : kIOReturnError);
+
+    NativeAdrenoAbiBoAlloc alloc = {4096u, 12u, 0u};
+    NativeAdrenoAbiBoAllocReply ib = {}, tgt = {};
+    int matched = -1;
+    IOMemoryDescriptor *desc[2] = {};
+    IOMemoryMap *maps[2] = {};
+
+    if (step(kmdWrapperCall(uc, NativeAdrenoMethodBoAlloc, &alloc, &ib)) &&
+        step(kmdWrapperCall(uc, NativeAdrenoMethodBoAlloc, &alloc, &tgt))) {
+        const uint64_t ibIova = GpuClientVaStart + 0x4000ULL;
+        const uint64_t tgtIova = GpuClientVaStart + 0x5000ULL;
+        NativeAdrenoAbiBoMap mapIb = {ib.handle, ibIova, 1u, 0u, 2u, 0u};
+        NativeAdrenoAbiBoMap mapTgt = {tgt.handle, tgtIova, 3u, 0u, 2u, 0u};
+        NativeAdrenoAbiBoMapReply r = {};
+        NativeAdrenoAbiBoCpuMap cmIb = {ib.handle}, cmTgt = {tgt.handle};
+        NativeAdrenoAbiBoCpuMapReply crIb = {}, crTgt = {};
+
+        if (step(kmdWrapperCall(uc, NativeAdrenoMethodBoMap, &mapIb, &r)) &&
+            step(kmdWrapperCall(uc, NativeAdrenoMethodBoMap, &mapTgt, &r)) &&
+            step(kmdWrapperCall(uc, NativeAdrenoMethodBoCpuMap, &cmIb, &crIb)) &&
+            step(kmdWrapperCall(uc, NativeAdrenoMethodBoCpuMap, &cmTgt, &crTgt))) {
+            IOOptionBits opt[2] = {};
+            const uint32_t tokens[2] = {crIb.token, crTgt.token};
+            bool mapped = true;
+            for (int i = 0; i < 2; ++i) {
+                const IOReturn s = uc->clientMemoryForType(tokens[i], &opt[i], &desc[i]);
+                if (s != kIOReturnSuccess || !desc[i]) { mapped = false; continue; }
+                maps[i] = desc[i]->createMappingInTask(kernel_task, 0, opt[i]);
+                if (!maps[i]) mapped = false;
+            }
+            step(mapped ? kIOReturnSuccess : kIOReturnNoMemory);
+            if (mapped) {
+                volatile uint32_t *iw = reinterpret_cast<volatile uint32_t *>(maps[0]->getVirtualAddress());
+                volatile uint32_t *tw = reinterpret_cast<volatile uint32_t *>(maps[1]->getVirtualAddress());
+                for (unsigned i = 0; i < 1024; ++i) tw[i] = 0xDEADBEEFu;
+                const uint32_t values[3] = {pattern, ~pattern, 0xA6500001u};
+                uint32_t words[12] = {};
+                bool built = true;
+                for (unsigned i = 0; i < 3; ++i) {
+                    built = built && (AdrenoPM4Type7(0x3Du, 3u, &words[i * 4]) == AdrenoPM4Success);
+                    words[i * 4 + 1] = static_cast<uint32_t>(tgtIova + i * 4u);
+                    words[i * 4 + 2] = static_cast<uint32_t>((tgtIova + i * 4u) >> 32);
+                    words[i * 4 + 3] = values[i];
+                }
+                for (unsigned i = 0; i < 12; ++i) iw[i] = words[i];
+                __asm__ volatile("dsb sy" ::: "memory");
+
+                static NativeAdrenoAbiSubmit submit;
+                memset(&submit, 0, sizeof(submit));
+                submit.buffer_count = 1u;
+                submit.buffers[0] = {ib.handle, ibIova, sizeof(words)};
+                NativeAdrenoAbiSubmitReply sr = {};
+                if (step(built ? kIOReturnSuccess : kIOReturnInternalError) &&
+                    step(kmdWrapperCall(uc, NativeAdrenoMethodSubmit, &submit, &sr))) {
+                    NativeAdrenoAbiWaitFence wf = {sr.fence, 200000000ULL};
+                    if (step(kmdWrapperCall(uc, NativeAdrenoMethodWaitFence, &wf, nullptr))) {
+                        __asm__ volatile("dsb sy" ::: "memory");
+                        matched = (tw[0] == values[0]) + (tw[1] == values[1]) +
+                                  (tw[2] == values[2]) + (tw[3] == 0xDEADBEEFu);
+                    }
+                }
+                NativeAdrenoAbiTimestamp ts = {};
+                if (step(kmdWrapperCall(uc, NativeAdrenoMethodGetTimestamp, nullptr, &ts))) {
+                    tsTicks = ts.ticks;
+                }
+            }
+        }
+    }
+    for (auto *m : maps) if (m) m->release();
+    for (auto *d : desc) if (d) d->release();
+    step(uc->clientClose());
+    uc->release();
+    return matched;
+}
+
+void publishA650MetalAccelerator() {
+    char *row = j716f_gpu_rows[kRowMetal];
+    const size_t cap = sizeof(j716f_gpu_rows[0]);
+    if (!native_adreno_accelerator_static_init || !native_adreno_accelerator_allocate ||
+        !native_adreno_accelerator_instance_size) {
+        snprintf(row, cap, "METAL nolink");
+        return;
+    }
+    const int kextRc = OSKextLoadKextWithIdentifier("com.apple.iokit.IOGPUFamily");
+    if (kextRc) {
+        snprintf(row, cap, "METAL kext_err=%x", static_cast<unsigned>(kextRc));
+        return;
+    }
+    const OSSymbol *sym = OSSymbol::withCString("IOAcceleratorES");
+    const OSMetaClass *parent = sym ? OSMetaClass::getMetaClassWithName(sym) : nullptr;
+    if (sym) sym->release();
+    if (!parent || parent->getClassSize() != 136) {
+        snprintf(row, cap, "METAL parent_err=%u", parent ? parent->getClassSize() : 0u);
+        return;
+    }
+    void *handle = OSMetaClass::preModLoad(g_kernel_kmod_info.name);
+    if (!handle) { snprintf(row, cap, "METAL preModLoad_err"); return; }
+    native_adreno_accelerator_static_init();
+    const kern_return_t postRc = OSMetaClass::postModLoad(handle);
+    if (postRc != KERN_SUCCESS || native_adreno_accelerator_instance_size() != 136) {
+        snprintf(row, cap, "METAL post_err=%x sz=%u", static_cast<unsigned>(postRc),
+                 native_adreno_accelerator_instance_size());
+        return;
+    }
+    IOService *accel = native_adreno_accelerator_allocate();
+    if (!accel || !accel->init()) {
+        if (accel) accel->release();
+        snprintf(row, cap, "METAL alloc_err");
+        return;
+    }
+    accel->setProperty("MetalPluginName", "NativeAdrenoMetal");
+    accel->setProperty("MetalPluginClassName", "NativeAdrenoMetalDevice");
+    accel->setProperty("NativeSandboxGrantProcess", "*");
+    if (!accel->attach(IOService::getPlatform())) {
+        accel->release();
+        snprintf(row, cap, "METAL attach_err");
+        return;
+    }
+    accel->registerService();
+    snprintf(row, cap, "METAL published AGXAccelerator(IOAcceleratorES,136B) plugin=NativeAdrenoMetal");
+}
+
+NativeAdrenoAbiDeviceInfo gA650DeviceInfo = {
+    GPB_CHIPID_A650_V2,      /* chip_id: Adreno 650 v2.0 (0x06050002) */
+    1u << 20,                /* gmem_bytes: 1 MiB */
+    0x01000000ULL,           /* gmem_base: 16 MiB (UCHE_GMEM_RANGE_MIN) */
+    0x0001FFFFFFFFF000ULL,   /* uche_trap_base */
+    GpuClientVaStart,        /* va_start: 4 GiB */
+    0ULL,                    /* va_size: filled from SMMU inputBits() */
+    GPB_HIGHEST_BANK_BIT,    /* highest_bank_bit: 16 */
+    6u,                      /* ubwc_swizzle: level 2 + level 3 */
+    1u,                      /* macrotile_mode: 8-channel */
+    GPB_UBWC_MODE,           /* ubwc_version: 4 (UBWC 4.0) */
+    NativeAdrenoDeviceClientIova,
+    0u
+};
+
+void runMode10And11Kmd() {
+    const size_t cap = sizeof(j716f_gpu_rows[0]);
+    char *ctxRow = j716f_gpu_rows[kRowGpuCtx];
+    char *cpRow = j716f_gpu_rows[kRowCp];
+    char *stRow = j716f_gpu_rows[kRowCpState];
+    char *zapRow = j716f_gpu_rows[kRowZap];
+    char *irqRow = j716f_gpu_rows[kRowIrq];
+    char *kmdRow = j716f_gpu_rows[kRowKmd];
+    char *ucRow = j716f_gpu_rows[kRowUcWrap];
+
+    j716f_gpu_step = 110u;
+    if (j716f_gpu_sqe_firmware_size < 8u || !gSmmuFullMap || !gVa[GPB_WIN_GPU] || !gGmuWin[A650GmuCore]) {
+        snprintf(ctxRow, cap, "GPUCTX missing SQE(%u) or prerequisite maps", j716f_gpu_sqe_firmware_size);
+        return;
+    }
+
+    native_adreno_vm_now_us = kmdVmNowUs;
+
+    /* Step 1: Bring up KGSL SMMU Bank 0 / ASID 2 via NativeAdrenoGpuContext (4 SMR routes + ACTLR CPRE clear). */
+    NativeAdrenoGmuContextReport ctxRep = {};
+    volatile uint8_t *smmuVa = reinterpret_cast<volatile uint8_t *>(gSmmuFullMap->getVirtualAddress());
+    const IOReturn ctxSt = NativeAdrenoGpuContextBringup(smmuVa, 0x10000u, 0u, 2u, 0u, 0x0000u, 1u, 0x0001u,
+                                                         nullptr, &ctxRep);
+    const unsigned ias = NativeAdrenoGpuContextInputBits();
+    snprintf(ctxRow, cap,
+             "GPUCTX st=%x step=%u p=%u/%u/%u r=%u/%u ias=%u oas=%u actlr=%x>%x spans=%u",
+             static_cast<unsigned>(ctxSt), ctxRep.step, ctxRep.program_status,
+             ctxRep.program_readback_valid, ctxRep.program_enabled,
+             ctxRep.route_status, ctxRep.routes_verified, ias, ctxRep.output_bits,
+             &j716f_gpu_actlr_before ? j716f_gpu_actlr_before : 0u,
+             &j716f_gpu_actlr_after ? j716f_gpu_actlr_after : 0u, ctxRep.spans);
+    if (ctxSt != kIOReturnSuccess) return;
+
+    if (NativeAdrenoGpuContextBuffers(gKmdBufs) != kIOReturnSuccess) {
+        snprintf(cpRow, cap, "CP failed to get kernel GPU buffers");
+        return;
+    }
+    for (unsigned i = 0; i < 5u; ++i) {
+        IODeviceMemory *m = IODeviceMemory::withRange(gKmdBufs[i].physical, gKmdBufs[i].bytes);
+        if (m) {
+            gKmdWcMaps[i] = m->map(kIOMapAnywhere | kIOMapWriteCombineCache);
+            m->release();
+        }
+        if (!gKmdWcMaps[i]) {
+            snprintf(cpRow, cap, "CP WC map failed for buf %u", i);
+            return;
+        }
+        gKmdWcCpu[i] = reinterpret_cast<volatile uint8_t *>(gKmdWcMaps[i]->getVirtualAddress());
+    }
+
+    /* Step 2: A650 hw_init + SQE firmware load + CP_SQE_INSTR_BASE */
+    j716f_gpu_step = 120u;
+    J716fA650CpIo cpIo = {nullptr, cpGpuRead, cpGpuWrite, cpGmuRead, cpGmuWrite, gmuBarrier, delayUs};
+    J716fA650CpConfig cpCfg = {};
+    cpCfg.sqe_firmware = j716f_gpu_sqe_firmware;
+    cpCfg.sqe_firmware_bytes = j716f_gpu_sqe_firmware_size;
+    cpCfg.sqe_cpu = gKmdWcCpu[0];
+    cpCfg.sqe_bytes = static_cast<size_t>(gKmdBufs[0].bytes);
+    cpCfg.sqe_iova = gKmdBufs[0].iova;
+    cpCfg.hwcg_enable = 1u;
+    cpCfg.apriv_enable = 1u;
+    const J716fCpStatus hwSt = J716fA650HwInitAndLoadSqe(&cpIo, &cpCfg, &j716f_gpu_cp);
+    if (hwSt != J716fCpSuccess) {
+        snprintf(cpRow, cap, "CP hw_init err=%u step=%u sqe=%u/%u",
+                 static_cast<unsigned>(hwSt), j716f_gpu_cp.step,
+                 j716f_gpu_cp.sqe_bytes, j716f_gpu_cp.sqe_mismatch_index);
+        return;
+    }
+
+    /* Step 3: Attach NativeAdrenoRing (J716fA650Ring.cpp) + release SQE + CP_ME_INIT + CP_MEM_WRITE */
+    const NativeAdrenoRingIo ringIo = {nullptr, cpGpuWrite, cpGpuRead, gmuBarrier, nullptr, kmdFenceStatus};
+    const NativeAdrenoRingCache ringCache = {nullptr, kmdRingPublish, kmdRingAcquire};
+    const IOReturn ringAtt = gKmdRing.attach(&ringIo, &ringCache,
+                                             const_cast<uint8_t *>(gKmdWcCpu[1]),
+                                             static_cast<size_t>(gKmdBufs[1].bytes), gKmdBufs[1].iova,
+                                             const_cast<uint8_t *>(gKmdWcCpu[2]),
+                                             static_cast<size_t>(gKmdBufs[2].bytes), gKmdBufs[2].iova);
+    if (ringAtt != kIOReturnSuccess || cpGpuWrite(nullptr, 0x0808u, 1u) != 0) {
+        snprintf(cpRow, cap, "CP ring attach=%x", static_cast<unsigned>(ringAtt));
+        return;
+    }
+    __asm__ volatile("dsb sy" ::: "memory");
+
+    uint32_t meInit[9] = {};
+    (void)AdrenoPM4Type7(0x48u, 8u, &meInit[0]);
+    meInit[1] = 0x2Fu;
+    meInit[2] = 0x00000003u;
+    meInit[3] = 0x20000000u;
+    uint32_t f1 = 0, f2 = 0;
+    const bool ok1 = kmdSubmitAndWait(meInit, 9u, &f1);
+
+    volatile uint32_t *scratch = reinterpret_cast<volatile uint32_t *>(gKmdWcCpu[4]);
+    scratch[0] = 0u;
+    uint32_t memWrite[4] = {};
+    (void)AdrenoPM4Type7(0x3Du, 3u, &memWrite[0]);
+    memWrite[1] = static_cast<uint32_t>(gKmdBufs[4].iova);
+    memWrite[2] = static_cast<uint32_t>(gKmdBufs[4].iova >> 32);
+    memWrite[3] = J716F_GPU_SMOKE_MARKER;
+    const bool ok2 = ok1 && kmdSubmitAndWait(memWrite, 4u, &f2);
+    __asm__ volatile("dsb sy" ::: "memory");
+    const uint32_t marker = scratch[0];
+
+    snprintf(cpRow, cap,
+             "CP st=%u sqe=%u/%u f1=%u(%u) f2=%u(%u) mk=%08x hwcg=%x>%x",
+             (ok1 && ok2 && marker == J716F_GPU_SMOKE_MARKER) ? 0u : 1u,
+             j716f_gpu_cp.sqe_bytes, j716f_gpu_cp.sqe_mismatch_index,
+             f1, ok1 ? 1u : 0u, f2, ok2 ? 1u : 0u, marker,
+             j716f_gpu_cp.hwcg_before, j716f_gpu_cp.hwcg_after);
+
+    uint32_t rbbm = 0, rptr = 0, wptr = 0, hwf = 0, cpi = 0, int0 = 0;
+    (void)cpGpuRead(nullptr, 0x0210u, &rbbm);
+    (void)cpGpuRead(nullptr, 0x0806u, &rptr);
+    (void)cpGpuRead(nullptr, 0x0807u, &wptr);
+    (void)cpGpuRead(nullptr, 0x0821u, &hwf);
+    (void)cpGpuRead(nullptr, 0x0823u, &cpi);
+    (void)cpGpuRead(nullptr, 0x0201u, &int0);
+    snprintf(stRow, cap,
+             "CPSTATE rbbm=%08x rptr=%x wptr=%x hwf=%x cpi=%x int0=%08x cb0_fsr=%08x",
+             rbbm, rptr, wptr, hwf, cpi, int0, kmdReadCb0Fsr());
+    if (!ok1 || !ok2 || marker != J716F_GPU_SMOKE_MARKER) return;
+
+    /* Step 4 (Phase 3b): a650_zap.mbn TZ PAS 13 authentication + CP_SET_SECURE_MODE 0 */
+    j716f_gpu_step = 135u;
+    const J716fScmOps scmOps = {nullptr, scmRawSmc, kmdNowUs, scmSleepMs};
+    const J716fZapMemOps zapMemOps = {nullptr, zapPrepareMeta, zapLoadPil};
+    unsigned zapLimit = 4u;
+    PE_parse_boot_argn("j716f-gpu-zap", &zapLimit, sizeof(zapLimit));
+    uint32_t trustBefore = 0xDEADu, trustAfter = 0xDEADu;
+    (void)cpGpuRead(nullptr, 0xF400u, &trustBefore); /* RBBM_SECVID_TRUST_CNTL */
+
+    if (zapLimit == 0u || j716f_gpu_zap_firmware_size < 52u) {
+        snprintf(zapRow, cap, "ZAP skip limit=%u sz=%u trust=%x", zapLimit, j716f_gpu_zap_firmware_size, trustBefore);
+    } else {
+        const int zrc = J716fZapAuthenticate(j716f_gpu_zap_firmware, j716f_gpu_zap_firmware_size,
+                                             GPB_PIL_GPU_BASE, GPB_PIL_GPU_SIZE,
+                                             zapLimit, &scmOps, &zapMemOps, &j716f_gpu_zap);
+        j716f_gpu_zap.trust_before = trustBefore;
+        int32_t secRc = -99;
+        if (zrc == J716F_ZAP_OK && zapLimit >= 4u) {
+            uint32_t secWords[2] = {};
+            if (AdrenoPM4Type7(0x66u, 1u, &secWords[0]) == AdrenoPM4Success && kmdSubmitAndWait(secWords, 2u, nullptr)) {
+                secRc = 0;
+            } else {
+                secRc = -1;
+            }
+        }
+        (void)cpGpuRead(nullptr, 0xF400u, &trustAfter);
+        j716f_gpu_zap.trust_after = trustAfter;
+        j716f_gpu_zap.sec_fence_rc = secRc;
+        const J716fZapReport &z = j716f_gpu_zap;
+        snprintf(zapRow, cap,
+                 "ZAP rc=%d stg=%u init=%d(%ums/%ur) mem=%d auth=%d(%ums) sec=%d trust=%x>%x",
+                 zrc, z.stage, z.init_rc, z.init_ms, z.init_resumes, z.mem_rc,
+                 z.auth_rc, z.auth_ms, z.sec_fence_rc, z.trust_before, z.trust_after);
+    }
+
+    /* Step 5 (Phase 3b): CP_MEMCPY 1023-dword DMA check + SPI 300 (INTID 332) IRQ + CP aperture SCM */
+    j716f_gpu_step = 140u;
+    for (unsigned i = 1; i < 1024u; ++i) scratch[i] = 0u;
+    __asm__ volatile("dsb sy" ::: "memory");
+    int memcpyMatched = -1;
+    uint32_t mcWords[7] = {};
+    if (AdrenoPM4Type7(0x75u, 5u, &mcWords[0]) == AdrenoPM4Success &&
+        AdrenoPM4Type7(0x12u, 0u, &mcWords[6]) == AdrenoPM4Success) {
+        const uint64_t src = gKmdBufs[0].iova;
+        const uint64_t dst = gKmdBufs[4].iova + 4u;
+        mcWords[1] = 1023u;
+        mcWords[2] = static_cast<uint32_t>(src);
+        mcWords[3] = static_cast<uint32_t>(src >> 32);
+        mcWords[4] = static_cast<uint32_t>(dst);
+        mcWords[5] = static_cast<uint32_t>(dst >> 32);
+        if (kmdSubmitAndWait(mcWords, 7u, nullptr)) {
+            __asm__ volatile("dsb sy" ::: "memory");
+            const volatile uint32_t *sqeWords = reinterpret_cast<const volatile uint32_t *>(gKmdWcCpu[0]);
+            memcpyMatched = 0;
+            for (unsigned i = 0; i < 1023u; ++i) {
+                memcpyMatched += (scratch[1u + i] == sqeWords[i]) ? 1 : 0;
+            }
+        }
+    }
+
+    uint32_t irqReadback = 0;
+    uint64_t irqRouter = ~0ULL;
+    const IOReturn irqAtt = armcpu_spi_attach
+        ? armcpu_spi_attach(GPB_GPU_IRQ_SPI + 32u, false, gpuIrqHandler, nullptr, &irqReadback, &irqRouter)
+        : kIOReturnUnsupported;
+    gIrqAttached = (irqAtt == kIOReturnSuccess);
+    IOSleep(20);
+    const uint32_t irqAfterAttach = gIrqCount;
+    uint32_t nopWord = 0;
+    const bool nopOk = (AdrenoPM4Type7(0x10u, 0u, &nopWord) == AdrenoPM4Success) && kmdSubmitAndWait(&nopWord, 1u, nullptr);
+    IOSleep(20);
+    const uint32_t irqAfterFence = gIrqCount;
+    uint32_t int0Now = 0;
+    (void)cpGpuRead(nullptr, 0x0201u, &int0Now);
+
+    uint32_t apAvail = 0;
+    int32_t apRc = -1;
+    (void)J716fScmOpenCpAperture(&scmOps, 0u, &apAvail, &apRc);
+    if (&native_adreno_cp_aperture) {
+        native_adreno_cp_aperture[0] = apAvail;
+        native_adreno_cp_aperture[1] = static_cast<uint32_t>(apRc);
+    }
+
+    snprintf(irqRow, cap,
+             "IRQ att=%x gicd=%x n=%u>%u%c seen=%08x now=%08x mc=%d/1023 ap=%x/%d unh=%llu",
+             static_cast<unsigned>(irqAtt), irqReadback, irqAfterAttach, irqAfterFence,
+             nopOk ? '+' : '-', gIrqSeen, int0Now, memcpyMatched, apAvail, apRc,
+             static_cast<unsigned long long>(&armcpu_spi_unhandled ? armcpu_spi_unhandled : 0ULL));
+
+    if (gMode < 11u) {
+        j716f_gpu_step = 150u;
+        return;
+    }
+
+    /* Step 6 (Phase 4a): Full A650 KMD publication + CP_SMMU_TABLE_UPDATE check + 2x IOUserClient rounds */
+    j716f_gpu_step = 160u;
+    if (!native_adreno_publish || !native_adreno_published_service || !native_adreno_publish_stats) {
+        snprintf(kmdRow, cap, "KMD nolink");
+        return;
+    }
+    NativeAdrenoVm *vm = NativeAdrenoGpuContextVm();
+    if (!vm) {
+        snprintf(kmdRow, cap, "KMD novm");
+        return;
+    }
+
+    const NativeAdrenoTimeIo timeIo = {nullptr, kmdTimerRead};
+    const IOReturn timerRc = gKmdTimer.attach(&timeIo, NativeAdrenoTimeCp);
+    const IOReturn subAtt = gKmdSubmit.attach(vm, &gKmdRing);
+    if (subAtt != kIOReturnSuccess) {
+        snprintf(kmdRow, cap, "KMD submit_attach=%x", static_cast<unsigned>(subAtt));
+        return;
+    }
+
+    if (&native_adreno_io_coherent) native_adreno_io_coherent = 0u;
+    if (&native_adreno_wc_enabled) {
+        unsigned wc = 1u;
+        PE_parse_boot_argn("gpu-wc", &wc, sizeof(wc));
+        native_adreno_wc_enabled = wc ? 1u : 0u;
+    }
+
+    gA650DeviceInfo.va_size = (ias > 32u && ias <= 48u) ? ((UINT64_C(1) << ias) - GpuClientVaStart) : 0ULL;
+    const NativeAdrenoRingClock kmdClock = {nullptr, kmdNowUs, kmdRingIdle};
+    const IOReturn pubRc = native_adreno_publish(vm, &gKmdSubmit, &gKmdRing, &kmdClock,
+                                                 timerRc == kIOReturnSuccess ? &gKmdTimer : nullptr,
+                                                 &gA650DeviceInfo, ias, 36u);
+    snprintf(kmdRow, cap,
+             "KMD pub=%x tm=%u cpchk=%x/%x/%x/%x/%x ap2=%x tmr=%x",
+             static_cast<unsigned>(pubRc),
+             &native_adreno_cp_aperture ? native_adreno_cp_aperture[3] : 0u,
+             &native_adreno_cp_check ? native_adreno_cp_check[0] : 0xDEADu,
+             &native_adreno_cp_check ? native_adreno_cp_check[1] : 0xDEADu,
+             &native_adreno_cp_check ? native_adreno_cp_check[2] : 0xDEADu,
+             &native_adreno_cp_check ? native_adreno_cp_check[3] : 0xDEADu,
+             &native_adreno_cp_check ? native_adreno_cp_check[4] : 0xDEADu,
+             &native_adreno_cp_aperture ? native_adreno_cp_aperture[2] : 0xDEADu,
+             static_cast<unsigned>(timerRc));
+
+    IOService *svc = (pubRc == kIOReturnSuccess) ? native_adreno_published_service() : nullptr;
+    if (svc) {
+        j716f_gpu_step = 170u;
+        int ok = 0, n = 0, errAt = -1;
+        IOReturn err = kIOReturnSuccess;
+        uint64_t ts1 = 0, ts2 = 0;
+        const int r1 = kmdWrapperRound(svc, 0x0BADC0DEu, ok, n, err, errAt, ts1);
+        const int r2 = kmdWrapperRound(svc, 0xA650BEEFu, ok, n, err, errAt, ts2);
+        uint32_t closed = 0;
+        const uint32_t opened = native_adreno_publish_stats(&closed);
+        snprintf(ucRow, cap,
+                 "UCWRAP r1=%d/4 r2=%d/4 ok=%d/%d err=%x@%d ts=%llu>%llu o=%u/%u fsr=%08x",
+                 r1, r2, ok, n, static_cast<unsigned>(err), errAt,
+                 static_cast<unsigned long long>(ts1), static_cast<unsigned long long>(ts2),
+                 opened, closed, kmdReadCb0Fsr());
+    }
+
+    unsigned metalOpt = 0u;
+    PE_parse_boot_argn("j716f-gpu-metal", &metalOpt, sizeof(metalOpt));
+    if (metalOpt && pubRc == kIOReturnSuccess) {
+        publishA650MetalAccelerator();
+    } else {
+        snprintf(j716f_gpu_rows[kRowMetal], cap, "METAL dormant (set j716f-gpu-metal=1 with gpuaddon.bin)");
+    }
+    j716f_gpu_step = 180u;
+}
+
 void probeThread(void *, wait_result_t) {
     // Wait briefly so Display, USB Debug, and multi-core log ring are online first.
     IOSleep(4000);
@@ -760,8 +1456,10 @@ void probeThread(void *, wait_result_t) {
     if (gMode >= 8u && gColdOk) {
         runMode8PowerGx();
     }
-    if (gMode >= 9u && gColdOk && j716f_gpu_gx.gx_on) {
+    if (gMode == 9u && gColdOk && j716f_gpu_gx.gx_on) {
         runMode9CpSmoke();
+    } else if (gMode >= 10u && gColdOk && j716f_gpu_gx.gx_on) {
+        runMode10And11Kmd();
     }
 
     if (j716f_gpu_step < 100u && gMode < 7u) {
@@ -778,8 +1476,9 @@ void probeThread(void *, wait_result_t) {
 
 extern "C" void j716f_gpu_snapshot(char *out, size_t cap) {
     if (!out || cap == 0) return;
-    int n = snprintf(out, cap, "[usb] GPU: mode=%u step=%u fw=%u sqe=%u\r\n",
-                     gMode, j716f_gpu_step, j716f_gpu_gmu_firmware_size, j716f_gpu_sqe_firmware_size);
+    int n = snprintf(out, cap, "[usb] GPU: mode=%u step=%u fw=%u sqe=%u zap=%u\r\n",
+                     gMode, j716f_gpu_step, j716f_gpu_gmu_firmware_size,
+                     j716f_gpu_sqe_firmware_size, j716f_gpu_zap_firmware_size);
     for (unsigned i = 0; i < kGpuRows && n > 0 && static_cast<size_t>(n) < cap; ++i) {
         if (!j716f_gpu_rows[i][0]) continue;
         n += snprintf(out + n, cap - static_cast<size_t>(n), "[usb] GPU[%u]: %s\r\n", i, j716f_gpu_rows[i]);
@@ -789,7 +1488,7 @@ extern "C" void j716f_gpu_snapshot(char *out, size_t cap) {
 extern "C" void j716f_gpu_probe(void) {
     static int started = 0;
     unsigned mode = 0;
-    if (!PE_parse_boot_argn("j716f-gpu", &mode, sizeof(mode)) || !mode || mode > 9u) {
+    if (!PE_parse_boot_argn("j716f-gpu", &mode, sizeof(mode)) || !mode || mode > 11u) {
         return;
     }
     if (__atomic_exchange_n(&started, 1, __ATOMIC_ACQ_REL)) return;
