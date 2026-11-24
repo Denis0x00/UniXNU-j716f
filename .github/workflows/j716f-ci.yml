@@ -118,6 +118,8 @@ jobs:
           test -f "$TREE7/kits/j716f/input/J716fTouchProbe.cpp"
           test -f "$TREE7/kits/j716f/input/J716fButtons.c"
           test -f "$TREE7/kits/j716f/power/J716fCpuFreq.cpp"
+          test -f "$TREE7/kits/j716f/power/J716fBattery.cpp"
+          test -f "$TREE7/kits/j716f/usb/J716fUsbDebugCdc.cpp"
           test -f "$TREE7/scripts/build-j716f-display-keystore.py"
 
       - name: Verify and apply pending upstream UniXNU core patches
@@ -231,6 +233,18 @@ jobs:
             "$OUT/test_r41_root_window" --synthetic "$mode"
           done
 
+          echo "=== Test 7: J716fUsbDebugWire (USB CDC descriptors, CRC32, GSC1 framing) ==="
+          clang -std=c11 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer \
+            "device/package/usb/tests/J716fUsbDebugWireTest.c" \
+            -o "$OUT/test_usb_debug_wire"
+          "$OUT/test_usb_debug_wire"
+
+          echo "=== Test 8: J716fBatteryBoard (PM8150B gen4 FG & SMB5 decoding) ==="
+          clang -std=c11 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer \
+            "device/package/power/tests/J716fBatteryBoardTest.c" \
+            -o "$OUT/test_battery_board"
+          "$OUT/test_battery_board"
+
       - name: Run upstream GopFramebuffer fence-wait sanitizer regression check
         run: |
           (cd unixnu/drivers/GopFramebuffer && python3 Test/check-fence-wait.py)
@@ -245,6 +259,6 @@ jobs:
             echo '## J716F Device CI'
             echo '- Official `./unixnu` Format 2 `defconfig`, `status`, `tree`, and `build package` passed'
             echo '- `dts/j716f.dts` compiled with `dtc` and converted to valid Apple Device Tree (ADT)'
-            echo '- All 6 C++ ASan/UBSan storage/SMMU/SHNGROOT unit tests compiled and passed'
-            echo '- Python Data seed tests and `porting.toml` schema validation passed'
+            echo '- All 8 C/C++ ASan/UBSan storage/SMMU/SHNGROOT/USB/battery unit tests compiled and passed'
+            echo '- Python Data seed & USB GSC1 wire tests and `porting.toml` schema validation passed'
           } >> "$GITHUB_STEP_SUMMARY"

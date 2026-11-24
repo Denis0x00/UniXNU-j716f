@@ -597,9 +597,10 @@
 +#endif
 --- /dev/null
 +++ b/pexpert/arm/j716f_earlylog_impl.h
-@@ -0,0 +1,131 @@
+@@ -0,0 +1,219 @@
 +/* Included once by pexpert/arm/pe_init.c, after PE_state is defined.
-+ * Diagnostic-only: current CPU0 bring-up, no IOKit/UFS/IRQ service dependency.
++ * Diagnostic-only: SMP-safe retained JXLG capture + 256 KiB live RAM log ring
++ * for USB CDC-ACM streaming without IOKit/UFS/IRQ service dependency.
 + */
 +#ifndef J716F_EARLYLOG_IMPL_H
 +#define J716F_EARLYLOG_IMPL_H
@@ -613,6 +614,7 @@
 +#define J716F_EARLYLOG_BUILD_ID UINT64_C(0x4a454c3100000000)
 +#define J716F_EARLYLOG_BUILD_TAG "j716f-earlylog-v1"
 +#define J716F_EARLYLOG_MAX_WRITE 1024U
++#define J716F_KLOG_RING_SIZE (256U * 1024U)
 +
 +typedef char j716f_earlylog_fixed_geometry[
 +	(J716F_EL_BASE == J716F_EARLYLOG_PHYS &&
@@ -624,8 +626,10 @@
 +
 +static J716F_EL_STATE j716f_earlylog_state;
 +static volatile unsigned int j716f_earlylog_ready;
-+static volatile unsigned int j716f_earlylog_busy;
 +static unsigned int j716f_earlylog_attempted;
++static volatile unsigned char j716f_earlylog_lock;
++static char j716f_klog_ring[J716F_KLOG_RING_SIZE];
++static volatile uint64_t j716f_klog_written;
 +
 +/* Host harness supplies the same architectural-operation boundary. Production
 + * never enables this macro and uses no helper calls for interrupt masking. */
@@ -653,8 +657,39 @@
 +}
 +#endif
 +
++static inline int
++j716f_earlylog_acquire(void)
++{
++	unsigned int spin;
++	for (spin = 0U; spin < 16384U; ++spin) {
++		if (!__atomic_test_and_set(&j716f_earlylog_lock, __ATOMIC_ACQUIRE)) {
++			return 1;
++		}
++		__asm__ volatile("yield" ::: "memory");
++	}
++	return 0;
++}
++
++static inline void
++j716f_earlylog_release(void)
++{
++	__atomic_clear(&j716f_earlylog_lock, __ATOMIC_RELEASE);
++}
++
++static inline void
++j716f_klog_append_locked(const char *data, unsigned int length)
++{
++	uint64_t pos = j716f_klog_written;
++	unsigned int i;
++	for (i = 0U; i < length; ++i) {
++		j716f_klog_ring[(pos + i) & (J716F_KLOG_RING_SIZE - 1U)] = data[i];
++	}
++	__atomic_store_n(&j716f_klog_written, pos + length, __ATOMIC_RELEASE);
++}
++
 +void PE_j716f_earlylog_init(void);
 +void PE_j716f_earlylog_write(const char *data, unsigned int length);
++uint32_t PE_j716f_klog_read(uint64_t from_seq, char *dst, uint32_t max_len, uint64_t *out_next_seq);
 +
 +void
 +PE_j716f_earlylog_init(void)
@@ -665,7 +700,7 @@
 +	uint32_t sequence;
 +	vm_offset_t mapping;
 +	if (!J716fEarlyLogBootCpu(j716f_earlylog_mpidr()) ||
-+	    j716f_earlylog_attempted || j716f_earlylog_busy ||
++	    j716f_earlylog_attempted ||
 +	    startup_phase >= STARTUP_SUB_KMEM ||
 +	    !PE_state.initialized || args == NULL ||
 +	    !J716fEarlyLogOptIn(args->CommandLine, sizeof(args->CommandLine)) ||
@@ -673,9 +708,12 @@
 +		j716f_earlylog_restore(saved_daif);
 +		return;
 +	}
++	if (!j716f_earlylog_acquire()) {
++		j716f_earlylog_restore(saved_daif);
++		return;
++	}
 +	j716f_earlylog_attempted = 1;
 +	j716f_earlylog_ready = 0;
-+	j716f_earlylog_busy = 1;
 +	/* Map the complete fixed reservation ONCE, including JOWN at its end.
 +	 * This does not grant a writer beyond the protocol's first 30848 bytes.
 +	 * ml_io_map uses VM_WIMG_IO; do not replace it with a cached/WCOMB alias. */
@@ -691,6 +729,7 @@
 +		    J716F_EL_SOURCE_XNU, J716F_EARLYLOG_BUILD_ID | sequence,
 +		    J716F_EARLYLOG_BUILD_TAG) == J716F_EL_OK) {
 +			static const char begin[] = "J716F XNU early console capture initialized\n";
++			j716f_klog_append_locked(begin, sizeof(begin) - 1);
 +			if (J716fEarlyLogAppend(&j716f_earlylog_state, begin, sizeof(begin) - 1) == J716F_EL_OK) {
 +				J716F_EL_BARRIER();
 +				j716f_earlylog_ready = 1;
@@ -698,34 +737,83 @@
 +		}
 +	}
 +	J716F_EL_BARRIER();
-+	j716f_earlylog_busy = 0;
++	j716f_earlylog_release();
 +	j716f_earlylog_restore(saved_daif);
 +}
 +
 +void
 +PE_j716f_earlylog_write(const char *data, unsigned int length)
 +{
-+	uint64_t saved_daif = j716f_earlylog_mask();
-+	if (!J716fEarlyLogBootCpu(j716f_earlylog_mpidr()) ||
-+	    !j716f_earlylog_ready || j716f_earlylog_busy || data == NULL || length == 0) {
++	uint64_t saved_daif;
++	if (data == NULL || length == 0U) {
++		return;
++	}
++	saved_daif = j716f_earlylog_mask();
++	if (!j716f_earlylog_acquire()) {
 +		j716f_earlylog_restore(saved_daif);
 +		return;
 +	}
-+	j716f_earlylog_busy = 1;
 +	/* Bound interrupt-off work. Oversized direct console writes retain their
 +	 * tail plus a marker; normal printf batches are at most 255 bytes. */
 +	if (length > J716F_EARLYLOG_MAX_WRITE) {
 +		static const char clipped[] = "\n[J716F capture: oversized write prefix omitted]\n";
-+		(void)J716fEarlyLogAppend(&j716f_earlylog_state, clipped, sizeof(clipped) - 1);
++		j716f_klog_append_locked(clipped, sizeof(clipped) - 1);
++		if (j716f_earlylog_ready) {
++			(void)J716fEarlyLogAppend(&j716f_earlylog_state, clipped, sizeof(clipped) - 1);
++		}
 +		data += length - J716F_EARLYLOG_MAX_WRITE;
 +		length = J716F_EARLYLOG_MAX_WRITE;
 +	}
-+	if (J716fEarlyLogAppend(&j716f_earlylog_state, data, length) != J716F_EL_OK) {
-+		j716f_earlylog_ready = 0;
++	j716f_klog_append_locked(data, length);
++	if (j716f_earlylog_ready) {
++		if (J716fEarlyLogAppend(&j716f_earlylog_state, data, length) != J716F_EL_OK) {
++			j716f_earlylog_ready = 0;
++		}
 +	}
 +	J716F_EL_BARRIER();
-+	j716f_earlylog_busy = 0;
++	j716f_earlylog_release();
 +	j716f_earlylog_restore(saved_daif);
++}
++
++uint32_t
++PE_j716f_klog_read(uint64_t from_seq, char *dst, uint32_t max_len, uint64_t *out_next_seq)
++{
++	uint64_t saved_daif, head, oldest, start, avail;
++	uint32_t count, i;
++	if (dst == NULL || max_len == 0U) {
++		if (out_next_seq != NULL) {
++			*out_next_seq = __atomic_load_n(&j716f_klog_written, __ATOMIC_ACQUIRE);
++		}
++		return 0U;
++	}
++	saved_daif = j716f_earlylog_mask();
++	if (!j716f_earlylog_acquire()) {
++		j716f_earlylog_restore(saved_daif);
++		if (out_next_seq != NULL) {
++			*out_next_seq = from_seq;
++		}
++		return 0U;
++	}
++	head = j716f_klog_written;
++	oldest = head > J716F_KLOG_RING_SIZE ? head - J716F_KLOG_RING_SIZE : 0ULL;
++	start = from_seq < oldest ? oldest : from_seq;
++	if (start >= head) {
++		count = 0U;
++		start = head;
++	} else {
++		avail = head - start;
++		count = avail > max_len ? max_len : (uint32_t)avail;
++		for (i = 0U; i < count; ++i) {
++			dst[i] = j716f_klog_ring[(start + i) & (J716F_KLOG_RING_SIZE - 1U)];
++		}
++		start += count;
++	}
++	j716f_earlylog_release();
++	j716f_earlylog_restore(saved_daif);
++	if (out_next_seq != NULL) {
++		*out_next_seq = start;
++	}
++	return count;
 +}
 +
 +#endif

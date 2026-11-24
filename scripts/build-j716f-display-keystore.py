@@ -620,7 +620,11 @@ def main() -> None:
     touch_probe_src = input_dir / 'J716fTouchProbe.cpp'
     buttons_src = input_dir / 'J716fButtons.c'
     rpmh_src = input_dir / 'J716fQcomRpmh.c'
-    cpufreq_src = ROOT / 'kits/j716f/power/J716fCpuFreq.cpp'
+    power_dir = ROOT / 'kits/j716f/power'
+    cpufreq_src = power_dir / 'J716fCpuFreq.cpp'
+    battery_src = power_dir / 'J716fBattery.cpp'
+    usb_dir = ROOT / 'kits/j716f/usb'
+    usb_cdc_src = usb_dir / 'J716fUsbDebugCdc.cpp'
 
     for src in (
         legacy_src,
@@ -635,6 +639,8 @@ def main() -> None:
         buttons_src,
         rpmh_src,
         cpufreq_src,
+        battery_src,
+        usb_cdc_src,
     ):
         require(src.is_file(), f'missing source: {src}')
 
@@ -817,6 +823,8 @@ def main() -> None:
     buttons_obj = OUT / 'J716fButtons.o'
     rpmh_obj = OUT / 'J716fQcomRpmh.o'
     cpufreq_obj = OUT / 'J716fCpuFreq.o'
+    battery_late = OUT / 'J716fBattery.late.o'
+    usb_cdc_obj = OUT / 'J716fUsbDebugCdc.o'
     compile_cxx_from_record(record, board_display_src, board_display_obj, [], allow_warnings=False)
     compile_cxx_from_record(record, board_keystore_src, board_keystore_obj, [], allow_warnings=False)
     compile_cxx_from_record(record, board_hid_src, board_hid_obj, ['-I', str(input_dir)], allow_warnings=False)
@@ -825,6 +833,21 @@ def main() -> None:
     compile_c_from_record(c_record, record, buttons_src, buttons_obj, ['-I', str(input_dir)], allow_warnings=False)
     compile_c_from_record(c_record, record, rpmh_src, rpmh_obj, ['-I', str(input_dir)], allow_warnings=False)
     compile_cxx_from_record(record, cpufreq_src, cpufreq_obj, [], allow_warnings=False)
+    compile_late_from_record(
+        record,
+        clang,
+        battery_src,
+        battery_late,
+        ['-I', str(power_dir)],
+        allow_warnings=False,
+    )
+    compile_cxx_from_record(
+        record,
+        usb_cdc_src,
+        usb_cdc_obj,
+        ['-I', str(usb_dir), '-I', str(input_dir)],
+        allow_warnings=False,
+    )
 
     # 7. Archive libNativeLegacyDisplay.late.a and write build-report.json
     archive = OUT / 'libNativeLegacyDisplay.late.a'
@@ -834,6 +857,7 @@ def main() -> None:
         presenter_late,
         keystore_late,
         hid_late,
+        battery_late,
         bindings_obj,
         board_display_obj,
         board_keystore_obj,
@@ -843,6 +867,7 @@ def main() -> None:
         buttons_obj,
         rpmh_obj,
         cpufreq_obj,
+        usb_cdc_obj,
     ]
     run([ar, 'rcs', archive, *members])
 
@@ -861,6 +886,8 @@ def main() -> None:
         buttons_src,
         rpmh_src,
         cpufreq_src,
+        battery_src,
+        usb_cdc_src,
     ]
     report = {
         'source_sha256': {str(p.relative_to(ROOT)): sha256_file(p) for p in tracked_sources},

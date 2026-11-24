@@ -53,6 +53,7 @@ findings = [
   "Wired GopFramebuffer and AppleKeyStoreState into board.toml embedded_components, enabled CONFIG_XNU_NATIVE_LEGACY_DISPLAY=y in configs/j716f_stage7_defconfig, added [adt.product] display properties, and enabled the upstream GopFramebuffer fence-wait sanitizer check in j716f-ci.yml.",
   "Updated README.md with verified Stage 6 APFS root mount and Stage 7+ Apple logo hardware milestones plus j716f_stage7_defconfig build instructions.",
   "Enabled soc:patches/xnu/series (8-core SMP + Edge scheduler) and [adt.buttons] in board.toml, omitted -v from default payload kernel_args for clean kPEGraphicsMode desktop output, and expanded j716f-ci.yml to validate input/power package sources and 8-core/buttons ADT nodes.",
+  "Expanded j716f-ci.yml to verify package/usb staging, run the C ASan/UBSan J716fUsbDebugWireTest harness, and run the Python GSC1/PNG host unit tests (scripts/ci/test_usb_debug_wire.py).",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -279,6 +280,7 @@ findings = [
   "Hardware-verified Stage 7+ boot_b image (06052400...) published NativeLegacyDisplay (2560x1600 BGRX32 GOP, scale 2, vsync=60) and AppleKeyStoreState (aks=1) and rendered the real iPadOS 17.7.11 Apple logo on TB-J716F hardware.",
   "Hardware-verified Stage 7+ RAM-store boot_b image (2274a64d..., log e1d6a856...) opened 4+ AppleKeyStore user clients and 7+ IOMobileFramebufferUserClient sessions and rendered the real iPadOS 17.7.11 Hello screen on TB-J716F hardware.",
   "Extended build-j716f-display-keystore.py (13 objects, 245 verified 21H461 bindings) and J716fLegacyDisplayProbe.cpp to launch HID/touch/buttons/CPUfreq probes alongside GopFramebuffer, and verified full SpringBoard desktop with wallpaper and clean kPEGraphicsMode output on hardware.",
+  "Extended build-j716f-display-keystore.py (14 objects) and J716fLegacyDisplayProbe.cpp to compile and invoke j716f_usb_debug_probe() ahead of j716f_touch_probe() so synchronous RPMh TCS 0 votes never race.",
 ]
 completion = [
   "Native XNU framebuffer/display driver (GopFramebuffer / IOMobileFramebufferLegacy) and AppleKeyStoreState (aks=1) render iPadOS WindowServer/SpringBoard cleanly on hardware.",
@@ -465,6 +467,8 @@ findings = [
   "XNU SMC PSCI system reset was verified across staged early-boot checkpoints.",
   "GCC UFS power/clock state observation is wired via J716fStoragePower.",
   "Added SM8250-AC EPSS 3-domain CPUfreq (0x18591000/2000/3000) and L3 (0x18590000, vote 0x320) scaling driver in package/power/J716fCpuFreq.cpp verified from TB-J716F stock DTB; hardware-verified ~2.26x faster early boot and responsive desktop alongside 8-core SMP.",
+  "Exported j716f_cpufreq_snapshot() from package/power/J716fCpuFreq.cpp to report live EPSS hardware MHz, perf votes, and LUT bounds over the USB debug terminal.",
+  "Added opt-in PM8150B gen4 fuel gauge + SMB5 charger IOPMPowerSource driver (package/power/J716fBattery.cpp + J716fBatteryBoard.h, j716f-battery=1 read-only SPMI observer, late-init staged with zero __mod_init_func) verified against TB-J716F stock DTB (qcom,pm8150b@2) and host ASan/UBSan test J716fBatteryBoardTest.c; wired battery telemetry into USB Debug CLI.",
 ]
 completion = [
   "Clean OS reboot/shutdown, battery telemetry, and runtime PMGR/clock control.",
@@ -499,6 +503,7 @@ procedure = [
 findings = [
   "Eliminated external post-payload mcopy mutations; payload.img and boot.img are assembled end-to-end by official ./unixnu.",
   "End-to-end clean VM build produced verified 85,725,184-byte boot.img, 7,340,032-byte SILICIUM_UEFI.fd, and 51,249,152-byte kernel.macho.",
+  "Added scripts/ci/test_usb_debug_wire.py validating GSC1 frame reassembly, CRC-32 error rejection, and pure-stdlib RGB565->PNG encoding (29/29 host Python tests passing).",
 ]
 completion = [
   "Reproducible single-command ./unixnu release packaging with verified boot.img and Data seed.",
@@ -530,6 +535,8 @@ paths = [
   "patches/xnu/j716f-skip-setup.patch",
   "patches/xnu/ipados17-series",
   "patches/xnu/series",
+  "package/usb/**",
+  "scripts/j716f-usb-debug.py",
 ]
 inputs = [
   "Retained RAM early-log ring buffer (JXLG), UEFI Advanced Logger QR exporter, and XNU console boot-args (-v serial=3 j716f-earlylog=1).",
@@ -543,6 +550,7 @@ procedure = [
 findings = [
   "Retained early XNU logs survived both PSCI reset and long-power-button reset in hardware trials, enabling exact instruction-level diagnosis without hardware UART.",
   "Added patches/xnu/j716f-skip-setup.patch (gated by j716f-skip-setup=1) to seed the 5 official skip-setup binary plists into /private/var without macOS hdiutil; retained JXLG logs verified desktop, touch, buttons, and 8-core SMP boots on hardware.",
+  "Upgraded j716f-earlylog-console.patch with a bounded atomic spinlock for all-8-CPU capture plus a 256 KiB live RAM log ring (PE_j716f_klog_read), added opt-in bare-metal SM8250 DWC3 USB CDC-ACM driver under package/usb/ (j716f-usb=1, strict SMMU slot 2/3/4 guard, adaptive idle polling, zero HUD overlay), and added host CLI scripts/j716f-usb-debug.py with GSC1 PNG capture and C/Python wire unit tests.",
 ]
 completion = [
   "Reliable kernel log capture through root mount and early userland bring-up.",

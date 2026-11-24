@@ -342,6 +342,43 @@ void cpufreqThread(void *, wait_result_t) {
 }
 }  // namespace
 
+extern "C" void j716f_cpufreq_snapshot(char *out, size_t cap) {
+  if (!out || cap == 0) return;
+  if (!gLock) {
+    snprintf(out, cap, "[usb] CPUFREQ: inactive (stage=%u mode=%u)\r\n",
+             j716f_cpufreq_stage, gMode);
+    return;
+  }
+  IOLockLock(gLock);
+  uint32_t en[3] = {}, curMHz[3] = {}, perf[3] = {}, minMHz[3] = {}, maxMHz[3] = {};
+  for (unsigned d = 0; d < 3; ++d) {
+    if (gDomain[d].va) {
+      en[d] = rd32(gDomain[d].va, kRegEnable) & 1U;
+      curMHz[d] = (rd32(gDomain[d].va, kRegDomainState) & 0xffU) * kXoKHz / 1000U;
+      perf[d] = rd32(gDomain[d].va, kRegPerfState) & 0xffU;
+    }
+    if (gLevels[d].count > 0) {
+      minMHz[d] = gLevels[d].khz[0] / 1000U;
+      maxMHz[d] = gLevels[d].khz[gLevels[d].count - 1U] / 1000U;
+    }
+  }
+  const uint32_t l3En = gL3.va ? (rd32(gL3.va, kRegEnable) & 1U) : 0U;
+  const uint32_t l3Cur = gL3.va ? ((rd32(gL3.va, kRegDomainState) & 0xffU) * kXoKHz / 1000U) : 0U;
+  const uint32_t l3Perf = gL3.va ? (rd32(gL3.va, kRegL3Vote) & 0xffU) : 0U;
+  snprintf(out, cap,
+           "[usb] CPUFREQ mode=%u stg=%u "
+           "d0(A55):en=%u cur=%uMHz vote=%uMHz idx=%u lut=%u(%u..%u) | "
+           "d1(A77):en=%u cur=%uMHz vote=%uMHz idx=%u lut=%u(%u..%u) | "
+           "d2(Prime):en=%u cur=%uMHz vote=%uMHz idx=%u lut=%u(%u..%u) | "
+           "L3:en=%u cur=%uMHz vote=%uMHz idx=%u\r\n",
+           gMode, j716f_cpufreq_stage,
+           en[0], curMHz[0], gDomain[0].votedKHz / 1000U, perf[0], gLevels[0].count, minMHz[0], maxMHz[0],
+           en[1], curMHz[1], gDomain[1].votedKHz / 1000U, perf[1], gLevels[1].count, minMHz[1], maxMHz[1],
+           en[2], curMHz[2], gDomain[2].votedKHz / 1000U, perf[2], gLevels[2].count, minMHz[2], maxMHz[2],
+           l3En, l3Cur, gL3.votedKHz / 1000U, l3Perf);
+  IOLockUnlock(gLock);
+}
+
 extern "C" void j716f_cpufreq_probe(void) {
   unsigned mode = 0;
   unsigned capMHz = 0;

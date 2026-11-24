@@ -23,13 +23,15 @@ patches/unixnu-core/           # Pending upstream UniXNU core PR patches (AAPL,p
 package/storage/               # Board read-only SHNGROOT UFS window driver + volatile RAM store + skip-setup plists
 package/display/               # Board probes for upstream GopFramebuffer and AppleKeyStoreState (aks=1)
 package/input/                 # Unmodified NativeHidInput (21H461 IOHIDDevice) + Goodix GT7386 I2C + PM8150 buttons
-package/power/                 # SM8250-AC EPSS 3-domain CPUfreq + L3 scaling driver (cpufreq=4)
+package/power/                 # SM8250-AC EPSS 3-domain CPUfreq + L3 (cpufreq=4) & PM8150B battery (j716f-battery=1)
+package/usb/                   # Bare-metal SM8250 DWC3 USB CDC-ACM debug terminal (j716f-usb=1) & wire tests
 socs/sm8250/                   # SM8250 SoC config, DTSI, SMP/Edge patches, UFS HCI/SMMU library & host tests
 scripts/
   build-j716f-storage-active.py    # Builds libJ716fStorageBringup.a (r41 storage + NativeRamBlock)
   build-j716f-display-keystore.py  # Audits 21H461 display/HID ABIs & builds libNativeLegacyDisplay.late.a
+  j716f-usb-debug.py               # Host USB CDC-ACM CLI (monitor, exec, probe, shell, GSC1 PNG snapshot)
   package.sh                       # Standard UniXNU release entrypoint
-  ci/                              # macOS first-install Data seed tools (see README-data-runner.md)
+  ci/                              # macOS Data seed tools & USB wire host unit tests (see README-data-runner.md)
 ```
 
 ## Bring-Up Status
@@ -70,6 +72,14 @@ scripts/
     boot and smoother interactive desktop). `-v` is omitted from default
     `kernel_args` so XNU stays in `kPEGraphicsMode` without scrolling text over
     SpringBoard.
+  - **USB Debug CDC-ACM & PM8150B Battery (host-verified, compiled in `boot.img`)**:
+    Opt-in bare-metal SM8250 DWC3 USB CDC-ACM diagnostic terminal (`j716f-usb=1`,
+    VID `0x1209:0x0001`, driverless Windows `usbser.sys` / Linux `cdc_acm`)
+    paired with SMP-safe all-8-CPU `JXLG` + 256 KiB live kernel log ring
+    (`PE_j716f_klog_read`), live EPSS MHz inspection (`cpufreq`), GSC1 PNG
+    framebuffer snapshots (`scripts/j716f-usb-debug.py`), and opt-in read-only
+    SPMI PM8150B fuel gauge / SMB5 charger `IOPMPowerSource` provider
+    (`j716f-battery=1`).
 
 See [porting.toml](porting.toml) for the full structured per-area record.
 
