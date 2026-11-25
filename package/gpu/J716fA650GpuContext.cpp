@@ -43,7 +43,8 @@ static IOReturn normalizeUnusedFaultS2cr(const ArmSmmu4KIo *io, const ArmSmmu4KS
     uint32_t id0 = 0;
     if (io->read32(io->cookie, 0x20u, &id0)) return kIOReturnIOError;
     const uint32_t smr_count = id0 & 0xFFu;
-    const uint32_t valid_bit = (id0 & (1u << 8)) ? (1u << 29) : (1u << 31);
+    const unsigned exids = (id0 >> 8) & 1u;
+    const uint32_t valid_s2cr_bit = exids ? (1u << 10) : 0u;
     for (size_t i = 0; i < count; ++i) {
         const uint32_t slot = routes[i].slot;
         if (slot >= smr_count) return kIOReturnBadArgument;
@@ -51,9 +52,10 @@ static IOReturn normalizeUnusedFaultS2cr(const ArmSmmu4KIo *io, const ArmSmmu4KS
         if (io->read32(io->cookie, 0x800u + 4u * slot, &smr) ||
             io->read32(io->cookie, 0xC00u + 4u * slot, &s2cr))
             return kIOReturnIOError;
-        if ((smr & valid_bit) != 0u) continue;
+        const bool live = exids ? ((s2cr & valid_s2cr_bit) != 0u) : ((smr & (1u << 31)) != 0u);
+        if (live) continue;
         if (((s2cr >> 16) & 3u) != 2u) continue; /* Not TYPE=FAULT: leave untouched */
-        if (s2cr == 0x00020000u) continue;
+        if ((s2cr & ~valid_s2cr_bit) == 0x00020000u) continue;
         if (io->write32(io->cookie, 0xC00u + 4u * slot, 0x00020000u) || io->barrier(io->cookie))
             return kIOReturnIOError;
     }
@@ -101,6 +103,8 @@ IOReturn NativeAdrenoGpuContext::bringUp(const ArmSmmu4KIo *io, unsigned bank, u
         const uint64_t aperture = UINT64_C(1) << input_bits_;
         status = smmu_.prepare(&tables_, 0, 0, aperture, size_t(aperture / 4096), bank, asid, 1000,
                                report->output_bits, input_bits_);
+        /* TB-J716F SM8250 KGSL SMMU has no dma-coherent property; match verified Mode 9 non-coherent walk. */
+        if (!status) smmu_.configHandle()->coherent_walk = 0;
     }
 
     if (!status) {
@@ -116,9 +120,11 @@ IOReturn NativeAdrenoGpuContext::bringUp(const ArmSmmu4KIo *io, unsigned bank, u
         report->image = p->readback;
     }
 
-    /* Clear CB0.ACTLR CPRE bit 1 (MMU-500 errata 841119/826419) + TLBIALL/TLBSYNC. */
+    /* Clear CB0.ACTLR CPRE bit 1 (MMU-500 errata 841119/826419) + TLBIALL/TLBSYNC.
+     * Note: stateHandle()->context_offset is only populated later by vm_.attach(),
+     * so read the verified bank offset from smmu_.programResult()->context_offset. */
     if (!status) {
-        const uint64_t cb_off = smmu_.stateHandle()->context_offset;
+        const uint64_t cb_off = smmu_.programResult()->context_offset;
         uint32_t actlr = 0, actlr_after = 0;
         ArmSmmu4KProgramResult tlb_res = {};
         if (!cb_off ||

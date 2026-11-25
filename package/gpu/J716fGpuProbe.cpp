@@ -955,7 +955,8 @@ int kmdWrapperRound(IOService *svc, uint32_t pattern, int &ok, int &n, IOReturn 
     };
 
     IOUserClient *uc = nullptr;
-    if (!step(svc->newUserClient(kernel_task, nullptr, 0, nullptr, &uc)) || !uc) return -1;
+    /* NativeAdrenoPublish requires open type 0x4147 ('AG' = NativeAdrenoPluginOpenType). */
+    if (!step(svc->newUserClient(kernel_task, nullptr, 0x4147u, nullptr, &uc)) || !uc) return -1;
 
     NativeAdrenoAbiParams params = {};
     step(kmdWrapperCall(uc, NativeAdrenoMethodQuery, nullptr, &params));
@@ -1130,6 +1131,7 @@ void runMode10And11Kmd() {
              ctxRep.route_status, ctxRep.routes_verified, ias, ctxRep.output_bits,
              &j716f_gpu_actlr_before ? j716f_gpu_actlr_before : 0u,
              &j716f_gpu_actlr_after ? j716f_gpu_actlr_after : 0u, ctxRep.spans);
+    IOLog("[J716F gpu] [live] %s\n", ctxRow);
     if (ctxSt != kIOReturnSuccess) return;
 
     if (NativeAdrenoGpuContextBuffers(gKmdBufs) != kIOReturnSuccess) {
@@ -1218,6 +1220,8 @@ void runMode10And11Kmd() {
     snprintf(stRow, cap,
              "CPSTATE rbbm=%08x rptr=%x wptr=%x hwf=%x cpi=%x int0=%08x cb0_fsr=%08x",
              rbbm, rptr, wptr, hwf, cpi, int0, kmdReadCb0Fsr());
+    IOLog("[J716F gpu] [live] %s\n", cpRow);
+    IOLog("[J716F gpu] [live] %s\n", stRow);
     if (!ok1 || !ok2 || marker != J716F_GPU_SMOKE_MARKER) return;
 
     /* Step 4 (Phase 3b): a650_zap.mbn TZ PAS 13 authentication + CP_SET_SECURE_MODE 0 */
@@ -1254,6 +1258,7 @@ void runMode10And11Kmd() {
                  zrc, z.stage, z.init_rc, z.init_ms, z.init_resumes, z.mem_rc,
                  z.auth_rc, z.auth_ms, z.sec_fence_rc, z.trust_before, z.trust_after);
     }
+    IOLog("[J716F gpu] [live] %s\n", zapRow);
 
     /* Step 5 (Phase 3b): CP_MEMCPY 1023-dword DMA check + SPI 300 (INTID 332) IRQ + CP aperture SCM */
     j716f_gpu_step = 140u;
@@ -1308,6 +1313,7 @@ void runMode10And11Kmd() {
              static_cast<unsigned>(irqAtt), irqReadback, irqAfterAttach, irqAfterFence,
              nopOk ? '+' : '-', gIrqSeen, int0Now, memcpyMatched, apAvail, apRc,
              static_cast<unsigned long long>(&armcpu_spi_unhandled ? armcpu_spi_unhandled : 0ULL));
+    IOLog("[J716F gpu] [live] %s\n", irqRow);
 
     if (gMode < 11u) {
         j716f_gpu_step = 150u;
@@ -1357,6 +1363,7 @@ void runMode10And11Kmd() {
              &native_adreno_cp_check ? native_adreno_cp_check[4] : 0xDEADu,
              &native_adreno_cp_aperture ? native_adreno_cp_aperture[2] : 0xDEADu,
              static_cast<unsigned>(timerRc));
+    IOLog("[J716F gpu] [live] %s\n", kmdRow);
 
     IOService *svc = (pubRc == kIOReturnSuccess) ? native_adreno_published_service() : nullptr;
     if (svc) {
@@ -1373,6 +1380,7 @@ void runMode10And11Kmd() {
                  r1, r2, ok, n, static_cast<unsigned>(err), errAt,
                  static_cast<unsigned long long>(ts1), static_cast<unsigned long long>(ts2),
                  opened, closed, kmdReadCb0Fsr());
+        IOLog("[J716F gpu] [live] %s\n", ucRow);
     }
 
     unsigned metalOpt = 0u;
@@ -1387,7 +1395,7 @@ void runMode10And11Kmd() {
 
 void probeThread(void *, wait_result_t) {
     // Wait briefly so Display, USB Debug, and multi-core log ring are online first.
-    IOSleep(4000);
+    IOSleep(6000);
     j716f_gpu_step = 10u;
 
     unsigned have = 0u;

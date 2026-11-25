@@ -403,6 +403,14 @@ static void handleEp0Setup(UsbHw &hw) {
     }
 }
 
+enum RebootAction : uint8_t {
+    kRebootNone       = 0,
+    kRebootNormal     = 1,
+    kRebootBootloader = 2,
+    kRebootRecovery   = 3,
+    kRebootPoweroff   = 4,
+};
+
 struct TerminalSession {
     UsbHw hw;
     UsbReplyRing reply;
@@ -412,10 +420,135 @@ struct TerminalSession {
     uint64_t klogCursor                = 0;
     uint64_t lastEnumTick              = 0;
     bool logStreamEnabled              = true;
-    bool pendingReboot                 = false;
+    uint8_t pendingRebootAction        = kRebootNone;
     char cmdLine[256]                  = {};
     unsigned cmdLen                    = 0;
 };
+
+static uint64_t usbPsciCall(uint64_t fid, uint64_t a1) {
+    register uint64_t x0 __asm__("x0") = fid;
+    register uint64_t x1 __asm__("x1") = a1;
+    register uint64_t x2 __asm__("x2") = 0;
+    register uint64_t x3 __asm__("x3") = 0;
+    __asm__ volatile("smc #0" : "+r"(x0), "+r"(x1), "+r"(x2), "+r"(x3)
+                     : : "x4", "x5", "x6", "x7", "x8", "x9", "x10", "x11",
+                         "x12", "x13", "x14", "x15", "x16", "x17", "memory");
+    return x0;
+}
+
+static int usbSpmiWaitDone(volatile uint32_t *engine) {
+    for (uint32_t i = 0; i < 100000u; ++i) {
+        const uint32_t st = engine[0x08u / 4u];
+        if (st & 1u) return (st & 0xEu) ? 2 : 0;
+    }
+    return 1;
+}
+
+static int usbSpmiRead8(volatile uint32_t *obs, uint8_t reg, uint8_t *out) {
+    if (!obs || !out) return 3;
+    obs[0x00u / 4u] = (1u << 27) | (static_cast<uint32_t>(reg) << 4);
+    const int rc = usbSpmiWaitDone(obs);
+    if (!rc) *out = static_cast<uint8_t>(obs[0x18u / 4u]);
+    return rc;
+}
+
+static int usbSpmiWrite8(volatile uint32_t *chnl, uint8_t reg, uint8_t val) {
+    if (!chnl) return 3;
+    chnl[0x10u / 4u] = val;
+    chnl[0x00u / 4u] = static_cast<uint32_t>(reg) << 4;
+    return usbSpmiWaitDone(chnl);
+}
+
+static void usbRebootModeOp(bool doWrite, uint8_t ponReason, uint32_t imemReason, char *out, size_t cap) {
+    int ponRc = -1, imemRc = -1;
+    int ponApid = -1, ponOwner = -1;
+    uint8_t ponBefore = 0xFFu, ponAfter = 0xFFu;
+    uint32_t imemBefore = 0xFFFFFFFFu, imemAfter = 0xFFFFFFFFu;
+
+    IOMemoryMap *coreMap = nullptr;
+    IOMemoryMap *cnfgMap = nullptr;
+    volatile uint32_t *core = reinterpret_cast<volatile uint32_t *>(mapRangeUncached(J716F_SPMI_CORE_BASE, 0x2000u, coreMap));
+    volatile uint32_t *cnfg = reinterpret_cast<volatile uint32_t *>(mapRangeUncached(J716F_SPMI_CNFG_BASE, 0x2000u, cnfgMap));
+    if (core && cnfg) {
+        const uint32_t ver = core[0];
+        const uint32_t apids = core[1] & 0x7FFu;
+        if (ver >= 0x50000000u && ver < 0x70000000u && apids > 0u && apids <= J716F_SPMI_MAX_APIDS) {
+            for (uint32_t i = 0; i < apids; ++i) {
+                const uint32_t m = core[(J716F_SPMI_APID_MAP_OFF + 4u * i) / 4u];
+                if (!m || ((m >> 8) & 0xFFFu) != J716F_PM8150_PON_PPID) continue;
+                const int own = static_cast<int>(cnfg[(J716F_SPMI_CNFG_OWNER_OFF + 4u * i) / 4u] & 7u);
+                if (ponApid < 0 || own == 0) {
+                    ponApid = static_cast<int>(i);
+                    ponOwner = own;
+                }
+            }
+        }
+    }
+    if (ponApid >= 0) {
+        const uint64_t obsPhys = J716F_SPMI_OBSRVR_BASE + J716F_SPMI_OBS_APID_STRIDE * static_cast<uint64_t>(ponApid);
+        IOMemoryMap *obsMap = nullptr;
+        const uintptr_t obsPage = mapRangeUncached(obsPhys & ~0xFFFULL, 0x1000u, obsMap);
+        volatile uint32_t *obs = obsPage ? reinterpret_cast<volatile uint32_t *>(obsPage + (obsPhys & 0xFFFu)) : nullptr;
+        if (obs) {
+            ponRc = usbSpmiRead8(obs, J716F_PON_SOFT_RB_SPARE, &ponBefore);
+            ponAfter = ponBefore;
+            if (doWrite && ponRc == 0) {
+                if (ponOwner != 0) {
+                    ponRc = -2;
+                } else {
+                    const uint8_t next = static_cast<uint8_t>(
+                        (ponBefore & ~J716F_PON_REASON_MASK) |
+                        ((ponReason << J716F_PON_REASON_SHIFT) & J716F_PON_REASON_MASK));
+                    const uint64_t chPhys = J716F_SPMI_CHNLS_BASE + J716F_SPMI_CHNL_APID_STRIDE * static_cast<uint64_t>(ponApid);
+                    IOMemoryMap *chMap = nullptr;
+                    volatile uint32_t *ch = reinterpret_cast<volatile uint32_t *>(mapRangeUncached(chPhys, 0x1000u, chMap));
+                    if (ch) {
+                        ponRc = usbSpmiWrite8(ch, J716F_PON_SOFT_RB_SPARE, next);
+                        if (ponRc == 0) {
+                            ponRc = usbSpmiRead8(obs, J716F_PON_SOFT_RB_SPARE, &ponAfter);
+                            if (ponRc == 0 && ponAfter != next) ponRc = -3;
+                        }
+                    } else {
+                        ponRc = -4;
+                    }
+                    if (chMap) chMap->release();
+                }
+            }
+        }
+        if (obsMap) obsMap->release();
+    }
+    if (cnfgMap) cnfgMap->release();
+    if (coreMap) coreMap->release();
+
+    IOMemoryMap *imemMap = nullptr;
+    const uintptr_t imemVa = mapRangeUncached(J716F_IMEM_BASE, J716F_IMEM_SIZE, imemMap);
+    if (imemVa) {
+        volatile uint32_t *rr = reinterpret_cast<volatile uint32_t *>(imemVa + J716F_IMEM_RESTART_REASON_OFF);
+        imemBefore = *rr;
+        imemAfter = imemBefore;
+        imemRc = 0;
+        if (doWrite) {
+            *rr = imemReason;
+            __asm__ volatile("dsb sy" ::: "memory");
+            imemAfter = *rr;
+            if (imemAfter != imemReason) imemRc = -3;
+        }
+    }
+    if (imemMap) imemMap->release();
+
+    if (doWrite) {
+        snprintf(out, cap, "pon=%02x>%02x(rc=%d,apid=%d,own=%d) imem=%08x>%08x(rc=%d)",
+                 ponBefore, ponAfter, ponRc, ponApid, ponOwner, imemBefore, imemAfter, imemRc);
+    } else {
+        const uint32_t psciVer = static_cast<uint32_t>(usbPsciCall(J716F_PSCI_VERSION, 0));
+        const int64_t fReset = static_cast<int64_t>(usbPsciCall(J716F_PSCI_FEATURES, J716F_PSCI_SYSTEM_RESET));
+        const int64_t fOff   = static_cast<int64_t>(usbPsciCall(J716F_PSCI_FEATURES, J716F_PSCI_SYSTEM_OFF));
+        snprintf(out, cap,
+                 "[usb] REBOOT.PROBE: psci=v%x reset=%lld off=%lld pon(apid=%d,own=%d,8f=%02x,rc=%d) imem(65c=%08x,rc=%d)\r\n",
+                 psciVer, static_cast<long long>(fReset), static_cast<long long>(fOff),
+                 ponApid, ponOwner, ponBefore, ponRc, imemBefore, imemRc);
+    }
+}
 
 static void replayKernelLog(TerminalSession &s) {
     if (!&PE_j716f_klog_read) {
@@ -445,9 +578,9 @@ static void handleCommand(TerminalSession &s, const char *raw) {
     if (strEq(raw, "ping")) {
         s.reply.writeStr("[usb] PONG TB-J716F\r\n");
     } else if (strEq(raw, "features")) {
-        s.reply.writeStr("FEATURES: ping help status info uptime cpufreq battery gpu smp display touch input usb bootargs log replay log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot\r\n");
+        s.reply.writeStr("FEATURES: ping help status info uptime cpufreq battery gpu smp display touch input usb bootargs log replay log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot reboot.probe poweroff\r\n");
     } else if (strEq(raw, "help")) {
-        s.reply.writeStr("Commands: ping status cpufreq battery gpu smp display touch usb bootargs log log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot\r\n");
+        s.reply.writeStr("Commands: ping status cpufreq battery gpu smp display touch usb bootargs log log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot [normal|bootloader|recovery|off] reboot.probe poweroff\r\n");
     } else if (strEq(raw, "info") || strEq(raw, "uptime") || strEq(raw, "status")) {
         const uint32_t cpus = &armcpu_smp_running ? armcpu_smp_running : 0u;
         const uint32_t edge = &armcpu_cpu_init_completed ? armcpu_cpu_init_completed : 0u;
@@ -614,13 +747,44 @@ static void handleCommand(TerminalSession &s, const char *raw) {
         snprintf(buf, sizeof(buf), "[usb] SCREEN: configured max_size=%u max_fps=%u\r\n",
                  s.screen.maxEdge, s.screen.maxFps);
         s.reply.writeStr(buf);
-    } else if (strEq(raw, "reboot")) {
+    } else if (strEq(raw, "reboot.probe")) {
+        usbRebootModeOp(false, 0u, 0u, buf, sizeof(buf));
+        s.reply.writeStr(buf);
+    } else if (strEq(raw, "reboot") || strEq(raw, "reboot normal") ||
+               strEq(raw, "reboot bootloader") || strEq(raw, "reboot fastboot") ||
+               strEq(raw, "reboot recovery") ||
+               strEq(raw, "reboot off") || strEq(raw, "poweroff") || strEq(raw, "shutdown")) {
+        uint8_t action = kRebootNormal;
+        uint8_t ponReason = J716F_PON_REASON_NORMAL;
+        uint32_t imemReason = J716F_IMEM_REASON_NORMAL;
+        const char *modeName = "normal";
+        if (strEq(raw, "reboot bootloader") || strEq(raw, "reboot fastboot")) {
+            action = kRebootBootloader;
+            ponReason = J716F_PON_REASON_BOOTLOADER;
+            imemReason = J716F_IMEM_REASON_BOOTLOADER;
+            modeName = "bootloader";
+        } else if (strEq(raw, "reboot recovery")) {
+            action = kRebootRecovery;
+            ponReason = J716F_PON_REASON_RECOVERY;
+            imemReason = J716F_IMEM_REASON_RECOVERY;
+            modeName = "recovery";
+        } else if (strEq(raw, "reboot off") || strEq(raw, "poweroff") || strEq(raw, "shutdown")) {
+            action = kRebootPoweroff;
+            modeName = "poweroff";
+        }
         s.screen.streaming = false;
         s.hw.needReplay    = false;
         s.reply.reset();
-        s.pendingReboot    = true;
-        IOLog("[J716F usb] warm PSCI reboot requested by host\n");
-        s.reply.writeStr("[usb] REBOOT: executing PSCI_SYSTEM_RESET\r\n");
+        char diag[256] = {};
+        if (action == kRebootPoweroff) {
+            snprintf(buf, sizeof(buf), "[usb] REBOOT: mode=poweroff executing PSCI_SYSTEM_OFF\r\n");
+        } else {
+            usbRebootModeOp(true, ponReason, imemReason, diag, sizeof(diag));
+            snprintf(buf, sizeof(buf), "[usb] REBOOT: mode=%s %s executing PSCI_SYSTEM_RESET\r\n", modeName, diag);
+        }
+        s.pendingRebootAction = action;
+        IOLog("[J716F usb] %s\n", buf);
+        s.reply.writeStr(buf);
     } else {
         snprintf(buf, sizeof(buf), "[usb] unknown command: %s (try 'help')\r\n", raw);
         s.reply.writeStr(buf);
@@ -754,19 +918,12 @@ static void pollUsbEvents(TerminalSession &s) {
     }
 }
 
-__attribute__((noreturn)) static void executeWarmReboot(UsbHw &hw) {
+__attribute__((noreturn)) static void executePowerAction(UsbHw &hw, uint8_t action) {
     hw.wr(DWC3_DCTL, hw.rd(DWC3_DCTL) & ~DWC3_DCTL_RUN_STOP);
     IOSleep(100);
     __asm__ volatile("msr daifset, #3" ::: "memory");
-    {
-        register uint64_t x0 __asm__("x0") = J716F_PSCI_SYSTEM_RESET;
-        register uint64_t x1 __asm__("x1") = 0;
-        register uint64_t x2 __asm__("x2") = 0;
-        register uint64_t x3 __asm__("x3") = 0;
-        __asm__ volatile("smc #0" : "+r"(x0), "+r"(x1), "+r"(x2), "+r"(x3)
-                         : : "x4", "x5", "x6", "x7", "x8", "x9", "x10", "x11",
-                             "x12", "x13", "x14", "x15", "x16", "x17", "memory");
-    }
+    const uint64_t fid = (action == kRebootPoweroff) ? J716F_PSCI_SYSTEM_OFF : J716F_PSCI_SYSTEM_RESET;
+    (void)usbPsciCall(fid, 0);
     for (;;) __asm__ volatile("wfe");
 }
 
@@ -969,9 +1126,10 @@ static void usbDebugThread(void *arg, wait_result_t waitResult) {
             }
         }
 
-        if (s->pendingReboot && (!s->hw.configured || !s->hw.hostReady || (s->reply.used == 0 && !s->hw.ep3Busy))) {
+        if (s->pendingRebootAction != kRebootNone &&
+            (!s->hw.configured || !s->hw.hostReady || (s->reply.used == 0 && !s->hw.ep3Busy))) {
             IOSleep(50);
-            executeWarmReboot(s->hw);
+            executePowerAction(s->hw, s->pendingRebootAction);
         }
 
         // Fast-poll ONLY during active USB enumeration (~2s after pull-up or USB_RESET);

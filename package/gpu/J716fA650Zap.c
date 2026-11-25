@@ -187,7 +187,7 @@ int J716fZapAuthenticate(const uint8_t *fw, size_t fw_size,
                          const J716fScmOps *scm, const J716fZapMemOps *mem,
                          J716fZapReport *report) {
     J716fZapPlan plan;
-    uint8_t meta_scratch[J716F_ZAP_MAX_META];
+    static uint8_t meta_scratch[J716F_ZAP_MAX_META];
     uint64_t meta_pa = 0u;
     J716fScmResult r;
     int rc;

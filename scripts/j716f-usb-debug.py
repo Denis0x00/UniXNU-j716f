@@ -371,6 +371,38 @@ def cmd_probe(args: argparse.Namespace) -> int:
     return cmd_exec(args)
 
 
+def cmd_reboot(args: argparse.Namespace) -> int:
+    port = wait_for_port(args.port, args.wait)
+    target = args.target
+    wire_cmd = "poweroff" if target in ("off", "poweroff", "shutdown") else (
+        "reboot" if target == "normal" else f"reboot {target}"
+    )
+
+    def on_text(b: bytes) -> None:
+        sys.stdout.buffer.write(b)
+        sys.stdout.buffer.flush()
+
+    demux = Gsc1StreamDemuxer(on_text=on_text)
+    try:
+        with open_serial(port) as ser:
+            drain_initial(ser, demux, max_s=0.4, idle_s=0.15)
+            ser.write((wire_cmd + "\r\n").encode("utf-8"))
+            ser.flush()
+            t0 = time.monotonic()
+            while time.monotonic() - t0 < 2.0:
+                try:
+                    chunk = ser.read(4096)
+                except Exception:
+                    break
+                if chunk:
+                    demux.feed(chunk)
+    except Exception:
+        # Expected once DWC3 drops pull-up during PSCI_SYSTEM_RESET / PSCI_SYSTEM_OFF.
+        pass
+    print(f"\n[host] Sent '{wire_cmd}' to {port}", file=sys.stderr, flush=True)
+    return 0
+
+
 def cmd_snapshot(args: argparse.Namespace) -> int:
     port = wait_for_port(args.port, args.wait)
     out_path = Path(args.output)
@@ -494,6 +526,19 @@ def build_parser() -> argparse.ArgumentParser:
     psh = sub.add_parser("shell", help="Interactive command terminal")
     psh.add_argument("--log", default=None, help="Save session output to file")
     psh.set_defaults(func=cmd_shell)
+
+    pr = sub.add_parser("reboot", help="Reboot or power off the tablet (normal/bootloader/recovery/off)")
+    pr.add_argument(
+        "target",
+        nargs="?",
+        default="normal",
+        choices=["normal", "bootloader", "fastboot", "recovery", "off", "poweroff"],
+        help="Reboot target (default: normal; use bootloader/fastboot to enter fastboot)",
+    )
+    pr.set_defaults(func=cmd_reboot)
+
+    po = sub.add_parser("poweroff", help="Power off the tablet via PSCI_SYSTEM_OFF")
+    po.set_defaults(target="off", func=cmd_reboot)
     return p
 
 

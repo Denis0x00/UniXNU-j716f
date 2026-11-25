@@ -40,7 +40,37 @@ void j716f_usb_debug_probe(void);
 #define J716F_RSC_DRV_SIZE            0x00010000ULL
 #define J716F_RSC_TCS_OFFSET          0x0D00u
 
+#define J716F_PSCI_VERSION            0x84000000ULL
+#define J716F_PSCI_SYSTEM_OFF         0x84000008ULL
 #define J716F_PSCI_SYSTEM_RESET       0x84000009ULL
+#define J716F_PSCI_FEATURES           0x8400000AULL
+
+// SM8250 / PM8150 reboot-mode registers (verified against stock TB-J716F DTB):
+//   /soc/qcom,msm-imem@146bf000/restart_reason@65c (0x77665500=bootloader, 0x77665501=normal, 0x77665502=recovery)
+//   /soc/qcom,spmi@c440000 -> PM8150 PON (USID 0, base 0x0800 -> PPID 0x008), PON_SOFT_RB_SPARE (0x8F) bits 7:1
+#define J716F_IMEM_BASE               0x146BF000ULL
+#define J716F_IMEM_SIZE               0x00001000ULL
+#define J716F_IMEM_RESTART_REASON_OFF 0x0000065Cu
+#define J716F_IMEM_REASON_BOOTLOADER  0x77665500u
+#define J716F_IMEM_REASON_NORMAL      0x77665501u
+#define J716F_IMEM_REASON_RECOVERY    0x77665502u
+
+#define J716F_SPMI_CORE_BASE          0x0C440000ULL
+#define J716F_SPMI_CHNLS_BASE         0x0C600000ULL
+#define J716F_SPMI_OBSRVR_BASE        0x0E600000ULL
+#define J716F_SPMI_CNFG_BASE          0x0C40A000ULL
+#define J716F_SPMI_APID_MAP_OFF       0x0900u
+#define J716F_SPMI_CNFG_OWNER_OFF     0x0700u
+#define J716F_SPMI_MAX_APIDS          512u
+#define J716F_SPMI_OBS_APID_STRIDE    0x0080ULL
+#define J716F_SPMI_CHNL_APID_STRIDE   0x10000ULL
+#define J716F_PM8150_PON_PPID         0x008u
+#define J716F_PON_SOFT_RB_SPARE       0x8Fu
+#define J716F_PON_REASON_SHIFT        1u
+#define J716F_PON_REASON_MASK         0xFEu
+#define J716F_PON_REASON_NORMAL       0u
+#define J716F_PON_REASON_RECOVERY     1u
+#define J716F_PON_REASON_BOOTLOADER   2u
 
 // --- SM8250 GCC (0x00100000) USB30_PRIM & QUSB2PHY offsets -----------------
 #define J716F_GCC_BASE                0x00100000ULL
