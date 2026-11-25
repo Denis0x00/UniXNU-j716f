@@ -1,0 +1,131 @@
+name: J716F GPU Addon (iOS 17 Turnip + AdrenoMetal)
+
+# Builds the Phase 4b userspace 3D Metal addon for TB-J716F (Adreno 650 v2.0,
+# iPadOS 17.7.11 / arm64-apple-ios17.0) from pinned upstream UniXNU, Mesa Turnip
+# (freedreno Darwin KMD backend), and metal2vulkan translator sources.
+# Contains zero Apple IPSW content, zero OEM firmware, and zero device secrets.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/j716f-gpu-addon.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: j716f-gpu-addon-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-gpu-addon:
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - name: Checkout UniXNU core (pinned)
+        uses: actions/checkout@v4
+        with:
+          repository: UniXNU/UniXNU
+          ref: 8542980d02b4d2cc5c32ee3542de1760b2562aac
+          path: UniXNU
+
+      - name: Initialize required GPU submodules
+        working-directory: UniXNU
+        run: |
+          git submodule update --init --depth 1 \
+            drivers/Adreno740 \
+            drivers/AdrenoMetal \
+            kits/AdrenoPM4
+
+      - name: Install build toolchain (LLVM, shaders, Bison, Ninja, Rust 1.98.0)
+        run: |
+          brew install llvm glslang shaderc spirv-tools bison ninja cmake rustup
+          {
+            echo "$HOME/.cargo/bin"
+            echo "/opt/homebrew/opt/llvm/bin"
+            echo "/opt/homebrew/opt/bison/bin"
+            echo "/opt/homebrew/opt/rustup/bin"
+          } >> "$GITHUB_PATH"
+          export PATH="/opt/homebrew/opt/rustup/bin:/opt/homebrew/opt/llvm/bin:/opt/homebrew/opt/bison/bin:$HOME/.cargo/bin:$PATH"
+          rustup toolchain install 1.98.0 --profile minimal --target aarch64-apple-ios
+          for tool in clang xcrun codesign llvm-as glslangValidator glslc spirv-val ninja cmake bison cargo; do
+            command -v "$tool" >/dev/null || { echo "Missing tool: $tool" >&2; exit 1; }
+          done
+          xcrun --sdk iphoneos --show-sdk-path
+          llvm-as --version | head -n 2
+          cargo +1.98.0 --version
+
+      - name: Checkout and patch pinned Mesa and metal2vulkan sources
+        working-directory: UniXNU
+        run: |
+          python3 - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+
+          root = Path.cwd()
+          pins = json.loads((root / 'scripts/data/adreno-compiler-inputs.json').read_text())
+          mesa_dir = root / '.cache/mesa-work'
+          mesa_dir.mkdir(parents=True, exist_ok=True)
+          subprocess.run(['git', 'init', '-q', str(mesa_dir)], check=True)
+          mirror = pins['mesa'].get('mirror', pins['mesa']['repository'])
+          subprocess.run(['git', '-C', str(mesa_dir), 'fetch', '--depth=1', mirror, pins['mesa']['commit']], check=True)
+          subprocess.run(['git', '-C', str(mesa_dir), 'checkout', '--detach', 'FETCH_HEAD'], check=True)
+          for patch in pins['patches']:
+              subprocess.run(['git', '-C', str(mesa_dir), 'apply', str(root / patch)], check=True)
+          print('PASS: Mesa checked out and patched:', pins['mesa']['commit'][:12])
+
+          m2v = json.loads((root / 'scripts/data/gpu-metal-vulkan-inputs.json').read_text())['translator']
+          m2v_dir = root / '.cache/gpu-reference/metal2vulkan'
+          m2v_dir.mkdir(parents=True, exist_ok=True)
+          subprocess.run(['git', 'init', '-q', str(m2v_dir)], check=True)
+          subprocess.run(['git', '-C', str(m2v_dir), 'fetch', '--depth=1', m2v['repository'], m2v['commit']], check=True)
+          subprocess.run(['git', '-C', str(m2v_dir), 'checkout', '--detach', 'FETCH_HEAD'], check=True)
+          print('PASS: metal2vulkan checked out:', m2v['commit'][:12])
+          PY
+
+      - name: Create Meson Python virtualenv
+        working-directory: UniXNU
+        run: |
+          python3 -m venv .cache/mesa-venv
+          .cache/mesa-venv/bin/python -m pip install --upgrade pip
+          .cache/mesa-venv/bin/python -m pip install -r scripts/requirements-adreno-compiler.txt
+
+      - name: Build Mesa Turnip (libvulkan_freedreno.dylib for arm64-apple-ios17.0)
+        working-directory: UniXNU
+        run: |
+          python3 scripts/build-turnip-darwin.py --target ios
+          ls -lh build/mesa-tu-ios/src/freedreno/vulkan/libvulkan_freedreno.dylib
+
+      - name: Build NativeAdrenoMetal.bundle + metal2vulkan bridge + adrenoprobed (iOS 17)
+        working-directory: UniXNU
+        run: |
+          python3 scripts/build-adreno-metal-plugin.py --target ios --no-replay
+          ls -lh build/adreno-metal-plugin/NativeAdrenoMetal.bundle/
+          cat build/adreno-metal-plugin/trust.json
+
+      - name: Pack NGPUADD2 GPU addons (no-daemon and with-daemon variants)
+        working-directory: UniXNU
+        run: |
+          mkdir -p out/j716f-gpu-addon
+          python3 scripts/make-gpu-addon.py --publish --no-daemon out/j716f-gpu-addon/gpuaddon-nodaemon.bin
+          python3 scripts/make-gpu-addon.py --publish out/j716f-gpu-addon/gpuaddon-with-daemon.bin
+          cp build/adreno-metal-plugin/trust.json out/j716f-gpu-addon/trust.json
+          cp build/adreno-metal-plugin/NativeAdrenoMetal.bundle/gpu-build.json out/j716f-gpu-addon/gpu-build.json
+          (cd out/j716f-gpu-addon && shasum -a 256 gpuaddon-*.bin trust.json gpu-build.json > SHA256SUMS.txt)
+          cat out/j716f-gpu-addon/SHA256SUMS.txt
+          ls -lh out/j716f-gpu-addon/
+
+      - name: Upload J716F iOS 17 GPU addon artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: j716f-gpu-addon-ios17
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            UniXNU/out/j716f-gpu-addon/gpuaddon-nodaemon.bin
+            UniXNU/out/j716f-gpu-addon/gpuaddon-with-daemon.bin
+            UniXNU/out/j716f-gpu-addon/trust.json
+            UniXNU/out/j716f-gpu-addon/gpu-build.json
+            UniXNU/out/j716f-gpu-addon/SHA256SUMS.txt
