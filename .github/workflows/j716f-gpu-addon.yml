@@ -37,6 +37,7 @@ jobs:
           git submodule update --init --depth 1 \
             drivers/Adreno740 \
             drivers/AdrenoMetal \
+            drivers/GopFramebuffer \
             kits/AdrenoPM4
 
       - name: Install build toolchain (LLVM, shaders, Bison, Ninja, Rust 1.98.0)
@@ -98,15 +99,17 @@ jobs:
           python3 scripts/build-turnip-darwin.py --target ios
           ls -lh build/mesa-tu-ios/src/freedreno/vulkan/libvulkan_freedreno.dylib
 
-      - name: Cache Cargo registry
+      - name: Cache Cargo registry and prebuilt Rust Metal bridge
         uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry/index
             ~/.cargo/registry/cache
             ~/.cargo/git/db
-          key: j716f-gpu-cargo-${{ runner.os }}-1.98.0-8542980d
+            UniXNU/build/adreno-metal-bridge/ios
+          key: j716f-gpu-bridge-${{ runner.os }}-1.98.0-8542980d-thin-v1
           restore-keys: |
+            j716f-gpu-bridge-${{ runner.os }}-1.98.0-8542980d-
             j716f-gpu-cargo-${{ runner.os }}-1.98.0-
 
       - name: Build NativeAdrenoMetal.bundle + metal2vulkan bridge + adrenoprobed (iOS 17)
@@ -211,10 +214,15 @@ jobs:
           b_old = "    '0064-copies-leave-unreachable-pages-alone.patch']]"
           b_new = "    '0064-copies-leave-unreachable-pages-alone.patch',\n    '0065-ios-copied-and-host-memory.patch']]"
           assert b_old in b_txt, 'Expected PATCHES entry not found in build-adreno-metal-bridge.py'
-          bridge_py.write_text(b_txt.replace(b_old, b_new, 1))
-          print('PASS: Generated and registered 0065-ios-copied-and-host-memory.patch for aarch64-apple-ios')
+          b_txt = b_txt.replace(b_old, b_new, 1)
+          lto_old = "'[profile.release]', 'panic = \"unwind\"', 'debug = 1', 'lto = \"fat\"', 'codegen-units = 1', '',"
+          lto_new = "'[profile.release]', 'panic = \"unwind\"', 'debug = 1', 'lto = \"thin\"', 'codegen-units = 4', '',"
+          assert lto_old in b_txt, 'Expected release LTO profile not found in build-adreno-metal-bridge.py'
+          b_txt = b_txt.replace(lto_old, lto_new, 1)
+          bridge_py.write_text(b_txt)
+          print('PASS: Generated/registered 0065-ios-copied-and-host-memory.patch and enabled thin LTO for CI runner')
           PY
-          python3 scripts/build-adreno-metal-plugin.py --target ios --no-replay || {
+          python3 scripts/build-adreno-metal-plugin.py --target ios --no-replay --reuse-bridge || {
             echo "=== tail build-ios.log ==="
             tail -n 80 build/adreno-metal-bridge/build-ios.log 2>/dev/null || true
             exit 1
