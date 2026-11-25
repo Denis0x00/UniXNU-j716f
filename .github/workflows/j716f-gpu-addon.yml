@@ -221,6 +221,16 @@ jobs:
           b_txt = b_txt.replace(lto_old, lto_new, 1)
           bridge_py.write_text(b_txt)
           print('PASS: Generated/registered 0065-ios-copied-and-host-memory.patch and enabled thin LTO for CI runner')
+
+          # 3. On arm64-apple-ios17.0, ld with -undefined dynamic_lookup emits classic LC_DYLD_INFO_ONLY
+          #    instead of LC_DYLD_CHAINED_FIXUPS; make the optional weak-import self-bind step skip cleanly.
+          sb_py = Path('scripts/macho-self-bind-weak-imports.py')
+          sb_txt = sb_py.read_text()
+          sb_old = "if fixups is None:\n    sys.exit(path + ': no chained fixups')"
+          sb_new = "if fixups is None:\n    print(path + ': no chained fixups (classic LC_DYLD_INFO_ONLY); skipping self-bind')\n    sys.exit(0)"
+          assert sb_old in sb_txt, 'Expected fixups check not found in macho-self-bind-weak-imports.py'
+          sb_py.write_text(sb_txt.replace(sb_old, sb_new, 1))
+          print('PASS: Allowed classic LC_DYLD_INFO_ONLY in macho-self-bind-weak-imports.py for arm64-apple-ios17.0')
           PY
           python3 scripts/build-adreno-metal-plugin.py --target ios --no-replay --reuse-bridge || {
             echo "=== tail build-ios.log ==="

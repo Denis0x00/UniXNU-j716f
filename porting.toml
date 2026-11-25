@@ -62,6 +62,7 @@ findings = [
   "Added .github/workflows/j716f-gpu-addon.yml (macOS runner) to build Phase 4b userspace gpuaddon.bin (NativeAdrenoMetal.bundle + Mesa Turnip + metal2vulkan for arm64-apple-ios17.0) and trust.json CDHashes.",
   "Updated .github/workflows/j716f-gpu-addon.yml with Cargo registry caching and generated metal2vulkan-runtime iOS patch 0065 (copied.rs vm_read_overwrite + host_memory.rs mach_vm_region).",
   "Added drivers/GopFramebuffer submodule, Rust thin LTO, and prebuilt bridge caching to .github/workflows/j716f-gpu-addon.yml.",
+  "Allowed classic LC_DYLD_INFO_ONLY (no chained fixups) in macho-self-bind-weak-imports.py for arm64-apple-ios17.0 Turnip dylib in .github/workflows/j716f-gpu-addon.yml.",
   "Updated j716f-gpu-addon.yml to guard the iPadOS 27 (24A446) QuartzCore ptrauth_strip block for arm64-apple-ios17.0 builds.",
 ]
 completion = [
@@ -400,6 +401,7 @@ findings = [
   "Updated J716fGpuProbe.cpp with exact iPadOS 17 NativeSandboxGrantProcess allow-list, early AGXAccelerator registration when j716f-gpu-metal=1, and live GPU[ADDON]/GPU[METAL]/GPU[MPLUG]/GPU[MTBL] USB Debug telemetry; guarded iPadOS 27 (24A446) ptrauth_strip block in j716f-gpu-addon.yml for arm64-apple-ios17.0.",
   "Fixed metal2vulkan-runtime aarch64-apple-ios build in j716f-gpu-addon.yml (generated patch 0065 adding iOS read_pages via vm_read_overwrite in copied.rs and enabling mach_vm_region mapped_writable/reachable_now/mapped_with on iOS in host_memory.rs, plus Cargo registry cache).",
   "Confirmed libadreno_metal_bridge.a (metal2vulkan + runtime) builds cleanly for aarch64-apple-ios on GitHub Actions macOS runner; added missing drivers/GopFramebuffer submodule (NativeGOPWire.h/NativeHalfCodes.h) and thin LTO + bridge caching in j716f-gpu-addon.yml.",
+  "Confirmed NativeAdrenoMetal executable (arm64-apple-ios17.0 Objective-C++ + 378 MB libadreno_metal_bridge.a) links cleanly on macos-15; handled classic LC_DYLD_INFO_ONLY libvulkan_freedreno.dylib in macho-self-bind-weak-imports.py for final codesign and NGPUADD2 packing.",
 ]
 completion = [
   "Adreno 650 GMU cold-start, ArmSmmu4K GPU/GMU contexts, CP/zap shader bring-up, full A650 KMD (Phase 3b + 4a), and AdrenoMetal/Turnip 3D acceleration (Phase 4b).",
