@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: UniXNU/UniXNU
-          ref: 8542980d02b4d2cc5c32ee3542de1760b2562aac
+          ref: b04f131da9151182dbb26ce4e638fa8acc2933ac
           path: UniXNU
 
       - name: Initialize required GPU submodules
@@ -107,16 +107,15 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
             UniXNU/build/adreno-metal-bridge/ios
-          key: j716f-gpu-bridge-${{ runner.os }}-1.98.0-8542980d-thin-v1
+          key: j716f-gpu-bridge-${{ runner.os }}-1.98.0-b04f131d-thin-v1
           restore-keys: |
-            j716f-gpu-bridge-${{ runner.os }}-1.98.0-8542980d-
+            j716f-gpu-bridge-${{ runner.os }}-1.98.0-b04f131d-
             j716f-gpu-cargo-${{ runner.os }}-1.98.0-
 
       - name: Build NativeAdrenoMetal.bundle + metal2vulkan bridge + adrenoprobed (iOS 17)
         working-directory: UniXNU
         run: |
           python3 - <<'PY'
-          import subprocess
           from pathlib import Path
 
           # 1. Guard iPadOS 27 (24A446) arm64e ptrauth / hardcoded QuartzCore offsets for arm64-apple-ios17.0.
@@ -128,99 +127,16 @@ jobs:
           p.write_text(txt.replace(old, new, 1))
           print('PASS: Guarded iPadOS 27 (24A446) ptrauth/QuartzCore block for arm64-apple-ios17.0')
 
-          # 2. Generate and register patch 0065 for metal2vulkan-runtime iOS target:
-          #    - copied.rs: add #[cfg(target_os = "ios")] read_pages() via vm_read_overwrite
-          #    - host_memory.rs: enable mach_vm_region mapped_writable / reachable_now / mapped_with on iOS
-          m2v = Path('.cache/gpu-reference/metal2vulkan')
-          patches_dir = Path('drivers/AdrenoMetal/bridge/patches')
-          for name in (
-              '0063-main-optimizations-on-development-46e7cc96.patch',
-              '0064-copies-leave-unreachable-pages-alone.patch',
-          ):
-              subprocess.run(['git', '-C', str(m2v), 'apply', str((patches_dir / name).resolve())], check=True)
-          subprocess.run(['git', '-C', str(m2v), 'add', '-A'], check=True)
-
-          copied_rs = m2v / 'crates/metal2vulkan-runtime/src/copied.rs'
-          c_txt = copied_rs.read_text()
-          anchor = '/// [`read_pages`] on macOS.\n#[cfg(target_os = "macos")]'
-          assert anchor in c_txt, 'Expected read_pages macOS block not found in copied.rs'
-          ios_read_pages = (
-              '/// [`read_pages`] on iOS (`vm_read_overwrite`, 64-bit arm64 ABI).\n'
-              '#[cfg(target_os = "ios")]\n'
-              'pub(crate) fn read_pages(pages: NonNull<u8>, into: &mut [u8]) -> bool {\n'
-              '    unsafe extern "C" {\n'
-              '        static mach_task_self_: libc::mach_port_t;\n'
-              '        fn vm_read_overwrite(\n'
-              '            target_task: libc::vm_map_t,\n'
-              '            address: usize,\n'
-              '            size: usize,\n'
-              '            data: usize,\n'
-              '            outsize: *mut usize,\n'
-              '        ) -> libc::kern_return_t;\n'
-              '    }\n'
-              '    let mut read: usize = 0;\n'
-              '    let answer = unsafe {\n'
-              '        vm_read_overwrite(\n'
-              '            mach_task_self_,\n'
-              '            pages.as_ptr() as usize,\n'
-              '            into.len(),\n'
-              '            into.as_mut_ptr() as usize,\n'
-              '            &mut read,\n'
-              '        )\n'
-              '    };\n'
-              '    answer == libc::KERN_SUCCESS && read == into.len()\n'
-              '}\n\n'
-          )
-          copied_rs.write_text(c_txt.replace(anchor, ios_read_pages + anchor, 1))
-
-          host_mem_rs = m2v / 'crates/metal2vulkan-runtime/src/host_memory.rs'
-          h_txt = host_mem_rs.read_text()
-          repls = [
-              (
-                  '/// [`mapped_writable`] on macOS ([`mapped_with`]).\n#[cfg(target_os = "macos")]',
-                  '/// [`mapped_writable`] on macOS and iOS ([`mapped_with`]).\n#[cfg(any(target_os = "macos", target_os = "ios"))]',
-              ),
-              (
-                  '#[cfg(target_os = "macos")]\npub(super) fn reachable_now(',
-                  '#[cfg(any(target_os = "macos", target_os = "ios"))]\npub(super) fn reachable_now(',
-              ),
-              (
-                  '#[cfg(not(target_os = "macos"))]\npub(super) fn reachable_now(',
-                  '#[cfg(not(any(target_os = "macos", target_os = "ios")))]\npub(super) fn reachable_now(',
-              ),
-              (
-                  '#[cfg(target_os = "macos")]\nfn mapped_with(',
-                  '#[cfg(any(target_os = "macos", target_os = "ios"))]\nfn mapped_with(',
-              ),
-              (
-                  '#[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]\npub(super) fn mapped_writable(',
-                  '#[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "ios", windows)))]\npub(super) fn mapped_writable(',
-              ),
-          ]
-          for old_s, new_s in repls:
-              assert old_s in h_txt, f'Expected block not found in host_memory.rs: {old_s!r}'
-              h_txt = h_txt.replace(old_s, new_s, 1)
-          host_mem_rs.write_text(h_txt)
-
-          patch_out = patches_dir / '0065-ios-copied-and-host-memory.patch'
-          diff = subprocess.check_output(['git', '-C', str(m2v), 'diff'], text=True)
-          assert diff.strip(), 'Generated 0065 patch is empty'
-          patch_out.write_text(diff)
-          subprocess.run(['git', '-C', str(m2v), 'reset', '--hard', '-q', 'HEAD'], check=True)
-          subprocess.run(['git', '-C', str(m2v), 'clean', '-fdq'], check=True)
-
+          # 2. Upstream AdrenoMetal (0b7094bf / UniXNU/metal2vulkan 87a869f7) now implements Darwin host
+          #    mapping under #[cfg(target_vendor = "apple")] in NativeMetalHostMapping.rs with no carried
+          #    metal2vulkan patches; only switch release LTO from fat/1 to thin/4 for GitHub runner budgets.
           bridge_py = Path('scripts/build-adreno-metal-bridge.py')
           b_txt = bridge_py.read_text()
-          b_old = "    '0064-copies-leave-unreachable-pages-alone.patch']]"
-          b_new = "    '0064-copies-leave-unreachable-pages-alone.patch',\n    '0065-ios-copied-and-host-memory.patch']]"
-          assert b_old in b_txt, 'Expected PATCHES entry not found in build-adreno-metal-bridge.py'
-          b_txt = b_txt.replace(b_old, b_new, 1)
           lto_old = "'[profile.release]', 'panic = \"unwind\"', 'debug = 1', 'lto = \"fat\"', 'codegen-units = 1', '',"
           lto_new = "'[profile.release]', 'panic = \"unwind\"', 'debug = 1', 'lto = \"thin\"', 'codegen-units = 4', '',"
           assert lto_old in b_txt, 'Expected release LTO profile not found in build-adreno-metal-bridge.py'
-          b_txt = b_txt.replace(lto_old, lto_new, 1)
-          bridge_py.write_text(b_txt)
-          print('PASS: Generated/registered 0065-ios-copied-and-host-memory.patch and enabled thin LTO for CI runner')
+          bridge_py.write_text(b_txt.replace(lto_old, lto_new, 1))
+          print('PASS: Enabled thin LTO in build-adreno-metal-bridge.py for CI runner')
 
           # 3. On arm64-apple-ios17.0, ld with -undefined dynamic_lookup emits classic LC_DYLD_INFO_ONLY
           #    instead of LC_DYLD_CHAINED_FIXUPS; make the optional weak-import self-bind step skip cleanly.

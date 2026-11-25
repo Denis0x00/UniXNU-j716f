@@ -65,6 +65,7 @@ findings = [
   "Allowed classic LC_DYLD_INFO_ONLY (no chained fixups) in macho-self-bind-weak-imports.py for arm64-apple-ios17.0 Turnip dylib in .github/workflows/j716f-gpu-addon.yml.",
   "Updated j716f-gpu-addon.yml to guard the iPadOS 27 (24A446) QuartzCore ptrauth_strip block for arm64-apple-ios17.0 builds.",
   "Raised board.toml owned_memory_size from 2 GiB (0x80000000) to 3.5 GiB (0xE0000000) inside uefi-j716f High RAM (~3.88 GiB, ~284 MiB loader headroom), added Test 14 (J716fPersistentStore) and owned_memory_size assertion to j716f-ci.yml.",
+  "Updated .github/workflows/j716f-gpu-addon.yml pin to upstream UniXNU b04f131da915 (Adreno740 2962e289, AdrenoMetal 0b7094bf, UniXNU/metal2vulkan 87a869f7) and dropped the obsolete 0065 metal2vulkan-runtime iOS patch now handled natively by NativeMetalHostMapping.rs.",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -410,6 +411,7 @@ findings = [
   "Fixed metal2vulkan-runtime aarch64-apple-ios build in j716f-gpu-addon.yml (generated patch 0065 adding iOS read_pages via vm_read_overwrite in copied.rs and enabling mach_vm_region mapped_writable/reachable_now/mapped_with on iOS in host_memory.rs, plus Cargo registry cache).",
   "Confirmed libadreno_metal_bridge.a (metal2vulkan + runtime) builds cleanly for aarch64-apple-ios on GitHub Actions macOS runner; added missing drivers/GopFramebuffer submodule (NativeGOPWire.h/NativeHalfCodes.h) and thin LTO + bridge caching in j716f-gpu-addon.yml.",
   "Confirmed NativeAdrenoMetal executable (arm64-apple-ios17.0 Objective-C++ + 378 MB libadreno_metal_bridge.a) links cleanly on macos-15; handled classic LC_DYLD_INFO_ONLY libvulkan_freedreno.dylib in macho-self-bind-weak-imports.py for final codesign and NGPUADD2 packing.",
+  "Synced j716f-gpu-addon.yml to upstream UniXNU b04f131da915 (Adreno740 2962e289 null-AS map fix, AdrenoMetal 0b7094bf + UniXNU/metal2vulkan 87a869f7 fork, Turnip runtime capabilities & timeline wait patches), retiring the custom 0065 iOS runtime patch in favor of upstream NativeMetalHostMapping.rs.",
 ]
 completion = [
   "Adreno 650 GMU cold-start, ArmSmmu4K GPU/GMU contexts, CP/zap shader bring-up, full A650 KMD (Phase 3b + 4a), and AdrenoMetal/Turnip 3D acceleration (Phase 4b).",
