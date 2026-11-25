@@ -44,6 +44,14 @@ extern volatile uint32_t j716f_legacy_swap_accepted __attribute__((weak_import))
 extern volatile uint32_t j716f_legacy_swap_rejected __attribute__((weak_import));
 extern volatile uint32_t j716f_legacy_transfer_calls __attribute__((weak_import));
 extern volatile uint32_t j716f_legacy_client_calls __attribute__((weak_import));
+extern volatile uint32_t j716f_legacy_gpu_handoff_ready __attribute__((weak_import));
+extern volatile uint32_t j716f_legacy_gpu_fallbacks __attribute__((weak_import));
+extern volatile uint64_t native_gop_gpu_offers __attribute__((weak_import));
+extern volatile uint64_t native_gop_gpu_completions __attribute__((weak_import));
+extern volatile uint32_t native_data_persist_state __attribute__((weak_import));
+extern volatile uint32_t native_data_persist_gpt __attribute__((weak_import));
+extern volatile uint64_t native_data_persist_first_lba __attribute__((weak_import));
+extern volatile uint64_t native_data_persist_present __attribute__((weak_import));
 
 extern volatile uint32_t j716f_hid_events[8] __attribute__((weak_import));
 extern volatile unsigned native_touch_stage __attribute__((weak_import));
@@ -600,13 +608,24 @@ static void handleCommand(TerminalSession &s, const char *raw) {
             s.reply.writeStr(buf);
         }
         snprintf(buf, sizeof(buf),
-                 "[usb] FB: stage=%u frames=%u swap=%u/%u xfer=%u clients=%u\r\n",
+                 "[usb] FB: stage=%u frames=%u swap=%u/%u xfer=%u clients=%u fb_gpu=%u gop_gpu=%llu/%llu fb=%u\r\n",
                  &j716f_legacy_stage ? j716f_legacy_stage : 0u,
                  &j716f_legacy_frame_count ? j716f_legacy_frame_count : 0u,
                  &j716f_legacy_swap_accepted ? j716f_legacy_swap_accepted : 0u,
                  &j716f_legacy_swap_rejected ? j716f_legacy_swap_rejected : 0u,
                  &j716f_legacy_transfer_calls ? j716f_legacy_transfer_calls : 0u,
-                 &j716f_legacy_client_calls ? j716f_legacy_client_calls : 0u);
+                 &j716f_legacy_client_calls ? j716f_legacy_client_calls : 0u,
+                 &j716f_legacy_gpu_handoff_ready ? j716f_legacy_gpu_handoff_ready : 0u,
+                 static_cast<unsigned long long>(&native_gop_gpu_offers ? native_gop_gpu_offers : 0ULL),
+                 static_cast<unsigned long long>(&native_gop_gpu_completions ? native_gop_gpu_completions : 0ULL),
+                 &j716f_legacy_gpu_fallbacks ? j716f_legacy_gpu_fallbacks : 0u);
+        s.reply.writeStr(buf);
+        snprintf(buf, sizeof(buf),
+                 "[usb] DATA: state=%u gpt=%u first_lba=%llu present=%llu\r\n",
+                 &native_data_persist_state ? native_data_persist_state : 0u,
+                 &native_data_persist_gpt ? native_data_persist_gpt : 0xffu,
+                 static_cast<unsigned long long>(&native_data_persist_first_lba ? native_data_persist_first_lba : 0ULL),
+                 static_cast<unsigned long long>(&native_data_persist_present ? native_data_persist_present : 0ULL));
         s.reply.writeStr(buf);
         snprintf(buf, sizeof(buf),
                  "[usb] INPUT: touch_stage=%u strokes=%u hid_touch=%u hid_btn=%u btn_mask=0x%x btn_chg=%u\r\n",
@@ -679,14 +698,18 @@ static void handleCommand(TerminalSession &s, const char *raw) {
         PE_Video v = {};
         (void)PE_current_console(&v);
         snprintf(buf, sizeof(buf),
-                 "[usb] FB: stage=%u gop=%lux%lu base=0x%lx row=%lu frames=%u swap=%u/%u xfer=%u clients=%u\r\n",
+                 "[usb] FB: stage=%u gop=%lux%lu base=0x%lx row=%lu frames=%u swap=%u/%u xfer=%u clients=%u fb_gpu=%u gop_gpu=%llu/%llu fb=%u\r\n",
                  &j716f_legacy_stage ? j716f_legacy_stage : 0u,
                  v.v_width, v.v_height, v.v_baseAddr, v.v_rowBytes,
                  &j716f_legacy_frame_count ? j716f_legacy_frame_count : 0u,
                  &j716f_legacy_swap_accepted ? j716f_legacy_swap_accepted : 0u,
                  &j716f_legacy_swap_rejected ? j716f_legacy_swap_rejected : 0u,
                  &j716f_legacy_transfer_calls ? j716f_legacy_transfer_calls : 0u,
-                 &j716f_legacy_client_calls ? j716f_legacy_client_calls : 0u);
+                 &j716f_legacy_client_calls ? j716f_legacy_client_calls : 0u,
+                 &j716f_legacy_gpu_handoff_ready ? j716f_legacy_gpu_handoff_ready : 0u,
+                 static_cast<unsigned long long>(&native_gop_gpu_offers ? native_gop_gpu_offers : 0ULL),
+                 static_cast<unsigned long long>(&native_gop_gpu_completions ? native_gop_gpu_completions : 0ULL),
+                 &j716f_legacy_gpu_fallbacks ? j716f_legacy_gpu_fallbacks : 0u);
         s.reply.writeStr(buf);
     } else if (strEq(raw, "touch") || strEq(raw, "input") || strEq(raw, "input.status")) {
         snprintf(buf, sizeof(buf),

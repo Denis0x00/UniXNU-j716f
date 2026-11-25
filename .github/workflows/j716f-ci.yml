@@ -158,6 +158,9 @@ jobs:
           from unixnu import devicetree
 
           board = tomllib.loads(Path('device/board.toml').read_text(encoding='utf-8'))
+          assert board['payload']['adt']['owned_memory_size'] == 0xE0000000, (
+              f"Unexpected owned_memory_size: {board['payload']['adt']['owned_memory_size']:#x}"
+          )
           adt = devicetree.generate(
               Path(sys.argv[1]),
               board,
@@ -309,6 +312,16 @@ jobs:
             -o "$OUT/test_a650_zap"
           "$OUT/test_a650_zap"
 
+          echo "=== Test 14: J716fPersistentStore (opt-in UFS Data store write-guard, WRITE(10)/SYNC, quarantine) ==="
+          clang++ $CXXFLAGS -I"$STOR" -I"$STOR/r41" -I"$STOR/include" -I"$PLAT" \
+            "$OUT/R35Record.o" \
+            "$PLAT/AppsSmmuOwner.cpp" \
+            "$STOR/r41/KnownBlockReference.cpp" \
+            "$STOR/r41/R41UfsTransport.cpp" \
+            "$STOR/r41/tests/J716fPersistentStoreTest.cpp" \
+            -o "$OUT/test_persistent_store"
+          "$OUT/test_persistent_store"
+
       - name: Run upstream GopFramebuffer fence-wait sanitizer regression check
         run: |
           (cd unixnu/drivers/GopFramebuffer && python3 Test/check-fence-wait.py)
@@ -323,6 +336,6 @@ jobs:
             echo '## J716F Device CI'
             echo '- Official `./unixnu` Format 2 `defconfig`, `status`, `tree`, and `build package` passed'
             echo '- `dts/j716f.dts` compiled with `dtc` and converted to valid Apple Device Tree (ADT)'
-            echo '- All 13 C/C++ ASan/UBSan storage/SMMU/SHNGROOT/USB/battery/GPU/GMU/CP/ZAP unit tests compiled and passed'
-            echo '- Python Data seed & USB GSC1 wire tests and `porting.toml` schema validation passed'
+            echo '- All 14 C/C++ ASan/UBSan storage/SMMU/SHNGROOT/persistent-store/USB/battery/GPU/GMU/CP/ZAP unit tests compiled and passed'
+            echo '- Python Data seed, Phase 4b GPU packer, & USB GSC1 wire tests and `porting.toml` schema validation passed'
           } >> "$GITHUB_STEP_SUMMARY"

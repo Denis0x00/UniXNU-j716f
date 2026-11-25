@@ -28,6 +28,10 @@ extern "C" void j716f_legacy_display_static_init(void) __asm__("__GLOBAL__sub_I_
 extern "C" IOService *native_legacy_display_allocate(void);
 extern "C" void j716f_gop_presenter_static_init(void) __asm__("__GLOBAL__sub_I_NativeGOPPresenter.cpp");
 extern "C" IOService *native_gop_presenter_create(void);
+extern "C" bool native_gop_gpu_offer(IOService *presenter, void *display,
+                                     IOMemoryDescriptor *memory, uint64_t stride,
+                                     uint32_t width, uint32_t height, uint32_t format);
+extern "C" void native_gop_presenter_set_source(IOService *presenter, IOService *nub);
 extern "C" void j716f_keystore_probe(void);
 extern "C" void j716f_hid_input_probe(void);
 extern "C" void j716f_usb_debug_probe(void);
@@ -42,6 +46,7 @@ IOService *g_pending_display = nullptr;
 IOService *g_active_display = nullptr;
 IOService *g_active_nub = nullptr;
 IOService *g_active_presenter = nullptr;
+IOService *g_gpu_handoff_presenter = nullptr;
 
 IORegistryEntry *g_unit_scale_chosen = nullptr;
 bool g_unit_scale_added = false;
@@ -104,6 +109,9 @@ volatile uint32_t j716f_legacy_transfer_calls = 0;
 volatile int j716f_legacy_transfer_status = -1;
 volatile uint32_t j716f_legacy_client_calls = 0;
 volatile int j716f_legacy_client_status = -1;
+volatile uint32_t j716f_legacy_gpu_handoff_ready = 0;
+volatile uint32_t j716f_legacy_gpu_fallbacks = 0;
+volatile int j716f_legacy_gpu_last_status = 0;
 
 bool native_legacy_prepare_scanout(void) {
   return !ml_at_interrupt_context() && ml_get_interrupts_enabled();
@@ -168,12 +176,17 @@ void native_legacy_transfer_observed(IOReturn status, const void *, uint64_t byt
   }
 }
 
-bool native_legacy_gpu_offer(void *, IOMemoryDescriptor *, uint64_t, uint32_t, uint32_t, uint32_t) {
-  // No GPU copy client on J716F yet; NativeLegacyDisplay falls back cleanly to CPU scanout.
-  return false;
+bool native_legacy_gpu_offer(void *display, IOMemoryDescriptor *memory, uint64_t stride,
+                             uint32_t width, uint32_t height, uint32_t format) {
+  IOService *presenter = __atomic_load_n(&g_gpu_handoff_presenter, __ATOMIC_ACQUIRE);
+  return presenter != nullptr &&
+         native_gop_gpu_offer(presenter, display, memory, stride, width, height, format);
 }
 
-void native_legacy_gpu_fallback_observed(int) {}
+void native_legacy_gpu_fallback_observed(int status) {
+  __atomic_fetch_add(&j716f_legacy_gpu_fallbacks, 1U, __ATOMIC_RELAXED);
+  j716f_legacy_gpu_last_status = status;
+}
 
 void native_legacy_retirement_observed(IOService *) {}
 
@@ -394,11 +407,34 @@ void native_legacy_display_late_probe(void) {
             g_active_nub = nub;
             j716f_legacy_stage = 10;
             finishUnitScalePolicy(true);
+            unsigned fb_gpu = 0;
+            if (PE_parse_boot_argn("fb-gpu", &fb_gpu, sizeof(fb_gpu)) && fb_gpu == 1) {
+              IOService *handoff = native_gop_presenter_create();
+              bool handoff_attached = false;
+              if (handoff && handoff->init()) {
+                native_gop_presenter_set_source(handoff, nub);
+                // Attach away from nub (IOService::getResourceService()) so
+                // IOMobileFramebufferLegacy / SpringBoard never enumerates it as a display child.
+                handoff_attached = handoff->attach(parent);
+                if (handoff_attached && handoff->start(parent)) {
+                  __atomic_store_n(&g_gpu_handoff_presenter, handoff, __ATOMIC_RELEASE);
+                  j716f_legacy_gpu_handoff_ready = 1U;
+                  IOLog("[J716F fb] NativeGOPPresenter GPU handoff active (fb-gpu=1)\n");
+                } else {
+                  if (handoff_attached) handoff->detach(parent);
+                  OSSafeReleaseNULL(handoff);
+                  IOLog("[J716F fb] NativeGOPPresenter GPU handoff start failed (CPU fallback)\n");
+                }
+              } else {
+                OSSafeReleaseNULL(handoff);
+              }
+            }
             OSSafeReleaseNULL(dt_parent);
             OSSafeReleaseNULL(ranges);
             OSSafeReleaseNULL(memory);
-            IOLog("[J716F fb] NativeLegacyDisplay published (stage=10 dt=%u scale=%d)\n",
-                  j716f_legacy_dt_attached, j716f_legacy_unit_scale_status);
+            IOLog("[J716F fb] NativeLegacyDisplay published (stage=10 dt=%u scale=%d fb_gpu=%u)\n",
+                  j716f_legacy_dt_attached, j716f_legacy_unit_scale_status,
+                  j716f_legacy_gpu_handoff_ready);
             return;
           }
         }

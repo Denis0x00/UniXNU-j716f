@@ -20,19 +20,20 @@ configs/
 dts/j716f.dts                  # Board device tree (overlays socs/sm8250/dts/sm8250.dtsi)
 patches/xnu/                   # Board XNU patches (earlylog, verbose console, storage, APFS root probe, skip-setup)
 patches/unixnu-core/           # Pending upstream UniXNU core PR patches (AAPL,phandle & bootimg v2)
-package/storage/               # Board read-only SHNGROOT UFS window driver + volatile RAM store + skip-setup plists
-package/display/               # Board probes for upstream GopFramebuffer and AppleKeyStoreState (aks=1)
+package/storage/               # SHNGROOT UFS window driver + volatile RAM / opt-in persistent UFS store + skip-setup plists
+package/display/               # Board probes for upstream GopFramebuffer (CPU + opt-in fb-gpu=1) & AppleKeyStoreState (aks=1)
 package/input/                 # Unmodified NativeHidInput (21H461 IOHIDDevice) + Goodix GT7386 I2C + PM8150 buttons
 package/power/                 # SM8250-AC EPSS 3-domain CPUfreq + L3 (cpufreq=4) & PM8150B battery (j716f-battery=1)
-package/gpu/                   # Adreno 650 v2.0 Phase 1 staged power/clock/KGSL-SMMU/GMU/cmd-db probe (j716f-gpu=1..6)
-package/usb/                   # Bare-metal SM8250 DWC3 USB CDC-ACM debug terminal (j716f-usb=1) & wire tests
+package/gpu/                   # Adreno 650 v2.0 Phase 1..4b KMD (GMU, ArmSmmu4K, CP, TZ PAS 13 ZAP, Ring/IRQ, AGXAccelerator)
+package/usb/                   # Bare-metal SM8250 DWC3 USB CDC-ACM debug terminal (j716f-usb=1) & reboot-mode control
 socs/sm8250/                   # SM8250 SoC config, DTSI, SMP/Edge patches, UFS HCI/SMMU library & host tests
 scripts/
   build-j716f-storage-active.py    # Builds libJ716fStorageBringup.a (r41 storage + NativeRamBlock)
-  build-j716f-display-keystore.py  # Audits 21H461 display/HID ABIs & builds libNativeLegacyDisplay.late.a
-  j716f-usb-debug.py               # Host USB CDC-ACM CLI (monitor, exec, probe, shell, GSC1 PNG snapshot)
+  build-j716f-display-keystore.py  # Audits 21H461 display/HID/GPU ABIs & builds libNativeLegacyDisplay.late.a
+  pack-j716f-gpu-addon.py          # Packs Phase 4b NGPUADD2 gpuaddon.bin + owner-trust.bundle into boot.img
+  j716f-usb-debug.py               # Host USB CDC-ACM CLI (monitor, exec, probe, shell, reboot, GSC1 PNG snapshot)
   package.sh                       # Standard UniXNU release entrypoint
-  ci/                              # macOS Data seed tools & USB wire host unit tests (see README-data-runner.md)
+  ci/                              # macOS Data seed tools, GPU packer & USB wire host unit tests (see README-data-runner.md)
 ```
 
 ## Bring-Up Status
@@ -55,10 +56,15 @@ scripts/
   `GopFramebuffer` (`NativeLegacyDisplay` + `NativeGOPPresenter`),
   `AppleKeyStoreState` (`aks=1`), and `NativeHidInput` (`IOHIDDevice`, 207-slot
   21H461 ABI verified) together with J716F board drivers:
-  - **Storage**: `R41UfsTransport` poll-yield/retry hardening eliminated post-Hello
-    UFS quarantine (0 errors through 240+ APFS `disk5` transactions), backed by
-    a volatile 2-level sparse RAM store (512 MiB cap, zero UFS writes) for
-    read-write `/private/var` (`data-reset=1 data-fua=1`).
+  - **Storage & Memory**: `R41UfsTransport` poll-yield/retry hardening eliminated
+    post-Hello UFS quarantine (0 errors through 240+ APFS `disk5` transactions).
+    Default boots remain strictly read-only on UFS with a volatile 2-level sparse
+    RAM store (512 MiB cap, zero UFS writes) for `/private/var` (`data-reset=1
+    data-fua=1`); opt-in persistent UFS Data storage (`j716f-data-persist=1` RO
+    probe / `j716f-data-persist=2` RW direct) is guarded by a one-shot immutable
+    write window strictly between `SHNGROOT + 64 MiB` and `userdata_end - 1 GiB`
+    (verified under ASan/UBSan in Test 14). Contiguous XNU RAM is expanded to
+    **3.5 GiB (`0xE0000000`)** inside `uefi-j716f`'s `High RAM` window.
   - **Input**: Goodix GT7386 GENI I2C touchscreen (`J716fTouchProbe.cpp`) and
     PM8150 SPMI hardware keys (`J716fButtons.c`, Power/VolUp/VolDown + lock/wake)
     verified on hardware (`status=0x0`, `errs=0`).
@@ -73,14 +79,24 @@ scripts/
     boot and smoother interactive desktop). `-v` is omitted from default
     `kernel_args` so XNU stays in `kPEGraphicsMode` without scrolling text over
     SpringBoard.
-  - **USB Debug CDC-ACM & PM8150B Battery (host-verified, compiled in `boot.img`)**:
+  - **USB Debug CDC-ACM & PM8150B Battery (verified on hardware)**:
     Opt-in bare-metal SM8250 DWC3 USB CDC-ACM diagnostic terminal (`j716f-usb=1`,
     VID `0x1209:0x0001`, driverless Windows `usbser.sys` / Linux `cdc_acm`)
     paired with SMP-safe all-8-CPU `JXLG` + 256 KiB live kernel log ring
-    (`PE_j716f_klog_read`), live EPSS MHz inspection (`cpufreq`), GSC1 PNG
-    framebuffer snapshots (`scripts/j716f-usb-debug.py`), and opt-in read-only
-    SPMI PM8150B fuel gauge / SMB5 charger `IOPMPowerSource` provider
-    (`j716f-battery=1`).
+    (`PE_j716f_klog_read`), live EPSS MHz inspection (`cpufreq`), hands-free
+    `reboot bootloader` via PM8150 SPMI + IMEM, GSC1 PNG framebuffer snapshots
+    (`scripts/j716f-usb-debug.py`), and read-only SPMI PM8150B fuel gauge / SMB5
+    charger `IOPMPowerSource` provider (`j716f-battery=1`).
+  - **Adreno 650 GPU (Phase 1–4a verified on hardware, Phase 4b ready)**:
+    Hardware-verified GMU cold-start + HFI + GX 670 MHz power-on, KGSL SMMU
+    `ArmSmmu4K` Bank 1/0 contexts, A650 SQE/CP Ring 0, retail TrustZone PAS 13
+    ZAP authentication (`trust=1->0`), GPU SPI 300 IRQ, per-process TTBR0
+    switching (`CP_SMMU_TABLE_UPDATE`), and 32/32 `NativeAdrenoABI` v2 user-client
+    rounds with zero SMMU faults. Phase 4b userspace `gpuaddon.bin`
+    (`NativeAdrenoMetal.bundle` + Mesa Turnip + `metal2vulkan`) builds via
+    `.github/workflows/j716f-gpu-addon.yml`, packs via
+    `scripts/pack-j716f-gpu-addon.py`, and supports opt-in `fb-gpu=1`
+    `NativeGOPPresenter` handoff.
 
 See [porting.toml](porting.toml) for the full structured per-area record.
 

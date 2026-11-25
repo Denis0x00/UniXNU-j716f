@@ -100,7 +100,9 @@ chip_id = "8011"
 unique_chip_id = "required"
 psci_method = "smc"
 packed_data_ramdisk = true
-owned_memory_size = 0x80000000
+# 3.5 GiB (3584 MiB) contiguous inside uefi-j716f High RAM (0xFFC20000..0x1F8000000, ~3972 MiB),
+# leaving ~284 MiB headroom for DarwinBoot 2 MiB alignment and temporary loader allocations.
+owned_memory_size = 0xE0000000
 
 [adt.product.string]
 artwork-display-gamut = "sRGB"

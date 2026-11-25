@@ -256,6 +256,7 @@ bool Transport::failInit(Error e, uint64_t addr) {
 void Transport::quarantine(uint32_t reason) {
   __atomic_store_n(&online_, 0U, __ATOMIC_RELEASE);
   __atomic_store_n(&quarantined_, 1U, __ATOMIC_RELEASE);
+  write_window_.armed = false;
   report_.phase = Phase::Quarantined;
   if (token_.lease_id) {
     (void)apps_smmu_owner_quarantine(&token_, 0x52343100U | (reason & 0xFFU));
@@ -551,11 +552,49 @@ bool Transport::setupOwnerAndQueue() {
   return true;
 }
 
+bool Transport::allowUpiuLocked(const uint8_t upiu[32], uint32_t data_bytes, DataDir dir) const {
+  if (dir != DataDir::ToDevice &&
+      allowReadOnlyUpiu(upiu, data_bytes, dir == DataDir::FromDevice)) {
+    return true;
+  }
+  if (!write_window_.armed || __atomic_load_n(&quarantined_, __ATOMIC_ACQUIRE) != 0) {
+    return false;
+  }
+  if (upiu[0] != 0x01 || upiu[2] != kUserLun) {
+    return false;
+  }
+  const uint8_t cdb0 = upiu[16];
+  if (cdb0 == 0x2A) {
+    if (dir != DataDir::ToDevice || upiu[1] != 0x20 || (upiu[17] & ~0x08U) != 0) {
+      return false;
+    }
+    const uint32_t blocks = (static_cast<uint32_t>(upiu[23]) << 8) | upiu[24];
+    if (blocks == 0 || blocks > kMaxChunkBlocks || data_bytes != blocks * kBlockBytes) {
+      return false;
+    }
+    const uint64_t lba = static_cast<uint64_t>(loadBe32(upiu + 18));
+    if (lba < write_window_.first_lba || lba < write_window_.min_allowed_lba) {
+      return false;
+    }
+    const uint64_t win_end = write_window_.first_lba + write_window_.block_count;
+    if (lba >= win_end || blocks > win_end - lba ||
+        lba >= write_window_.max_allowed_lba_excl ||
+        blocks > write_window_.max_allowed_lba_excl - lba) {
+      return false;
+    }
+    return true;
+  }
+  if (cdb0 == 0x35) {
+    return dir == DataDir::None && data_bytes == 0 && upiu[1] == 0x00;
+  }
+  return false;
+}
+
 Transport::CmdOutcome Transport::submitLocked(const uint8_t upiu[32], uint32_t data_bytes,
-                                              bool from_device) {
+                                              DataDir dir) {
   CmdOutcome out = {};
   if (__atomic_load_n(&quarantined_, __ATOMIC_ACQUIRE)) return out;
-  if (!allowReadOnlyUpiu(upiu, data_bytes, from_device)) return out;
+  if (!allowUpiuLocked(upiu, data_bytes, dir)) return out;
   if (apps_smmu_owner_validate(&token_, &claim_) != APPS_SMMU_OK) {
     quarantine(static_cast<uint32_t>(Error::OwnerFailed));
     return out;
@@ -580,7 +619,9 @@ Transport::CmdOutcome Transport::submitLocked(const uint8_t upiu[32], uint32_t d
 
   clearBytes(dma_.cpu, 64);
   clearBytes(dma_.cpu + 4096, 1088);
-  const uint32_t dir_bits = from_device ? (2U << 25) : 0U;
+  const uint32_t dir_bits = (dir == DataDir::FromDevice) ? (2U << 25)
+                          : (dir == DataDir::ToDevice)   ? (1U << 25)
+                                                         : 0U;
   storeLe32(dma_.cpu + 0, 0x10000000U | dir_bits);
   storeLe32(dma_.cpu + 8, 15U);
   storeLe32(dma_.cpu + 16, static_cast<uint32_t>(dma_.physical + 4096));
@@ -602,9 +643,13 @@ Transport::CmdOutcome Transport::submitLocked(const uint8_t upiu[32], uint32_t d
     quarantine(static_cast<uint32_t>(Error::ReadTransferFailed));
     return out;
   }
-  if (data_bytes && !cacheOp(sm8250_ufs::CacheOp::Invalidate, kDataOffset, data_bytes)) {
-    quarantine(static_cast<uint32_t>(Error::ReadTransferFailed));
-    return out;
+  if (data_bytes) {
+    const auto pre_op = (dir == DataDir::ToDevice) ? sm8250_ufs::CacheOp::CleanInvalidate
+                                                   : sm8250_ufs::CacheOp::Invalidate;
+    if (!cacheOp(pre_op, kDataOffset, data_bytes)) {
+      quarantine(static_cast<uint32_t>(Error::ReadTransferFailed));
+      return out;
+    }
   }
 
   if (!writeHci32(0x20, 1U) || !writeHci32(0x58, 1U)) {
@@ -674,7 +719,8 @@ Transport::CmdOutcome Transport::submitLocked(const uint8_t upiu[32], uint32_t d
     quarantine(static_cast<uint32_t>(Error::ReadTransferFailed));
     return out;
   }
-  if (data_bytes && !cacheOp(sm8250_ufs::CacheOp::Invalidate, kDataOffset, data_bytes)) {
+  if (data_bytes && dir == DataDir::FromDevice &&
+      !cacheOp(sm8250_ufs::CacheOp::Invalidate, kDataOffset, data_bytes)) {
     quarantine(static_cast<uint32_t>(Error::ReadTransferFailed));
     return out;
   }
@@ -697,7 +743,7 @@ bool Transport::cmdNopLocked() {
   uint8_t upiu[32] = {};
   upiu[0] = 0x00;
   upiu[3] = next_tag_++;
-  const auto res = submitLocked(upiu, 0, false);
+  const auto res = submitLocked(upiu, 0, DataDir::None);
   return res.ok && res.rsp_type == 0x20 && res.rsp_status == 0;
 }
 
@@ -708,7 +754,7 @@ bool Transport::cmdPowerModeLocked() {
   upiu[5] = 1;
   upiu[12] = 3;
   upiu[13] = 2;
-  const auto res = submitLocked(upiu, 0, false);
+  const auto res = submitLocked(upiu, 0, DataDir::None);
   if (!res.ok || res.rsp_type != 0x36 || res.rsp_status != 0) return false;
   return loadBe32(dma_.cpu + 4608 + 20) == 0x11U;
 }
@@ -720,7 +766,7 @@ bool Transport::cmdTurLocked(uint8_t lun) {
     upiu[2] = lun;
     upiu[3] = next_tag_++;
     upiu[16] = 0x00;
-    const auto res = submitLocked(upiu, 0, false);
+    const auto res = submitLocked(upiu, 0, DataDir::None);
     if (!res.ok || res.rsp_type != 0x21 || res.rsp_status != 0) return false;
     if (res.scsi_status == 0x00) return true;
     if (((res.scsi_status == 0x02 && res.sense_key == 0x06) ||
@@ -741,7 +787,7 @@ bool Transport::cmdReadCapacityLocked(uint8_t lun, LunInfo &out) {
   upiu[3] = next_tag_++;
   upiu[15] = 8;
   upiu[16] = 0x25;
-  const auto res = submitLocked(upiu, 8, true);
+  const auto res = submitLocked(upiu, 8, DataDir::FromDevice);
   if (!res.ok || res.rsp_type != 0x21 || res.rsp_status != 0 || res.scsi_status != 0)
     return false;
   const uint8_t *d = dma_.cpu + kDataOffset;
@@ -782,13 +828,82 @@ bool Transport::cmdRead10ChunkLocked(uint8_t lun, uint64_t lba, uint32_t blocks,
     upiu[23] = static_cast<uint8_t>(blocks >> 8);
     upiu[24] = static_cast<uint8_t>(blocks);
 
-    const auto res = submitLocked(upiu, bytes, true);
+    const auto res = submitLocked(upiu, bytes, DataDir::FromDevice);
     if (!res.ok || res.rsp_type != 0x21 || res.rsp_status != 0) return false;
     if (res.scsi_status == 0x00) {
       if (dst) copyBytes(dst, dma_.cpu + kDataOffset, bytes);
       __atomic_add_fetch(&read_commands_, 1ULL, __ATOMIC_RELAXED);
       __atomic_add_fetch(&blocks_read_, blocks, __ATOMIC_RELAXED);
       if (blocks > max_chunk_blocks_) max_chunk_blocks_ = blocks;
+      return true;
+    }
+    if ((res.scsi_status == 0x08 || res.scsi_status == 0x28) && attempt < budget_.tur_retries)
+      continue;
+    return false;
+  }
+  return false;
+}
+
+bool Transport::cmdWrite10ChunkLocked(uint8_t lun, uint64_t lba, uint32_t blocks,
+                                      const uint8_t *src, bool fua) {
+  if (!write_window_.armed || lun != kUserLun || !src ||
+      blocks == 0 || blocks > kMaxChunkBlocks || lba > 0xFFFFFFFFULL) {
+    return false;
+  }
+  const uint64_t win_end = write_window_.first_lba + write_window_.block_count;
+  if (lba < write_window_.first_lba || lba >= win_end || blocks > win_end - lba) {
+    return false;
+  }
+  const uint32_t bytes = blocks * kBlockBytes;
+  for (unsigned attempt = 0; attempt <= budget_.tur_retries; ++attempt) {
+    copyBytes(dma_.cpu + kDataOffset, src, bytes);
+    uint8_t upiu[32] = {};
+    upiu[0] = 0x01;
+    upiu[1] = 0x20;
+    upiu[2] = lun;
+    upiu[3] = next_tag_++;
+    upiu[12] = static_cast<uint8_t>(bytes >> 24);
+    upiu[13] = static_cast<uint8_t>(bytes >> 16);
+    upiu[14] = static_cast<uint8_t>(bytes >> 8);
+    upiu[15] = static_cast<uint8_t>(bytes);
+    upiu[16] = 0x2A;
+    upiu[17] = fua ? 0x08U : 0x00U;
+    upiu[18] = static_cast<uint8_t>(lba >> 24);
+    upiu[19] = static_cast<uint8_t>(lba >> 16);
+    upiu[20] = static_cast<uint8_t>(lba >> 8);
+    upiu[21] = static_cast<uint8_t>(lba);
+    upiu[23] = static_cast<uint8_t>(blocks >> 8);
+    upiu[24] = static_cast<uint8_t>(blocks);
+
+    const auto res = submitLocked(upiu, bytes, DataDir::ToDevice);
+    if (!res.ok || res.rsp_type != 0x21 || res.rsp_status != 0) return false;
+    if (res.scsi_status == 0x00) {
+      __atomic_add_fetch(&write_commands_, 1ULL, __ATOMIC_RELAXED);
+      __atomic_add_fetch(&blocks_written_, blocks, __ATOMIC_RELAXED);
+      if (blocks > max_chunk_blocks_) max_chunk_blocks_ = blocks;
+      return true;
+    }
+    if ((res.scsi_status == 0x08 || res.scsi_status == 0x28) && attempt < budget_.tur_retries)
+      continue;
+    return false;
+  }
+  return false;
+}
+
+bool Transport::cmdSyncCache10Locked(uint8_t lun) {
+  if (!write_window_.armed || lun != kUserLun) return false;
+  for (unsigned attempt = 0; attempt <= budget_.tur_retries; ++attempt) {
+    uint8_t upiu[32] = {};
+    upiu[0] = 0x01;
+    upiu[1] = 0x00;
+    upiu[2] = lun;
+    upiu[3] = next_tag_++;
+    upiu[16] = 0x35;
+
+    const auto res = submitLocked(upiu, 0, DataDir::None);
+    if (!res.ok || res.rsp_type != 0x21 || res.rsp_status != 0) return false;
+    if (res.scsi_status == 0x00) {
+      __atomic_add_fetch(&sync_commands_, 1ULL, __ATOMIC_RELAXED);
       return true;
     }
     if ((res.scsi_status == 0x08 || res.scsi_status == 0x28) && attempt < budget_.tur_retries)
@@ -1195,13 +1310,121 @@ bool Transport::readWindow512WithSink(uint64_t abs_offset_bytes, uint64_t window
   return ok && slice.copied == total_bytes;
 }
 
+bool Transport::computeDataStoreBounds(uint64_t *out_min_lba, uint64_t *out_max_excl) const {
+  if (out_min_lba) *out_min_lba = 0;
+  if (out_max_excl) *out_max_excl = 0;
+  if (!online() || !report_.lun0.ready) return false;
+  const GptSummary &g = report_.gpt;
+  const ShngRootManifest &m = g.manifest;
+  if (!g.header_valid || !g.entries_valid || !g.found_userdata || !m.valid) return false;
+  if (g.userdata_first_lba < 64ULL || g.userdata_last_lba < g.userdata_first_lba ||
+      g.userdata_last_lba >= report_.lun0.blocks) {
+    return false;
+  }
+
+  uint64_t protected_bytes = m.image_bytes;
+  for (uint32_t i = 0; i < m.window_count && i < kMaxRootWindows; ++i) {
+    const uint64_t padded =
+        (m.windows[i].size_bytes + kBlockBytes - 1ULL) & ~uint64_t(kBlockBytes - 1ULL);
+    if (m.windows[i].rel_offset <= UINT64_MAX - padded) {
+      const uint64_t win_end = m.windows[i].rel_offset + padded;
+      if (win_end > protected_bytes) protected_bytes = win_end;
+    }
+  }
+  const uint64_t protected_blocks = (protected_bytes + kBlockBytes - 1ULL) / kBlockBytes;
+  if (protected_blocks == 0 ||
+      protected_blocks > UINT64_MAX - g.userdata_first_lba ||
+      kDataStoreGuardBlocks > UINT64_MAX - (g.userdata_first_lba + protected_blocks)) {
+    return false;
+  }
+  const uint64_t min_lba = g.userdata_first_lba + protected_blocks + kDataStoreGuardBlocks;
+  const uint64_t ud_end_excl = g.userdata_last_lba + 1ULL;
+  if (ud_end_excl <= kDataStoreTailReserveBlocks) return false;
+  const uint64_t max_excl = ud_end_excl - kDataStoreTailReserveBlocks;
+  if (min_lba >= max_excl || max_excl > 0x100000000ULL) return false;
+  if (out_min_lba) *out_min_lba = min_lba;
+  if (out_max_excl) *out_max_excl = max_excl;
+  return true;
+}
+
+bool Transport::armWriteWindow(uint64_t first_lba, uint64_t block_count) {
+  if (!online() || block_count == 0) return false;
+  LockGuard guard(platform_);
+  if (!online() || write_window_.armed) return false;
+  uint64_t min_lba = 0, max_excl = 0;
+  if (!computeDataStoreBounds(&min_lba, &max_excl)) return false;
+  if (first_lba < min_lba || first_lba >= max_excl || block_count > max_excl - first_lba ||
+      first_lba + block_count > 0x100000000ULL) {
+    return false;
+  }
+  write_window_ = {true, first_lba, block_count, min_lba, max_excl};
+  return true;
+}
+
+bool Transport::writeBlocks(uint8_t lun, uint64_t lba, uint32_t block_count,
+                            const uint8_t *src, bool fua) {
+  if (!online() || !src || block_count == 0 || lun != kUserLun) {
+    __atomic_add_fetch(&write_errors_, 1ULL, __ATOMIC_RELAXED);
+    return false;
+  }
+  LockGuard guard(platform_);
+  if (!online() || !write_window_.armed) {
+    __atomic_add_fetch(&write_errors_, 1ULL, __ATOMIC_RELAXED);
+    return false;
+  }
+  const uint64_t win_end = write_window_.first_lba + write_window_.block_count;
+  if (lba < write_window_.first_lba || lba >= win_end || block_count > win_end - lba) {
+    __atomic_add_fetch(&write_errors_, 1ULL, __ATOMIC_RELAXED);
+    return false;
+  }
+  __atomic_add_fetch(&write_calls_, 1ULL, __ATOMIC_RELAXED);
+
+  uint32_t remaining = block_count;
+  uint64_t cur_lba = lba;
+  const uint8_t *cur_src = src;
+  while (remaining > 0) {
+    const uint32_t chunk = remaining > kMaxChunkBlocks ? kMaxChunkBlocks : remaining;
+    if (!cmdWrite10ChunkLocked(lun, cur_lba, chunk, cur_src, fua)) {
+      __atomic_add_fetch(&write_errors_, 1ULL, __ATOMIC_RELAXED);
+      return false;
+    }
+    cur_lba += chunk;
+    cur_src += static_cast<size_t>(chunk) * kBlockBytes;
+    remaining -= chunk;
+  }
+  return true;
+}
+
+bool Transport::syncCache(uint8_t lun) {
+  if (!online() || lun != kUserLun) {
+    __atomic_add_fetch(&write_errors_, 1ULL, __ATOMIC_RELAXED);
+    return false;
+  }
+  LockGuard guard(platform_);
+  if (!online() || !write_window_.armed) {
+    __atomic_add_fetch(&write_errors_, 1ULL, __ATOMIC_RELAXED);
+    return false;
+  }
+  if (!cmdSyncCache10Locked(lun)) {
+    __atomic_add_fetch(&write_errors_, 1ULL, __ATOMIC_RELAXED);
+    return false;
+  }
+  return true;
+}
+
 Stats Transport::stats() const {
   Stats s;
   s.read_calls = __atomic_load_n(&read_calls_, __ATOMIC_RELAXED);
   s.read_commands = __atomic_load_n(&read_commands_, __ATOMIC_RELAXED);
   s.blocks_read = __atomic_load_n(&blocks_read_, __ATOMIC_RELAXED);
   s.read_errors = __atomic_load_n(&read_errors_, __ATOMIC_RELAXED);
+  s.write_calls = __atomic_load_n(&write_calls_, __ATOMIC_RELAXED);
+  s.write_commands = __atomic_load_n(&write_commands_, __ATOMIC_RELAXED);
+  s.blocks_written = __atomic_load_n(&blocks_written_, __ATOMIC_RELAXED);
+  s.write_errors = __atomic_load_n(&write_errors_, __ATOMIC_RELAXED);
+  s.sync_commands = __atomic_load_n(&sync_commands_, __ATOMIC_RELAXED);
   s.max_chunk_blocks = max_chunk_blocks_;
+  s.write_armed = write_window_.armed;
   s.quarantined = __atomic_load_n(&quarantined_, __ATOMIC_ACQUIRE) != 0;
   return s;
 }

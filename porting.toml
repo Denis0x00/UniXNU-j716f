@@ -33,7 +33,7 @@ inputs = [
   "Upstream UniXNU Format 2 build system (UniXNU/UniXNU) and companion firmware repository (Denis0x00/uefi-j716f).",
 ]
 configuration = [
-  "board.toml uses schema_version = 2 with example = false, os_profile = ipados-17.7.11-21H461, and 8 components (ArmDTPlatform, ArmCpu, SoftwareAES, RamBlock, GopFramebuffer, AppleKeyStoreState, XnuPrelink, DarwinBoot).",
+  "board.toml uses schema_version = 2 with example = false, os_profile = ipados-17.7.11-21H461, and 11 SoC-compatible components (ArmDTPlatform, ArmCpu, SoftwareAES, RamBlock, GopFramebuffer, AppleKeyStoreState, XnuPrelink, DarwinBoot, AdrenoFirmware, AdrenoPM4, ArmSmmu4K); upstream Adreno740/AdrenoMetal/ShengHidInput remain excluded from board.toml [components] because upstream components.toml hard-couples them to Sm8550Platform and ShengNovatekTouch.",
   "configs/j716f_defconfig targets Stage 6 single-core APFS root verification; configs/j716f_stage7_defconfig enables Stage 7+ RAM Data + SystemOS union + GopFramebuffer + AppleKeyStoreState.",
   "feeds.toml points the sm8250 SoC feed to socs/sm8250; unixnu.lock pins upstream Apple OSS and mu_basecore commits.",
 ]
@@ -64,6 +64,7 @@ findings = [
   "Added drivers/GopFramebuffer submodule, Rust thin LTO, and prebuilt bridge caching to .github/workflows/j716f-gpu-addon.yml.",
   "Allowed classic LC_DYLD_INFO_ONLY (no chained fixups) in macho-self-bind-weak-imports.py for arm64-apple-ios17.0 Turnip dylib in .github/workflows/j716f-gpu-addon.yml.",
   "Updated j716f-gpu-addon.yml to guard the iPadOS 27 (24A446) QuartzCore ptrauth_strip block for arm64-apple-ios17.0 builds.",
+  "Raised board.toml owned_memory_size from 2 GiB (0x80000000) to 3.5 GiB (0xE0000000) inside uefi-j716f High RAM (~3.88 GiB, ~284 MiB loader headroom), added Test 14 (J716fPersistentStore) and owned_memory_size assertion to j716f-ci.yml.",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -73,7 +74,7 @@ limits = [
   "Single-core CPU0 bring-up defconfig intentionally excludes SMP/power/display/GPU optional drivers until Stage 6 root mount is complete.",
 ]
 next_action = [
-  "Complete live vfs_mountroot() verification on TB-J716F boot_b and converge storage onto upstream ShengUfs.",
+  "Complete Phase 4b GPU addon hardware activation (j716f-gpu-metal=1), converge default board.toml packaging onto Stage 7+, and converge storage onto upstream ShengUfs.",
 ]
 [[area.evidence]]
 kind = "source"
@@ -171,10 +172,10 @@ status = "implemented"
 components = []
 paths = ["socs/sm8250/kits/Sm8250Platform/AppsSmmuLock.h", "socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.h", "socs/sm8250/kits/Sm8250Platform/AppsSmmuOwner.cpp", "socs/sm8250/kits/Sm8250Platform/tests/AppsSmmuOwner.cpp", "socs/sm8250/kits/Sm8250Platform/tests/AppsSmmuOwnerPeer.cpp"]
 inputs = [
-  "TB-J716F 6 GiB LPDDR5 DRAM layout, 2 GiB XNU owned window (0x80000000 in board.toml for Stage 7+; earlier Stage 6 used 256 MiB / 0x10000000), APPS SMMU (0x15000000).",
+  "TB-J716F 6 GiB LPDDR5 DRAM layout, 3.5 GiB contiguous XNU owned window (0xE0000000 in board.toml inside uefi-j716f High RAM 0xFFC20000..0x1F8000000; earlier Stage 7 used 2 GiB / 0x80000000 and Stage 6 used 256 MiB / 0x10000000), APPS SMMU (0x15000000).",
 ]
 configuration = [
-  "board.toml [payload.adt] requests owned_memory_size = 0x80000000 (2 GiB).",
+  "board.toml [payload.adt] requests owned_memory_size = 0xE0000000 (3.5 GiB = 3584 MiB), leaving ~284 MiB headroom for DarwinBoot 2 MiB alignment and temporary loader allocations; XNU native-4k-bootstrap-capacity.patch supports up to 6 GiB.",
   "AppsSmmuOwner coordinates exclusive APPS SMMU handoff and DMA lifetime tracking for SM8250 UFS.",
 ]
 procedure = [
@@ -183,6 +184,7 @@ procedure = [
 findings = [
   "Firmware memory map reserves ABL FDT, 80 MiB initrd, Display Reserved, Boot Log, DXE Heap, UEFI FD, and XNU Window without overlap.",
   "AppsSmmuOwner enforces single-owner acquisition, publication, DMA tracking, quarantine, and release semantics.",
+  "Audited uefi-j716f MemoryMapLib.c High RAM (0xFFC20000..0x1F8000000 = 3971.875 MiB) and DarwinBoot 2 MiB block alignment, unlocking 3.5 GiB (0xE0000000, +75% RAM) contiguous XNU memory without modifying UEFI firmware memory-map descriptors.",
 ]
 completion = [
   "All memory reservations remain non-overlapping and APPS SMMU DMA handoff operates stably under XNU storage I/O.",
@@ -191,7 +193,7 @@ limits = [
   "General-purpose IOMMU/SMMU page-table management for additional peripherals (GPU/USB/Wi-Fi) is not yet implemented.",
 ]
 next_action = [
-  "Verify memory budget sufficiency during APFS root mount and Stage 7 userland startup.",
+  "Evaluate expanding XNU owned memory beyond 2 GiB via DarwinBoot excluded/outside ranges (following sheng/uefi-sheng) for Adreno 650 Turnip/Metal 3D workloads.",
 ]
 [[area.evidence]]
 kind = "source"
@@ -237,15 +239,16 @@ findings = [
   "Hardware-verified Stage 7+ boot_b image (06052400...) booted /sbin/launchd and mounted disk5s1 (/private/var), revealing NativeRamBlock isBig (>2 GiB seed) rejects writes without a direct store (kIOReturnNotReady); added a volatile 2-level sparse RAM-backed native_ufs_store_* backend (512 MiB cap, 0 UFS writes) in R41Entry.cpp with data-reset=1 data-fua=1.",
   "Hardware-verified Stage 7+ RAM-store boot_b image (2274a64d..., log e1d6a856...): disk5s1 (E146D844-B009-41DE-900A-8E49DCFEBA81) completed 140+ APFS tx flushes (up to xid 145) cleanly and booted to the real iPadOS 17.7.11 Hello screen. After xid 145, disk1 reported an I/O error (err=16) followed by disk1/disk3 'device is not ready' due to R41UfsTransport permanent quarantine (command_max_polls=200000 tight busy-poll / 2s timeout under CPU0 load).",
   "Hardware-verified R41UfsTransport poll-yield/retry hardening + kernel-side j716f-skip-setup=1 (ce4e1a65..., log 2dfe083b...): eliminated post-Hello UFS quarantine (0 UFS errors, disk5 reached xid 245 / 240+ APFS flushes) and booted straight into iPadOS 17.7.11 SpringBoard desktop.",
+  "Implemented opt-in persistent UFS Data store (j716f-data-persist=1 RO probe / =2 RW direct, strictly OFF by default so normal boots keep the 512 MiB volatile RAM store with 0 UFS writes) in R41UfsTransport and R41Entry.cpp: one-shot immutable WriteWindow strictly bounded between SHNGROOT + 64 MiB guard and userdata_end - 1 GiB tail reserve, defense-in-depth WRITE(10) FUA/cached + SYNCHRONIZE CACHE(10) UPIU allow-list, real LUN 0 LBA 1 GPT CRC32 check in native_ufs_store_gpt_check(), and permanent write lockout on quarantine; verified under ASan/UBSan by Test 14 (J716fPersistentStoreTest.cpp) on full 128 GiB TB-J716F LUN 0 geometry.",
 ]
 completion = [
-  "XNU mounts APFS root volume via IOBlockStorageDevice and transitions to upstream ShengUfs / RamBlock / Data read-write storage.",
+  "XNU mounts APFS root volume via IOBlockStorageDevice and supports opt-in persistent UFS Data writeback (converging onto upstream ShengUfs).",
 ]
 limits = [
-  "Current board storage driver is strictly read-only for the SHNGROOT window and uses a volatile 512 MiB RAM store for Data (resets across reboots).",
+  "SHNGROOT root windows remain strictly read-only; persistent UFS Data writeback (j716f-data-persist=2) is host/ASan-verified and awaits first live tablet trial (default remains volatile 512 MiB RAM store).",
 ]
 next_action = [
-  "Converge storage onto upstream ShengUfs SM8250 support for persistent Data writeback.",
+  "Run first live hardware trial with j716f-data-persist=1 (RO probe) followed by j716f-data-persist=2 (RW persistence across reboot) and converge onto upstream ShengUfs SM8250.",
 ]
 [[area.evidence]]
 kind = "source"
@@ -255,6 +258,10 @@ result = "Read-only SHNGROOT IOBlockStorageDevice window provider for XNU"
 kind = "source"
 reference = "package/storage/r41/tests/R41RootWindowModel.cpp"
 result = "Host ASan/UBSan test verifying SHNGROOT manifest SHA-256 and 512-byte window slicing"
+[[area.evidence]]
+kind = "source"
+reference = "package/storage/r41/tests/J716fPersistentStoreTest.cpp"
+result = "Host ASan/UBSan Test 14 verifying immutable UFS write-window guard, WRITE(10)/SYNC, and quarantine lockout"
 [[area.evidence]]
 kind = "source"
 reference = "socs/sm8250/kits/Sm8250Platform/tests/Sm8250UfsPipeline.cpp"
@@ -296,6 +303,7 @@ findings = [
   "Extended build-j716f-display-keystore.py (28 objects) to compile J716fA650GmuContext.c, unmodified upstream kits/ArmSmmu4K (ArmSmmu4K, Context, Program, Streams, Mmio), and an optional local J716F_GPU_FIRMWARE_DIR GMU firmware stub/blob generator with -Werror into libNativeLegacyDisplay.late.a.",
   "Extended build-j716f-display-keystore.py (31 objects) to compile J716fA650Cp.c, unmodified upstream kits/AdrenoPM4/AdrenoPM4.c, and optional local a650_sqe.fw embedding (J716F_SQE_FIRMWARE / J716F_GPU_FIRMWARE_DIR, 0-byte public stub by default) with -Werror into libNativeLegacyDisplay.late.a.",
   "Extended build-j716f-display-keystore.py (53 objects, 248 verified 21H461 bindings) with dynamic 21H461 IOAcceleratorES ABI auditing (C2/D2/getMetaClass SHA-256 + vtable check), late-staged NativeAdrenoAccelerator (AGXAccelerator, zero __mod_init_func), 13 unmodified upstream drivers/Adreno740 KMD objects, all ArmSmmu4K objects, A650 ZAP/IRQ/Ring/GpuContext adapters, and optional local a650_zap.mbn embedding.",
+  "Wired opt-in fb-gpu=1 NativeGOPPresenter handoff in J716fLegacyDisplayProbe.cpp (attaching to IOService::getResourceService() with native_gop_presenter_set_source(handoff, nub) and forwarding native_legacy_gpu_offer -> native_gop_gpu_offer, default OFF keeping CPU GOP scanout unchanged) and extracted TB-J716F stock DTS panel inventory: EDO RM692E6 AMOLED WQXGA command-mode dual-DSI panel (0x500 x 2 = 2560x1600 @ 90 Hz, dcs-cmd-by-left backlight).",
 ]
 completion = [
   "Native XNU framebuffer/display driver (GopFramebuffer / IOMobileFramebufferLegacy) and AppleKeyStoreState (aks=1) render iPadOS WindowServer/SpringBoard cleanly on hardware.",
@@ -304,7 +312,7 @@ limits = [
   "Uses CPU scanout into the inherited 2560x1600 UEFI GOP framebuffer (no Adreno 650 GPU copy client or dynamic DPU mode-setting/backlight control yet).",
 ]
 next_action = [
-  "Verify SpringBoard desktop completion once HID input (touch/buttons) or skip-setup Data seed is enabled, then integrate backlight and Adreno 650 scanout.",
+  "Integrate panel backlight control (DSI DCS brightness) and Adreno 650 GPU/DPU scanout (fb-gpu/dpu-scanout).",
 ]
 [[area.evidence]]
 kind = "source"
@@ -445,6 +453,7 @@ procedure = [
 ]
 findings = [
   "Early BSD software loopback and network control initialization passed in r28-r30 checkpoints.",
+  "Extracted TB-J716F stock DTS wireless topology: Qualcomm QCA6390 Wi-Fi (cnss-qca6390 on PCIe RC 0 qcom,pcie@1c00000, wlan-rc-num = 0, wlan-en-gpio = tlmm 20) and QCA6390 Bluetooth (/vendor/bt_qca6390, bt_en_sleep).",
 ]
 completion = [
   "Working network connectivity (USB Ethernet or Wi-Fi) under iPadOS.",
@@ -519,10 +528,10 @@ completion = [
   "Clean OS reboot/shutdown, battery telemetry, and runtime PMGR/clock control.",
 ]
 limits = [
-  "No full PMGR clock/regulator driver or battery/charging driver is enabled in XNU yet.",
+  "EPSS CPUfreq/L3 scaling and read-only PM8150B battery/charger telemetry are verified on hardware; full PMGR clock/regulator control, charging policy, and sleep/wake power states are not yet enabled.",
 ]
 next_action = [
-  "Port SM8250 PMGR/clock support after Stage 6 root mount completes.",
+  "Evaluate ArmCpu platform sleep/GIC resume integration and thermal/PMGR power management.",
 ]
 [[area.evidence]]
 kind = "source"
@@ -533,12 +542,13 @@ result = "Board XNU storage power observation hook"
 id = "packaging"
 status = "implemented"
 components = ["XnuPrelink"]
-paths = ["scripts/package.sh", "scripts/ci/**", "README-data-runner.md"]
+paths = ["scripts/package.sh", "scripts/pack-j716f-gpu-addon.py", "scripts/ci/**", "README-data-runner.md"]
 inputs = [
-  "Android boot image v2 (pagesize 4096, max_image_bytes 96 MiB / 100663296), 80 MiB FAT payload, macOS-generated iPadOS 17.7.11 Data seed.",
+  "Android boot image v2 (pagesize 4096, max_image_bytes 96 MiB / 100663296), 80-88 MiB FAT payload, macOS-generated iPadOS 17.7.11 Data seed, and Phase 4b NGPUADD2 gpuaddon.bin.",
 ]
 configuration = [
   "scripts/package.sh delegates directly to official ./unixnu release -D <device>.",
+  "scripts/pack-j716f-gpu-addon.py validates NGPUADD2 gpuaddon.bin, builds DarwinBoot-compatible 3-module owner-trust.bundle from stock 21H461 trust cache + trust.json CDHashes, computes bounded payload size_mib (80..88 MiB), and invokes official ./unixnu build payload + ./unixnu bootimg with optional --fb-gpu and --data-persist flags.",
   "scripts/ci/ and .github/workflows/data-seed.yml build and verify fresh macOS APFS Data seeds (data-21H461.dbr) without private device identities.",
 ]
 procedure = [
@@ -549,6 +559,7 @@ findings = [
   "Eliminated external post-payload mcopy mutations; payload.img and boot.img are assembled end-to-end by official ./unixnu.",
   "End-to-end clean VM build produced verified 85,725,184-byte boot.img, 7,340,032-byte SILICIUM_UEFI.fd, and 51,249,152-byte kernel.macho.",
   "Added scripts/ci/test_usb_debug_wire.py validating GSC1 frame reassembly, CRC-32 error rejection, and pure-stdlib RGB565->PNG encoding (29/29 host Python tests passing).",
+  "Promoted Phase 4b GPU addon boot.img packer into scripts/pack-j716f-gpu-addon.py with full DarwinBoot trust-cache structural validation and host unit tests in scripts/ci/test_pack_gpu_addon.py.",
 ]
 completion = [
   "Reproducible single-command ./unixnu release packaging with verified boot.img and Data seed.",
@@ -557,12 +568,20 @@ limits = [
   "Normalized stock DTB and unique chip ID remain user-provided local inputs per proprietary-files.txt.",
 ]
 next_action = [
-  "Validate consolidated boot.img on TB-J716F boot_b slot.",
+  "Promote Stage 7+ defconfig and Phase 4b GPU addon assembly into default board.toml packaging and refresh upstream UniXNU devices.toml record.",
 ]
 [[area.evidence]]
 kind = "source"
 reference = "scripts/package.sh"
 result = "Standard UniXNU Format 2 device packaging entry script"
+[[area.evidence]]
+kind = "source"
+reference = "scripts/pack-j716f-gpu-addon.py"
+result = "Reproducible Phase 4b NGPUADD2 + owner-trust.bundle Stage 7+ boot.img packer"
+[[area.evidence]]
+kind = "source"
+reference = "scripts/ci/test_pack_gpu_addon.py"
+result = "Host Python unit tests verifying owner-trust.bundle sorting/validation, NGPUADD2 parsing, and payload size_mib bounds"
 [[area.evidence]]
 kind = "source"
 reference = "scripts/ci/test_data_seed_tools.py"
@@ -602,6 +621,7 @@ findings = [
   "Expanded J716fUsbDebugCdc.cpp 'gpu' snapshot buffer to 4096 B (static) to fit all 21 Phase 3 Mode 9 diagnostic rows (GPUCTX, CP, CPSTATE).",
   "Expanded J716fUsbDebugCdc.cpp 'gpu' snapshot buffer to 6144 B (static) to fit all 26 Phase 3b + 4a Mode 10-11 diagnostic rows (ZAP, IRQ, KMD, UCWRAP, METAL).",
   "Added full SM8250/PM8150 reboot-mode control to USB Debug (J716fUsbDebugCdc.h/cpp and scripts/j716f-usb-debug.py: reboot [normal|bootloader|recovery|off], poweroff, and read-only reboot.probe writing PM8150 PON_SOFT_RB_SPARE 0x8F via SPMI EE0 + IMEM 0x146BF65C + PSCI_SYSTEM_RESET/OFF); hardware-verified hands-free 'reboot bootloader' from live iPadOS into fastboot (HA1Q9SKY, pon apid=13 own=0 rc=0) -> fastbootd -> boot_b flash.",
+  "Extended J716fUsbDebugCdc.cpp 'status' and 'display' commands to report fb-gpu handoff readiness/fallback counters (NativeGOPPresenter) and persistent Data store state/GPT status.",
 ]
 completion = [
   "Reliable kernel log capture through root mount and early userland bring-up.",
@@ -610,7 +630,7 @@ limits = [
   "Bounded early-log RAM ring may wrap under verbose output; hardware UART is not required but remains unavailable externally.",
 ]
 next_action = [
-  "Capture retained early XNU log from consolidated vfs_mountroot() hardware trial.",
+  "Capture Phase 4b GPU Metal addon runtime telemetry over USB Debug CDC-ACM during j716f-gpu-metal=1 hardware bring-up.",
 ]
 [[area.evidence]]
 kind = "source"

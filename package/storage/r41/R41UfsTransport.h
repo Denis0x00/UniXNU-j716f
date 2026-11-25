@@ -26,6 +26,8 @@ constexpr size_t kDataOffset = 8192;
 constexpr size_t kMaxDataBytes = 131072;   // 128 KiB = 32 x 4 KiB blocks
 constexpr uint32_t kMaxChunkBlocks = 32;
 constexpr unsigned kMaxRootWindows = 4;
+constexpr uint64_t kDataStoreGuardBlocks = 16384ULL;        // 64 MiB guard after SHNGROOT image/windows
+constexpr uint64_t kDataStoreTailReserveBlocks = 262144ULL; // 1 GiB reserve before userdata end
 
 enum class Phase : unsigned {
   Waiting = 0,
@@ -177,12 +179,26 @@ struct InitReport {
   PostCheck post = {};
 };
 
+struct WriteWindow {
+  bool armed = false;
+  uint64_t first_lba = 0;
+  uint64_t block_count = 0;
+  uint64_t min_allowed_lba = 0;
+  uint64_t max_allowed_lba_excl = 0;
+};
+
 struct Stats {
   uint64_t read_calls = 0;
   uint64_t read_commands = 0;
   uint64_t blocks_read = 0;
   uint64_t read_errors = 0;
+  uint64_t write_calls = 0;
+  uint64_t write_commands = 0;
+  uint64_t blocks_written = 0;
+  uint64_t write_errors = 0;
+  uint64_t sync_commands = 0;
   uint32_t max_chunk_blocks = 0;
+  bool write_armed = false;
   bool quarantined = false;
 };
 
@@ -229,6 +245,22 @@ class Transport final {
                                           const uint8_t *src, size_t bytes),
                              void *sink_ctx, uint64_t *out_bytes = nullptr);
 
+  // Computes safe LUN 0 userdata LBA bounds [min_lba, max_excl) for an opt-in
+  // persistent Data overlay strictly after SHNGROOT + 64 MiB guard and before
+  // the 1 GiB userdata tail reserve.
+  bool computeDataStoreBounds(uint64_t *out_min_lba, uint64_t *out_max_excl) const;
+
+  // One-shot immutable write-window arming. Until armed (and always if
+  // quarantined), all WRITE(10) and SYNCHRONIZE CACHE(10) commands are refused.
+  bool armWriteWindow(uint64_t first_lba, uint64_t block_count);
+  const WriteWindow &writeWindow() const { return write_window_; }
+
+  // Guarded 4 KiB block writes and cache sync restricted to LUN 0 inside the
+  // armed WriteWindow. Always returns false while unarmed or quarantined.
+  bool writeBlocks(uint8_t lun, uint64_t lba, uint32_t block_count,
+                   const uint8_t *src, bool fua = true);
+  bool syncCache(uint8_t lun);
+
   PostCheck postCheck();
 
   bool online() const {
@@ -259,7 +291,13 @@ class Transport final {
   uint64_t read_commands_ = 0;
   uint64_t blocks_read_ = 0;
   uint64_t read_errors_ = 0;
+  uint64_t write_calls_ = 0;
+  uint64_t write_commands_ = 0;
+  uint64_t blocks_written_ = 0;
+  uint64_t write_errors_ = 0;
+  uint64_t sync_commands_ = 0;
   uint32_t max_chunk_blocks_ = 0;
+  WriteWindow write_window_ = {};
 
   bool failInit(Error e, uint64_t addr = 0);
   void quarantine(uint32_t reason);
@@ -273,6 +311,8 @@ class Transport final {
   bool verifyDmaRange(const sm8250_ufs::DmaView &dma);
   bool setupOwnerAndQueue();
 
+  enum class DataDir : uint8_t { None = 0, FromDevice = 1, ToDevice = 2 };
+
   struct CmdOutcome {
     bool ok = false;
     uint32_t ocs = 15;
@@ -281,12 +321,16 @@ class Transport final {
     uint8_t scsi_status = 0;
     uint8_t sense_key = 0;
   };
-  CmdOutcome submitLocked(const uint8_t upiu[32], uint32_t data_bytes, bool from_device);
+  bool allowUpiuLocked(const uint8_t upiu[32], uint32_t data_bytes, DataDir dir) const;
+  CmdOutcome submitLocked(const uint8_t upiu[32], uint32_t data_bytes, DataDir dir);
   bool cmdNopLocked();
   bool cmdPowerModeLocked();
   bool cmdTurLocked(uint8_t lun);
   bool cmdReadCapacityLocked(uint8_t lun, LunInfo &out);
   bool cmdRead10ChunkLocked(uint8_t lun, uint64_t lba, uint32_t blocks, uint8_t *dst);
+  bool cmdWrite10ChunkLocked(uint8_t lun, uint64_t lba, uint32_t blocks,
+                             const uint8_t *src, bool fua);
+  bool cmdSyncCache10Locked(uint8_t lun);
   bool scanLun0GptLocked();
   void parseShngRootLocked();
 
