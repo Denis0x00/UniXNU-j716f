@@ -95,6 +95,35 @@ extern void native_adreno_accelerator_static_init(void) asm("__GLOBAL__sub_I_Nat
 extern IOService *native_adreno_accelerator_allocate(void) __attribute__((weak));
 extern unsigned native_adreno_accelerator_instance_size(void) __attribute__((weak));
 
+/* Upstream zzy-native-gpu-addon-mount.patch + NativeAdrenoPublish.cpp live telemetry */
+extern volatile int native_gpu_addon_files __attribute__((weak));
+extern volatile int native_gpu_addon_written __attribute__((weak));
+extern volatile int native_gpu_addon_same __attribute__((weak));
+extern volatile int native_gpu_addon_failed __attribute__((weak));
+extern volatile int native_gpu_addon_error __attribute__((weak));
+extern volatile int native_gpu_addon_stage __attribute__((weak));
+extern volatile int native_gpu_addon_status __attribute__((weak));
+extern volatile int native_gpu_addon2_stage __attribute__((weak));
+extern volatile int native_gpu_addon2_status __attribute__((weak));
+
+struct J716fMetalDiagView {
+    uint32_t opens, busy, bad, closes, reports, property_reads, foreign_opens, foreign_type;
+    uint32_t name_reads, calls, last_selector, last_status, ext_entries, ext_selector, ext_status;
+    uint32_t ext_in, ext_out, tunnel_calls, probes, sel_bits[8], mb_maps, mb_calls, marks_total;
+    uint32_t marks[16], chk_macf, chk_res, chk_type, type_pass_lo, type_pass_hi, attach_status;
+    uint32_t inflight, inflight_since_calls, forced_unmaps;
+    char opener[3][17];
+    char reader[3][17];
+    char name_reader[17];
+    char starter[3][17];
+    char report[64];
+    char report2[64];
+    uint32_t grants;
+};
+extern J716fMetalDiagView native_adreno_metal_diag __attribute__((weak));
+extern char native_adreno_metal_rows[48][96] __attribute__((weak));
+extern volatile uint32_t native_adreno_metal_rows_seq __attribute__((weak));
+
 enum {
     kRowSummary = 0,
     kRowGcc,
@@ -1075,7 +1104,13 @@ void publishA650MetalAccelerator() {
     }
     accel->setProperty("MetalPluginName", "NativeAdrenoMetal");
     accel->setProperty("MetalPluginClassName", "NativeAdrenoMetalDevice");
-    accel->setProperty("NativeSandboxGrantProcess", "*");
+    /* iPadOS 17 zzw-native-adreno-sandbox-grant.patch matches exact comma-separated process names
+     * (up to 16 chars each, no '*' wildcard). Include render server, SpringBoard, and Metal clients. */
+    accel->setProperty(
+        "NativeSandboxGrantProcess",
+        "backboardd,SpringBoard,mediaserverd,adrenoprobed,iconservicesagen,MTLCompilerServi,"
+        "PosterBoard,chronod,MobileSlideShow,Preferences,MobileSafari,com.apple.WebKit,"
+        "UserEventAgent,CARenderServer,WindowServer");
     if (!accel->attach(IOService::getPlatform())) {
         accel->release();
         snprintf(row, cap, "METAL attach_err");
@@ -1083,6 +1118,7 @@ void publishA650MetalAccelerator() {
     }
     accel->registerService();
     snprintf(row, cap, "METAL published AGXAccelerator(IOAcceleratorES,136B) plugin=NativeAdrenoMetal");
+    IOLog("[J716F gpu] [live] %s\n", row);
 }
 
 NativeAdrenoAbiDeviceInfo gA650DeviceInfo = {
@@ -1394,8 +1430,11 @@ void runMode10And11Kmd() {
 }
 
 void probeThread(void *, wait_result_t) {
-    // Wait briefly so Display, USB Debug, and multi-core log ring are online first.
-    IOSleep(6000);
+    // When j716f-gpu-metal=1 is active, register AGXAccelerator early (t+0.8s) so
+    // backboardd discovers NativeAdrenoMetal on its first Metal initialization.
+    unsigned metalOpt = 0u;
+    PE_parse_boot_argn("j716f-gpu-metal", &metalOpt, sizeof(metalOpt));
+    IOSleep(metalOpt ? 800u : 6000u);
     j716f_gpu_step = 10u;
 
     unsigned have = 0u;
@@ -1490,6 +1529,43 @@ extern "C" void j716f_gpu_snapshot(char *out, size_t cap) {
     for (unsigned i = 0; i < kGpuRows && n > 0 && static_cast<size_t>(n) < cap; ++i) {
         if (!j716f_gpu_rows[i][0]) continue;
         n += snprintf(out + n, cap - static_cast<size_t>(n), "[usb] GPU[%u]: %s\r\n", i, j716f_gpu_rows[i]);
+    }
+    if (&native_gpu_addon_files && n > 0 && static_cast<size_t>(n) < cap) {
+        n += snprintf(out + n, cap - static_cast<size_t>(n),
+                      "[usb] GPU[ADDON]: files=%d wr=%d same=%d fail=%d err=%d m1=%d/%d m2=%d/%d\r\n",
+                      native_gpu_addon_files,
+                      &native_gpu_addon_written ? native_gpu_addon_written : 0,
+                      &native_gpu_addon_same ? native_gpu_addon_same : 0,
+                      &native_gpu_addon_failed ? native_gpu_addon_failed : 0,
+                      &native_gpu_addon_error ? native_gpu_addon_error : 0,
+                      &native_gpu_addon_stage ? native_gpu_addon_stage : 0,
+                      &native_gpu_addon_status ? native_gpu_addon_status : -1,
+                      &native_gpu_addon2_stage ? native_gpu_addon2_stage : 0,
+                      &native_gpu_addon2_status ? native_gpu_addon2_status : -1);
+    }
+    if (&native_adreno_metal_diag && n > 0 && static_cast<size_t>(n) < cap) {
+        const J716fMetalDiagView &d = native_adreno_metal_diag;
+        n += snprintf(out + n, cap - static_cast<size_t>(n),
+                      "[usb] GPU[METAL]: open=%u busy=%u bad=%u cls=%u nr=%u(%s) gr=%u calls=%u sel=%x/%x mk=%u(%x,%x,%x,%x)\r\n",
+                      d.opens, d.busy, d.bad, d.closes, d.name_reads,
+                      d.name_reader[0] ? d.name_reader : "-",
+                      d.grants, d.calls, d.last_selector, d.last_status,
+                      d.marks_total, d.marks[0], d.marks[1], d.marks[2], d.marks[3]);
+        if ((d.opener[0][0] || d.starter[0][0] || d.report[0] || d.report2[0]) &&
+            n > 0 && static_cast<size_t>(n) < cap) {
+            n += snprintf(out + n, cap - static_cast<size_t>(n),
+                          "[usb] GPU[MPLUG]: op='%s' st='%s' r1='%s' r2='%s'\r\n",
+                          d.opener[0], d.starter[0], d.report, d.report2);
+        }
+    }
+    if (&native_adreno_metal_rows && n > 0 && static_cast<size_t>(n) < cap) {
+        unsigned shown = 0;
+        for (unsigned r = 0; r < 48u && shown < 8u && n > 0 && static_cast<size_t>(n) < cap; ++r) {
+            if (!native_adreno_metal_rows[r][0]) continue;
+            n += snprintf(out + n, cap - static_cast<size_t>(n),
+                          "[usb] GPU[MTBL%u]: %.95s\r\n", r, native_adreno_metal_rows[r]);
+            ++shown;
+        }
     }
 }
 

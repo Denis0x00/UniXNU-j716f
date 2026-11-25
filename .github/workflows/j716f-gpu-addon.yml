@@ -101,7 +101,21 @@ jobs:
       - name: Build NativeAdrenoMetal.bundle + metal2vulkan bridge + adrenoprobed (iOS 17)
         working-directory: UniXNU
         run: |
-          python3 scripts/build-adreno-metal-plugin.py --target ios --no-replay
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('drivers/AdrenoMetal/NativeAdrenoMetalPlugin.mm')
+          txt = p.read_text()
+          old = '#if !TARGET_OS_OSX\n        // The stored option values and the framebuffer branch are addresses of iPadOS 27\'s QuartzCore (24A446).'
+          new = '#if !TARGET_OS_OSX && __has_feature(ptrauth_calls)\n        // The stored option values and the framebuffer branch are addresses of iPadOS 27\'s QuartzCore (24A446).'
+          assert old in txt, 'Expected iPadOS 27 QuartzCore block not found in NativeAdrenoMetalPlugin.mm'
+          p.write_text(txt.replace(old, new, 1))
+          print('PASS: Guarded iPadOS 27 (24A446) ptrauth/QuartzCore block for arm64-apple-ios17.0')
+          PY
+          python3 scripts/build-adreno-metal-plugin.py --target ios --no-replay || {
+            echo "=== tail build-ios.log ==="
+            tail -n 80 build/adreno-metal-bridge/build-ios.log 2>/dev/null || true
+            exit 1
+          }
           ls -lh build/adreno-metal-plugin/NativeAdrenoMetal.bundle/
           cat build/adreno-metal-plugin/trust.json
 
