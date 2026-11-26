@@ -129,10 +129,10 @@ jobs:
           test -f "$TREE/scripts/build-j716f-storage-active.py"
           test -f "$TREE/scripts/build-j716f-display-keystore.py"
 
-          # Stage 6 minimal bring-up baseline (preserved)
-          ./unixnu defconfig j716f_stage6_defconfig -D "$DEVICE" --os 17
-          ./unixnu status --json --os 17 > "$RUNNER_TEMP/status-stage6.json"
-          ./unixnu tree --os 17
+          # Stage 6 minimal bring-up baseline (preserved; omit --os so active defconfig is not overridden by [package.defconfig])
+          ./unixnu defconfig j716f_stage6_defconfig -D "$DEVICE"
+          ./unixnu status --json > "$RUNNER_TEMP/status-stage6.json"
+          ./unixnu tree
           TREE6="out/j716f/ipados-17.7.11-21H461/j716f_stage6/tree"
           test -f "$TREE6/kits/j716f/storage/r41/R41RootWindowDevice.cpp"
 

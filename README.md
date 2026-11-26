@@ -128,8 +128,8 @@ git apply ../UniXNU-j716f/patches/unixnu-core/*.patch
 ./unixnu build kernel --os 17
 
 # Minimal Stage 6 single-core APFS root baseline (diagnostic fallback)
-./unixnu defconfig j716f_stage6_defconfig -D ../UniXNU-j716f --os 17
-./unixnu build kernel --os 17
+./unixnu defconfig j716f_stage6_defconfig -D ../UniXNU-j716f
+./unixnu build kernel
 ```
 
 To assemble `payload.img` and `boot.img`, supply the user-owned inputs listed in

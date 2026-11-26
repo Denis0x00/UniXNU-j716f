@@ -67,6 +67,7 @@ findings = [
   "Raised board.toml owned_memory_size from 2 GiB (0x80000000) to 3.5 GiB (0xE0000000) inside uefi-j716f High RAM (~3.88 GiB, ~284 MiB loader headroom), added Test 14 (J716fPersistentStore) and owned_memory_size assertion to j716f-ci.yml.",
   "Updated .github/workflows/j716f-gpu-addon.yml pin to upstream UniXNU b04f131da915 (Adreno740 2962e289, AdrenoMetal 0b7094bf, UniXNU/metal2vulkan 87a869f7) and dropped the obsolete 0065 metal2vulkan-runtime iOS patch now handled natively by NativeMetalHostMapping.rs.",
   "Promoted Stage 7+ desktop configuration to default configs/j716f_defconfig and board.toml ([payload] kernel_args + [payload.install]), preserved minimal single-core configs/j716f_stage6_defconfig, added board-level core patches 0003-components-decouple-board-dependencies.patch and 0004-prepare-xnu-source-blob-cache.patch under patches/unixnu-core/, and added scripts/package.sh --no-deps --check plus cmdline-length assertions to j716f-ci.yml.",
+  "Fixed j716f-ci.yml Stage 6 tree check to omit --os 17 so ./unixnu tree uses the active j716f_stage6_defconfig rather than [package.defconfig].",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
