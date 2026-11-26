@@ -68,6 +68,7 @@ findings = [
   "Updated .github/workflows/j716f-gpu-addon.yml pin to upstream UniXNU b04f131da915 (Adreno740 2962e289, AdrenoMetal 0b7094bf, UniXNU/metal2vulkan 87a869f7) and dropped the obsolete 0065 metal2vulkan-runtime iOS patch now handled natively by NativeMetalHostMapping.rs.",
   "Promoted Stage 7+ desktop configuration to default configs/j716f_defconfig and board.toml ([payload] kernel_args + [payload.install]), preserved minimal single-core configs/j716f_stage6_defconfig, added board-level core patches 0003-components-decouple-board-dependencies.patch and 0004-prepare-xnu-source-blob-cache.patch under patches/unixnu-core/, and added scripts/package.sh --no-deps --check plus cmdline-length assertions to j716f-ci.yml.",
   "Fixed j716f-ci.yml Stage 6 tree check to omit --os 17 so ./unixnu tree uses the active j716f_stage6_defconfig rather than [package.defconfig].",
+  "Enabled upstream oc-like boot menu theme (boot_menu_theme = \"oc-like\") in board.toml [payload] and added optional --boot-menu-theme override to scripts/pack-j716f-gpu-addon.py; verified UiOcLike.c + FontOcLike.c compile into 7 MiB SILICIUM_UEFI.fd (FVMAIN_COMPACT 6% full, 448,944 / 7,340,032 bytes).",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -464,6 +465,7 @@ findings = [
   "Confirmed libadreno_metal_bridge.a (metal2vulkan + runtime) builds cleanly for aarch64-apple-ios on GitHub Actions macOS runner; added missing drivers/GopFramebuffer submodule (NativeGOPWire.h/NativeHalfCodes.h) and thin LTO + bridge caching in j716f-gpu-addon.yml.",
   "Confirmed NativeAdrenoMetal executable (arm64-apple-ios17.0 Objective-C++ + 378 MB libadreno_metal_bridge.a) links cleanly on macos-15; handled classic LC_DYLD_INFO_ONLY libvulkan_freedreno.dylib in macho-self-bind-weak-imports.py for final codesign and NGPUADD2 packing.",
   "Synced j716f-gpu-addon.yml to upstream UniXNU b04f131da915 (Adreno740 2962e289 null-AS map fix, AdrenoMetal 0b7094bf + UniXNU/metal2vulkan 87a869f7 fork, Turnip runtime capabilities & timeline wait patches), retiring the custom 0065 iOS runtime patch in favor of upstream NativeMetalHostMapping.rs.",
+  "Fixed arm64-apple-ios17.0 compilation and linking in j716f-gpu-addon.yml (pinned to UniXNU e7bddb9a7eec): guarded MTLBarrierScopeRenderTargets (API_UNAVAILABLE(ios)) in NativeBridgeMetalFrontend.mm and switched NativeMetalHostMapping.rs mach_vm_remap/mach_vm_deallocate/mach_vm_read_overwrite to runtime libc::dlsym(RTLD_DEFAULT) with vm_* fallback for public iphoneos SDK.",
 ]
 completion = [
   "Adreno 650 GMU cold-start, ArmSmmu4K GPU/GMU contexts, CP/zap shader bring-up, full A650 KMD (Phase 3b + 4a), and AdrenoMetal/Turnip 3D acceleration (Phase 4b).",

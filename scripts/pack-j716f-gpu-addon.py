@@ -288,6 +288,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Additional kernel boot-arg (may be passed multiple times)",
     )
     parser.add_argument(
+        "--boot-menu-theme",
+        choices=("default", "oc-like"),
+        default=None,
+        help="Optional UniXNU boot menu theme override (defaults to board.toml [payload] boot_menu_theme)",
+    )
+    parser.add_argument(
         "--config-name",
         default=None,
         help="Optional UniXNU output config name (defaults to auto-detecting j716f or j716f_stage7)",
@@ -382,6 +388,7 @@ def main(argv: list[str] | None = None) -> int:
             str(args.addon.resolve()),
             "--data-ramdisk",
             str(args.data_ramdisk.resolve()),
+            *(["--boot-menu-theme", args.boot_menu_theme] if args.boot_menu_theme else []),
             *[f"--kernel-arg={arg}" for arg in kernel_args],
         ]
         cmd_boot = [

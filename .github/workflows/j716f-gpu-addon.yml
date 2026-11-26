@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: UniXNU/UniXNU
-          ref: b04f131da9151182dbb26ce4e638fa8acc2933ac
+          ref: e7bddb9a7eecdcf81f36da9fa38bd9d4d3f155c2
           path: UniXNU
 
       - name: Initialize required GPU submodules
@@ -107,9 +107,10 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
             UniXNU/build/adreno-metal-bridge/ios
-          key: j716f-gpu-bridge-${{ runner.os }}-1.98.0-b04f131d-thin-v1
+          key: j716f-gpu-bridge-${{ runner.os }}-1.98.0-e7bddb9a-dlsym-v1
           restore-keys: |
-            j716f-gpu-bridge-${{ runner.os }}-1.98.0-b04f131d-
+            j716f-gpu-bridge-${{ runner.os }}-1.98.0-e7bddb9a-
+            j716f-gpu-bridge-${{ runner.os }}-1.98.0-
             j716f-gpu-cargo-${{ runner.os }}-1.98.0-
 
       - name: Build NativeAdrenoMetal.bundle + metal2vulkan bridge + adrenoprobed (iOS 17)
@@ -127,9 +128,113 @@ jobs:
           p.write_text(txt.replace(old, new, 1))
           print('PASS: Guarded iPadOS 27 (24A446) ptrauth/QuartzCore block for arm64-apple-ios17.0')
 
-          # 2. Upstream AdrenoMetal (0b7094bf / UniXNU/metal2vulkan 87a869f7) now implements Darwin host
-          #    mapping under #[cfg(target_vendor = "apple")] in NativeMetalHostMapping.rs with no carried
-          #    metal2vulkan patches; only switch release LTO from fat/1 to thin/4 for GitHub runner budgets.
+          # 2. MTLBarrierScopeRenderTargets is API_UNAVAILABLE(ios) in the iphoneos SDK headers.
+          #    Keep bit 2 (1UL << 2) accepted on iOS so runtime semantics match while compiling cleanly with -Werror.
+          fe = Path('drivers/AdrenoMetal/NativeBridgeMetalFrontend.mm')
+          fe_txt = fe.read_text()
+          fe_old = " if(scope&~(MTLBarrierScopeBuffers|MTLBarrierScopeTextures|MTLBarrierScopeRenderTargets)) {"
+          fe_new = (
+              "#if TARGET_OS_OSX\n"
+              " const NSUInteger allowedScope=MTLBarrierScopeBuffers|MTLBarrierScopeTextures|MTLBarrierScopeRenderTargets;\n"
+              "#else\n"
+              " const NSUInteger allowedScope=MTLBarrierScopeBuffers|MTLBarrierScopeTextures|(1UL<<2);\n"
+              "#endif\n"
+              " if(scope&~allowedScope) {"
+          )
+          assert fe_old in fe_txt, 'Expected MTLBarrierScopeRenderTargets check not found in NativeBridgeMetalFrontend.mm'
+          fe.write_text(fe_txt.replace(fe_old, fe_new, 1))
+          print('PASS: Guarded MTLBarrierScopeRenderTargets (API_UNAVAILABLE(ios)) in NativeBridgeMetalFrontend.mm')
+
+          # 3. Public iphoneos SDK libSystem.B.tbd omits mach_vm_remap / mach_vm_deallocate / mach_vm_read_overwrite.
+          #    Resolve them dynamically via libc::dlsym(RTLD_DEFAULT, ...) with vm_* fallback (identical 64-bit arm64 ABI).
+          import re, textwrap
+          hm = Path('drivers/AdrenoMetal/bridge/NativeMetalHostMapping.rs')
+          hm_txt = hm.read_text()
+          helper = textwrap.dedent('''\
+              #[cfg(target_vendor = "apple")]
+              mod darwin_vm {
+                  use std::ffi::CStr;
+                  use std::sync::OnceLock;
+
+                  unsafe extern "C" {
+                      pub static mach_task_self_: u32;
+                  }
+
+                  type RemapFn = unsafe extern "C" fn(
+                      u32, *mut u64, u64, u64, i32, u32, u64, i32, *mut i32, *mut i32, i32,
+                  ) -> i32;
+                  type DeallocateFn = unsafe extern "C" fn(u32, u64, u64) -> i32;
+                  type ReadOverwriteFn = unsafe extern "C" fn(u32, u64, u64, u64, *mut u64) -> i32;
+
+                  unsafe fn lookup(primary: &CStr, fallback: &CStr) -> *mut libc::c_void {
+                      let p = unsafe { libc::dlsym(libc::RTLD_DEFAULT, primary.as_ptr()) };
+                      if !p.is_null() {
+                          return p;
+                      }
+                      unsafe { libc::dlsym(libc::RTLD_DEFAULT, fallback.as_ptr()) }
+                  }
+
+                  pub unsafe fn mach_vm_remap(
+                      target: u32, address: *mut u64, length: u64, mask: u64, flags: i32,
+                      source: u32, source_address: u64, copy: i32,
+                      current: *mut i32, maximum: *mut i32, inheritance: i32,
+                  ) -> i32 {
+                      static FN: OnceLock<Option<RemapFn>> = OnceLock::new();
+                      let f = *FN.get_or_init(|| {
+                          let p = unsafe { lookup(c"mach_vm_remap", c"vm_remap") };
+                          (!p.is_null()).then(|| unsafe { std::mem::transmute::<*mut libc::c_void, RemapFn>(p) })
+                      });
+                      match f {
+                          Some(func) => unsafe {
+                              func(target, address, length, mask, flags, source, source_address, copy, current, maximum, inheritance)
+                          },
+                          None => 46,
+                      }
+                  }
+
+                  pub unsafe fn mach_vm_deallocate(task: u32, address: u64, length: u64) -> i32 {
+                      static FN: OnceLock<Option<DeallocateFn>> = OnceLock::new();
+                      let f = *FN.get_or_init(|| {
+                          let p = unsafe { lookup(c"mach_vm_deallocate", c"vm_deallocate") };
+                          (!p.is_null()).then(|| unsafe { std::mem::transmute::<*mut libc::c_void, DeallocateFn>(p) })
+                      });
+                      match f {
+                          Some(func) => unsafe { func(task, address, length) },
+                          None => 46,
+                      }
+                  }
+
+                  pub unsafe fn mach_vm_read_overwrite(
+                      task: u32, source: u64, length: u64, destination: u64, copied: *mut u64,
+                  ) -> i32 {
+                      static FN: OnceLock<Option<ReadOverwriteFn>> = OnceLock::new();
+                      let f = *FN.get_or_init(|| {
+                          let p = unsafe { lookup(c"mach_vm_read_overwrite", c"vm_read_overwrite") };
+                          (!p.is_null()).then(|| unsafe { std::mem::transmute::<*mut libc::c_void, ReadOverwriteFn>(p) })
+                      });
+                      match f {
+                          Some(func) => unsafe { func(task, source, length, destination, copied) },
+                          None => 46,
+                      }
+                  }
+              }
+
+          ''')
+          anchor_hm = 'use std::ptr::NonNull;\n'
+          assert anchor_hm in hm_txt, 'Expected NonNull import in NativeMetalHostMapping.rs'
+          hm_txt = hm_txt.replace(anchor_hm, anchor_hm + '\n' + helper, 1)
+
+          for pat, repl, label in [
+              (r'unsafe extern "C" \{[^}]*fn mach_vm_remap[^}]*\}', 'use darwin_vm::{mach_task_self_, mach_vm_deallocate, mach_vm_remap};', 'alias extern'),
+              (r'unsafe extern "C" \{[^}]*fn mach_vm_deallocate[^}]*\}', 'use darwin_vm::{mach_task_self_, mach_vm_deallocate};', 'drop extern'),
+              (r'unsafe extern "C" \{[^}]*fn mach_vm_read_overwrite[^}]*\}', 'use darwin_vm::{mach_task_self_, mach_vm_read_overwrite};', 'copy_readable extern'),
+          ]:
+              hm_txt, n = re.subn(pat, repl, hm_txt, count=1, flags=re.S)
+              assert n == 1, f'Expected {label} block not found in NativeMetalHostMapping.rs'
+          hm.write_text(hm_txt)
+          print('PASS: Switched NativeMetalHostMapping.rs mach_vm_* calls to runtime dlsym(RTLD_DEFAULT) for iphoneos SDK')
+
+          # 4. Switch release LTO from fat/1 to thin/4 for GitHub runner budgets.
           bridge_py = Path('scripts/build-adreno-metal-bridge.py')
           b_txt = bridge_py.read_text()
           lto_old = "'[profile.release]', 'panic = \"unwind\"', 'debug = 1', 'lto = \"fat\"', 'codegen-units = 1', '',"
@@ -138,7 +243,7 @@ jobs:
           bridge_py.write_text(b_txt.replace(lto_old, lto_new, 1))
           print('PASS: Enabled thin LTO in build-adreno-metal-bridge.py for CI runner')
 
-          # 3. On arm64-apple-ios17.0, ld with -undefined dynamic_lookup emits classic LC_DYLD_INFO_ONLY
+          # 5. On arm64-apple-ios17.0, ld with -undefined dynamic_lookup emits classic LC_DYLD_INFO_ONLY
           #    instead of LC_DYLD_CHAINED_FIXUPS; make the optional weak-import self-bind step skip cleanly.
           sb_py = Path('scripts/macho-self-bind-weak-imports.py')
           sb_txt = sb_py.read_text()
@@ -150,7 +255,7 @@ jobs:
           PY
           python3 scripts/build-adreno-metal-plugin.py --target ios --no-replay --reuse-bridge || {
             echo "=== tail build-ios.log ==="
-            tail -n 80 build/adreno-metal-bridge/build-ios.log 2>/dev/null || true
+            tail -n 120 build/adreno-metal-bridge/build-ios.log 2>/dev/null || true
             exit 1
           }
           ls -lh build/adreno-metal-plugin/NativeAdrenoMetal.bundle/

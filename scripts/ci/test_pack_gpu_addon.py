@@ -130,6 +130,26 @@ class PackGpuAddonTests(unittest.TestCase):
             self.assertEqual(PACK.resolve_stage7_out_dir(core), dflt.parent)
             self.assertEqual(PACK.resolve_stage7_out_dir(core, "j716f_stage7"), s7.parent)
 
+    def test_parse_args_supports_boot_menu_theme_override(self) -> None:
+        base = [
+            "--unixnu-core", "/tmp/core",
+            "--config", "/tmp/cfg.toml",
+            "--addon", "/tmp/addon.bin",
+            "--trust-json", "/tmp/trust.json",
+            "--orig-trust", "/tmp/orig.bin",
+            "--data-ramdisk", "/tmp/data.dbr",
+            "--dtb", "/tmp/dtb.dtb",
+        ]
+        self.assertIsNone(PACK.parse_args(base).boot_menu_theme)
+        self.assertEqual(
+            PACK.parse_args(base + ["--boot-menu-theme", "oc-like"]).boot_menu_theme,
+            "oc-like",
+        )
+        self.assertEqual(
+            PACK.parse_args(base + ["--boot-menu-theme", "default"]).boot_menu_theme,
+            "default",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
