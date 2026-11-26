@@ -138,16 +138,27 @@ jobs:
               "            streamText(*gRenderGpu, problem);\n"
               "            const size_t len = strlen(problem);\n"
               "            if (len > 63) streamText7(*gRenderGpu, problem + 63);\n"
+              "            for (unsigned r = 0; r < 8 && r * 90 < len; ++r) {\n"
+              "                const char *seg = problem + r * 90;\n"
+              "                const size_t slen = strnlen(seg, 90);\n"
+              "                gRenderGpu->mark(0xC000u | (40u + r));\n"
+              "                for (size_t i = 0; i < slen; i += 2) {\n"
+              "                    const unsigned a = (unsigned char)seg[i] & 0x7fu;\n"
+              "                    const unsigned b = (i + 1 < slen) ? ((unsigned char)seg[i + 1] & 0x7fu) : 0u;\n"
+              "                    gRenderGpu->mark(0x8000u | (a << 7) | b);\n"
+              "                }\n"
+              "            }\n"
               "        };\n"
           )
           assert hook_old in txt, 'Expected 0x6802 marker not found in NativeAdrenoMetalPlugin.mm'
           p.write_text(txt.replace(hook_old, hook_new, 1))
-          print('PASS: Guarded iPadOS 27 block and wired render-server problem telemetry in NativeAdrenoMetalPlugin.mm')
+          print('PASS: Guarded iPadOS 27 block and wired full render-server problem telemetry in NativeAdrenoMetalPlugin.mm')
 
           # 2. NativeBridgeMetalFrontend.mm iOS 17 adaptations:
           #    - Guard MTLBarrierScopeRenderTargets (API_UNAVAILABLE(ios)) while keeping bit 2 accepted.
           #    - Implement iOS 17 MTLLibrary SPI newFunctionWithName:constantValues:pipelineLibrary:error:.
-          #    - Always note first render pipeline descriptor/creation refusal in noteProblem for telemetry.
+          #    - Avoid dup2(fd, STDERR_FILENO) in iOS 17 backboardd (guarded fd 2 triggers EXC_GUARD ns=25 code=0xdd).
+          #    - Include renderDumpInfo(d) in render-pipeline refusal text and allow 6 GpuTraceProblem chunks (528 B).
           fe = Path('drivers/AdrenoMetal/NativeBridgeMetalFrontend.mm')
           fe_txt = fe.read_text()
           fe_old = " if(scope&~(MTLBarrierScopeBuffers|MTLBarrierScopeTextures|MTLBarrierScopeRenderTargets)) {"
@@ -161,6 +172,18 @@ jobs:
           )
           assert fe_old in fe_txt, 'Expected MTLBarrierScopeRenderTargets check not found in NativeBridgeMetalFrontend.mm'
           fe_txt = fe_txt.replace(fe_old, fe_new, 1)
+          stderr_old = " const bool renderStderr=diagOn() && nativeIsRenderServer();\n"
+          stderr_new = " const bool renderStderr=false;\n"
+          assert stderr_old in fe_txt, 'Expected renderStderr line not found in NativeBridgeMetalFrontend.mm'
+          fe_txt = fe_txt.replace(stderr_old, stderr_new, 1)
+          fp_old = "static char gFirstProblem[200];\n"
+          fp_new = "static char gFirstProblem[720];\n"
+          assert fp_old in fe_txt, 'Expected gFirstProblem[200] not found in NativeBridgeMetalFrontend.mm'
+          fe_txt = fe_txt.replace(fp_old, fp_new, 1)
+          trace_old = "  for(uint64_t part=0;part<2 && part*88<length;++part) {\n"
+          trace_new = "  for(uint64_t part=0;part<6 && part*88<length;++part) {\n"
+          assert trace_old in fe_txt, 'Expected GpuTraceProblem part loop not found in NativeBridgeMetalFrontend.mm'
+          fe_txt = fe_txt.replace(trace_old, trace_new, 1)
           pl_old = (
               "- (id<MTLFunction>)newFunctionWithName:(NSString *)name constantValues:(MTLFunctionConstantValues *)values error:(NSError **)error {\n"
               " return [self nb_newFunctionWithName:name constantValues:values zeroRest:NO error:error];\n"
@@ -179,10 +202,20 @@ jobs:
               '                               d.fragmentFunction.name,error?(*error).localizedDescription:@"?");\n'
           )
           rp_desc_new = rp_desc_old + (
-              '  noteProblem([NSString stringWithFormat:@"rp-desc v=%@ f=%@: %@",d.vertexFunction.name,d.fragmentFunction.name,error?(*error).localizedDescription:@"?"]);\n'
+              '  noteProblem([NSString stringWithFormat:@"rp-desc %@: %@",renderDumpInfo(d),error?(*error).localizedDescription:@"?"]);\n'
           )
           assert rp_desc_old in fe_txt, 'Expected render pipeline descriptor refusal log not found'
           fe_txt = fe_txt.replace(rp_desc_old, rp_desc_new, 1)
+          rp_why_old = (
+              '  NSString *why=[NSString stringWithFormat:@"%@ | frag %@ linked %lu stitched %u/%u compiler %s",lastError(),d.fragmentFunction.name,\n'
+              '      (unsigned long)d.fragmentLinkedFunctions.functions.count,gStitchMade.load(),gStitchMade.load()+gStitchFailed.load(),gCompilerLoaded];\n'
+          )
+          rp_why_new = (
+              '  NSString *why=[NSString stringWithFormat:@"%@ | desc %@ | linked %lu stitched %u/%u compiler %s",lastError(),renderDumpInfo(d),\n'
+              '      (unsigned long)d.fragmentLinkedFunctions.functions.count,gStitchMade.load(),gStitchMade.load()+gStitchFailed.load(),gCompilerLoaded];\n'
+          )
+          assert rp_why_old in fe_txt, 'Expected render pipeline why string not found'
+          fe_txt = fe_txt.replace(rp_why_old, rp_why_new, 1)
           rp_old = '  if(told.fetch_add(1)<64)NBLOG(@"native-metal: render pipeline refused: %@",why);else noteProblem([@"render pipeline: " stringByAppendingString:why]);\n'
           rp_new = (
               '  if(told.fetch_add(1)<64)NBLOG(@"native-metal: render pipeline refused: %@",why);\n'
@@ -190,7 +223,7 @@ jobs:
           )
           assert rp_old in fe_txt, 'Expected render pipeline refusal log not found'
           fe.write_text(fe_txt.replace(rp_old, rp_new, 1))
-          print('PASS: Patched NativeBridgeMetalFrontend.mm for iOS 17 pipelineLibrary SPI and early refusal telemetry')
+          print('PASS: Patched NativeBridgeMetalFrontend.mm for iOS 17 EXC_GUARD, pipelineLibrary SPI, and full refusal telemetry')
 
           # 3. Public iphoneos SDK libSystem.B.tbd omits mach_vm_remap / mach_vm_deallocate / mach_vm_read_overwrite.
           #    Resolve them dynamically via libc::dlsym(RTLD_DEFAULT, ...) with vm_* fallback (identical 64-bit arm64 ABI).
