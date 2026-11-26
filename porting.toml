@@ -624,6 +624,7 @@ findings = [
   "Added scripts/ci/test_usb_debug_wire.py validating GSC1 frame reassembly, CRC-32 error rejection, and pure-stdlib RGB565->PNG encoding (29/29 host Python tests passing).",
   "Promoted Phase 4b GPU addon boot.img packer into scripts/pack-j716f-gpu-addon.py with full DarwinBoot trust-cache structural validation and host unit tests in scripts/ci/test_pack_gpu_addon.py.",
   "Promoted Stage 7+ desktop defconfig, verified desktop kernel_args, and [payload.install] into default board.toml for scripts/package.sh; updated scripts/pack-j716f-gpu-addon.py to auto-detect both j716f and j716f_stage7 output trees and added scripts/package.sh --no-deps --check verification in j716f-ci.yml.",
+  "Added optional --boot-menu-theme override (default/oc-like) to scripts/pack-j716f-gpu-addon.py with unit test coverage in scripts/ci/test_pack_gpu_addon.py (37/37 Python tests passing) and verified 85,729,280-byte oc-like boot.img assembly on Linux VM.",
 ]
 completion = [
   "Reproducible single-command ./unixnu release packaging with verified boot.img and Data seed.",
