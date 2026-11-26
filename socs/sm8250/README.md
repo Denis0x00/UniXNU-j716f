@@ -18,16 +18,22 @@ and the four PPI tuples from the runtime FDT are restored. Generic timer routing
 still requires review against the selected ArmCpu ABI before actual boot.
 Original and current per-file hashes are in `../../docs/source-provenance.json`.
 
-`configs/sm8250.config` remains a placeholder. `kits/Sm8250Platform` contains
-legacy UART/register and SMMU helpers; nothing in the current minimal selection
-links those helpers. The static inline SMMU lock deserves review for whether
-all translation units truly share one lock before reuse.
+`configs/sm8250.config` remains a minimal shared placeholder while board-level
+options live in `configs/j716f_defconfig`. `kits/Sm8250Platform` supplies the
+verified `AppsSmmuOwner`, `Sm8250UfsDiagnostics`, `Sm8250UfsHandoff`,
+`Sm8250UfsHci`, and `Sm8250UfsRuntime` sources alongside the retained GENI UART
+reference headers.
 
-`patches/xnu/series` and its SMP/Edge patches are retained for review, but the
-board's active patch_series intentionally excludes this SoC series. It also
-references an upstream power patch. Qualify patch applicability, per-core
-interrupt/timer behavior and the 4+3+1 hardware topology before enabling it.
-No SMP, UART, power, SMMU, or runtime verification is claimed by this copy.
+`patches/xnu/series` (`native-smp-secondary.patch` +
+`native-smp-type-clusters.patch`) is **enabled** in `board.toml` and
+hardware-verified on TB-J716F across all 8 Kryo 585 cores (4× A55 E + 4× A77 P)
+with Edge cluster scheduling (`smp=1 armcpu-spi-ipi=1 armcpu-self-ipi=1
+armcpu-edge=1`) and SM8250-AC EPSS CPUfreq (`cpufreq=4`).
+
+This directory remains a local SoC feed (`feeds.toml: local = "socs/sm8250"`)
+inside `UniXNU-j716f` while GPU Phase 4b and persistent UFS storage converge;
+splitting it into a standalone `UniXNU-sm8250-common` repository is planned
+once those milestones stabilize.
 
 2026-11-13 UFS preparation: `kits/Sm8250Platform/AppsSmmuOwner.h/.cpp`
 provides one allocation-free software owner implementation, independent of the

@@ -98,44 +98,52 @@ jobs:
           set -euo pipefail
           DEVICE="$PWD/device"
           cd unixnu
+          # Default j716f_defconfig (promoted Stage 7+ desktop configuration)
           ./unixnu defconfig j716f_defconfig -D "$DEVICE" --os 17
           ./unixnu status --json --os 17 > "$RUNNER_TEMP/status.json"
           cat "$RUNNER_TEMP/status.json"
           ./unixnu tree --os 17
           TREE="out/j716f/ipados-17.7.11-21H461/j716f/tree"
+          test -f "$TREE/drivers/RamBlock/NativeRamBlock.cpp"
+          test -f "$TREE/drivers/GopFramebuffer/NativeLegacyDisplay.cpp"
+          test -f "$TREE/drivers/AppleKeyStoreState/NativeKeyStoreEvents.cpp"
           test -f "$TREE/kits/j716f/storage/J716fStorageBringup.cpp"
           test -f "$TREE/kits/j716f/storage/r41/R41RootWindowDevice.cpp"
+          test -f "$TREE/kits/j716f/storage/r41/R41Entry.cpp"
+          test -f "$TREE/kits/j716f/display/J716fLegacyDisplayProbe.cpp"
+          test -f "$TREE/kits/j716f/display/J716fKeyStoreProbe.cpp"
+          test -f "$TREE/kits/j716f/input/NativeHidInput.cpp"
+          test -f "$TREE/kits/j716f/input/J716fTouchProbe.cpp"
+          test -f "$TREE/kits/j716f/input/J716fButtons.c"
+          test -f "$TREE/kits/j716f/power/J716fCpuFreq.cpp"
+          test -f "$TREE/kits/j716f/power/J716fBattery.cpp"
+          test -f "$TREE/kits/j716f/gpu/J716fGpuProbe.cpp"
+          test -f "$TREE/kits/j716f/gpu/J716fA650Gmu.c"
+          test -f "$TREE/kits/j716f/gpu/J716fA650GmuContext.c"
+          test -f "$TREE/kits/j716f/gpu/J716fA650Cp.c"
+          test -f "$TREE/kits/AdrenoFirmware/AdrenoHfiStartup.c"
+          test -f "$TREE/kits/AdrenoPM4/AdrenoPM4.c"
+          test -f "$TREE/kits/ArmSmmu4K/ArmSmmu4K.h"
+          test -f "$TREE/kits/ArmSmmu4K/ArmSmmu4KStreams.c"
+          test -f "$TREE/kits/j716f/usb/J716fUsbDebugCdc.cpp"
           test -f "$TREE/scripts/build-j716f-storage-active.py"
-          test -f "$TREE/drivers/RamBlock/NativeRamBlock.cpp"
+          test -f "$TREE/scripts/build-j716f-display-keystore.py"
 
+          # Stage 6 minimal bring-up baseline (preserved)
+          ./unixnu defconfig j716f_stage6_defconfig -D "$DEVICE" --os 17
+          ./unixnu status --json --os 17 > "$RUNNER_TEMP/status-stage6.json"
+          ./unixnu tree --os 17
+          TREE6="out/j716f/ipados-17.7.11-21H461/j716f_stage6/tree"
+          test -f "$TREE6/kits/j716f/storage/r41/R41RootWindowDevice.cpp"
+
+          # Stage 7+ compatibility alias
           ./unixnu defconfig j716f_stage7_defconfig -D "$DEVICE"
           ./unixnu status --json > "$RUNNER_TEMP/status-stage7.json"
-          cat "$RUNNER_TEMP/status-stage7.json"
           ./unixnu tree
           TREE7="out/j716f/ipados-17.7.11-21H461/j716f_stage7/tree"
-          test -f "$TREE7/drivers/RamBlock/NativeRamBlock.cpp"
           test -f "$TREE7/drivers/GopFramebuffer/NativeLegacyDisplay.cpp"
-          test -f "$TREE7/drivers/AppleKeyStoreState/NativeKeyStoreEvents.cpp"
-          test -f "$TREE7/kits/j716f/storage/r41/R41Entry.cpp"
-          test -f "$TREE7/kits/j716f/display/J716fLegacyDisplayProbe.cpp"
-          test -f "$TREE7/kits/j716f/display/J716fKeyStoreProbe.cpp"
-          test -f "$TREE7/kits/j716f/input/NativeHidInput.cpp"
-          test -f "$TREE7/kits/j716f/input/J716fTouchProbe.cpp"
-          test -f "$TREE7/kits/j716f/input/J716fButtons.c"
-          test -f "$TREE7/kits/j716f/power/J716fCpuFreq.cpp"
-          test -f "$TREE7/kits/j716f/power/J716fBattery.cpp"
-          test -f "$TREE7/kits/j716f/gpu/J716fGpuProbe.cpp"
-          test -f "$TREE7/kits/j716f/gpu/J716fA650Gmu.c"
-          test -f "$TREE7/kits/j716f/gpu/J716fA650GmuContext.c"
-          test -f "$TREE7/kits/j716f/gpu/J716fA650Cp.c"
-          test -f "$TREE7/kits/AdrenoFirmware/AdrenoHfiStartup.c"
-          test -f "$TREE7/kits/AdrenoPM4/AdrenoPM4.c"
-          test -f "$TREE7/kits/ArmSmmu4K/ArmSmmu4K.h"
-          test -f "$TREE7/kits/ArmSmmu4K/ArmSmmu4KStreams.c"
-          test -f "$TREE7/kits/j716f/usb/J716fUsbDebugCdc.cpp"
-          test -f "$TREE7/scripts/build-j716f-display-keystore.py"
 
-      - name: Verify and apply pending upstream UniXNU core patches
+      - name: Verify and apply board-level UniXNU core patches and package.sh --check
         run: |
           set -euo pipefail
           for patch in device/patches/unixnu-core/*.patch; do
@@ -143,6 +151,22 @@ jobs:
             git -C unixnu apply "$PWD/$patch"
           done
           python3 unixnu/scripts/unixnu/test_bootimg.py -v
+          python3 - <<'PY'
+          import tomllib
+          from pathlib import Path
+          ct = tomllib.loads(Path('unixnu/components.toml').read_text(encoding='utf-8'))
+          by_id = {c['id']: c for c in ct['component']}
+          assert 'Sm8550Platform' not in by_id['Adreno740']['dependencies']
+          assert 'ShengNovatekTouch' not in by_id['ShengHidInput']['dependencies']
+          board = tomllib.loads(Path('device/board.toml').read_text(encoding='utf-8'))
+          cmdline = ' '.join(board['payload']['kernel_args'])
+          assert len(cmdline) < 1000, f'kernel_args too long: {len(cmdline)}'
+          install = board['payload']['install']
+          assert install['confirm'] and len(install['confirm_titles']) == len(install['confirm_args'])
+          print(f'Verified board-level core patches and board.toml payload cmdline ({len(cmdline)} bytes)')
+          PY
+          ln -sfn "$PWD/unixnu" "$PWD/UniXNU"
+          device/scripts/package.sh --no-deps --check --os 17
 
       - name: Compile DTS with dtc and verify Apple Device Tree (ADT) generation
         run: |

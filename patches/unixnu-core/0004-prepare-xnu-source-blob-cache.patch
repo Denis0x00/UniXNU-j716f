@@ -1,0 +1,26 @@
+From: Denis0x00 <148704309+Denis0x00@users.noreply.github.com>
+Subject: [PATCH 4/4] prepare-xnu-source: cache downloaded Git blobs by SHA-1
+
+Cache individual Git blobs fetched during prepare-xnu-source.py under
+CACHE.parent/blobs/<sha> so repeated clean rebuilds and offline Linux VM builds
+reuse verified blobs without re-fetching from GitHub.
+---
+diff --git a/scripts/prepare-xnu-source.py b/scripts/prepare-xnu-source.py
+index 93a0341..f68918c 100755
+--- a/scripts/prepare-xnu-source.py
++++ b/scripts/prepare-xnu-source.py
+@@ -96,7 +96,13 @@ def restore(entry, destination=DESTINATION, tag=TAG):
+     target = destination / name
+     if target.exists():
+         return None
+-    data = fetch(entry['download_url'])
++    blob_cache = CACHE.parent / 'blobs' / entry['sha']
++    if blob_cache.is_file():
++        data = blob_cache.read_bytes()
++    else:
++        data = fetch(entry['download_url'])
++        blob_cache.parent.mkdir(parents=True, exist_ok=True)
++        blob_cache.write_bytes(data)
+     digest = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+     if digest != entry['sha']:
+         raise ValueError(f'Git blob hash mismatch: {entry["name"]}')

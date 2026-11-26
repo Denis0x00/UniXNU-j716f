@@ -287,18 +287,35 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=[],
         help="Additional kernel boot-arg (may be passed multiple times)",
     )
+    parser.add_argument(
+        "--config-name",
+        default=None,
+        help="Optional UniXNU output config name (defaults to auto-detecting j716f or j716f_stage7)",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Validate inputs and print commands without running")
     return parser.parse_args(argv)
+
+
+def resolve_stage7_out_dir(core: Path, config_name: str | None = None) -> Path:
+    """Resolve the built Stage 7+ kernel output directory under UniXNU out/."""
+    base = core / "out/j716f/ipados-17.7.11-21H461"
+    if config_name:
+        return base / config_name
+    for candidate in ("j716f", "j716f_stage7"):
+        cand_dir = base / candidate
+        if (cand_dir / "kernel/kernel.macho").is_file():
+            return cand_dir
+    return base / "j716f"
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     core = args.unixnu_core.resolve()
     dev = args.device_dir.resolve()
-    out_dir = core / "out/j716f/ipados-17.7.11-21H461/j716f_stage7"
+    out_dir = resolve_stage7_out_dir(core, args.config_name)
     kernel_path = out_dir / "kernel/kernel.macho"
     if not kernel_path.is_file():
-        raise SystemExit(f"Missing built Stage 7 kernel: {kernel_path}")
+        raise SystemExit(f"Missing built Stage 7+ kernel: {kernel_path}")
 
     trust_meta = json.loads(args.trust_json.read_text(encoding="utf-8"))
     bundle = build_owner_trust_bundle(

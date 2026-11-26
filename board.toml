@@ -85,14 +85,54 @@ lba_bytes = 4096
 volume = "J716FENTRY"
 size_mib = 80
 loader = "firmware"
-title = "TB-J716F iPadOS 17 (APFS root)"
+title = "TB-J716F iPadOS 17 (Desktop)"
+# Hardware-verified Stage 7+ desktop boot arguments (strictly read-only on UFS by default
+# via volatile 512 MiB RAM Data store; opt-in flags such as j716f-usb=1, j716f-gpu=11,
+# j716f-gpu-metal=1, fb-gpu=1, and j716f-data-persist=1/2 remain off by default).
 # Omit -v so XNU keeps kPEGraphicsMode (no scrolling text over SpringBoard);
 # serial=3 j716f-earlylog=1 retains full kernel logs in the JXLG RAM ring.
-kernel_args = ["serial=3", "j716f-earlylog=1"]
+kernel_args = [
+  "serial=3",
+  "j716f-earlylog=1",
+  "j716f-r41-continue=1",
+  "j716f-skip-setup=1",
+  "j716f-battery=1",
+  "smp=1",
+  "armcpu-spi-ipi=1",
+  "armcpu-self-ipi=1",
+  "armcpu-edge=1",
+  "cpufreq=4",
+  "data-reset=1",
+  "data-fua=1",
+  "-apfs_shared_datavolume",
+  "-no_slto_panic",
+  "offline-mobile-graphics-load=1",
+  "offline-legacy-register=1",
+  "offline-legacy-gop=1",
+  "offline-legacy-unit-scale=2",
+  "offline-legacy-pm=1",
+  "offline-legacy-validate=1",
+  "offline-legacy-transfer=1",
+  "offline-legacy-cpu-present=1",
+  "offline-legacy-phase=4",
+  "offline-key-events=1",
+  "aks=1",
+  "offline-hid-input=1",
+  "offline-hid-home=1",
+  "touch-hid=1",
+  "j716f-touch=1",
+  "j716f-buttons=1",
+]
 timeout = -1
 tools = true
 panic_screen = false
 trust_cache_sha256 = ["7416ca4f8377146626bb284e2133c76bee6cb4e3ee0af5d648b186235a7323a7"]
+
+[payload.install]
+title = "Install and boot"
+confirm = "Initialize iPadOS Data from the packed seed and boot?"
+confirm_titles = ["Initialize Data, skip Hello, boot", "Initialize Data, show Hello, boot"]
+confirm_args = ["data-reset=1", "data-reset=2"]
 
 [payload.adt]
 root_match_volume_uuid = "04769D26-2CA0-4825-B443-E2E5F88300F2"

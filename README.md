@@ -15,11 +15,12 @@ feeds.toml                     # Local SM8250 SoC feed pointer (socs/sm8250)
 unixnu.lock                    # Pinned upstream Apple OSS & mu_basecore commits
 porting.toml                   # Structured UniXNU porting record (14 areas)
 configs/
-  j716f_defconfig              # Stage 6 single-core CPU0 + DT panic region + read-only storage archive
-  j716f_stage7_defconfig       # Stage 7+ RAM Data + SystemOS union + GopFramebuffer + AppleKeyStoreState
+  j716f_defconfig              # Default Stage 7+ desktop (RAM Data + SystemOS union + GopFramebuffer + AppleKeyStoreState)
+  j716f_stage6_defconfig       # Stage 6 minimal single-core CPU0 + DT panic region + read-only storage baseline
+  j716f_stage7_defconfig       # Backwards-compatible alias of Stage 7+ desktop defconfig
 dts/j716f.dts                  # Board device tree (overlays socs/sm8250/dts/sm8250.dtsi)
 patches/xnu/                   # Board XNU patches (earlylog, verbose console, storage, APFS root probe, skip-setup)
-patches/unixnu-core/           # Pending upstream UniXNU core PR patches (AAPL,phandle & bootimg v2)
+patches/unixnu-core/           # Board-level UniXNU core patches (AAPL,phandle, bootimg v2, components decouple, blob cache)
 package/storage/               # SHNGROOT UFS window driver + volatile RAM / opt-in persistent UFS store + skip-setup plists
 package/display/               # Board probes for upstream GopFramebuffer (CPU + opt-in fb-gpu=1) & AppleKeyStoreState (aks=1)
 package/input/                 # Unmodified NativeHidInput (21H461 IOHIDDevice) + Goodix GT7386 I2C + PM8150 buttons
@@ -111,11 +112,14 @@ git clone https://github.com/Denis0x00/UniXNU-j716f.git
 git clone https://github.com/Denis0x00/uefi-j716f.git
 
 cd UniXNU
-# Apply the two pending upstream UniXNU core patches required for TB-J716F
-# real-hardware ADT (AAPL,phandle) and Android boot image header v2:
+# Apply the board-level UniXNU core patches required for TB-J716F
+# (AAPL,phandle, Android bootimg v2, components.toml decoupling, and XNU blob cache):
 git apply ../UniXNU-j716f/patches/unixnu-core/*.patch
 
-# Stage 6 (APFS root mount baseline)
+# Verify Format 2 packaging & patch resolution via standard scripts/package.sh
+../UniXNU-j716f/scripts/package.sh --no-deps --check --os 17
+
+# Default Stage 7+ desktop build (promoted to j716f_defconfig)
 ./unixnu defconfig j716f_defconfig -D ../UniXNU-j716f --os 17
 ./unixnu status --json --os 17
 ./unixnu tree --os 17
@@ -123,9 +127,9 @@ git apply ../UniXNU-j716f/patches/unixnu-core/*.patch
 ./unixnu build firmware --os 17 --uefi ../uefi-j716f
 ./unixnu build kernel --os 17
 
-# Stage 7+ (RAM Data + SystemOS union + GopFramebuffer + AppleKeyStoreState)
-./unixnu defconfig j716f_stage7_defconfig -D ../UniXNU-j716f
-./unixnu build kernel
+# Minimal Stage 6 single-core APFS root baseline (diagnostic fallback)
+./unixnu defconfig j716f_stage6_defconfig -D ../UniXNU-j716f --os 17
+./unixnu build kernel --os 17
 ```
 
 To assemble `payload.img` and `boot.img`, supply the user-owned inputs listed in

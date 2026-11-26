@@ -114,6 +114,22 @@ class PackGpuAddonTests(unittest.TestCase):
         self.assertIn("j716f-data-persist=2", reset_args)
         self.assertIn("data-reset=1", reset_args)
 
+    def test_resolve_stage7_out_dir_prefers_default_j716f_with_fallback(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            core = Path(tmp)
+            s7 = core / "out/j716f/ipados-17.7.11-21H461/j716f_stage7/kernel"
+            s7.mkdir(parents=True)
+            (s7 / "kernel.macho").write_bytes(b"k7")
+            self.assertEqual(PACK.resolve_stage7_out_dir(core), s7.parent)
+
+            dflt = core / "out/j716f/ipados-17.7.11-21H461/j716f/kernel"
+            dflt.mkdir(parents=True)
+            (dflt / "kernel.macho").write_bytes(b"kd")
+            self.assertEqual(PACK.resolve_stage7_out_dir(core), dflt.parent)
+            self.assertEqual(PACK.resolve_stage7_out_dir(core, "j716f_stage7"), s7.parent)
+
 
 if __name__ == "__main__":
     unittest.main()
