@@ -120,17 +120,34 @@ jobs:
           import re, subprocess, textwrap
           from pathlib import Path
 
-          # 1. Guard iPadOS 27 (24A446) arm64e ptrauth / hardcoded QuartzCore offsets for arm64-apple-ios17.0.
+          # 1. Guard iPadOS 27 (24A446) arm64e ptrauth / hardcoded QuartzCore offsets for arm64-apple-ios17.0,
+          #    and wire render-server problem hook into report2/report so any early backboardd pipeline refusal is visible.
           p = Path('drivers/AdrenoMetal/NativeAdrenoMetalPlugin.mm')
           txt = p.read_text()
           old = "#if !TARGET_OS_OSX\n        // The stored option values and the framebuffer branch are addresses of iPadOS 27's QuartzCore (24A446)."
           new = "#if !TARGET_OS_OSX && __has_feature(ptrauth_calls)\n        // The stored option values and the framebuffer branch are addresses of iPadOS 27's QuartzCore (24A446)."
           assert old in txt, 'Expected iPadOS 27 QuartzCore block not found in NativeAdrenoMetalPlugin.mm'
-          p.write_text(txt.replace(old, new, 1))
-          print('PASS: Guarded iPadOS 27 (24A446) ptrauth/QuartzCore block for arm64-apple-ios17.0')
+          txt = txt.replace(old, new, 1)
+          hook_old = "        gpu->mark(0x6802);\n"
+          hook_new = (
+              "        gpu->mark(0x6802);\n"
+              "        static Gpu *gRenderGpu;\n"
+              "        gRenderGpu = gpu;\n"
+              "        native_bridge_metal_problem_hook = [](const char *problem) {\n"
+              "            if (!gRenderGpu || !problem) return;\n"
+              "            streamText(*gRenderGpu, problem);\n"
+              "            const size_t len = strlen(problem);\n"
+              "            if (len > 63) streamText7(*gRenderGpu, problem + 63);\n"
+              "        };\n"
+          )
+          assert hook_old in txt, 'Expected 0x6802 marker not found in NativeAdrenoMetalPlugin.mm'
+          p.write_text(txt.replace(hook_old, hook_new, 1))
+          print('PASS: Guarded iPadOS 27 block and wired render-server problem telemetry in NativeAdrenoMetalPlugin.mm')
 
-          # 2. MTLBarrierScopeRenderTargets is API_UNAVAILABLE(ios) in the iphoneos SDK headers.
-          #    Keep bit 2 (1UL << 2) accepted on iOS so runtime semantics match while compiling cleanly with -Werror.
+          # 2. NativeBridgeMetalFrontend.mm iOS 17 adaptations:
+          #    - Guard MTLBarrierScopeRenderTargets (API_UNAVAILABLE(ios)) while keeping bit 2 accepted.
+          #    - Implement iOS 17 MTLLibrary SPI newFunctionWithName:constantValues:pipelineLibrary:error:.
+          #    - Always note first render pipeline descriptor/creation refusal in noteProblem for telemetry.
           fe = Path('drivers/AdrenoMetal/NativeBridgeMetalFrontend.mm')
           fe_txt = fe.read_text()
           fe_old = " if(scope&~(MTLBarrierScopeBuffers|MTLBarrierScopeTextures|MTLBarrierScopeRenderTargets)) {"
@@ -143,8 +160,37 @@ jobs:
               " if(scope&~allowedScope) {"
           )
           assert fe_old in fe_txt, 'Expected MTLBarrierScopeRenderTargets check not found in NativeBridgeMetalFrontend.mm'
-          fe.write_text(fe_txt.replace(fe_old, fe_new, 1))
-          print('PASS: Guarded MTLBarrierScopeRenderTargets (API_UNAVAILABLE(ios)) in NativeBridgeMetalFrontend.mm')
+          fe_txt = fe_txt.replace(fe_old, fe_new, 1)
+          pl_old = (
+              "- (id<MTLFunction>)newFunctionWithName:(NSString *)name constantValues:(MTLFunctionConstantValues *)values error:(NSError **)error {\n"
+              " return [self nb_newFunctionWithName:name constantValues:values zeroRest:NO error:error];\n"
+              "}\n"
+          )
+          pl_new = pl_old + (
+              "- (id<MTLFunction>)newFunctionWithName:(NSString *)name constantValues:(MTLFunctionConstantValues *)values pipelineLibrary:(id)pipelineLibrary error:(NSError **)error {\n"
+              " (void)pipelineLibrary;\n"
+              " return [self nb_newFunctionWithName:name constantValues:values zeroRest:NO error:error];\n"
+              "}\n"
+          )
+          assert pl_old in fe_txt, 'Expected NBLibrary newFunctionWithName:constantValues:error: not found'
+          fe_txt = fe_txt.replace(pl_old, pl_new, 1)
+          rp_desc_old = (
+              '  if(told.fetch_add(1)<64)NBLOG(@"native-metal: render pipeline descriptor refused (vertex %@, fragment %@): %@",d.vertexFunction.name,\n'
+              '                               d.fragmentFunction.name,error?(*error).localizedDescription:@"?");\n'
+          )
+          rp_desc_new = rp_desc_old + (
+              '  noteProblem([NSString stringWithFormat:@"rp-desc v=%@ f=%@: %@",d.vertexFunction.name,d.fragmentFunction.name,error?(*error).localizedDescription:@"?"]);\n'
+          )
+          assert rp_desc_old in fe_txt, 'Expected render pipeline descriptor refusal log not found'
+          fe_txt = fe_txt.replace(rp_desc_old, rp_desc_new, 1)
+          rp_old = '  if(told.fetch_add(1)<64)NBLOG(@"native-metal: render pipeline refused: %@",why);else noteProblem([@"render pipeline: " stringByAppendingString:why]);\n'
+          rp_new = (
+              '  if(told.fetch_add(1)<64)NBLOG(@"native-metal: render pipeline refused: %@",why);\n'
+              '  noteProblem([@"rp: " stringByAppendingString:why]);\n'
+          )
+          assert rp_old in fe_txt, 'Expected render pipeline refusal log not found'
+          fe.write_text(fe_txt.replace(rp_old, rp_new, 1))
+          print('PASS: Patched NativeBridgeMetalFrontend.mm for iOS 17 pipelineLibrary SPI and early refusal telemetry')
 
           # 3. Public iphoneos SDK libSystem.B.tbd omits mach_vm_remap / mach_vm_deallocate / mach_vm_read_overwrite.
           #    Resolve them dynamically via libc::dlsym(RTLD_DEFAULT, ...) with vm_* fallback (identical 64-bit arm64 ABI).
@@ -257,14 +303,18 @@ jobs:
           subprocess.run(['git', '-C', str(m2v), 'clean', '-fdq'], check=True)
           print('PASS: Generated 0001-a650-optional-storage-8bit.patch for Adreno 650')
 
-          # 4b. Shorten device refusal prefix in NativeMetalBridge.rs so 64-byte kernel telemetry shows full detail.
+          # 4b. Shorten device refusal prefix and keep consumer Registry alive in selftest() in NativeMetalBridge.rs.
           nb = Path('drivers/AdrenoMetal/bridge/NativeMetalBridge.rs')
           nb_txt = nb.read_text()
           nb_old = 'Err(format!("no bundled Vulkan device meets the runtime contract: {}", refusals.join("; ")))'
           nb_new = 'Err(format!("vk: {}", refusals.join("; ")))'
           assert nb_old in nb_txt, 'Expected refusal format string in NativeMetalBridge.rs'
-          nb.write_text(nb_txt.replace(nb_old, nb_new, 1))
-          print('PASS: Shortened NativeMetalBridge.rs refusal prefix for telemetry visibility')
+          nb_txt = nb_txt.replace(nb_old, nb_new, 1)
+          st_old = '    let device = match open(loader, cache) {\n        Ok((device, _registry)) => device,\n        Err(why) => return run.fail(0x6501, why),\n    };'
+          st_new = '    let (device, _registry) = match open(loader, cache) {\n        Ok(opened) => opened,\n        Err(why) => return run.fail(0x6501, why),\n    };'
+          assert st_old in nb_txt, 'Expected selftest open() match not found in NativeMetalBridge.rs'
+          nb.write_text(nb_txt.replace(st_old, st_new, 1))
+          print('PASS: Patched NativeMetalBridge.rs refusal prefix and selftest Registry lifetime')
 
           # 5. Register 0001-a650-optional-storage-8bit.patch and switch release LTO from fat/1 to thin/4 for CI budgets.
           bridge_py = Path('scripts/build-adreno-metal-bridge.py')
