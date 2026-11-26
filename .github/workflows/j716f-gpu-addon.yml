@@ -107,7 +107,7 @@ jobs:
             ~/.cargo/registry/cache
             ~/.cargo/git/db
             UniXNU/build/adreno-metal-bridge/ios
-          key: j716f-gpu-bridge-${{ runner.os }}-1.98.0-e7bddb9a-dlsym-v1
+          key: j716f-gpu-bridge-${{ runner.os }}-1.98.0-e7bddb9a-a650-v2
           restore-keys: |
             j716f-gpu-bridge-${{ runner.os }}-1.98.0-e7bddb9a-
             j716f-gpu-bridge-${{ runner.os }}-1.98.0-
@@ -117,6 +117,7 @@ jobs:
         working-directory: UniXNU
         run: |
           python3 - <<'PY'
+          import re, subprocess, textwrap
           from pathlib import Path
 
           # 1. Guard iPadOS 27 (24A446) arm64e ptrauth / hardcoded QuartzCore offsets for arm64-apple-ios17.0.
@@ -147,7 +148,6 @@ jobs:
 
           # 3. Public iphoneos SDK libSystem.B.tbd omits mach_vm_remap / mach_vm_deallocate / mach_vm_read_overwrite.
           #    Resolve them dynamically via libc::dlsym(RTLD_DEFAULT, ...) with vm_* fallback (identical 64-bit arm64 ABI).
-          import re, textwrap
           hm = Path('drivers/AdrenoMetal/bridge/NativeMetalHostMapping.rs')
           hm_txt = hm.read_text()
           helper = textwrap.dedent('''\
@@ -234,16 +234,52 @@ jobs:
           hm.write_text(hm_txt)
           print('PASS: Switched NativeMetalHostMapping.rs mach_vm_* calls to runtime dlsym(RTLD_DEFAULT) for iphoneos SDK')
 
-          # 4. Switch release LTO from fat/1 to thin/4 for GitHub runner budgets.
+          # 4. Adreno 650 (a6xx_gen3) sets storage_16bit=True and storage_8bit=False in Mesa freedreno_devices.py,
+          #    so Turnip reports VkPhysicalDeviceVulkan12Features.storageBuffer8BitAccess = FALSE.
+          #    metal2vulkan already lowers 8-bit accesses cleanly when storage_buffer_8bit is false (memory/leaf.rs),
+          #    so move storage_buffer8_bit_access from REQUIRED to OPTIONAL in metal2vulkan-runtime/src/floor.rs.
+          m2v = Path('.cache/gpu-reference/metal2vulkan')
+          floor_rs = m2v / 'crates/metal2vulkan-runtime/src/floor.rs'
+          fl_txt = floor_rs.read_text()
+          req_line = '    feature!(vulkan12.storage_buffer8_bit_access => StorageBuffer8BitAccess),\n'
+          opt_anchor = 'pub(crate) const OPTIONAL: &[Feature] = &[\n'
+          assert req_line in fl_txt, 'Expected storage_buffer8_bit_access in REQUIRED of floor.rs'
+          assert opt_anchor in fl_txt, 'Expected OPTIONAL table in floor.rs'
+          fl_txt = fl_txt.replace(req_line, '', 1).replace(opt_anchor, opt_anchor + req_line, 1)
+          floor_rs.write_text(fl_txt)
+          patches_dir = Path('drivers/AdrenoMetal/bridge/patches')
+          patches_dir.mkdir(parents=True, exist_ok=True)
+          patch_out = patches_dir / '0001-a650-optional-storage-8bit.patch'
+          diff = subprocess.check_output(['git', '-C', str(m2v), 'diff'], text=True)
+          assert diff.strip(), 'Generated 0001-a650-optional-storage-8bit.patch is empty'
+          patch_out.write_text(diff)
+          subprocess.run(['git', '-C', str(m2v), 'reset', '--hard', '-q', 'HEAD'], check=True)
+          subprocess.run(['git', '-C', str(m2v), 'clean', '-fdq'], check=True)
+          print('PASS: Generated 0001-a650-optional-storage-8bit.patch for Adreno 650')
+
+          # 4b. Shorten device refusal prefix in NativeMetalBridge.rs so 64-byte kernel telemetry shows full detail.
+          nb = Path('drivers/AdrenoMetal/bridge/NativeMetalBridge.rs')
+          nb_txt = nb.read_text()
+          nb_old = 'Err(format!("no bundled Vulkan device meets the runtime contract: {}", refusals.join("; ")))'
+          nb_new = 'Err(format!("vk: {}", refusals.join("; ")))'
+          assert nb_old in nb_txt, 'Expected refusal format string in NativeMetalBridge.rs'
+          nb.write_text(nb_txt.replace(nb_old, nb_new, 1))
+          print('PASS: Shortened NativeMetalBridge.rs refusal prefix for telemetry visibility')
+
+          # 5. Register 0001-a650-optional-storage-8bit.patch and switch release LTO from fat/1 to thin/4 for CI budgets.
           bridge_py = Path('scripts/build-adreno-metal-bridge.py')
           b_txt = bridge_py.read_text()
+          p_old = "PATCHES = [ROOT / 'drivers/AdrenoMetal/bridge/patches' / name for name in [\n]]"
+          p_new = "PATCHES = [ROOT / 'drivers/AdrenoMetal/bridge/patches' / name for name in [\n    '0001-a650-optional-storage-8bit.patch',\n]]"
+          assert p_old in b_txt, 'Expected empty PATCHES list in build-adreno-metal-bridge.py'
+          b_txt = b_txt.replace(p_old, p_new, 1)
           lto_old = "'[profile.release]', 'panic = \"unwind\"', 'debug = 1', 'lto = \"fat\"', 'codegen-units = 1', '',"
           lto_new = "'[profile.release]', 'panic = \"unwind\"', 'debug = 1', 'lto = \"thin\"', 'codegen-units = 4', '',"
           assert lto_old in b_txt, 'Expected release LTO profile not found in build-adreno-metal-bridge.py'
           bridge_py.write_text(b_txt.replace(lto_old, lto_new, 1))
-          print('PASS: Enabled thin LTO in build-adreno-metal-bridge.py for CI runner')
+          print('PASS: Registered A650 floor patch and enabled thin LTO in build-adreno-metal-bridge.py')
 
-          # 5. On arm64-apple-ios17.0, ld with -undefined dynamic_lookup emits classic LC_DYLD_INFO_ONLY
+          # 6. On arm64-apple-ios17.0, ld with -undefined dynamic_lookup emits classic LC_DYLD_INFO_ONLY
           #    instead of LC_DYLD_CHAINED_FIXUPS; make the optional weak-import self-bind step skip cleanly.
           sb_py = Path('scripts/macho-self-bind-weak-imports.py')
           sb_txt = sb_py.read_text()
