@@ -41,6 +41,7 @@
 #include "NativeAdrenoSubmit.h"
 #include "NativeAdrenoTimer.h"
 #include "NativeAdrenoUserClient.h"
+#include "NativeGpuTrace.h"
 
 extern "C" {
 #include "ArmSmmu4KMmio.h"
@@ -89,6 +90,17 @@ extern volatile uint32_t native_adreno_cp_aperture[4] __attribute__((weak));
 extern volatile uint32_t native_adreno_cp_check[6] __attribute__((weak));
 extern volatile uint32_t native_adreno_io_coherent __attribute__((weak));
 extern volatile uint32_t native_adreno_wc_enabled __attribute__((weak));
+extern volatile uint32_t native_adreno_owned_coherent __attribute__((weak));
+extern volatile uint32_t native_adreno_walk_coherent[3] __attribute__((weak));
+extern volatile uint32_t native_adreno_coherent_skips[4] __attribute__((weak));
+extern IOReturn native_adreno_pool_add(uint64_t physical, uint64_t bytes) __attribute__((weak));
+extern volatile uint32_t native_adreno_pool_state[12] __attribute__((weak));
+extern volatile uint32_t native_adreno_pool_fallbacks[8] __attribute__((weak));
+extern volatile uint32_t native_adreno_fence_wait[8] __attribute__((weak));
+extern volatile uint32_t native_adreno_stall[2 + NativeAdrenoRingStallWords] __attribute__((weak));
+extern volatile uint32_t native_adreno_stall_mem[4 + 3 * 17 + 4] __attribute__((weak));
+extern volatile uint32_t native_adreno_method_stats[20][4] __attribute__((weak));
+extern volatile uint32_t native_adreno_table_switches[8] __attribute__((weak));
 extern volatile uint32_t j716f_gpu_actlr_before __attribute__((weak));
 extern volatile uint32_t j716f_gpu_actlr_after __attribute__((weak));
 extern void native_adreno_accelerator_static_init(void) asm("__GLOBAL__sub_I_NativeAdrenoAccelerator.cpp") __attribute__((weak));
@@ -123,6 +135,21 @@ struct J716fMetalDiagView {
 extern J716fMetalDiagView native_adreno_metal_diag __attribute__((weak));
 extern char native_adreno_metal_rows[48][96] __attribute__((weak));
 extern volatile uint32_t native_adreno_metal_rows_seq __attribute__((weak));
+struct J716fClientRecordView {
+    char name[20];
+    uint32_t opens, refused, closes, slot, peak_mib, last_refusal;
+};
+struct J716fClientTextView {
+    char name[20];
+    char text[64];
+};
+struct J716fAskerRecordView {
+    char name[20];
+    uint32_t reads;
+};
+extern J716fClientRecordView native_adreno_client_log[8] __attribute__((weak));
+extern J716fClientTextView native_adreno_client_text[8] __attribute__((weak));
+extern J716fAskerRecordView native_adreno_metal_askers[12] __attribute__((weak));
 
 enum {
     kRowSummary = 0,
@@ -802,6 +829,11 @@ volatile uint32_t gIrqCount = 0;
 volatile uint32_t gIrqSeen = 0;
 volatile uint32_t gIrqLast = 0;
 volatile uint32_t gIrqEmpty = 0;
+volatile uint32_t gCpErrCount = 0;
+volatile uint32_t gCpErrStatus = 0;
+volatile uint32_t gCpErrProtect = 0;
+volatile uint32_t gCpErrSqePc = 0;
+volatile uint32_t gCpErrSqeHdr = 0;
 
 uint64_t kmdNowUs(void *) {
     uint64_t us = 0;
@@ -851,6 +883,24 @@ int kmdTimerRead(void *, uint32_t reg, uint32_t *val) {
 void gpuIrqHandler(void *) {
     uint32_t status = 0;
     if (cpGpuRead(nullptr, 0x0201u, &status) != 0) return;
+    if (status & (1u << 9)) {
+        /* CP_HW_ERROR is level-asserted until CP reset; capture SQE PC + header + protect
+         * status and mask bit 9 in RBBM_INT_0_MASK so CPU0 never enters an IRQ storm. */
+        uint32_t cpi = 0, prot = 0, sqePc = 0, sqeHdr = 0, mask = 0;
+        (void)cpGpuRead(nullptr, 0x0823u, &cpi);
+        (void)cpGpuRead(nullptr, 0x0824u, &prot);
+        (void)cpGpuWrite(nullptr, 0x0908u, 0u);
+        (void)cpGpuRead(nullptr, 0x0909u, &sqePc);
+        (void)cpGpuRead(nullptr, 0x0909u, &sqeHdr);
+        gCpErrStatus = cpi;
+        gCpErrProtect = prot;
+        gCpErrSqePc = sqePc;
+        gCpErrSqeHdr = sqeHdr;
+        gCpErrCount = gCpErrCount + 1u;
+        if (cpGpuRead(nullptr, 0x0038u, &mask) == 0) {
+            (void)cpGpuWrite(nullptr, 0x0038u, mask & ~(1u << 9));
+        }
+    }
     if (status) {
         (void)cpGpuWrite(nullptr, 0x0037u, status); /* RBBM_INT_CLEAR_CMD */
         __asm__ volatile("dsb sy" ::: "memory");
@@ -1110,7 +1160,8 @@ void publishA650MetalAccelerator() {
         "NativeSandboxGrantProcess",
         "backboardd,SpringBoard,mediaserverd,adrenoprobed,iconservicesagen,MTLCompilerServi,"
         "PosterBoard,chronod,MobileSlideShow,Preferences,MobileSafari,com.apple.WebKit,"
-        "UserEventAgent,CARenderServer,WindowServer");
+        "UserEventAgent,CARenderServer,WindowServer,WidgetRenderer_D,PhotosPosterProv,"
+        "CollectionsPoste");
     if (!accel->attach(IOService::getPlatform())) {
         accel->release();
         snprintf(row, cap, "METAL attach_err");
@@ -1124,7 +1175,7 @@ void publishA650MetalAccelerator() {
 NativeAdrenoAbiDeviceInfo gA650DeviceInfo = {
     GPB_CHIPID_A650_V2,      /* chip_id: Adreno 650 v2.0 (0x06050002) */
     1u << 20,                /* gmem_bytes: 1 MiB */
-    0x01000000ULL,           /* gmem_base: 16 MiB (UCHE_GMEM_RANGE_MIN) */
+    0ULL,                    /* gmem_base: 0 on A650 (ADRENO_6XX_GEN3, Linux adreno_gpu.c) */
     0x0001FFFFFFFFF000ULL,   /* uche_trap_base */
     GpuClientVaStart,        /* va_start: 4 GiB */
     0ULL,                    /* va_size: filled from SMMU inputBits() */
@@ -1135,6 +1186,202 @@ NativeAdrenoAbiDeviceInfo gA650DeviceInfo = {
     NativeAdrenoDeviceClientIova,
     0u
 };
+
+char gCoherenceRow[120] = {};
+char gWalkRow[80] = {};
+
+bool readDramPageUncached(uint64_t pa, uint32_t *out) {
+    IODeviceMemory *dev = IODeviceMemory::withRange(pa, 0x1000u);
+    if (!dev) return false;
+    IOMemoryMap *map = dev->map(kIOMapAnywhere | kIOMapInhibitCache);
+    dev->release();
+    if (!map) return false;
+    const volatile uint32_t *src = reinterpret_cast<const volatile uint32_t *>(map->getVirtualAddress());
+    for (unsigned i = 0; i < 1024u; ++i) out[i] = src[i];
+    map->release();
+    return true;
+}
+
+bool gpuCopyPage4k(uint64_t src, uint64_t dst) {
+    uint32_t words[7] = {};
+    if (AdrenoPM4Type7(0x75u, 5u, &words[0]) != AdrenoPM4Success ||
+        AdrenoPM4Type7(0x12u, 0u, &words[6]) != AdrenoPM4Success) {
+        return false;
+    }
+    words[1] = 1024u;
+    words[2] = static_cast<uint32_t>(src);
+    words[3] = static_cast<uint32_t>(src >> 32);
+    words[4] = static_cast<uint32_t>(dst);
+    words[5] = static_cast<uint32_t>(dst >> 32);
+    return kmdSubmitAndWait(words, 7u, nullptr);
+}
+
+bool runWalkCoherenceProbe(NativeAdrenoVm *vm) {
+    if (!&native_adreno_walk_coherent) {
+        snprintf(gWalkRow, sizeof(gWalkRow), "W nolink -> off");
+        return false;
+    }
+    constexpr uint64_t kBase = 0x18100000ULL;
+    constexpr size_t kBytes = 2u * 4096u;
+    uint8_t *buf = static_cast<uint8_t *>(IOMallocAligned(kBytes, 4096u));
+    if (!buf) {
+        snprintf(gWalkRow, sizeof(gWalkRow), "W nomem -> off");
+        return false;
+    }
+    volatile uint32_t *a = reinterpret_cast<volatile uint32_t *>(buf);
+    volatile uint32_t *b = a + 1024;
+    for (unsigned i = 0; i < 1024u; ++i) { a[i] = 0x66660000u | i; b[i] = 0u; }
+    (void)NativeAdrenoMaintainOwnedPages(buf, kBytes, NativeAdrenoCleanInvalidate);
+
+    NativeAdrenoMemory mem;
+    IOReturn st = mem.importTask(kernel_task, reinterpret_cast<uint64_t>(buf), kBytes, 36u, kBytes);
+    uint64_t phys[2] = {};
+    for (size_t j = 0; !st && j < mem.spanCount(); ++j) {
+        for (size_t at = 0; at < mem.spans()[j].bytes; at += 4096u) {
+            phys[(mem.spans()[j].offset + at) / 4096u] = mem.spans()[j].physical + at;
+        }
+    }
+    static uint32_t words[1024];
+    unsigned dirtyAt = 0, copied = 0;
+    uint32_t fault[4] = {};
+    for (unsigned attempt = 0; attempt < 8u && !st && phys[0] && phys[1] && !dirtyAt; ++attempt) {
+        uint64_t handle = 0, pte = 0;
+        native_adreno_walk_coherent[0] = 1u;
+        st = vm->map(&mem, 0u, kBase + attempt * 0x200000ULL, 3u, 1u, 3u, &handle);
+        native_adreno_walk_coherent[0] = 0u;
+        if (st) break;
+        if (vm->leafPhysical(phys[0], &pte) && readDramPageUncached(pte & ~0xFFFULL, words)) {
+            const uint64_t inDram = static_cast<uint64_t>(words[(pte & 0xFFFu) / 4u]) |
+                                    (static_cast<uint64_t>(words[(pte & 0xFFFu) / 4u + 1u]) << 32);
+            if ((inDram & 0x0000FFFFFFFFF000ULL) != phys[0]) {
+                dirtyAt = attempt + 1u;
+                const uint64_t iova = kBase + attempt * 0x200000ULL;
+                if (gpuCopyPage4k(iova, iova + 4096u) && readDramPageUncached(phys[1], words)) {
+                    for (unsigned i = 0; i < 1024u; ++i) copied += (words[i] == (0x66660000u | i)) ? 1u : 0u;
+                }
+                (void)vm->faultState(fault);
+            }
+        }
+        (void)vm->unmap(handle);
+    }
+    if (fault[0]) {
+        uint32_t far[3] = {};
+        if (NativeAdrenoGpuContext *ctx = NativeAdrenoGpuContextObject()) {
+            (void)ctx->clearFault(fault[0], far);
+        }
+    }
+    const bool pass = !st && dirtyAt && copied == 1024u && !fault[0];
+    (void)NativeAdrenoMaintainOwnedPages(buf, kBytes, NativeAdrenoCleanInvalidate);
+    (void)mem.release();
+    IOFreeAligned(buf, kBytes);
+    snprintf(gWalkRow, sizeof(gWalkRow), "W d%u c%u f%x s%x -> %s",
+             dirtyAt, copied, fault[0], static_cast<unsigned>(st), pass ? "on" : "off");
+    return pass;
+}
+
+void runIoCoherenceProbe(NativeAdrenoVm *vm) {
+    unsigned wanted = 1u;
+    PE_parse_boot_argn("gpu-coherent", &wanted, sizeof(wanted));
+    if (!wanted || !vm || !&native_adreno_io_coherent) {
+        snprintf(gCoherenceRow, sizeof(gCoherenceRow), "H skip(arg=%u)", wanted);
+        return;
+    }
+    constexpr uint64_t kIova = 0x18000000ULL;
+    constexpr size_t kBytes = 4u * 4096u;
+    uint8_t *buf = static_cast<uint8_t *>(IOMallocAligned(kBytes, 4096u));
+    NativeAdrenoMemory mem;
+    uint64_t handle = 0;
+    uint32_t k[7] = {};
+    unsigned attempts = 0;
+    IOReturn st = buf ? mem.importTask(kernel_task, reinterpret_cast<uint64_t>(buf), kBytes, 36u, kBytes)
+                      : kIOReturnNoMemory;
+    k[0] = 1u;
+    if (!st) {
+        k[0] = 2u;
+        st = vm->map(&mem, 0u, kIova, 3u, 1u, 3u, &handle);
+    }
+    uint64_t phys[4] = {};
+    for (size_t j = 0; !st && j < mem.spanCount(); ++j) {
+        for (size_t at = 0; at < mem.spans()[j].bytes; at += 4096u) {
+            phys[(mem.spans()[j].offset + at) / 4096u] = mem.spans()[j].physical + at;
+        }
+    }
+    static uint32_t words[1024];
+    bool pass = false;
+    if (!st && phys[0] && phys[1] && phys[2] && phys[3]) {
+        k[0] = 3u;
+        volatile uint32_t *s = reinterpret_cast<volatile uint32_t *>(buf);
+        volatile uint32_t *d = s + 1024;
+        volatile uint32_t *r = s + 2048;
+        volatile uint32_t *t = s + 3072;
+        bool dirty = false;
+        for (unsigned attempt = 0; attempt < 8u && !st && !dirty; ++attempt) {
+            attempts = attempt + 1u;
+            for (unsigned i = 0; i < 1024u; ++i) {
+                s[i] = 0x11110000u | i;
+                d[i] = 0u;
+                r[i] = 0x33330000u | i;
+                t[i] = 0x44440000u | i;
+            }
+            st = NativeAdrenoMaintainOwnedPages(buf, kBytes, NativeAdrenoCleanInvalidate);
+            for (unsigned i = 0; i < 1024u; ++i) s[i] = 0x22220000u | i;
+            __asm__ volatile("dsb sy" ::: "memory");
+            k[1] = 0u;
+            if (!st && readDramPageUncached(phys[0], words)) {
+                for (unsigned i = 0; i < 1024u; i += 16u) k[1] += (words[i] == (0x11110000u | i)) ? 1u : 0u;
+            }
+            dirty = (k[1] >= 48u);
+        }
+        if (!st && dirty) {
+            k[0] = 4u;
+            if (gpuCopyPage4k(kIova, kIova + 4096u) && readDramPageUncached(phys[1], words)) {
+                k[0] = 5u;
+                for (unsigned i = 0; i < 1024u; ++i) {
+                    k[2] += (words[i] == (0x22220000u | i)) ? 1u : 0u;
+                    k[3] += (words[i] == (0x11110000u | i)) ? 1u : 0u;
+                }
+            }
+        }
+        if (!st && k[0] == 5u) {
+            st = NativeAdrenoMaintainOwnedPages(const_cast<uint32_t *>(t), 4096u, NativeAdrenoClean);
+        }
+        uint32_t touch = 0;
+        for (unsigned i = 0; i < 1024u; ++i) touch += t[i];
+        __asm__ volatile("dsb sy" ::: "memory");
+        if (!st && k[0] == 5u && gpuCopyPage4k(kIova + 8192u, kIova + 12288u)) {
+            k[0] = 6u;
+            for (unsigned i = 0; i < 1024u; ++i) k[4] += (t[i] == (0x33330000u | i)) ? 1u : 0u;
+            if (readDramPageUncached(phys[3], words)) {
+                for (unsigned i = 0; i < 1024u; ++i) k[5] += (words[i] == (0x33330000u | i)) ? 1u : 0u;
+            }
+        }
+        (void)touch;
+        pass = (k[0] == 6u && k[1] >= 48u && k[2] == 1024u && k[4] == 1024u && k[5] == 1024u);
+    }
+    k[6] = static_cast<uint32_t>(st);
+    if (handle) (void)vm->unmap(handle);
+    if (buf) (void)NativeAdrenoMaintainOwnedPages(buf, kBytes, NativeAdrenoCleanInvalidate);
+    (void)mem.release();
+    if (buf) IOFreeAligned(buf, kBytes);
+
+    native_adreno_io_coherent = pass ? 1u : 0u;
+    if (&native_adreno_owned_coherent) {
+        /* UniXNU/metal2vulkan requires HOST_VISIBLE|HOST_COHERENT|HOST_CACHED (SHARED_MEMORY),
+         * advertised by Turnip when NativeAdrenoParamsOwnedCoherent is set. Default on once the
+         * live hardware IO coherence probe passes (overrideable via gpu-owned-coherent=0). */
+        unsigned owned = 1u;
+        PE_parse_boot_argn("gpu-owned-coherent", &owned, sizeof(owned));
+        native_adreno_owned_coherent = (pass && owned) ? 1u : 0u;
+    }
+    if (&native_adreno_walk_coherent) {
+        unsigned walk = 1u;
+        PE_parse_boot_argn("gpu-walk", &walk, sizeof(walk));
+        native_adreno_walk_coherent[0] = (pass && walk && runWalkCoherenceProbe(vm)) ? 1u : 0u;
+    }
+    snprintf(gCoherenceRow, sizeof(gCoherenceRow), "H d%u/64 a%u r%u/%u w%u/%u s%x k%u -> %s",
+             k[1], attempts, k[2], k[3], k[4], k[5], k[6], k[0], pass ? "on" : "off");
+    IOLog("[J716F gpu] [live] COH %s | %s\n", gCoherenceRow, gWalkRow);
+}
 
 void runMode10And11Kmd() {
     const size_t cap = sizeof(j716f_gpu_rows[0]);
@@ -1377,8 +1624,40 @@ void runMode10And11Kmd() {
     }
 
     if (&native_adreno_io_coherent) native_adreno_io_coherent = 0u;
+    if (&native_adreno_owned_coherent) native_adreno_owned_coherent = 0u;
+    runIoCoherenceProbe(vm);
+    if (&native_adreno_io_coherent && native_adreno_io_coherent) {
+        gA650DeviceInfo.flags |= NativeAdrenoDeviceCachedCoherent;
+    }
+
+    /* Register unused TB-J716F UEFI DRAM outside XNU's 3.5 GiB window (0xFFE00000..0x1DFE00000)
+     * as dedicated Write-Combined GPU VRAM pool (896 MiB total: 512 MiB @ 0xD0000000 + 384 MiB @ 0x1E0000000).
+     * Pool BOs map via NativeAdrenoPoolView with explicit kIOMapWriteCombineCache, bypassing the
+     * xnu-10063 pageable-descriptor WC cache-mode trap and eliminating per-submit CPU dc cvac/civac. */
+    bool poolActive = false;
+    if (native_adreno_pool_add) {
+        unsigned poolMode = 2u;
+        PE_parse_boot_argn("gpu-pool", &poolMode, sizeof(poolMode));
+        if (poolMode != 0u) {
+            static const struct { uint64_t base; uint64_t bytes; } kPoolRuns[2] = {
+                {0xD0000000ULL, 0x20000000ULL},   /* 512 MiB verified UEFI XNU Window (Stage 1-6 DRAM) */
+                {0x1E0000000ULL, 0x18000000ULL},  /* 384 MiB verified UEFI High RAM tail (..0x1F8000000) */
+            };
+            for (const auto &r : kPoolRuns) {
+                const IOReturn prc = native_adreno_pool_add(r.base, r.bytes);
+                IOLog("[J716F gpu] pool add 0x%llx + 0x%llx -> 0x%x\n",
+                      static_cast<unsigned long long>(r.base),
+                      static_cast<unsigned long long>(r.bytes),
+                      static_cast<unsigned>(prc));
+                if (prc == kIOReturnSuccess) poolActive = true;
+            }
+        }
+    }
+
     if (&native_adreno_wc_enabled) {
-        unsigned wc = 1u;
+        /* Default WC ON when dedicated NativeAdrenoPool is active (true WC mapping, zero dc cvac/civac);
+         * fall back to safe cached BO + explicit dc cvac when pool is disabled. */
+        unsigned wc = poolActive ? 1u : 0u;
         PE_parse_boot_argn("gpu-wc", &wc, sizeof(wc));
         native_adreno_wc_enabled = wc ? 1u : 0u;
     }
@@ -1545,26 +1824,199 @@ extern "C" void j716f_gpu_snapshot(char *out, size_t cap) {
     }
     if (&native_adreno_metal_diag && n > 0 && static_cast<size_t>(n) < cap) {
         const J716fMetalDiagView &d = native_adreno_metal_diag;
+        const uint32_t mt = d.marks_total;
+        const uint32_t mcnt = mt < 8u ? mt : 8u;
         n += snprintf(out + n, cap - static_cast<size_t>(n),
-                      "[usb] GPU[METAL]: open=%u busy=%u bad=%u cls=%u nr=%u(%s) gr=%u calls=%u sel=%x/%x mk=%u(%x,%x,%x,%x)\r\n",
+                      "[usb] GPU[METAL]: open=%u busy=%u bad=%u cls=%u nr=%u(%s) gr=%u calls=%u sel=%x/%x mk=%u(",
                       d.opens, d.busy, d.bad, d.closes, d.name_reads,
                       d.name_reader[0] ? d.name_reader : "-",
-                      d.grants, d.calls, d.last_selector, d.last_status,
-                      d.marks_total, d.marks[0], d.marks[1], d.marks[2], d.marks[3]);
+                      d.grants, d.calls, d.last_selector, d.last_status, mt);
+        for (uint32_t i = 0; i < mcnt && n > 0 && static_cast<size_t>(n) + 12u < cap; ++i) {
+            const uint32_t idx = (mt - mcnt + i) & 15u;
+            n += snprintf(out + n, cap - static_cast<size_t>(n), "%s%x", i ? "," : "", d.marks[idx]);
+        }
+        if (n > 0 && static_cast<size_t>(n) + 4u < cap) {
+            n += snprintf(out + n, cap - static_cast<size_t>(n), ")\r\n");
+        }
         if ((d.opener[0][0] || d.starter[0][0] || d.report[0] || d.report2[0]) &&
             n > 0 && static_cast<size_t>(n) < cap) {
             n += snprintf(out + n, cap - static_cast<size_t>(n),
-                          "[usb] GPU[MPLUG]: op='%s' st='%s' r1='%s' r2='%s'\r\n",
-                          d.opener[0], d.starter[0], d.report, d.report2);
+                          "[usb] GPU[MPLUG]: op='%s,%s,%s' st='%s,%s,%s' r1='%s' r2='%s'\r\n",
+                          d.opener[0], d.opener[1], d.opener[2],
+                          d.starter[0], d.starter[1], d.starter[2],
+                          d.report, d.report2);
+        }
+    }
+    if (&native_adreno_client_text && n > 0 && static_cast<size_t>(n) < cap) {
+        for (unsigned i = 0; i < 8u && n > 0 && static_cast<size_t>(n) < cap; ++i) {
+            if (!native_adreno_client_text[i].name[0]) continue;
+            n += snprintf(out + n, cap - static_cast<size_t>(n),
+                          "[usb] GPU[CTXT%u]: %.19s='%.63s'\r\n", i,
+                          native_adreno_client_text[i].name, native_adreno_client_text[i].text);
+        }
+    }
+    if (&native_adreno_client_log && n > 0 && static_cast<size_t>(n) < cap) {
+        for (unsigned i = 0; i < 8u && n > 0 && static_cast<size_t>(n) < cap; ++i) {
+            if (!native_adreno_client_log[i].name[0]) continue;
+            const J716fClientRecordView &c = native_adreno_client_log[i];
+            n += snprintf(out + n, cap - static_cast<size_t>(n),
+                          "[usb] GPU[CLOG%u]: %.19s o=%u r=%u c=%u pk=%uM ref=%x\r\n",
+                          i, c.name, c.opens, c.refused, c.closes, c.peak_mib, c.last_refusal);
+        }
+    }
+    if (&native_adreno_metal_askers && n > 0 && static_cast<size_t>(n) < cap) {
+        bool any = false;
+        for (unsigned i = 0; i < 12u; ++i) if (native_adreno_metal_askers[i].name[0]) { any = true; break; }
+        if (any) {
+            n += snprintf(out + n, cap - static_cast<size_t>(n), "[usb] GPU[ASK]:");
+            for (unsigned i = 0; i < 12u && n > 0 && static_cast<size_t>(n) + 28u < cap; ++i) {
+                if (!native_adreno_metal_askers[i].name[0]) continue;
+                n += snprintf(out + n, cap - static_cast<size_t>(n), " %.19s(%u)",
+                              native_adreno_metal_askers[i].name, native_adreno_metal_askers[i].reads);
+            }
+            if (n > 0 && static_cast<size_t>(n) + 4u < cap) {
+                n += snprintf(out + n, cap - static_cast<size_t>(n), "\r\n");
+            }
         }
     }
     if (&native_adreno_metal_rows && n > 0 && static_cast<size_t>(n) < cap) {
         unsigned shown = 0;
-        for (unsigned r = 0; r < 48u && shown < 8u && n > 0 && static_cast<size_t>(n) < cap; ++r) {
+        for (unsigned r = 0; r < 48u && shown < 24u && n > 0 && static_cast<size_t>(n) < cap; ++r) {
             if (!native_adreno_metal_rows[r][0]) continue;
             n += snprintf(out + n, cap - static_cast<size_t>(n),
                           "[usb] GPU[MTBL%u]: %.95s\r\n", r, native_adreno_metal_rows[r]);
             ++shown;
+        }
+    }
+    if (gVa[GPB_WIN_GPU] && j716f_gpu_gx.gx_on && n > 0 && static_cast<size_t>(n) < cap) {
+        uint32_t rbbm = 0, rptr = 0, wptr = 0, hwf = 0, cpi = 0, int0 = 0;
+        uint32_t ib1lo = 0, ib1hi = 0, ib1rem = 0, ib2lo = 0, ib2hi = 0, ib2rem = 0;
+        (void)cpGpuRead(nullptr, 0x0210u, &rbbm);
+        (void)cpGpuRead(nullptr, 0x0806u, &rptr);
+        (void)cpGpuRead(nullptr, 0x0807u, &wptr);
+        (void)cpGpuRead(nullptr, 0x0821u, &hwf);
+        (void)cpGpuRead(nullptr, 0x0823u, &cpi);
+        (void)cpGpuRead(nullptr, 0x0201u, &int0);
+        (void)cpGpuRead(nullptr, 0x0928u, &ib1lo);
+        (void)cpGpuRead(nullptr, 0x0929u, &ib1hi);
+        (void)cpGpuRead(nullptr, 0x092Au, &ib1rem);
+        (void)cpGpuRead(nullptr, 0x092Bu, &ib2lo);
+        (void)cpGpuRead(nullptr, 0x092Cu, &ib2hi);
+        (void)cpGpuRead(nullptr, 0x092Du, &ib2rem);
+        uint32_t fsr = 0, farlo = 0, farhi = 0, fsynr0 = 0;
+        if (gSmmuFullMap) {
+            const volatile uint8_t *sb = reinterpret_cast<const volatile uint8_t *>(gSmmuFullMap->getVirtualAddress());
+            fsr = *reinterpret_cast<const volatile uint32_t *>(sb + 0x8058u);
+            farlo = *reinterpret_cast<const volatile uint32_t *>(sb + 0x8060u);
+            farhi = *reinterpret_cast<const volatile uint32_t *>(sb + 0x8064u);
+            fsynr0 = *reinterpret_cast<const volatile uint32_t *>(sb + 0x8068u);
+        }
+        n += snprintf(out + n, cap - static_cast<size_t>(n),
+                      "[usb] GPU[LIVE]: rbbm=%08x rp=%x wp=%x hwf=%08x cpi=%08x int0=%08x irq=%u/%08x/%08x cpe=%u(%x/%08x/%x/%08x) wc=%u\r\n",
+                      rbbm, rptr, wptr, hwf, cpi, int0, gIrqCount, gIrqSeen, gIrqLast,
+                      gCpErrCount, gCpErrStatus, gCpErrProtect, gCpErrSqePc, gCpErrSqeHdr,
+                      &native_adreno_wc_enabled ? native_adreno_wc_enabled : 9u);
+        if (n > 0 && static_cast<size_t>(n) < cap) {
+            n += snprintf(out + n, cap - static_cast<size_t>(n),
+                          "[usb] GPU[LIVE2]: ib1=%08x%08x/%x ib2=%08x%08x/%x fsr=%08x far=%08x%08x syn=%08x\r\n",
+                          ib1hi, ib1lo, ib1rem, ib2hi, ib2lo, ib2rem, fsr, farhi, farlo, fsynr0);
+        }
+    }
+    if (gCoherenceRow[0] && n > 0 && static_cast<size_t>(n) < cap) {
+        n += snprintf(out + n, cap - static_cast<size_t>(n),
+                      "[usb] GPU[COH]: %s | %s | coh=%u owned=%u skips=%u/%u/%u/%u\r\n",
+                      gCoherenceRow, gWalkRow[0] ? gWalkRow : "-",
+                      &native_adreno_io_coherent ? native_adreno_io_coherent : 0u,
+                      &native_adreno_owned_coherent ? native_adreno_owned_coherent : 0u,
+                      &native_adreno_coherent_skips ? native_adreno_coherent_skips[0] : 0u,
+                      &native_adreno_coherent_skips ? native_adreno_coherent_skips[1] : 0u,
+                      &native_adreno_coherent_skips ? native_adreno_coherent_skips[2] : 0u,
+                      &native_adreno_coherent_skips ? native_adreno_coherent_skips[3] : 0u);
+    }
+    if (&native_adreno_pool_state && native_adreno_pool_state[0] && n > 0 && static_cast<size_t>(n) < cap) {
+        n += snprintf(out + n, cap - static_cast<size_t>(n),
+                      "[usb] GPU[POOL]: runs=%u tot=%uK free=%uK lo=%uK live=%u(%uK) ok=%u rec=%u ret=%u(%uK) m=%u fb=%u/%u/%u/%u\r\n",
+                      native_adreno_pool_state[0], native_adreno_pool_state[1],
+                      native_adreno_pool_state[2], native_adreno_pool_state[3],
+                      native_adreno_pool_state[4], native_adreno_pool_state[5],
+                      native_adreno_pool_state[6], native_adreno_pool_state[7],
+                      native_adreno_pool_state[8], native_adreno_pool_state[9],
+                      native_adreno_pool_state[10],
+                      &native_adreno_pool_fallbacks ? native_adreno_pool_fallbacks[0] : 0u,
+                      &native_adreno_pool_fallbacks ? native_adreno_pool_fallbacks[2] : 0u,
+                      &native_adreno_pool_fallbacks ? native_adreno_pool_fallbacks[3] : 0u,
+                      &native_adreno_pool_fallbacks ? native_adreno_pool_fallbacks[6] : 0u);
+    }
+    if (&native_adreno_fence_wait && n > 0 && static_cast<size_t>(n) < cap) {
+        n += snprintf(out + n, cap - static_cast<size_t>(n),
+                      "[usb] GPU[FENCE]: c=%u to=%u last=%u gpu=%u sub=%u done=%u obs=%u bad=%u sw=%u/%u\r\n",
+                      native_adreno_fence_wait[0], native_adreno_fence_wait[1],
+                      native_adreno_fence_wait[2], native_adreno_fence_wait[3],
+                      native_adreno_fence_wait[4], native_adreno_fence_wait[5],
+                      native_adreno_fence_wait[6], native_adreno_fence_wait[7],
+                      &native_adreno_table_switches ? native_adreno_table_switches[0] : 0u,
+                      &native_adreno_table_switches ? native_adreno_table_switches[6] : 0u);
+    }
+    if (&native_adreno_stall && native_adreno_stall[0] && n > 0 && static_cast<size_t>(n) < cap) {
+        n += snprintf(out + n, cap - static_cast<size_t>(n),
+                      "[usb] GPU[STALL]: f=%u to=%u rbbm=%08x int0=%08x hwf=%08x rp=%x wp=%x ib1=%08x%08x/%x\r\n",
+                      native_adreno_stall[0], native_adreno_stall[1],
+                      native_adreno_stall[2], native_adreno_stall[6], native_adreno_stall[7],
+                      native_adreno_stall[10], native_adreno_stall[11],
+                      native_adreno_stall[13], native_adreno_stall[12], native_adreno_stall[14]);
+        if (&native_adreno_stall_mem && n > 0 && static_cast<size_t>(n) < cap) {
+            n += snprintf(out + n, cap - static_cast<size_t>(n),
+                          "[usb] GPU[SMEM]: fsr=%08x far=%08x%08x syn=%08x ib1[%u]=%08x %08x %08x %08x %08x %08x\r\n",
+                          native_adreno_stall_mem[0], native_adreno_stall_mem[2],
+                          native_adreno_stall_mem[1], native_adreno_stall_mem[3],
+                          native_adreno_stall_mem[4], native_adreno_stall_mem[5],
+                          native_adreno_stall_mem[6], native_adreno_stall_mem[7],
+                          native_adreno_stall_mem[8], native_adreno_stall_mem[9],
+                          native_adreno_stall_mem[10]);
+        }
+    }
+    if (&native_adreno_method_stats && n > 0 && static_cast<size_t>(n) < cap) {
+        n += snprintf(out + n, cap - static_cast<size_t>(n), "[usb] GPU[METH]:");
+        for (unsigned m = 1u; m <= 18u && n > 0 && static_cast<size_t>(n) + 28u < cap; ++m) {
+            if (!native_adreno_method_stats[m][0]) continue;
+            n += snprintf(out + n, cap - static_cast<size_t>(n), " %u=%u/%u(%x)",
+                          m, native_adreno_method_stats[m][0],
+                          native_adreno_method_stats[m][1], native_adreno_method_stats[m][2]);
+        }
+        if (n > 0 && static_cast<size_t>(n) + 2u < cap) {
+            n += snprintf(out + n, cap - static_cast<size_t>(n), "\r\n");
+        }
+    }
+    if (native_gpu_trace_enabled() && n > 0 && static_cast<size_t>(n) < cap) {
+        static uint8_t traceBuf[sizeof(NativeGpuTraceHeader) + 256u * sizeof(NativeGpuTraceRecord)];
+        const uint32_t got = native_gpu_trace_snapshot(traceBuf, static_cast<uint32_t>(sizeof(traceBuf)));
+        if (got >= sizeof(NativeGpuTraceHeader)) {
+            NativeGpuTraceHeader hdr = {};
+            memcpy(&hdr, traceBuf, sizeof(hdr));
+            n += snprintf(out + n, cap - static_cast<size_t>(n),
+                          "[usb] GPU[TRACE]: on=1 issued=%llu dropped=%llu cnt=%u\r\n",
+                          static_cast<unsigned long long>(hdr.issued),
+                          static_cast<unsigned long long>(hdr.dropped), hdr.count);
+            const uint32_t maxRecs = (got - static_cast<uint32_t>(sizeof(hdr))) /
+                                     static_cast<uint32_t>(sizeof(NativeGpuTraceRecord));
+            const uint32_t count = hdr.count < maxRecs ? hdr.count : maxRecs;
+            unsigned shown = 0;
+            for (uint32_t i = 0; i < count && shown < 48u && n > 0 && static_cast<size_t>(n) + 128u < cap; ++i) {
+                NativeGpuTraceRecord rec = {};
+                memcpy(&rec, traceBuf + sizeof(hdr) + i * sizeof(rec), sizeof(rec));
+                if (rec.event != GpuTraceProblem) continue;
+                char txt[89];
+                memcpy(txt, &rec.value[1], 88u);
+                txt[88] = '\0';
+                for (unsigned k = 0; k < 88u && txt[k]; ++k) {
+                    const unsigned char ch = static_cast<unsigned char>(txt[k]);
+                    if (ch < 0x20u || ch > 0x7Eu) txt[k] = ' ';
+                }
+                n += snprintf(out + n, cap - static_cast<size_t>(n),
+                              "[usb] GPU[TPROB%u]: pid=%u p=%llu '%s'\r\n",
+                              shown, rec.pid, static_cast<unsigned long long>(rec.value[0]), txt);
+                ++shown;
+            }
         }
     }
 }

@@ -232,6 +232,18 @@ def _replace_payload_size_mib(board_text: str, new_size_mib: int) -> tuple[str, 
     return updated, old_size
 
 
+def _replace_payload_timeout(board_text: str, new_timeout: int) -> tuple[str, int]:
+    pattern = re.compile(r"(?m)^(\s*timeout\s*=\s*)(-?\d+)(\s*)$")
+    match = pattern.search(board_text)
+    if not match:
+        raise ValueError("Could not find payload timeout in board.toml")
+    old_timeout = int(match.group(2))
+    if old_timeout == new_timeout:
+        return board_text, old_timeout
+    updated = pattern.sub(rf"\g<1>{new_timeout}\g<3>", board_text, count=1)
+    return updated, old_timeout
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     default_device = Path(__file__).resolve().parent.parent
     parser = argparse.ArgumentParser(
@@ -292,6 +304,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         choices=("default", "oc-like"),
         default=None,
         help="Optional UniXNU boot menu theme override (defaults to board.toml [payload] boot_menu_theme)",
+    )
+    parser.add_argument(
+        "--menu-timeout",
+        type=int,
+        default=1,
+        help="UniXNU boot menu auto-boot timeout in seconds for entry #1 (default: 1; 0=immediate; -1=wait forever)",
     )
     parser.add_argument(
         "--config-name",
@@ -405,7 +423,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         updated_board, old_size = _replace_payload_size_mib(orig_board, size_mib)
-        if old_size != size_mib:
+        updated_board, old_timeout = _replace_payload_timeout(updated_board, args.menu_timeout)
+        if updated_board != orig_board:
+            print(f"BOARD_TOML_OVERRIDE size_mib={old_size}->{size_mib} timeout={old_timeout}->{args.menu_timeout}")
             board_toml.write_text(updated_board, encoding="utf-8")
 
         subprocess.run(cmd_payload, cwd=core, env=env, check=True)

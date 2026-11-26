@@ -469,15 +469,16 @@ findings = [
   "Fixed arm64-apple-ios17.0 compilation and linking in j716f-gpu-addon.yml (pinned to UniXNU e7bddb9a7eec): guarded MTLBarrierScopeRenderTargets (API_UNAVAILABLE(ios)) in NativeBridgeMetalFrontend.mm and switched NativeMetalHostMapping.rs mach_vm_remap/mach_vm_deallocate/mach_vm_read_overwrite to runtime libc::dlsym(RTLD_DEFAULT) with vm_* fallback for public iphoneos SDK.",
   "Live TB-J716F hardware trials with new Phase 4b addon (run 45741988015) verified hardware IO coherence (H d64/64 a1 r1024/0 w1024/1024 -> on, coh=1, owned=1 with gpu-owned-coherent=1), 896 MiB WC GPU VRAM pool registration, 6/6 addon extraction, and NativeAdrenoMetal.bundle + Turnip + metal2vulkan loading in backboardd/mediaserverd/PhotosPosterProv; diagnosed metal2vulkan-runtime floor rejection to VkPhysicalDeviceVulkan12Features.storageBuffer8BitAccess (false on A650 a6xx_gen3 in Mesa freedreno_devices.py) and moved storage_buffer8_bit_access to OPTIONAL in j716f-gpu-addon.yml so metal2vulkan lowers 8-bit accesses cleanly via memory/leaf.rs.",
   "Hardware-verified Turnip Vulkan Compute + 3D Graphics rendering pixel-exact on TB-J716F Adreno 650 (run 45809542599 addon, stage-1 selftest on live iPadOS 17.7.11): GPU[MPLUG] r2='T s0 r0 v1024 c1024 g512/0' in both backboardd and mediaserverd (1024/1024 buffer copy, 1024/1024 compute shader words, 512/512 orange 3D triangle pixels with 0 wrong background pixels, 0 HW/CP/SMMU faults, 0 timeouts). Live published-mode crash tracing identified missing iOS 17 MTLLibrary SPI -[NBLibrary newFunctionWithName:constantValues:pipelineLibrary:error:] and backboardd exit reason 'Metal failed to build render pipeline'; patched j716f-gpu-addon.yml to implement pipelineLibrary: SPI, stream first backboardd render-pipeline refusal to GPU[MPLUG], and retain Registry in NativeMetalBridge.rs selftest().",
+  "Hardware-verified full Phase 4b Adreno 650 Metal 3D acceleration into live iPadOS 17.7.11 SpringBoard/Lock Screen on TB-J716F (CI run 45857557413, commit f325804): skipped UCHE_GMEM_RANGE_MIN/MAX writes on a650_family in J716fA650Cp.c (0-based GMEM addressing), added native_gpu_trace_snapshot GpuTraceProblem readout in J716fGpuProbe.cpp (GPU[TPROB*]) and --menu-timeout auto-boot (default 1 s to entry #1) in pack-j716f-gpu-addon.py, fixed iOS 17 backboardd EXC_GUARD (ns=25 code=0xdd) on dup2(fd, STDERR_FILENO) when diag=1/gpu-trace=1 is set, captured the exact untruncated backboardd pipeline refusal (com.apple.coreanimation.Pb3a8Xm_TlubA2Xhf_Isrc luma_boost_lph framebuffer-fetch on MTLPixelFormatRGB10A8_2P_XR10=550), and mapped XR10 render-pipeline color attachments (550..555) to RGBA16Float in j716f-gpu-addon.yml. Live COM9 + GSC1 verification confirmed colorful iPadOS 17.7.11 Lock Screen/SpringBoard wallpaper rendered by Adreno 650 Metal with backboardd/SpringBoard/WidgetRenderer/PhotosPosterProvider/CollectionsPoster alive, 247 Metal pipelines compiled, 140 render passes, 443 barriers, 76 GPU submits, 82 GPU IRQs, 31 per-process TTBR0 switches, 19/19 clean display swaps, 0 CP errors, and 0 SMMU faults (fsr=0x00000400).",
 ]
 completion = [
   "Adreno 650 GMU cold-start, ArmSmmu4K GPU/GMU contexts, CP/zap shader bring-up, full A650 KMD (Phase 3b + 4a), and AdrenoMetal/Turnip 3D acceleration (Phase 4b).",
 ]
 limits = [
-  "Phase 3b (Lenovo OEM-signed a650_zap.mbn TZ PAS 13 auth, trust 1->0, CP_MEMCPY 1023/1023, GPU SPI 300 IRQ, CP SMMU aperture) and Phase 4a (full A650 KMD, CP_SMMU_TABLE_UPDATE per-process TTBR0 switching, 32/32 NativeAdrenoABI v2 IOUserClient rounds) are hardware-verified on TB-J716F; Phase 4b userspace gpuaddon.bin (NativeAdrenoMetal.bundle + Mesa Turnip for arm64-apple-ios17.0) and j716f-gpu-metal=1 AGXAccelerator activation remain next.",
+  "Phase 4b Adreno 650 Metal 3D acceleration boots iPadOS 17.7.11 SpringBoard/Lock Screen with zero CP/SMMU faults; remaining Phase 4c polish items are mediaserverd Refused(AttachmentUsage { pixel_format: RGBA8Unorm }) / 75 MB memory watermark restarts, NativeAdrenoPool BO fallback investigation (fb[6]), fb-gpu=1 GPU scanout handoff validation, and persistent shader cache / DCVS tuning.",
 ]
 next_action = [
-  "Build Phase 4b userspace gpuaddon.bin (NativeAdrenoMetal.bundle + libvulkan_freedreno.dylib Mesa Turnip for A650 0x06050002 / iPadOS 17.7.11) on GitHub Actions macOS runner, wire GPU addon mount + sandbox grant, and enable j716f-gpu-metal=1.",
+  "Converge Phase 4c GPU polish: investigate mediaserverd AttachmentUsage (RGBA8Unorm), NativeAdrenoPool fallback cause, and fb-gpu=1 GPU scanout handoff on persistent Data store.",
 ]
 [[area.evidence]]
 kind = "source"
@@ -495,6 +496,12 @@ result = "Host ASan/UBSan unit test verifying modes 0..6 safety invariants and A
 kind = "source"
 reference = "package/gpu/J716fA650Cp.c"
 result = "Hardware-verified Phase 3 Mode 9 KGSL SMMU Bank 0 GPU context, A650 hw_init, SQE microcode load, and Ring 0 CP_ME_INIT / CP_MEM_WRITE"
+[[area.evidence]]
+kind = "device"
+reference = ".github/workflows/j716f-gpu-addon.yml"
+revision = "f3258044a5960ee5f8d0d4d86af5023d8a46a134"
+command = "boot_b with j716f-gpu=11 j716f-gpu-metal=1 gpu-addon=1 gpu-trace=1 --menu-timeout 1 (CI run 45857557413)"
+result = "Hardware-verified iPadOS 17.7.11 Lock Screen/SpringBoard rendered live by Adreno 650 Metal (247 pipelines, 140 passes, 76 submits, 82 IRQs, 31 TTBR0 switches, 19/19 swaps, 0 CP/SMMU faults)"
 
 [[area]]
 id = "network"

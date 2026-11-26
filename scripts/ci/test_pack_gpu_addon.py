@@ -149,6 +149,18 @@ class PackGpuAddonTests(unittest.TestCase):
             PACK.parse_args(base + ["--boot-menu-theme", "default"]).boot_menu_theme,
             "default",
         )
+        self.assertEqual(PACK.parse_args(base).menu_timeout, 1)
+        self.assertEqual(PACK.parse_args(base + ["--menu-timeout", "0"]).menu_timeout, 0)
+        self.assertEqual(PACK.parse_args(base + ["--menu-timeout", "-1"]).menu_timeout, -1)
+
+    def test_replace_payload_timeout(self) -> None:
+        sample = "[payload]\nsize_mib = 80\ntimeout = -1\ntools = true\n"
+        updated, old = PACK._replace_payload_timeout(sample, 1)
+        self.assertEqual(old, -1)
+        self.assertIn("timeout = 1\n", updated)
+        same, prev = PACK._replace_payload_timeout(updated, 1)
+        self.assertEqual(prev, 1)
+        self.assertEqual(same, updated)
 
 
 if __name__ == "__main__":

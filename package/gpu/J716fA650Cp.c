@@ -405,8 +405,8 @@ static int a650_hw_init(const J716fA650CpIo *io, const J716fA650CpConfig *cfg, J
         gw64(io, 0x0E05u, 0x0001FFFFFFFFFFC0ULL) ||
         gw64(io, 0x0E09u, 0x0001FFFFFFFFF000ULL) ||
         gw64(io, 0x0E07u, 0x0001FFFFFFFFF000ULL) ||
-        gw64(io, 0x0E0Bu, 0x01000000ULL) ||        /* UCHE_GMEM_RANGE_MIN (16 MiB) */
-        gw64(io, 0x0E0Du, 0x010FFFFFULL) ||        /* UCHE_GMEM_RANGE_MAX (16..17 MiB, 1 MiB GMEM) */
+        /* Linux a6xx_hw_init explicitly skips UCHE_GMEM_RANGE_MIN/MAX (0x0E0B/0x0E0D) on a650_family
+         * (ADRENO_6XX_GEN3 uses 0-based GMEM addressing, MSM_PARAM_GMEM_BASE = 0). */
         gw32(io, 0x0E18u, 0x0804u) || gw32(io, 0x0E17u, 0x4u) ||
         gw32(io, A650_REG_CP_ROQ_THRESH_2, 0x02000140u) ||
         gw32(io, A650_REG_CP_ROQ_THRESH_1, 0x8040362Cu) ||
