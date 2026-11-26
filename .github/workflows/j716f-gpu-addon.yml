@@ -206,6 +206,28 @@ jobs:
           )
           assert rp_desc_old in fe_txt, 'Expected render pipeline descriptor refusal log not found'
           fe_txt = fe_txt.replace(rp_desc_old, rp_desc_new, 1)
+          # Map Apple XR10 color attachment formats (550..555: RGB10A8_2P_XR10 / BGRA10_XR / BGR10_XR)
+          # to RGBA16Float (Apple's on-tile half4 representation) in render pipeline descriptors:
+          # metal2vulkan refuses framebuffer-fetch (e.g. iOS 17 QuartzCore luma_boost_lph on Pb3a8/f550)
+          # and blended pipelines on 550..555, and metal2vulkan-runtime cannot allocate 550..555 targets.
+          xr_old = (
+              ' for(unsigned i=0;i<8;i++) {\n'
+              '  MTLRenderPipelineColorAttachmentDescriptor *a=d.colorAttachments[i];\n'
+              '  p->colors[i]={(uint64_t)a.pixelFormat,(uint64_t)a.writeMask,(uint64_t)a.blendingEnabled,(uint64_t)a.sourceRGBBlendFactor,(uint64_t)a.destinationRGBBlendFactor,\n'
+              '      (uint64_t)a.rgbBlendOperation,(uint64_t)a.sourceAlphaBlendFactor,(uint64_t)a.destinationAlphaBlendFactor,(uint64_t)a.alphaBlendOperation};\n'
+              ' }\n'
+          )
+          xr_new = (
+              ' for(unsigned i=0;i<8;i++) {\n'
+              '  MTLRenderPipelineColorAttachmentDescriptor *a=d.colorAttachments[i];\n'
+              '  uint64_t fmt=(uint64_t)a.pixelFormat;\n'
+              '  if(fmt>=550 && fmt<=555)fmt=(uint64_t)MTLPixelFormatRGBA16Float;\n'
+              '  p->colors[i]={fmt,(uint64_t)a.writeMask,(uint64_t)a.blendingEnabled,(uint64_t)a.sourceRGBBlendFactor,(uint64_t)a.destinationRGBBlendFactor,\n'
+              '      (uint64_t)a.rgbBlendOperation,(uint64_t)a.sourceAlphaBlendFactor,(uint64_t)a.destinationAlphaBlendFactor,(uint64_t)a.alphaBlendOperation};\n'
+              ' }\n'
+          )
+          assert xr_old in fe_txt, 'Expected colorAttachments loop not found in NativeBridgeMetalFrontend.mm'
+          fe_txt = fe_txt.replace(xr_old, xr_new, 1)
           rp_why_old = (
               '  NSString *why=[NSString stringWithFormat:@"%@ | frag %@ linked %lu stitched %u/%u compiler %s",lastError(),d.fragmentFunction.name,\n'
               '      (unsigned long)d.fragmentLinkedFunctions.functions.count,gStitchMade.load(),gStitchMade.load()+gStitchFailed.load(),gCompilerLoaded];\n'
