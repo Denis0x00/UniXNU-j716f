@@ -4,7 +4,7 @@ schema_version = 1
 name = "j716f"
 soc = "SM8250"
 os_profile = "ipados-17.7.11-21H461"
-summary = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F, SM8250-AC) consolidated onto the official UniXNU Format 2 device repository layout alongside the r38 companion UEFI repository (Denis0x00/uefi-j716f). Hardware-verified through UEFI menu, retained early XNU logs (JXLG), real iPadOS 17.7.11 APFS root mount, 8-core Kryo 585 SMP + Edge scheduler + SM8250-AC EPSS CPUfreq/L3 scaling, GopFramebuffer + AppleKeyStoreState, Goodix GT7386 I2C touch, PM8150 SPMI hardware buttons (Power/VolUp/VolDown + lock/wake), kernel-side skip-setup plist seeding, and interactive iPadOS 17.7.11 SpringBoard desktop with wallpaper. Next milestones: persistent Data storage (converging onto ShengUfs), backlight/Wi-Fi/audio, and Adreno 650 GPU acceleration."
+summary = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F, SM8250-AC) consolidated onto the official UniXNU Format 2 device repository layout alongside the r38 companion UEFI repository (Denis0x00/uefi-j716f). Hardware-verified through UEFI oc-like menu, retained early XNU logs (JXLG), bare-metal DWC3 USB CDC-ACM debug terminal, real iPadOS 17.7.11 APFS root mount, opt-in persistent UFS Data (j716f-data-persist=2), 8-core Kryo 585 SMP + Edge scheduler + SM8250-AC EPSS CPUfreq/L3 scaling, GopFramebuffer + AppleKeyStoreState, Goodix GT7386 I2C touch, PM8150 SPMI hardware buttons, PM8150B battery/charger telemetry, Adreno 650 full KMD + AdrenoMetal/Turnip 3D acceleration, and fb-gpu=1 GPU scanout handoff with A650 RW-import IO-coherence. Next milestones: DSI backlight control, Wi-Fi/Bluetooth (QCA6390), audio, and upstream ShengUfs SM8250 convergence."
 
 [[area]]
 id = "configuration"
@@ -70,6 +70,7 @@ findings = [
   "Fixed j716f-ci.yml Stage 6 tree check to omit --os 17 so ./unixnu tree uses the active j716f_stage6_defconfig rather than [package.defconfig].",
   "Enabled upstream oc-like boot menu theme (boot_menu_theme = \"oc-like\") in board.toml [payload] and added optional --boot-menu-theme override to scripts/pack-j716f-gpu-addon.py; verified UiOcLike.c + FontOcLike.c compile into 7 MiB SILICIUM_UEFI.fd (FVMAIN_COMPACT 6% full, 448,944 / 7,340,032 bytes).",
   "Updated j716f-gpu-addon.yml to register 0001-a650-optional-storage-8bit.patch (moving storageBuffer8BitAccess from REQUIRED to OPTIONAL in metal2vulkan-runtime/src/floor.rs for Adreno 650 a6xx_gen3) and shorten NativeMetalBridge.rs refusal telemetry.",
+  "Extended patches/xnu/j716f-skip-setup.patch to create /private/var/db/com.apple.xpc.launchd and write root-owned 0644 files (including 0-byte disabled.migrated) for opt-in launchd lite=1 / disable-watchdogd=1 bring-up policies.",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -406,6 +407,7 @@ findings = [
   "Verified 100% byte-for-byte match of 21H461 IOHIDDevice vtable (207 slots, pure slot 180, C2/handleStart/handleReport) against kernelcache.decompressed (-0x1000000 slide).",
   "Integrated unmodified NativeHidInput.cpp alongside J716F Goodix GT7386 I2C touch driver (with strict SMMU slot 2/3/4 guard protecting UFS and Display) and PM8150 SPMI button driver.",
   "Hardware-verified Goodix GT7386 touch (frame 3 pt0=(2531,1263), HID report event=6 status=0x0, accurate coordinates and orientation) and PM8150 SPMI buttons (VolUp 0x4, VolDown 0x8, Power 0x2, sink=1 errs=0, display lock/wake powerstate0<->powerstate1) on TB-J716F SpringBoard desktop.",
+  "Updated package/input/J716fTouchProbe.cpp to use adaptive polling (4 ms while active touch contacts are present, 7 ms when idle) and hardware-verified 62 continuous swipe gestures / 784 HID touch events with 0 I2C errors on TB-J716F.",
 ]
 completion = [
   "Touchscreen and hardware keys deliver HID events to iPadOS userland.",
@@ -594,6 +596,7 @@ findings = [
   "Exported j716f_cpufreq_snapshot() from package/power/J716fCpuFreq.cpp to report live EPSS hardware MHz, perf votes, and LUT bounds over the USB debug terminal.",
   "Added opt-in PM8150B gen4 fuel gauge + SMB5 charger IOPMPowerSource driver (package/power/J716fBattery.cpp + J716fBatteryBoard.h, j716f-battery=1 read-only SPMI observer, late-init staged with zero __mod_init_func) verified against TB-J716F stock DTB (qcom,pm8150b@2) and host ASan/UBSan test J716fBatteryBoardTest.c; wired battery telemetry into USB Debug CLI.",
   "Hardware-verified PM8150B battery driver (j716f-battery=1) and live EPSS CPUfreq scaling (cpufreq=4) on TB-J716F iPadOS 17.7.11 SpringBoard desktop: IOPMPowerSource published with 0 errors (12%->11%, 3687mV->3634mV, -366mA/-961mA, charging bolt rendered in iPadOS status bar) and EPSS dynamically scaled A55 288..1804 MHz, A77 1286..2419 MHz, Prime 844..3187 MHz, L3 1612 MHz.",
+  "Updated package/power/J716fCpuFreq.cpp touch/button boost to also lift Domain 0 (4x Cortex-A55 E-cores running display, touch, and GPU fencePass work loops) during active touch interaction instead of leaving E-cores at 300 MHz.",
 ]
 completion = [
   "Clean OS reboot/shutdown, battery telemetry, and runtime PMGR/clock control.",
@@ -639,6 +642,7 @@ findings = [
   "Promoted Phase 4b GPU addon boot.img packer into scripts/pack-j716f-gpu-addon.py with full DarwinBoot trust-cache structural validation and host unit tests in scripts/ci/test_pack_gpu_addon.py.",
   "Promoted Stage 7+ desktop defconfig, verified desktop kernel_args, and [payload.install] into default board.toml for scripts/package.sh; updated scripts/pack-j716f-gpu-addon.py to auto-detect both j716f and j716f_stage7 output trees and added scripts/package.sh --no-deps --check verification in j716f-ci.yml.",
   "Added optional --boot-menu-theme override (default/oc-like) to scripts/pack-j716f-gpu-addon.py with unit test coverage in scripts/ci/test_pack_gpu_addon.py (37/37 Python tests passing) and verified 85,729,280-byte oc-like boot.img assembly on Linux VM.",
+  "Fixed scripts/pack-j716f-gpu-addon.py to strip leaked data-reset=1/data-fua=1 defaults from board.toml when assembling --data-persist 2 persistent UFS images (39/39 Python unit tests passing in scripts/ci/test_pack_gpu_addon.py).",
 ]
 completion = [
   "Reproducible single-command ./unixnu release packaging with verified boot.img and Data seed.",
@@ -707,6 +711,7 @@ findings = [
   "Expanded J716fUsbDebugCdc.cpp 'gpu' snapshot buffer to 6144 B (static) to fit all 26 Phase 3b + 4a Mode 10-11 diagnostic rows (ZAP, IRQ, KMD, UCWRAP, METAL).",
   "Added full SM8250/PM8150 reboot-mode control to USB Debug (J716fUsbDebugCdc.h/cpp and scripts/j716f-usb-debug.py: reboot [normal|bootloader|recovery|off], poweroff, and read-only reboot.probe writing PM8150 PON_SOFT_RB_SPARE 0x8F via SPMI EE0 + IMEM 0x146BF65C + PSCI_SYSTEM_RESET/OFF); hardware-verified hands-free 'reboot bootloader' from live iPadOS into fastboot (HA1Q9SKY, pon apid=13 own=0 rc=0) -> fastbootd -> boot_b flash.",
   "Extended J716fUsbDebugCdc.cpp 'status' and 'display' commands to report fb-gpu handoff readiness/fallback counters (NativeGOPPresenter) and persistent Data store state/GPT status.",
+  "Extended J716fUsbDebugCdc.cpp with live VM page breakdown (free/wire/act/inact/spec/purg), FB_CPUCOPY timing, FB_FMT/FB_SWAP counters, abandoned GPU swap count, and extended persistent DATA write/sync/flush/err telemetry; updated j716f-skip-setup.patch for root-owned /private/var/db/com.apple.xpc.launchd/disabled.plist seeding under lite=1.",
 ]
 completion = [
   "Reliable kernel log capture through root mount and early userland bring-up.",
