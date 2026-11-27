@@ -656,6 +656,7 @@ def main() -> None:
     keystore_src = ROOT / 'drivers/AppleKeyStoreState/NativeKeyStoreEvents.cpp'
     board_display_src = ROOT / 'kits/j716f/display/J716fLegacyDisplayProbe.cpp'
     board_keystore_src = ROOT / 'kits/j716f/display/J716fKeyStoreProbe.cpp'
+    board_backlight_src = ROOT / 'kits/j716f/display/J716fBacklight.cpp'
     input_dir = ROOT / 'kits/j716f/input'
     hid_src = input_dir / 'NativeHidInput.cpp'
     board_hid_src = input_dir / 'J716fHidInputProbe.cpp'
@@ -714,6 +715,8 @@ def main() -> None:
         keystore_src,
         board_display_src,
         board_keystore_src,
+        board_backlight_src,
+        board_display_src.parent / 'J716fBacklightDsi.h',
         hid_src,
         board_hid_src,
         touch_state_src,
@@ -933,6 +936,7 @@ def main() -> None:
     # 6. Compile J716F display, keystore, HID, touch, and button drivers
     board_display_obj = OUT / 'J716fLegacyDisplayProbe.o'
     board_keystore_obj = OUT / 'J716fKeyStoreProbe.o'
+    backlight_late = OUT / 'J716fBacklight.late.o'
     board_hid_obj = OUT / 'J716fHidInputProbe.o'
     touch_state_obj = OUT / 'J716fTouchState.o'
     touch_probe_obj = OUT / 'J716fTouchProbe.o'
@@ -1083,6 +1087,14 @@ def main() -> None:
 
     compile_cxx_from_record(record, board_display_src, board_display_obj, [], allow_warnings=False)
     compile_cxx_from_record(record, board_keystore_src, board_keystore_obj, [], allow_warnings=False)
+    compile_late_from_record(
+        record,
+        clang,
+        board_backlight_src,
+        backlight_late,
+        ['-I', str(board_display_src.parent)],
+        allow_warnings=False,
+    )
     compile_cxx_from_record(record, board_hid_src, board_hid_obj, ['-I', str(input_dir)], allow_warnings=False)
     compile_cxx_from_record(record, touch_state_src, touch_state_obj, ['-I', str(input_dir)], allow_warnings=False)
     compile_cxx_from_record(record, touch_probe_src, touch_probe_obj, ['-I', str(input_dir)], allow_warnings=True)
@@ -1243,6 +1255,7 @@ def main() -> None:
         keystore_late,
         hid_late,
         battery_late,
+        backlight_late,
         adreno_accel_late,
         bindings_obj,
         board_display_obj,
@@ -1280,6 +1293,8 @@ def main() -> None:
         keystore_src,
         board_display_src,
         board_keystore_src,
+        board_backlight_src,
+        board_display_src.parent / 'J716fBacklightDsi.h',
         hid_src,
         board_hid_src,
         touch_state_src,

@@ -26,6 +26,8 @@ extern uint32_t PE_j716f_klog_read(uint64_t from_seq, char *dst, uint32_t max_le
 extern void j716f_cpufreq_snapshot(char *out, size_t cap) __attribute__((weak_import));
 extern void j716f_battery_snapshot(char *out, size_t cap) __attribute__((weak_import));
 extern void j716f_gpu_snapshot(char *out, size_t cap) __attribute__((weak_import));
+extern void j716f_backlight_snapshot(char *out, size_t cap) __attribute__((weak_import));
+extern int j716f_backlight_set_override(uint32_t level, int lpm_override) __attribute__((weak_import));
 extern uint64_t sheng_cpu_idle_mach(int cpu) __attribute__((weak_import));
 
 extern volatile uint32_t armcpu_smp_running __attribute__((weak_import));
@@ -695,6 +697,33 @@ static void handleCommand(TerminalSession &s, const char *raw) {
             s.reply.writeStr(buf);
         } else {
             s.reply.writeStr("[usb] BATTERY: unavailable\r\n");
+        }
+    } else if (strEq(raw, "backlight") || strEq(raw, "bl") || strEq(raw, "bl.status")) {
+        if (&j716f_backlight_snapshot) {
+            j716f_backlight_snapshot(buf, sizeof(buf));
+            s.reply.writeStr(buf);
+        } else {
+            s.reply.writeStr("[usb] BACKLIGHT: unavailable\r\n");
+        }
+    } else if (strStarts(raw, "bl ")) {
+        if (&j716f_backlight_set_override) {
+            const char *p = raw + 3;
+            bool ok = false;
+            const uint32_t lvl = parseUint(p, &ok);
+            int lpmOvr = -1;
+            while (*p == ' ') ++p;
+            if (strEq(p, "lp") || strEq(p, "lpm")) lpmOvr = 1;
+            else if (strEq(p, "hs")) lpmOvr = 0;
+            if (!ok) {
+                s.reply.writeStr("[usb] BACKLIGHT: usage: bl <0..2047> [hs|lp]\r\n");
+            } else {
+                const int rc = j716f_backlight_set_override(lvl, lpmOvr);
+                snprintf(buf, sizeof(buf), "[usb] BACKLIGHT: set lvl=%u lpm_ovr=%d rc=%d\r\n",
+                         lvl, lpmOvr, rc);
+                s.reply.writeStr(buf);
+            }
+        } else {
+            s.reply.writeStr("[usb] BACKLIGHT: unavailable\r\n");
         }
     } else if (strEq(raw, "gpu") || strEq(raw, "gpu.status")) {
         if (&j716f_gpu_snapshot) {

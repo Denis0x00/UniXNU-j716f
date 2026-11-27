@@ -112,6 +112,8 @@ jobs:
           test -f "$TREE/kits/j716f/storage/r41/R41Entry.cpp"
           test -f "$TREE/kits/j716f/display/J716fLegacyDisplayProbe.cpp"
           test -f "$TREE/kits/j716f/display/J716fKeyStoreProbe.cpp"
+          test -f "$TREE/kits/j716f/display/J716fBacklight.cpp"
+          test -f "$TREE/kits/j716f/display/J716fBacklightDsi.h"
           test -f "$TREE/kits/j716f/input/NativeHidInput.cpp"
           test -f "$TREE/kits/j716f/input/J716fTouchProbe.cpp"
           test -f "$TREE/kits/j716f/input/J716fButtons.c"
@@ -345,6 +347,12 @@ jobs:
             "$STOR/r41/tests/J716fPersistentStoreTest.cpp" \
             -o "$OUT/test_persistent_store"
           "$OUT/test_persistent_store"
+
+          echo "=== Test 15: J716fBacklightDsi (SM8250 DSI v2.4 TPG FIFO DCS 0x51 11-bit backlight) ==="
+          clang -std=c11 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer \
+            "device/package/display/tests/J716fBacklightDsiTest.c" \
+            -o "$OUT/test_backlight_dsi"
+          "$OUT/test_backlight_dsi"
 
       - name: Run upstream GopFramebuffer fence-wait sanitizer regression check
         run: |

@@ -122,6 +122,7 @@ kernel_args = [
   "touch-hid=1",
   "j716f-touch=1",
   "j716f-buttons=1",
+  "j716f-backlight=1",
 ]
 timeout = -1
 boot_menu_theme = "oc-like"
