@@ -20,7 +20,7 @@ configs/
   j716f_stage7_defconfig       # Backwards-compatible alias of Stage 7+ desktop defconfig
 dts/j716f.dts                  # Board device tree (overlays socs/sm8250/dts/sm8250.dtsi)
 patches/xnu/                   # Board XNU patches (earlylog, verbose console, storage, APFS root probe, skip-setup)
-patches/unixnu-core/           # Board-level UniXNU core patches (AAPL,phandle, bootimg v2, components decouple, blob cache)
+patches/unixnu-core/           # Pending upstream UniXNU core patches (AAPL,phandle, bootimg v2)
 package/storage/               # SHNGROOT UFS window driver + volatile RAM / opt-in persistent UFS store + skip-setup plists
 package/display/               # Board probes for upstream GopFramebuffer (CPU + opt-in fb-gpu=1) & AppleKeyStoreState (aks=1)
 package/input/                 # Unmodified NativeHidInput (21H461 IOHIDDevice) + Goodix GT7386 I2C + PM8150 buttons

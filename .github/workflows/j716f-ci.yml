@@ -156,16 +156,12 @@ jobs:
           python3 - <<'PY'
           import tomllib
           from pathlib import Path
-          ct = tomllib.loads(Path('unixnu/components.toml').read_text(encoding='utf-8'))
-          by_id = {c['id']: c for c in ct['component']}
-          assert 'Sm8550Platform' not in by_id['Adreno740']['dependencies']
-          assert 'ShengNovatekTouch' not in by_id['ShengHidInput']['dependencies']
           board = tomllib.loads(Path('device/board.toml').read_text(encoding='utf-8'))
           cmdline = ' '.join(board['payload']['kernel_args'])
           assert len(cmdline) < 1000, f'kernel_args too long: {len(cmdline)}'
           install = board['payload']['install']
           assert install['confirm'] and len(install['confirm_titles']) == len(install['confirm_args'])
-          print(f'Verified board-level core patches and board.toml payload cmdline ({len(cmdline)} bytes)')
+          print(f'Verified board-level core patches (0001..0002) and board.toml payload cmdline ({len(cmdline)} bytes)')
           PY
           ln -sfn "$PWD/unixnu" "$PWD/UniXNU"
           device/scripts/package.sh --no-deps --check --os 17

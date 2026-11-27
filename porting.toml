@@ -72,13 +72,14 @@ findings = [
   "Updated j716f-gpu-addon.yml to register 0001-a650-optional-storage-8bit.patch (moving storageBuffer8BitAccess from REQUIRED to OPTIONAL in metal2vulkan-runtime/src/floor.rs for Adreno 650 a6xx_gen3) and shorten NativeMetalBridge.rs refusal telemetry.",
   "Extended patches/xnu/j716f-skip-setup.patch to create /private/var/db/com.apple.xpc.launchd and write root-owned 0644 files (including 0-byte disabled.migrated) for opt-in launchd lite=1 / disable-watchdogd=1 bring-up policies.",
   "Expanded j716f-ci.yml to verify package/display/J716fBacklight.cpp + J716fBacklightDsi.h staging and run Test 15 (J716fBacklightDsiTest under C11 ASan/UBSan covering SM8250 DSI v2.4 TPG FIFO DCS 0x51 11-bit big-endian framing and error/timeout paths); promoted j716f-backlight=1 into default board.toml [payload] kernel_args.",
+  "Dropped unnecessary local core patches 0003-components-decouple-board-dependencies.patch (already handled cleanly at board level via scripts/build-j716f-display-keystore.py without modifying upstream components.toml) and 0004-prepare-xnu-source-blob-cache.patch (optional cache), reducing pending patches/unixnu-core/ to 0001 (AAPL,phandle) and 0002 (Android bootimg v2) only.",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
 ]
 limits = [
   "Hardware bootimg assembly requires a user-supplied normalized stock DTB (DTB0 + DTBO1) and UNIXNU_UNIQUE_CHIP_ID outside Git.",
-  "Board-level UniXNU core patches (patches/unixnu-core/0001..0004) are maintained locally for real-hardware ADT, Android bootimg v2, components.toml decoupling, and offline blob caching while keeping default board.toml compatible with unmodified upstream UniXNU/UniXNU.",
+  "Two minimal pending upstream core patches (patches/unixnu-core/0001..0002) remain for real-hardware ADT AAPL,phandle emission and Android bootimg v2 assembly while keeping default board.toml compatible with unmodified upstream UniXNU/UniXNU.",
 ]
 next_action = [
   "Complete Phase 4b GPU addon hardware activation (j716f-gpu-metal=1), add unixnu GitHub topic, and converge storage onto upstream ShengUfs.",
@@ -99,14 +100,6 @@ result = "Board-level UniXNU core patch emitting AAPL,phandle aliases for XNU Fi
 kind = "source"
 reference = "patches/unixnu-core/0002-bootimg-support-header-version-2.patch"
 result = "Board-level UniXNU core patch adding Android boot header v2 support and offline layout unit tests"
-[[area.evidence]]
-kind = "source"
-reference = "patches/unixnu-core/0003-components-decouple-board-dependencies.patch"
-result = "Board-level UniXNU core patch decoupling Adreno740 and ShengHidInput from SM8550/sheng-specific component dependencies"
-[[area.evidence]]
-kind = "source"
-reference = "patches/unixnu-core/0004-prepare-xnu-source-blob-cache.patch"
-result = "Board-level UniXNU core patch adding SHA-1 blob caching to prepare-xnu-source.py"
 [[area.evidence]]
 kind = "host"
 reference = ".github/workflows/j716f-ci.yml"

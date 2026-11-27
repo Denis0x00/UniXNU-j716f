@@ -13,7 +13,7 @@ Pad Pro 2021 (`TB-J716F`, Snapdragon 870 / SM8250-AC), targeting iPadOS 17.7.11
   `UniXNU/scripts/porting-record.py`. Any non-markdown file change must belong
   to an area's `paths` and update that area's `findings` or `evidence`.
 - `configs/j716f_defconfig`: Default Stage 7+ desktop defconfig (`j716f_stage6_defconfig` preserves the minimal single-core APFS root baseline; `j716f_stage7_defconfig` is retained as a compatibility alias).
-- `patches/unixnu-core/`: Board-level patches applied to a clean upstream `UniXNU/UniXNU` checkout (`AAPL,phandle`, Android bootimg v2, `components.toml` board decoupling, XNU blob cache).
+- `patches/unixnu-core/`: Minimal pending upstream patches applied to a clean `UniXNU/UniXNU` checkout (`0001` `AAPL,phandle` ADT alias, `0002` Android bootimg v2).
 - `package/storage/`: Board read-only `SHNGROOT` UFS window driver staged into
   `kits/j716f/storage` during `./unixnu build package`.
 - `socs/sm8250/`: SM8250 SoC DTSI, config, UFS HCI/SMMU handoff library, and
