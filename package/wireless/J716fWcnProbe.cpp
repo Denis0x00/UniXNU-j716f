@@ -2885,6 +2885,31 @@ extern "C" int j716f_wcn_wifi_qmi_now(void) {
     return gState.wifiQmiErr;
 }
 
+extern "C" int j716f_wifi_stack_start(void) __attribute__((weak_import));
+
+extern "C" int j716f_wcn_wifi_prepare_for_ath11k(uint32_t *bar_addr_out, uint32_t *bar_size_out) {
+    ensureMapped();
+    /* Always cold-reset QCA6390 back to clean PBL over PCIe0 so ath11k owns MHI/BHIe from scratch. */
+    const int prc = j716f_wcn_wifi_probe_now();
+    if (prc != 0 || gState.wifiStage < 12 || (gState.epId & 0xFFFFu) != 0x17CBu) {
+        return prc ? prc : -19;
+    }
+    if (!gSmmu.va) return -12;
+    const struct smmu_io sio = {nullptr, smmuIoRead, smmuIoWrite};
+    const struct smmu_plan plan = smmu_plan_bypass(&sio, kPcie0EpSid, 0x80000000ULL, 0x7FFFFFFFULL);
+    gState.wifiSmmuSlot = static_cast<int>(plan.slot);
+    gState.wifiSmmuBank = static_cast<int>(plan.bank);
+    if (smmu_configure_bypass(&sio, &plan, kPcie0EpSid) != nullptr) {
+        return -5;
+    }
+    const uint32_t barAddr = gState.epBar0Assigned & ~0xFu;
+    const uint32_t barSize = ~(gState.epBar0Mask & ~0xFu) + 1u;
+    if (!barAddr || !barSize) return -19;
+    if (bar_addr_out) *bar_addr_out = barAddr;
+    if (bar_size_out) *bar_size_out = barSize;
+    return 0;
+}
+
 extern "C" void j716f_wcn_probe(void) {
     ensureMapped();
     unsigned btSvc = 0u;
@@ -2892,12 +2917,17 @@ extern "C" void j716f_wcn_probe(void) {
     if (btSvc >= 1u) {
         (void)j716f_wcn_bt_service_start();
     }
+    unsigned wifiStack = 0u;
+    PE_parse_boot_argn("j716f-wifi", &wifiStack, sizeof(wifiStack));
+    if (wifiStack >= 1u && &j716f_wifi_stack_start) {
+        (void)j716f_wifi_stack_start();
+    }
     unsigned mode = 0u;
     PE_parse_boot_argn("j716f-wcn", &mode, sizeof(mode));
     if (mode >= 1u && btSvc == 0u) {
         (void)j716f_wcn_bt_probe_now();
     }
-    if (mode >= 2u) {
+    if (mode >= 2u && wifiStack == 0u) {
         (void)j716f_wcn_wifi_probe_now();
     }
 }

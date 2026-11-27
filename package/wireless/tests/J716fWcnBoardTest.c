@@ -4,6 +4,9 @@
 #include "../J716fWcnBoard.h"
 #include "../J716fMhiBoot.h"
 #include "../J716fMhiQrtr.h"
+#include "../WifiScan.h"
+#include "../WifiScanResult.h"
+#include "../WifiScanPolicy.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -272,6 +275,38 @@ static void test_mhi_qrtr_and_qmi_wire(void) {
     assert(m3n == 7u + (3u + 8u) + (3u + 4u));
 }
 
+static void test_wifi_scan_and_policy(void) {
+    uint8_t caps[SHENG_WIFI_CAPS_BYTES];
+    sheng_wifi_caps_fill(caps);
+    assert((caps[SHENG_WIFI_CAP_NAMED_SCAN / 8u] & (1u << (SHENG_WIFI_CAP_NAMED_SCAN % 8u))) != 0u);
+    assert((caps[SHENG_WIFI_CAP_SCAN_DONE_EVENT / 8u] & (1u << (SHENG_WIFI_CAP_SCAN_DONE_EVENT % 8u))) != 0u);
+
+    assert(sheng_wifi_channel_mhz(1u, SHENG_WIFI_CHANNEL_2GHZ) == 2412u);
+    assert(sheng_wifi_channel_mhz(13u, SHENG_WIFI_CHANNEL_2GHZ) == 2472u);
+    assert(sheng_wifi_channel_mhz(36u, SHENG_WIFI_CHANNEL_5GHZ) == 5180u);
+    assert(sheng_wifi_channel_mhz(161u, SHENG_WIFI_CHANNEL_5GHZ) == 5805u);
+    assert(sheng_wifi_channel_mhz(0u, SHENG_WIFI_CHANNEL_2GHZ) == 0u);
+
+    struct sheng_wifi_scan_result sr;
+    memset(&sr, 0, sizeof(sr));
+    const uint8_t ie[6] = {0x00u, 0x04u, 'T', 'E', 'S', 'T'};
+    sheng_wifi_scan_result_stamp(&sr, ie, sizeof(ie), 1500u, 5000000000ULL, SHENG_WIFI_SCAN_RESULT_BYTES);
+    assert(sr.age_ms == 1500u);
+    assert(sr.timestamp == 3500000000ULL);
+    assert(sr.elements_length == sizeof(ie));
+    assert(memcmp(sr.elements, ie, sizeof(ie)) == 0);
+
+    struct sheng_wifi_air air;
+    memset(&air, 0, sizeof(air));
+    const uint32_t freqs[2] = {2412u, 5805u};
+    assert(sheng_wifi_scan_on_air(&air, ShengWifiLinkNone, 0ULL, false, freqs, 2u, 10000ULL));
+    assert(!sheng_wifi_scan_on_air(&air, ShengWifiLinkUp, 5000ULL, true, freqs, 2u, 10000ULL));
+    assert(sheng_wifi_scan_on_air(&air, ShengWifiLinkUp, 20000ULL, true, freqs, 2u, 30000ULL));
+    sheng_wifi_air_mark(&air, freqs, 2u, 30000ULL);
+    assert(!sheng_wifi_scan_on_air(&air, ShengWifiLinkUp, 25000ULL, true, freqs, 2u, 35000ULL));
+    assert(sheng_wifi_scan_on_air(&air, ShengWifiLinkUp, 55000ULL, true, freqs, 2u, 60000ULL));
+}
+
 int main(void) {
     test_qca6390_cmd_complete_parser();
     test_qca_vendor_event_parser();
@@ -281,6 +316,7 @@ int main(void) {
     test_ble_adv_parser();
     test_mhi_boot_state_machine();
     test_mhi_qrtr_and_qmi_wire();
-    puts("J716fWcnBoardTest: PASS (8 suites)");
+    test_wifi_scan_and_policy();
+    puts("J716fWcnBoardTest: PASS (9 suites)");
     return 0;
 }

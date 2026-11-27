@@ -123,6 +123,11 @@ jobs:
           test -f "$TREE/kits/j716f/wireless/J716fMhiQrtr.c"
           test -f "$TREE/kits/j716f/wireless/J716fBtTransport.h"
           test -f "$TREE/kits/j716f/wireless/J716fBtTransport.c"
+          test -f "$TREE/kits/j716f/wireless/J716fWifiNet.cpp"
+          test -f "$TREE/kits/j716f/wireless/J716fWifiStack.cpp"
+          test -f "$TREE/kits/j716f/wireless/nw_abi.h"
+          test -f "$TREE/kits/j716f/wireless/WifiScan.h"
+          test -f "$TREE/kits/j716f/wireless/ath11k/nw_wifi_ath11k.c"
           test -f "$TREE/kits/j716f/wireless/J716fWcnProbe.cpp"
           test -f "$TREE/kits/j716f/input/NativeHidInput.cpp"
           test -f "$TREE/kits/j716f/input/J716fTouchProbe.cpp"
@@ -140,6 +145,7 @@ jobs:
           test -f "$TREE/kits/j716f/usb/J716fUsbDebugCdc.cpp"
           test -f "$TREE/scripts/build-j716f-storage-active.py"
           test -f "$TREE/scripts/build-j716f-display-keystore.py"
+          test -f "$TREE/scripts/build-j716f-ath11k-wifi.py"
 
           # Stage 6 minimal bring-up baseline (preserved; omit --os so active defconfig is not overridden by [package.defconfig])
           ./unixnu defconfig j716f_stage6_defconfig -D "$DEVICE"

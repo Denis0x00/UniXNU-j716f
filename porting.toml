@@ -4,7 +4,7 @@ schema_version = 1
 name = "j716f"
 soc = "SM8250"
 os_profile = "ipados-17.7.11-21H461"
-summary = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F, SM8250-AC) consolidated onto the official UniXNU Format 2 device repository layout alongside the companion UEFI repository (Denis0x00/uefi-j716f). Hardware-verified through UEFI oc-like menu, 4.25 GiB XNU RAM + 909 MiB dynamic GPU VRAM pool + 64 MiB 32-bit WCN DMA arena, retained early XNU logs (JXLG), bare-metal DWC3 USB CDC-ACM debug terminal, real iPadOS 17.7.11 APFS root mount, opt-in persistent UFS Data (j716f-data-persist=2), 8-core Kryo 585 SMP + Edge scheduler + SM8250-AC EPSS CPUfreq/L3 scaling, zero-copy SM8250 DPU 6.0 direct scanout (dpu-scanout=2), RM692E6 DSI0 DCS CoreBrightness backlight, Goodix GT7386 I2C touch, PM8150 SPMI hardware buttons, PM8150B battery/charger telemetry, Adreno 650 full KMD + AdrenoMetal/Turnip 3D acceleration, QCA6390 Bluetooth 5.2 firmware download + live BLE scan + Skywalk com.apple.uart.sk.bluetooth kernel pipe (bluetoothd PID active), and QCA6390 Wi-Fi APPS SMMU SID 0x1C01 + MHI/BHIe amss20.bin Mission Mode + IPCR Ch20/21 QRTR/QMI WLFW (CAP/MEM/BDF bdwlan.elf/M3 m3.bin -> FW_INIT_DONE in 105 ms). Next milestones: ath11k + mac80211/cfg80211 + en0 Wi-Fi scan/connect, iPadOS BlueTool/bluetoothd userland adapter, native USB (QcomDwc3), ADSP audio, and upstream ShengUfs SM8250 convergence."
+summary = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F, SM8250-AC) consolidated onto the official UniXNU Format 2 device repository layout alongside the companion UEFI repository (Denis0x00/uefi-j716f). Hardware-verified through UEFI oc-like menu, 4.25 GiB XNU RAM + 909 MiB dynamic GPU VRAM pool + 64 MiB 32-bit WCN DMA arena, retained early XNU logs (JXLG), bare-metal DWC3 USB CDC-ACM debug terminal, real iPadOS 17.7.11 APFS root mount, opt-in persistent UFS Data (j716f-data-persist=2), 8-core Kryo 585 SMP + Edge scheduler + SM8250-AC EPSS CPUfreq/L3 scaling, zero-copy SM8250 DPU 6.0 direct scanout (dpu-scanout=2), RM692E6 DSI0 DCS CoreBrightness backlight, Goodix GT7386 I2C touch, PM8150 SPMI hardware buttons, PM8150B battery/charger telemetry, Adreno 650 full KMD + AdrenoMetal/Turnip 3D acceleration, QCA6390 Bluetooth 5.2 firmware download + live BLE scan + Skywalk com.apple.uart.sk.bluetooth kernel pipe (bluetoothd PID active), and QCA6390 Wi-Fi 6 Linux v7.0.14 ath11k + mac80211/cfg80211 + SM8250 PCIe0 SPI 141 hardware MSI + en0 Apple80211 bridge (102 channels, 18 live 2.4/5 GHz APs scanned, iPadOS wifid active). Next milestones: wpa_supplicant 2.12 WPA2/WPA3 association + DHCP internet (Stage C4b-2b), iPadOS BlueTool/bluetoothd userland adapter (Stage C3b-2), native USB (QcomDwc3), ADSP audio, and upstream ShengUfs SM8250 convergence."
 
 [[area]]
 id = "configuration"
@@ -76,6 +76,7 @@ findings = [
   "Raised board.toml owned_memory_size to 4.25 GiB (0x110000000) with owned_memory_outside_ranges = 8 and kern.maxvnodes = 70656 alongside companion uefi-j716f low/high RAM expansion; expanded j716f-ci.yml with Test 16 (J716fDpuSmmuTest) and Test 17 (J716fWcnBoardTest) under C11 ASan/UBSan.",
   "Updated j716f-ci.yml tree staging check and Test 17 to include package/wireless/J716fMhiBoot.h/.c alongside the expanded 7-suite J716fWcnBoardTest.c (NVM patcher, BLE advertising parser, and MHI/BHIe boot state machine).",
   "Updated j716f-ci.yml tree staging check and Test 17 to include package/wireless/J716fBtTransport.h/.c and J716fMhiQrtr.h/.c alongside the expanded 8-suite J716fWcnBoardTest.c (adding QRTR/QMI TLV wire codec tests).",
+  "Updated j716f-ci.yml tree staging check and Test 17 (9 suites) to include Stage C4b-2a ath11k adapters, J716fWifiNet.cpp, J716fWifiStack.cpp, scripts/build-j716f-ath11k-wifi.py, and Apple80211 WifiScan/WifiScanPolicy host sanitizer tests.",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -355,6 +356,7 @@ findings = [
   "Fixed boot-time screen blanking in J716fBacklight.cpp on iPadOS 17.7.11: CoreBrightness sends brightness=1024 followed 1-3 ms later by a dummy uncalibrated brightness-nits=0 metadata write in level mode; ignoring brightness-nits on iPadOS 17 keeps the display naturally lit at lvl=1024 on boot without requiring a power-button cycle.",
   "Extended scripts/build-j716f-display-keystore.py to compile package/wireless/J716fMhiBoot.c and optionally link local J716F_WCN_FIRMWARE_DIR blobs (htbtfw20.tlv, htnv20.bin, and .incbin qca6390/amss20.bin) while emitting 0-byte stubs in public/CI builds.",
   "Extended scripts/build-j716f-display-keystore.py to compile package/wireless/J716fMhiQrtr.c and J716fBtTransport.c (against XNU 17 kern_control.o.json flags) and optionally link local qca6390/m3.bin and qca6390/bdwlan.elf via .incbin with 0-byte CI stubs.",
+  "Extended scripts/build-j716f-display-keystore.py with optional J716F_ATH11K_ARCHIVE support to late-stage J716fWifiNet.cpp, compile J716fWifiStack.cpp, and unpack the 110-object freestanding libJ716fAth11kWifi.a into libNativeLegacyDisplay.late.a while keeping public/CI builds decoupled.",
 ]
 completion = [
   "Native XNU framebuffer/display driver (GopFramebuffer / IOMobileFramebufferLegacy) with Adreno 650 fb-gpu=1 scanout, RM692E6 DSI0 CoreBrightness backlight control, and AppleKeyStoreState (aks=1) render iPadOS WindowServer/SpringBoard cleanly on hardware.",
@@ -520,7 +522,7 @@ result = "Hardware-verified iPadOS 17.7.11 Lock Screen/SpringBoard rendered live
 id = "network"
 status = "device-verified"
 components = []
-paths = ["socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h", "socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c", "package/wireless/**"]
+paths = ["socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h", "socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c", "package/wireless/**", "scripts/build-j716f-ath11k-wifi.py"]
 inputs = [
   "TB-J716F Qualcomm QCA6390 (Hastings v2.0) Wi-Fi 6 / Bluetooth 5.1 combo chip (PCIe0 @ 0x01C00000, QMP PHY @ 0x01C06000, QUPv3 Wrap0 SE6 UART6 @ 0x00998000, TLMM_NORTH GPIOs 16..21/79..81/124) and USB-C gadget networking.",
 ]
@@ -539,6 +541,7 @@ findings = [
   "Hardware-verified Stage C4a QCA6390 Wi-Fi APPS SMMU + MHI/BHIe Mission Mode boot on TB-J716F over COM9 (wcn.wifi.fw, rc=0): programmed APPS SMMU SID 0x1C01 bypass on slot 1 / bank 73 (gfsr=0x0), mapped the reserved 16 MiB 32-bit Normal-NC DMA arena (0x9a800000, 9x 512 KiB segments for 4,372,624 B amss20.bin), executed QCA6390-specific ath11k reset/L1SS/MSI setup (GCC_GCC_PCIE_HOT_RST=0x1e402bc, L1SS 0x1e0c0ac/0x1e0c628, dynamic BHIEOFF=0x224, global reset 0x3008), and drove J716fMhiBoot through BHI SBL (0x80005eed), MHI READY/contexts/M0 (ev=5, msi sink=0x1), and BHIe full image load (0x80005eee) into AMSS Mission Mode (BHI_EE=0x2, st=0x2, ph=8, merr=0) in 452 ms.",
   "Hardware-verified Stage C3b-1 Bluetooth Skywalk kernel pipe on TB-J716F (package/wireless/J716fBtTransport.c + J716fWcnProbe.cpp wcn.bt.svc / j716f-bt=1): registered com.apple.uart.sk.bluetooth Skywalk nexus pipe, kern.qbt_* sysctls, IOService(bluetooth), and /chosen/mac-address-bluetooth0 (2e:14:77:d6:f2:60), with iPadOS 17 launchd bringing up bluetoothd (PID 82, st=2 err=0).",
   "Hardware-verified Stage C4b-1 QCA6390 Wi-Fi MHI IPCR Ch20/21 + QRTR + QMI WLFW handshake on TB-J716F over COM9 (package/wireless/J716fMhiQrtr.c + wcn.wifi.qmi, rc=0): discovered QMI WLFW service 7:1 (inst 257), completed IND_REGISTER/HOST_CAP/PHY_CAP (chip_family=0xb, board_id=0x0, macs=2, fw=0x101b84f8, WLAN.HST.1.0.1.r1-01272-QCAHSTSWPL_SILICONZ-1), fulfilled REQUEST_MEM (6016 KiB DDR + 864 KiB CALDB), downloaded bdwlan.elf (10 chunks, err=0x0) and m3.bin (266,684 B, err=0x0), and received QMI_WLFW_FW_INIT_DONE_IND (0x0038) in 105 ms (stg=9 err=0).",
+  "Hardware-verified Stage C4b-2a Linux v7.0.14 ath11k + mac80211/cfg80211 + en0 Apple80211 bridge on TB-J716F over COM9 (package/wireless/ath11k/*, J716fWifiStack.cpp, J716fWifiNet.cpp, scripts/build-j716f-ath11k-wifi.py, wcn.wifi.stack + wcn.wifi.scan): compiled 110 freestanding arm64-apple-ios17.0 objects (_nwk symbol isolation, 0 missing XNU symbols), booted QCA6390 through MHI/BHIe/QRTR/QMI/CE/HAL/HTC/WMI into ieee80211_register_hw in ~1.1 s with SM8250 PCIe0 DesignWare iMSI GIC SPI 141 attached (att=1 rc=0, 466 hardware MSIs, 39.7 MiB / 64 MiB DMA peak, 0 failures, 102 supported channels), published en0 (IO80211Interface, 219+ live iPadOS 17.7.11 wifid Apple80211 ioctls), and scanned 18 live 2.4 GHz (2412-2472 MHz) and 5 GHz (5240/5805 MHz) nearby access points.",
 ]
 completion = [
   "Working QCA6390 Bluetooth and Wi-Fi connectivity under iPadOS.",
@@ -739,6 +742,7 @@ findings = [
   "Added interactive 'dpu', 'wcn', 'wcn.bt', and 'wcn.wifi' diagnostics and CoreBrightness BL_PROP trace capture to J716fUsbDebugCdc.cpp, plus native_legacy_direct_snapshot() hook in screen.snapshot for zero-copy DPU screenshots.",
   "Added interactive 'wcn.bt.fw' (Stage C3a QCA6390 BT firmware download + BLE scan) and 'wcn.wifi.fw' (Stage C4a QCA6390 Wi-Fi SMMU + MHI/BHIe Mission Mode boot) commands to J716fUsbDebugCdc.cpp.",
   "Added interactive 'wcn.bt.svc' (Stage C3b-1 Bluetooth Skywalk pipe status/start) and 'wcn.wifi.qmi' (Stage C4b-1 MHI IPCR QRTR/QMI WLFW handshake) commands to J716fUsbDebugCdc.cpp.",
+  "Added interactive 'wcn.wifi.stack' (Stage C4b-2a ath11k + mac80211/cfg80211 + en0 bring-up & telemetry) and 'wcn.wifi.scan' (live 2.4/5 GHz Wi-Fi AP scan) commands to J716fUsbDebugCdc.cpp.",
 ]
 completion = [
   "Reliable kernel log capture through root mount and early userland bring-up.",

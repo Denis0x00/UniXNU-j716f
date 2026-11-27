@@ -663,6 +663,12 @@ def main() -> None:
     wcn_mhi_src = wireless_dir / 'J716fMhiBoot.c'
     wcn_qrtr_src = wireless_dir / 'J716fMhiQrtr.c'
     wcn_bt_sk_src = wireless_dir / 'J716fBtTransport.c'
+    wcn_wifi_net_src = wireless_dir / 'J716fWifiNet.cpp'
+    wcn_wifi_stack_src = wireless_dir / 'J716fWifiStack.cpp'
+    ath11k_archive_env = os.environ.get('J716F_ATH11K_ARCHIVE')
+    ath11k_archive = Path(ath11k_archive_env) if ath11k_archive_env else None
+    if ath11k_archive is not None:
+        require(ath11k_archive.is_file(), f'J716F_ATH11K_ARCHIVE does not exist: {ath11k_archive}')
     sm8250_platform_dir = (ROOT / 'kits/j716f').resolve().parent / 'socs/sm8250/kits/Sm8250Platform'
     sm8250_uart_src = sm8250_platform_dir / 'Sm8250GeniUart.c'
     input_dir = ROOT / 'kits/j716f/input'
@@ -1292,6 +1298,38 @@ def main() -> None:
         ['-I', str(wireless_dir), '-I', str(input_dir), '-I', str(sm8250_platform_dir)],
         allow_warnings=False,
     )
+    ath11k_extra_objs: list[Path] = []
+    if ath11k_archive is not None:
+        wcn_wifi_net_late = OUT / 'J716fWifiNet.late.o'
+        wcn_wifi_stack_obj = OUT / 'J716fWifiStack.o'
+        wifi_cxx_inc = [
+            '-I', str(wireless_dir),
+            '-I', str(ROOT / '.cache/xnu-work/bsd'),
+            '-I', str(ROOT / '.cache/xnu-work/libkern'),
+            '-I', str(ROOT / '.cache/xnu-work/EXTERNAL_HEADERS'),
+        ]
+        compile_late_from_record(
+            record,
+            clang,
+            wcn_wifi_net_src,
+            wcn_wifi_net_late,
+            wifi_cxx_inc,
+            allow_warnings=True,
+        )
+        compile_cxx_from_record(
+            record,
+            wcn_wifi_stack_src,
+            wcn_wifi_stack_obj,
+            wifi_cxx_inc,
+            allow_warnings=True,
+        )
+        ath11k_dir = OUT / 'ath11k_objs'
+        if ath11k_dir.exists():
+            shutil.rmtree(ath11k_dir)
+        ath11k_dir.mkdir(parents=True, exist_ok=True)
+        run([ar, 'x', str(ath11k_archive.resolve())], cwd=ath11k_dir)
+        ath11k_extra_objs = [wcn_wifi_net_late, wcn_wifi_stack_obj, *sorted(ath11k_dir.glob('*.o'))]
+        require(len(ath11k_extra_objs) >= 100, f'unexpected ath11k extracted object count: {len(ath11k_extra_objs)}')
     compile_cxx_from_record(record, board_hid_src, board_hid_obj, ['-I', str(input_dir)], allow_warnings=False)
     compile_cxx_from_record(record, touch_state_src, touch_state_obj, ['-I', str(input_dir)], allow_warnings=False)
     compile_cxx_from_record(record, touch_probe_src, touch_probe_obj, ['-I', str(input_dir)], allow_warnings=True)
@@ -1464,6 +1502,7 @@ def main() -> None:
         wcn_qrtr_obj,
         wcn_bt_sk_obj,
         wcn_probe_obj,
+        *ath11k_extra_objs,
         sm8250_uart_obj,
         board_hid_obj,
         touch_state_obj,
