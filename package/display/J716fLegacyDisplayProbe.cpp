@@ -112,6 +112,11 @@ volatile int j716f_legacy_client_status = -1;
 volatile uint32_t j716f_legacy_gpu_handoff_ready = 0;
 volatile uint32_t j716f_legacy_gpu_fallbacks = 0;
 volatile int j716f_legacy_gpu_last_status = 0;
+volatile uint32_t j716f_legacy_vsync_hz = 0;
+volatile uint32_t j716f_legacy_vsync_ticks = 0;
+volatile uint32_t j716f_legacy_copy_count = 0;
+volatile uint64_t j716f_legacy_copy_ticks_total = 0;
+volatile uint64_t j716f_legacy_copy_ticks_max = 0;
 
 bool native_legacy_prepare_scanout(void) {
   return !ml_at_interrupt_context() && ml_get_interrupts_enabled();
@@ -150,7 +155,12 @@ void native_legacy_frame_colors_observed(const uint32_t *, const uint64_t *, uin
 
 void native_legacy_swap_stage(unsigned) {}
 
-void native_legacy_vsync_observed(unsigned, unsigned) {}
+void native_legacy_vsync_observed(unsigned event, unsigned hz) {
+  if (hz) j716f_legacy_vsync_hz = hz;
+  if (event == 1u) {
+    __atomic_fetch_add(&j716f_legacy_vsync_ticks, 1U, __ATOMIC_RELAXED);
+  }
+}
 
 void native_legacy_swap_validation_observed(bool accepted, unsigned reason, const void *,
                                             const void *) {
@@ -165,7 +175,14 @@ void native_legacy_swap_validation_observed(bool accepted, unsigned reason, cons
   }
 }
 
-void native_legacy_copy_timing_observed(uint64_t, uint64_t) {}
+void native_legacy_copy_timing_observed(uint64_t ticks, uint64_t) {
+  __atomic_fetch_add(&j716f_legacy_copy_count, 1U, __ATOMIC_RELAXED);
+  __atomic_fetch_add(&j716f_legacy_copy_ticks_total, ticks, __ATOMIC_RELAXED);
+  for (uint64_t cur = __atomic_load_n(&j716f_legacy_copy_ticks_max, __ATOMIC_RELAXED);
+       ticks > cur && !__atomic_compare_exchange_n(&j716f_legacy_copy_ticks_max, &cur, ticks,
+                                                   true, __ATOMIC_RELAXED, __ATOMIC_RELAXED);) {
+  }
+}
 
 void native_legacy_transfer_observed(IOReturn status, const void *, uint64_t bytes) {
   const uint32_t calls = __atomic_fetch_add(&j716f_legacy_transfer_calls, 1U, __ATOMIC_RELAXED) + 1U;

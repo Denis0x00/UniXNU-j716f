@@ -162,6 +162,23 @@ class PackGpuAddonTests(unittest.TestCase):
         self.assertEqual(prev, 1)
         self.assertEqual(same, updated)
 
+    def test_strip_board_kernel_args(self) -> None:
+        sample = (
+            'kernel_args = [\n'
+            '  "serial=3",\n'
+            '  "data-reset=1",\n'
+            '  "data-fua=1",\n'
+            '  "aks=1",\n'
+            ']\n'
+            'confirm_args = ["data-reset=1", "data-reset=2"]\n'
+        )
+        updated, removed = PACK._strip_board_kernel_args(sample, ("data-reset", "data-fua"))
+        self.assertEqual(removed, ["data-reset=1", "data-fua=1"])
+        self.assertNotIn('  "data-reset=1",\n', updated)
+        self.assertNotIn('  "data-fua=1",\n', updated)
+        self.assertIn('confirm_args = ["data-reset=1", "data-reset=2"]\n', updated)
+        self.assertIn('  "aks=1",\n', updated)
+
 
 if __name__ == "__main__":
     unittest.main()

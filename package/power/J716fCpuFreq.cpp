@@ -311,11 +311,12 @@ void cpufreqThread(void *, wait_result_t) {
         want = 0;
         while (want + 1 < l.count && l.khz[want] < need) ++want;
       }
-      if (d > 0) {
+      if (boost) {
+        // Boost all 3 domains (including E-cores running display/touch/fencePass work loops) during touch interaction.
+        want = l.count - 1U;
+      } else if (d > 0) {
         quiet[d] = busy[d] < 100ULL ? quiet[d] + 1U : 0U;
-        if (boost) {
-          want = l.count - 1U;
-        } else if (quiet[d] < 12U) {
+        if (quiet[d] < 12U) {
           while (want + 1 < l.count && l.khz[want] * 2U < l.khz[l.count - 1U]) ++want;
         }
       }

@@ -91,12 +91,17 @@ extern volatile uint32_t native_adreno_cp_check[6] __attribute__((weak));
 extern volatile uint32_t native_adreno_io_coherent __attribute__((weak));
 extern volatile uint32_t native_adreno_wc_enabled __attribute__((weak));
 extern volatile uint32_t native_adreno_owned_coherent __attribute__((weak));
+extern volatile uint32_t native_adreno_import_rw_coherent __attribute__((weak));
 extern volatile uint32_t native_adreno_walk_coherent[3] __attribute__((weak));
 extern volatile uint32_t native_adreno_coherent_skips[4] __attribute__((weak));
 extern IOReturn native_adreno_pool_add(uint64_t physical, uint64_t bytes) __attribute__((weak));
 extern volatile uint32_t native_adreno_pool_state[12] __attribute__((weak));
 extern volatile uint32_t native_adreno_pool_fallbacks[8] __attribute__((weak));
 extern volatile uint32_t native_adreno_fence_wait[8] __attribute__((weak));
+extern volatile uint32_t native_adreno_job_time[8] __attribute__((weak));
+extern volatile uint64_t native_adreno_wait_outer[5] __attribute__((weak));
+extern volatile uint64_t native_adreno_fence_wake[8] __attribute__((weak));
+extern volatile uint64_t native_adreno_submit_us[8] __attribute__((weak));
 extern volatile uint32_t native_adreno_stall[2 + NativeAdrenoRingStallWords] __attribute__((weak));
 extern volatile uint32_t native_adreno_stall_mem[4 + 3 * 17 + 4] __attribute__((weak));
 extern volatile uint32_t native_adreno_method_stats[20][4] __attribute__((weak));
@@ -1155,13 +1160,18 @@ void publishA650MetalAccelerator() {
     accel->setProperty("MetalPluginName", "NativeAdrenoMetal");
     accel->setProperty("MetalPluginClassName", "NativeAdrenoMetalDevice");
     /* iPadOS 17 zzw-native-adreno-sandbox-grant.patch matches exact comma-separated process names
-     * (up to 16 chars each, no '*' wildcard). Include render server, SpringBoard, and Metal clients. */
+     * (up to 16 chars each, no '*' wildcard). Include render server, SpringBoard, and Metal clients.
+     * Deliberately exclude mediaserverd: its Metal path hits RGBA8Unorm attachment refusal and
+     * 75 MiB EXC_RESOURCE jetsam crash-loop (~15x/min), causing dyld unnest & UFS flush storms. */
     accel->setProperty(
         "NativeSandboxGrantProcess",
-        "backboardd,SpringBoard,mediaserverd,adrenoprobed,iconservicesagen,MTLCompilerServi,"
+        "backboardd,SpringBoard,adrenoprobed,iconservicesagen,MTLCompilerServi,"
         "PosterBoard,chronod,MobileSlideShow,Preferences,MobileSafari,com.apple.WebKit,"
         "UserEventAgent,CARenderServer,WindowServer,WidgetRenderer_D,PhotosPosterProv,"
-        "CollectionsPoste");
+        "CollectionsPoste,PridePosterExten,KaleidoscopePost,AegirPoster,UnityPosterExten,"
+        "GradientPosterEx,EmojiPosterExten,PhotosUIService,Spotlight,"
+        "MobileNotes,MobileTimer,MobileCal,Weather,Files,Maps,Books,Music,Tips,Reminders,"
+        "Contacts,Shortcuts");
     if (!accel->attach(IOService::getPlatform())) {
         accel->release();
         snprintf(row, cap, "METAL attach_err");
@@ -1625,9 +1635,15 @@ void runMode10And11Kmd() {
 
     if (&native_adreno_io_coherent) native_adreno_io_coherent = 0u;
     if (&native_adreno_owned_coherent) native_adreno_owned_coherent = 0u;
+    if (&native_adreno_import_rw_coherent) native_adreno_import_rw_coherent = 0u;
     runIoCoherenceProbe(vm);
     if (&native_adreno_io_coherent && native_adreno_io_coherent) {
         gA650DeviceInfo.flags |= NativeAdrenoDeviceCachedCoherent;
+        if (&native_adreno_import_rw_coherent) {
+            unsigned rwCoh = 0u;
+            PE_parse_boot_argn("gpu-import-rw-coherent", &rwCoh, sizeof(rwCoh));
+            native_adreno_import_rw_coherent = rwCoh ? 1u : 0u;
+        }
     }
 
     /* Register unused TB-J716F UEFI DRAM outside XNU's 3.5 GiB window (0xFFE00000..0x1DFE00000)
@@ -1924,10 +1940,11 @@ extern "C" void j716f_gpu_snapshot(char *out, size_t cap) {
     }
     if (gCoherenceRow[0] && n > 0 && static_cast<size_t>(n) < cap) {
         n += snprintf(out + n, cap - static_cast<size_t>(n),
-                      "[usb] GPU[COH]: %s | %s | coh=%u owned=%u skips=%u/%u/%u/%u\r\n",
+                      "[usb] GPU[COH]: %s | %s | coh=%u owned=%u rwimp=%u skips=%u/%u/%u/%u\r\n",
                       gCoherenceRow, gWalkRow[0] ? gWalkRow : "-",
                       &native_adreno_io_coherent ? native_adreno_io_coherent : 0u,
                       &native_adreno_owned_coherent ? native_adreno_owned_coherent : 0u,
+                      &native_adreno_import_rw_coherent ? native_adreno_import_rw_coherent : 0u,
                       &native_adreno_coherent_skips ? native_adreno_coherent_skips[0] : 0u,
                       &native_adreno_coherent_skips ? native_adreno_coherent_skips[1] : 0u,
                       &native_adreno_coherent_skips ? native_adreno_coherent_skips[2] : 0u,
@@ -1956,6 +1973,43 @@ extern "C" void j716f_gpu_snapshot(char *out, size_t cap) {
                       native_adreno_fence_wait[6], native_adreno_fence_wait[7],
                       &native_adreno_table_switches ? native_adreno_table_switches[0] : 0u,
                       &native_adreno_table_switches ? native_adreno_table_switches[6] : 0u);
+    }
+    if (&native_adreno_job_time && native_adreno_job_time[0] && n > 0 && static_cast<size_t>(n) < cap) {
+        n += snprintf(out + n, cap - static_cast<size_t>(n),
+                      "[usb] GPU[JOB]: n=%u stamp=%u >8ms=%u >16ms=%u >33ms=%u >100ms=%u max=%uus\r\n",
+                      native_adreno_job_time[0], native_adreno_job_time[1],
+                      native_adreno_job_time[2], native_adreno_job_time[3],
+                      native_adreno_job_time[4], native_adreno_job_time[5],
+                      native_adreno_job_time[6]);
+    }
+    if (&native_adreno_wait_outer && native_adreno_wait_outer[0] && n > 0 && static_cast<size_t>(n) < cap) {
+        const uint64_t avgUs = native_adreno_wait_outer[1] / native_adreno_wait_outer[0];
+        n += snprintf(out + n, cap - static_cast<size_t>(n),
+                      "[usb] GPU[WAIT]: n=%llu avg=%lluus max=%lluus pause=%llu fast=%llu | wake irq=%llu/%llu pass=%llu w=%llu slp=%llu to=%llu per=%llu\r\n",
+                      static_cast<unsigned long long>(native_adreno_wait_outer[0]),
+                      static_cast<unsigned long long>(avgUs),
+                      static_cast<unsigned long long>(native_adreno_wait_outer[3]),
+                      static_cast<unsigned long long>(native_adreno_wait_outer[2]),
+                      static_cast<unsigned long long>(native_adreno_wait_outer[4]),
+                      static_cast<unsigned long long>(&native_adreno_fence_wake ? native_adreno_fence_wake[0] : 0ULL),
+                      static_cast<unsigned long long>(&native_adreno_fence_wake ? native_adreno_fence_wake[1] : 0ULL),
+                      static_cast<unsigned long long>(&native_adreno_fence_wake ? native_adreno_fence_wake[2] : 0ULL),
+                      static_cast<unsigned long long>(&native_adreno_fence_wake ? native_adreno_fence_wake[3] : 0ULL),
+                      static_cast<unsigned long long>(&native_adreno_fence_wake ? native_adreno_fence_wake[4] : 0ULL),
+                      static_cast<unsigned long long>(&native_adreno_fence_wake ? native_adreno_fence_wake[5] : 0ULL),
+                      static_cast<unsigned long long>(&native_adreno_fence_wake ? native_adreno_fence_wake[6] : 0ULL));
+    }
+    if (&native_adreno_submit_us && native_adreno_submit_us[0] && n > 0 && static_cast<size_t>(n) < cap) {
+        const uint64_t cnt = native_adreno_submit_us[0];
+        n += snprintf(out + n, cap - static_cast<size_t>(n),
+                      "[usb] GPU[SUB]: n=%llu avg=%lluus (val=%llu wc=%llu pub=%llu log=%llu ring=%llu)\r\n",
+                      static_cast<unsigned long long>(cnt),
+                      static_cast<unsigned long long>(native_adreno_submit_us[6] / cnt),
+                      static_cast<unsigned long long>(native_adreno_submit_us[1] / cnt),
+                      static_cast<unsigned long long>(native_adreno_submit_us[2] / cnt),
+                      static_cast<unsigned long long>(native_adreno_submit_us[3] / cnt),
+                      static_cast<unsigned long long>(native_adreno_submit_us[4] / cnt),
+                      static_cast<unsigned long long>(native_adreno_submit_us[5] / cnt));
     }
     if (&native_adreno_stall && native_adreno_stall[0] && n > 0 && static_cast<size_t>(n) < cap) {
         n += snprintf(out + n, cap - static_cast<size_t>(n),

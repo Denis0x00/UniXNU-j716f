@@ -811,12 +811,15 @@ constexpr uint32_t kL2Shift = 10;
 constexpr uint32_t kL2Count = 1U << kL2Shift;
 constexpr uint32_t kL2Mask = kL2Count - 1U;
 constexpr uint32_t kMaxL1 = 4112;  // Covers up to 4,210,688 blocks (>16 GiB + overlay header/bitmap)
-constexpr uint32_t kMaxResidentPages = 131072;  // 512 MiB hard cap
+constexpr uint32_t kDefaultMaxResidentPages = 262144;  // 1024 MiB default cap (within 3.5 GiB owned RAM)
+constexpr uint32_t kMinResidentPages = 16384;          // 64 MiB floor
+constexpr uint32_t kMaxCapResidentPages = 393216;      // 1536 MiB ceiling
 
 IOLock *g_lock = nullptr;
 uint8_t ***g_l1 = nullptr;
 uint64_t g_total_blocks = 0;
 uint32_t g_resident_pages = 0;
+uint32_t g_max_resident_pages = kDefaultMaxResidentPages;
 bool g_open = false;
 
 bool g_ufs_open = false;
@@ -936,12 +939,20 @@ __attribute__((weak)) int native_ufs_store_open(uint64_t blocks, uint64_t *first
     if (why) *why = "ram-store-oom";
     return 0;
   }
+  unsigned cap_mb = 0;
+  if (PE_parse_boot_argn("j716f-ram-cap-mb", &cap_mb, sizeof(cap_mb)) && cap_mb > 0) {
+    if (cap_mb < 64U) cap_mb = 64U;
+    if (cap_mb > 1536U) cap_mb = 1536U;
+    g_max_resident_pages = cap_mb * 256U;
+  } else {
+    g_max_resident_pages = kDefaultMaxResidentPages;
+  }
   g_total_blocks = blocks;
   g_open = true;
   if (first) *first = 0;
   IOLockUnlock(g_lock);
   printf("[J716F r41] volatile RAM Data store opened: blocks=%llu cap=%uMiB (0 UFS writes)\n",
-         static_cast<unsigned long long>(blocks), (kMaxResidentPages * kBlockBytes) >> 20);
+         static_cast<unsigned long long>(blocks), (g_max_resident_pages * kBlockBytes) >> 20);
   return 1;
 }
 
@@ -996,6 +1007,9 @@ __attribute__((weak)) int native_ufs_store_write(uint64_t block, uint32_t count,
   }
   const uint8_t *in = static_cast<const uint8_t *>(src);
   IOLockLock(g_lock);
+  // Pre-count net page growth so multi-block APFS writes fail cleanly without partial corruption.
+  uint32_t need_new = 0;
+  uint32_t will_free = 0;
   for (uint32_t i = 0; i < count; ++i) {
     const uint64_t b = block + i;
     const uint32_t l1_idx = static_cast<uint32_t>(b >> kL2Shift);
@@ -1003,13 +1017,35 @@ __attribute__((weak)) int native_ufs_store_write(uint64_t block, uint32_t count,
     const uint8_t *src_page = in + static_cast<size_t>(i) * kBlockBytes;
     uint8_t **l2 = g_l1[l1_idx];
     uint8_t *page = l2 ? l2[l2_idx] : nullptr;
-    if (!page) {
-      if (isAllZero(src_page)) continue;
-      if (g_resident_pages >= kMaxResidentPages) {
-        IOLockUnlock(g_lock);
-        printf("[J716F r41] volatile RAM Data store full (%u pages)\n", g_resident_pages);
-        return 0;
+    const bool zero = isAllZero(src_page);
+    if (!page && !zero) {
+      ++need_new;
+    } else if (page && zero) {
+      ++will_free;
+    }
+  }
+  if (need_new > will_free && (need_new - will_free) > (g_max_resident_pages - g_resident_pages)) {
+    IOLockUnlock(g_lock);
+    printf("[J716F r41] volatile RAM Data store full (%u/%u pages, need +%u)\n",
+           g_resident_pages, g_max_resident_pages, need_new - will_free);
+    return 0;
+  }
+  for (uint32_t i = 0; i < count; ++i) {
+    const uint64_t b = block + i;
+    const uint32_t l1_idx = static_cast<uint32_t>(b >> kL2Shift);
+    const uint32_t l2_idx = static_cast<uint32_t>(b & kL2Mask);
+    const uint8_t *src_page = in + static_cast<size_t>(i) * kBlockBytes;
+    uint8_t **l2 = g_l1[l1_idx];
+    uint8_t *page = l2 ? l2[l2_idx] : nullptr;
+    if (isAllZero(src_page)) {
+      if (page) {
+        IOFree(page, kBlockBytes);
+        l2[l2_idx] = nullptr;
+        --g_resident_pages;
       }
+      continue;
+    }
+    if (!page) {
       if (!l2) {
         l2 = static_cast<uint8_t **>(IOMallocZero(static_cast<size_t>(kL2Count) * sizeof(uint8_t *)));
         if (!l2) {
@@ -1089,10 +1125,93 @@ int j716f_skip_setup_plist(unsigned index, const char **path, const uint8_t **da
                            unsigned *size) {
   constexpr unsigned kCount =
       static_cast<unsigned>(sizeof(kJ716fSkipSetupPlists) / sizeof(kJ716fSkipSetupPlists[0]));
-  if (index >= kCount) return 0;
-  if (path) *path = kJ716fSkipSetupPlists[index].path;
-  if (data) *data = kJ716fSkipSetupPlists[index].data;
-  if (size) *size = kJ716fSkipSetupPlists[index].size;
-  return 1;
+  if (index < kCount) {
+    if (path) *path = kJ716fSkipSetupPlists[index].path;
+    if (data) *data = kJ716fSkipSetupPlists[index].data;
+    if (size) *size = kJ716fSkipSetupPlists[index].size;
+    return 1;
+  }
+
+  /* Opt-in launchd lite policy (lite=1 or disable-watchdogd=1): disables network/iCloud/Siri/
+   * analytics/PerfPower/crash-loop daemons that have no radios or accounts on bring-up hardware
+   * and otherwise consume >1 GiB RAM and multiple CPU cores. Matches UniXNU-sheng BootWatchdogPolicy. */
+  unsigned lite = 0, noWd = 0;
+  PE_parse_boot_argn("lite", &lite, sizeof(lite));
+  PE_parse_boot_argn("disable-watchdogd", &noWd, sizeof(noWd));
+  if (!lite && !noWd) return 0;
+
+  if (index == kCount) {
+    static char policy[2400];
+    static unsigned policyLen = 0;
+    if (policyLen == 0) {
+      static const char kHead[] =
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+          "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" "
+          "\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+          "<plist version=\"1.0\"><dict>";
+      static const char *const kLiteJobs[] = {
+          "com.apple.watchdogd",
+          "com.apple.cameracaptured",
+          "com.apple.identityservicesd",
+          "com.apple.locationd",
+          "com.apple.CommCenter",
+          "com.apple.photoanalysisd",
+          "com.apple.mediaanalysisd",
+          "com.apple.mediastream.mstreamd",
+          "com.apple.icloud.searchpartyd",
+          "com.apple.findmy.findmybeaconingd",
+          "com.apple.familycircled",
+          "com.apple.financed",
+          "com.apple.softwareupdateservicesd",
+          "com.apple.ndoagent",
+          "com.apple.biomesyncd",
+          "com.apple.email.maild",
+          "com.apple.amsengagementd",
+          "com.apple.adid",
+          "com.apple.eyereliefd",
+          "com.apple.fairplayd.A2",
+          "com.apple.passd",
+          "com.apple.mobile.obliteration",
+          "com.apple.coreduetd",
+          "com.apple.PerfPowerServices",
+          "com.apple.PerfPowerServicesExtended",
+          "com.apple.perfpowermetricd",
+          "com.apple.siriinferenced",
+          "com.apple.siriknowledged",
+          "com.apple.siriactionsd",
+          "com.apple.duetexpertd",
+          "com.apple.modelcatalogd",
+      };
+      unsigned pos = 0;
+      auto append = [&](const char *s) {
+        while (*s && pos + 1u < sizeof(policy)) policy[pos++] = *s++;
+      };
+      append(kHead);
+      if (lite) {
+        for (const char *job : kLiteJobs) {
+          append("<key>");
+          append(job);
+          append("</key><true/>");
+        }
+      } else if (noWd) {
+        append("<key>com.apple.watchdogd</key><true/>");
+      }
+      append("</dict></plist>\n");
+      policy[pos] = '\0';
+      policyLen = pos;
+    }
+    if (path) *path = "/private/var/db/com.apple.xpc.launchd/disabled.plist";
+    if (data) *data = reinterpret_cast<const uint8_t *>(policy);
+    if (size) *size = policyLen;
+    return 1;
+  }
+  if (index == kCount + 1u) {
+    static const uint8_t kEmpty = 0;
+    if (path) *path = "/private/var/db/com.apple.xpc.launchd/disabled.migrated";
+    if (data) *data = &kEmpty;
+    if (size) *size = 0u;
+    return 1;
+  }
+  return 0;
 }
 }

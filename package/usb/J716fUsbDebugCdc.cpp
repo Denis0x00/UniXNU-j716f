@@ -46,12 +46,35 @@ extern volatile uint32_t j716f_legacy_transfer_calls __attribute__((weak_import)
 extern volatile uint32_t j716f_legacy_client_calls __attribute__((weak_import));
 extern volatile uint32_t j716f_legacy_gpu_handoff_ready __attribute__((weak_import));
 extern volatile uint32_t j716f_legacy_gpu_fallbacks __attribute__((weak_import));
+extern volatile uint32_t j716f_legacy_vsync_hz __attribute__((weak_import));
+extern volatile uint32_t j716f_legacy_vsync_ticks __attribute__((weak_import));
+extern volatile uint32_t j716f_legacy_copy_count __attribute__((weak_import));
+extern volatile uint64_t j716f_legacy_copy_ticks_total __attribute__((weak_import));
+extern volatile uint64_t j716f_legacy_copy_ticks_max __attribute__((weak_import));
 extern volatile uint64_t native_gop_gpu_offers __attribute__((weak_import));
 extern volatile uint64_t native_gop_gpu_completions __attribute__((weak_import));
+extern volatile uint64_t native_gop_gpu_abandoned __attribute__((weak_import));
+extern volatile uint32_t native_legacy_formats[10] __attribute__((weak_import));
+extern volatile uint32_t native_legacy_swapstat[16] __attribute__((weak_import));
+extern volatile uint64_t native_legacy_early_retires __attribute__((weak_import));
+extern volatile uint64_t native_legacy_swap_timeouts __attribute__((weak_import));
+extern unsigned int vm_page_free_count __attribute__((weak_import));
+extern unsigned int vm_page_wire_count __attribute__((weak_import));
+extern unsigned int vm_page_active_count __attribute__((weak_import));
+extern unsigned int vm_page_inactive_count __attribute__((weak_import));
+extern unsigned int vm_page_speculative_count __attribute__((weak_import));
+extern unsigned int vm_page_purgeable_count __attribute__((weak_import));
 extern volatile uint32_t native_data_persist_state __attribute__((weak_import));
+extern volatile uint32_t native_data_persist_header __attribute__((weak_import));
 extern volatile uint32_t native_data_persist_gpt __attribute__((weak_import));
+extern volatile uint32_t native_data_persist_gpt_after __attribute__((weak_import));
+extern volatile uint32_t native_data_write_back __attribute__((weak_import));
 extern volatile uint64_t native_data_persist_first_lba __attribute__((weak_import));
 extern volatile uint64_t native_data_persist_present __attribute__((weak_import));
+extern volatile uint64_t native_data_persist_writes __attribute__((weak_import));
+extern volatile uint64_t native_data_persist_syncs __attribute__((weak_import));
+extern volatile uint64_t native_data_persist_errors __attribute__((weak_import));
+extern volatile uint64_t native_data_flushes __attribute__((weak_import));
 
 extern volatile uint32_t j716f_hid_events[8] __attribute__((weak_import));
 extern volatile unsigned native_touch_stage __attribute__((weak_import));
@@ -608,7 +631,16 @@ static void handleCommand(TerminalSession &s, const char *raw) {
             s.reply.writeStr(buf);
         }
         snprintf(buf, sizeof(buf),
-                 "[usb] FB: stage=%u frames=%u swap=%u/%u xfer=%u clients=%u fb_gpu=%u gop_gpu=%llu/%llu fb=%u\r\n",
+                 "[usb] VM: free=%uM wire=%uM act=%uM inact=%uM spec=%uM purg=%uM\r\n",
+                 (&vm_page_free_count ? vm_page_free_count : 0u) >> 8,
+                 (&vm_page_wire_count ? vm_page_wire_count : 0u) >> 8,
+                 (&vm_page_active_count ? vm_page_active_count : 0u) >> 8,
+                 (&vm_page_inactive_count ? vm_page_inactive_count : 0u) >> 8,
+                 (&vm_page_speculative_count ? vm_page_speculative_count : 0u) >> 8,
+                 (&vm_page_purgeable_count ? vm_page_purgeable_count : 0u) >> 8);
+        s.reply.writeStr(buf);
+        snprintf(buf, sizeof(buf),
+                 "[usb] FB: stage=%u frames=%u swap=%u/%u xfer=%u clients=%u fb_gpu=%u gop_gpu=%llu/%llu ab=%llu fb=%u\r\n",
                  &j716f_legacy_stage ? j716f_legacy_stage : 0u,
                  &j716f_legacy_frame_count ? j716f_legacy_frame_count : 0u,
                  &j716f_legacy_swap_accepted ? j716f_legacy_swap_accepted : 0u,
@@ -618,14 +650,22 @@ static void handleCommand(TerminalSession &s, const char *raw) {
                  &j716f_legacy_gpu_handoff_ready ? j716f_legacy_gpu_handoff_ready : 0u,
                  static_cast<unsigned long long>(&native_gop_gpu_offers ? native_gop_gpu_offers : 0ULL),
                  static_cast<unsigned long long>(&native_gop_gpu_completions ? native_gop_gpu_completions : 0ULL),
+                 static_cast<unsigned long long>(&native_gop_gpu_abandoned ? native_gop_gpu_abandoned : 0ULL),
                  &j716f_legacy_gpu_fallbacks ? j716f_legacy_gpu_fallbacks : 0u);
         s.reply.writeStr(buf);
         snprintf(buf, sizeof(buf),
-                 "[usb] DATA: state=%u gpt=%u first_lba=%llu present=%llu\r\n",
+                 "[usb] DATA: state=%u hdr=%u gpt=%u/%u wb=%u first_lba=%llu present=%llu wr=%llu sync=%llu fl=%llu err=%llu\r\n",
                  &native_data_persist_state ? native_data_persist_state : 0u,
+                 &native_data_persist_header ? native_data_persist_header : 9u,
                  &native_data_persist_gpt ? native_data_persist_gpt : 0xffu,
+                 &native_data_persist_gpt_after ? native_data_persist_gpt_after : 0xffu,
+                 &native_data_write_back ? native_data_write_back : 0u,
                  static_cast<unsigned long long>(&native_data_persist_first_lba ? native_data_persist_first_lba : 0ULL),
-                 static_cast<unsigned long long>(&native_data_persist_present ? native_data_persist_present : 0ULL));
+                 static_cast<unsigned long long>(&native_data_persist_present ? native_data_persist_present : 0ULL),
+                 static_cast<unsigned long long>(&native_data_persist_writes ? native_data_persist_writes : 0ULL),
+                 static_cast<unsigned long long>(&native_data_persist_syncs ? native_data_persist_syncs : 0ULL),
+                 static_cast<unsigned long long>(&native_data_flushes ? native_data_flushes : 0ULL),
+                 static_cast<unsigned long long>(&native_data_persist_errors ? native_data_persist_errors : 0ULL));
         s.reply.writeStr(buf);
         snprintf(buf, sizeof(buf),
                  "[usb] INPUT: touch_stage=%u strokes=%u hid_touch=%u hid_btn=%u btn_mask=0x%x btn_chg=%u\r\n",
@@ -698,7 +738,7 @@ static void handleCommand(TerminalSession &s, const char *raw) {
         PE_Video v = {};
         (void)PE_current_console(&v);
         snprintf(buf, sizeof(buf),
-                 "[usb] FB: stage=%u gop=%lux%lu base=0x%lx row=%lu frames=%u swap=%u/%u xfer=%u clients=%u fb_gpu=%u gop_gpu=%llu/%llu fb=%u\r\n",
+                 "[usb] FB: stage=%u gop=%lux%lu base=0x%lx row=%lu frames=%u swap=%u/%u xfer=%u clients=%u fb_gpu=%u gop_gpu=%llu/%llu ab=%llu fb=%u vsync=%uHz/%u\r\n",
                  &j716f_legacy_stage ? j716f_legacy_stage : 0u,
                  v.v_width, v.v_height, v.v_baseAddr, v.v_rowBytes,
                  &j716f_legacy_frame_count ? j716f_legacy_frame_count : 0u,
@@ -709,8 +749,38 @@ static void handleCommand(TerminalSession &s, const char *raw) {
                  &j716f_legacy_gpu_handoff_ready ? j716f_legacy_gpu_handoff_ready : 0u,
                  static_cast<unsigned long long>(&native_gop_gpu_offers ? native_gop_gpu_offers : 0ULL),
                  static_cast<unsigned long long>(&native_gop_gpu_completions ? native_gop_gpu_completions : 0ULL),
-                 &j716f_legacy_gpu_fallbacks ? j716f_legacy_gpu_fallbacks : 0u);
+                 static_cast<unsigned long long>(&native_gop_gpu_abandoned ? native_gop_gpu_abandoned : 0ULL),
+                 &j716f_legacy_gpu_fallbacks ? j716f_legacy_gpu_fallbacks : 0u,
+                 &j716f_legacy_vsync_hz ? j716f_legacy_vsync_hz : 0u,
+                 &j716f_legacy_vsync_ticks ? j716f_legacy_vsync_ticks : 0u);
         s.reply.writeStr(buf);
+        if (&native_legacy_formats && &native_legacy_swapstat) {
+            snprintf(buf, sizeof(buf),
+                     "[usb] FB_FMT: bgra=%u cmp=%u rgha=%u ref=%u(%x) gpu8=%u gpu16=%u cpu8=%u cpu16=%u | early=%llu swto=%llu qmax=%u busy=%u\r\n",
+                     native_legacy_formats[0], native_legacy_formats[1], native_legacy_formats[2],
+                     native_legacy_formats[3], native_legacy_formats[4],
+                     native_legacy_formats[6], native_legacy_formats[7],
+                     native_legacy_formats[8], native_legacy_formats[9],
+                     static_cast<unsigned long long>(&native_legacy_early_retires ? native_legacy_early_retires : 0ULL),
+                     static_cast<unsigned long long>(&native_legacy_swap_timeouts ? native_legacy_swap_timeouts : 0ULL),
+                     native_legacy_swapstat[15], native_legacy_swapstat[2]);
+            s.reply.writeStr(buf);
+        }
+        const uint32_t cc = &j716f_legacy_copy_count ? j716f_legacy_copy_count : 0u;
+        if (cc) {
+            uint64_t avgNs = 0, maxNs = 0;
+            const uint64_t tot = &j716f_legacy_copy_ticks_total ? j716f_legacy_copy_ticks_total : 0ULL;
+            const uint64_t mx = &j716f_legacy_copy_ticks_max ? j716f_legacy_copy_ticks_max : 0ULL;
+            absolutetime_to_nanoseconds(tot / cc, &avgNs);
+            absolutetime_to_nanoseconds(mx, &maxNs);
+            snprintf(buf, sizeof(buf), "[usb] FB_CPUCOPY: n=%u avg=%llu.%llums max=%llu.%llums\r\n",
+                     cc,
+                     static_cast<unsigned long long>(avgNs / 1000000ULL),
+                     static_cast<unsigned long long>((avgNs / 100000ULL) % 10ULL),
+                     static_cast<unsigned long long>(maxNs / 1000000ULL),
+                     static_cast<unsigned long long>((maxNs / 100000ULL) % 10ULL));
+            s.reply.writeStr(buf);
+        }
     } else if (strEq(raw, "touch") || strEq(raw, "input") || strEq(raw, "input.status")) {
         snprintf(buf, sizeof(buf),
                  "[usb] TOUCH: stage=%u strokes=%u btn_mask=0x%x btn_chg=%u btn_err=%d\r\n",

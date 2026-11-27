@@ -277,15 +277,17 @@ findings = [
   "Hardware-verified Stage 7+ RAM-store boot_b image (2274a64d..., log e1d6a856...): disk5s1 (E146D844-B009-41DE-900A-8E49DCFEBA81) completed 140+ APFS tx flushes (up to xid 145) cleanly and booted to the real iPadOS 17.7.11 Hello screen. After xid 145, disk1 reported an I/O error (err=16) followed by disk1/disk3 'device is not ready' due to R41UfsTransport permanent quarantine (command_max_polls=200000 tight busy-poll / 2s timeout under CPU0 load).",
   "Hardware-verified R41UfsTransport poll-yield/retry hardening + kernel-side j716f-skip-setup=1 (ce4e1a65..., log 2dfe083b...): eliminated post-Hello UFS quarantine (0 UFS errors, disk5 reached xid 245 / 240+ APFS flushes) and booted straight into iPadOS 17.7.11 SpringBoard desktop.",
   "Implemented opt-in persistent UFS Data store (j716f-data-persist=1 RO probe / =2 RW direct, strictly OFF by default so normal boots keep the 512 MiB volatile RAM store with 0 UFS writes) in R41UfsTransport and R41Entry.cpp: one-shot immutable WriteWindow strictly bounded between SHNGROOT + 64 MiB guard and userdata_end - 1 GiB tail reserve, defense-in-depth WRITE(10) FUA/cached + SYNCHRONIZE CACHE(10) UPIU allow-list, real LUN 0 LBA 1 GPT CRC32 check in native_ufs_store_gpt_check(), and permanent write lockout on quarantine; verified under ASan/UBSan by Test 14 (J716fPersistentStoreTest.cpp) on full 128 GiB TB-J716F LUN 0 geometry.",
+  "Hardware-verified opt-in UFS persistent Data (j716f-data-persist=1 RO probe -> j716f-data-persist=2 data-reset=1 fresh init -> multi-reboot j716f-data-persist=2 resume) on live TB-J716F hardware: DATA state=2 hdr=0 gpt=0/0 wb=1 first_lba=26236794 present=281505 (~1.1 GiB persisted cleanly across reboots) wr=33809 sync=4498 fl=144 err=0, with pack-j716f-gpu-addon.py stripping leaked data-reset=1/data-fua=1 board.toml defaults when packing --data-persist 2 images.",
+  "Added opt-in launchd lite=1 / disable-watchdogd=1 policy in R41Entry.cpp + j716f-skip-setup.patch (seeding /private/var/db/com.apple.xpc.launchd/disabled.plist + disabled.migrated as root 0644 before launchd) and raised volatile RAM Data store default cap from 512 MiB to 1024 MiB (j716f-ram-cap-mb) with zero-page reclamation.",
 ]
 completion = [
   "XNU mounts APFS root volume via IOBlockStorageDevice and supports opt-in persistent UFS Data writeback (converging onto upstream ShengUfs).",
 ]
 limits = [
-  "SHNGROOT root windows remain strictly read-only; persistent UFS Data writeback (j716f-data-persist=2) is host/ASan-verified and awaits first live tablet trial (default remains volatile 512 MiB RAM store).",
+  "SHNGROOT root windows remain strictly read-only; persistent UFS Data writeback (j716f-data-persist=2) is opt-in and hardware-verified while default board.toml remains volatile RAM store (0 UFS writes).",
 ]
 next_action = [
-  "Run first live hardware trial with j716f-data-persist=1 (RO probe) followed by j716f-data-persist=2 (RW persistence across reboot) and converge onto upstream ShengUfs SM8250.",
+  "Converge onto upstream ShengUfs SM8250 when ready.",
 ]
 [[area.evidence]]
 kind = "source"
@@ -347,15 +349,16 @@ findings = [
   "Extended build-j716f-display-keystore.py (31 objects) to compile J716fA650Cp.c, unmodified upstream kits/AdrenoPM4/AdrenoPM4.c, and optional local a650_sqe.fw embedding (J716F_SQE_FIRMWARE / J716F_GPU_FIRMWARE_DIR, 0-byte public stub by default) with -Werror into libNativeLegacyDisplay.late.a.",
   "Extended build-j716f-display-keystore.py (53 objects, 248 verified 21H461 bindings) with dynamic 21H461 IOAcceleratorES ABI auditing (C2/D2/getMetaClass SHA-256 + vtable check), late-staged NativeAdrenoAccelerator (AGXAccelerator, zero __mod_init_func), 13 unmodified upstream drivers/Adreno740 KMD objects, all ArmSmmu4K objects, A650 ZAP/IRQ/Ring/GpuContext adapters, and optional local a650_zap.mbn embedding.",
   "Wired opt-in fb-gpu=1 NativeGOPPresenter handoff in J716fLegacyDisplayProbe.cpp (attaching to IOService::getResourceService() with native_gop_presenter_set_source(handoff, nub) and forwarding native_legacy_gpu_offer -> native_gop_gpu_offer, default OFF keeping CPU GOP scanout unchanged) and extracted TB-J716F stock DTS panel inventory: EDO RM692E6 AMOLED WQXGA command-mode dual-DSI panel (0x500 x 2 = 2560x1600 @ 90 Hz, dcs-cmd-by-left backlight).",
+  "Hardware-verified fb-gpu=1 Adreno 650 GPU scanout handoff + vsync=90 vsync-fixed=1 + native_gop_handoff_abandon() clientClose deadlock fix on live TB-J716F (2606/2606 consecutive GPU scanout frames, 0 fallbacks, 0 abandoned, v4/0 pixel-exact readback match): cut 2560x1600 BGRA scanout latency ~11x from 101.6-109.9 ms CPU copy down to 6 ms latest / 10 ms average.",
 ]
 completion = [
-  "Native XNU framebuffer/display driver (GopFramebuffer / IOMobileFramebufferLegacy) and AppleKeyStoreState (aks=1) render iPadOS WindowServer/SpringBoard cleanly on hardware.",
+  "Native XNU framebuffer/display driver (GopFramebuffer / IOMobileFramebufferLegacy) with Adreno 650 fb-gpu=1 scanout and AppleKeyStoreState (aks=1) render iPadOS WindowServer/SpringBoard cleanly on hardware.",
 ]
 limits = [
-  "Uses CPU scanout into the inherited 2560x1600 UEFI GOP framebuffer (no Adreno 650 GPU copy client or dynamic DPU mode-setting/backlight control yet).",
+  "Scanout targets the inherited 2560x1600 UEFI GOP framebuffer (CPU scanout by default, opt-in Adreno 650 fb-gpu=1 GPU scanout verified); dynamic DPU direct scanout and DSI DCS backlight control are not yet enabled.",
 ]
 next_action = [
-  "Integrate panel backlight control (DSI DCS brightness) and Adreno 650 GPU/DPU scanout (fb-gpu/dpu-scanout).",
+  "Integrate panel backlight control (DSI DCS brightness) and DPU direct scanout (dpu-scanout=2).",
 ]
 [[area.evidence]]
 kind = "source"
@@ -434,7 +437,7 @@ result = "Hardware-verified Goodix GT7386 I2C touch (status=0x0) and PM8150 SPMI
 
 [[area]]
 id = "gpu"
-status = "implemented"
+status = "device-verified"
 components = ["AdrenoFirmware", "AdrenoPM4", "ArmSmmu4K"]
 paths = ["socs/sm8250/configs/sm8250.config", "package/gpu/**", ".github/workflows/j716f-gpu-addon.yml"]
 inputs = [
@@ -470,15 +473,16 @@ findings = [
   "Live TB-J716F hardware trials with new Phase 4b addon (run 45741988015) verified hardware IO coherence (H d64/64 a1 r1024/0 w1024/1024 -> on, coh=1, owned=1 with gpu-owned-coherent=1), 896 MiB WC GPU VRAM pool registration, 6/6 addon extraction, and NativeAdrenoMetal.bundle + Turnip + metal2vulkan loading in backboardd/mediaserverd/PhotosPosterProv; diagnosed metal2vulkan-runtime floor rejection to VkPhysicalDeviceVulkan12Features.storageBuffer8BitAccess (false on A650 a6xx_gen3 in Mesa freedreno_devices.py) and moved storage_buffer8_bit_access to OPTIONAL in j716f-gpu-addon.yml so metal2vulkan lowers 8-bit accesses cleanly via memory/leaf.rs.",
   "Hardware-verified Turnip Vulkan Compute + 3D Graphics rendering pixel-exact on TB-J716F Adreno 650 (run 45809542599 addon, stage-1 selftest on live iPadOS 17.7.11): GPU[MPLUG] r2='T s0 r0 v1024 c1024 g512/0' in both backboardd and mediaserverd (1024/1024 buffer copy, 1024/1024 compute shader words, 512/512 orange 3D triangle pixels with 0 wrong background pixels, 0 HW/CP/SMMU faults, 0 timeouts). Live published-mode crash tracing identified missing iOS 17 MTLLibrary SPI -[NBLibrary newFunctionWithName:constantValues:pipelineLibrary:error:] and backboardd exit reason 'Metal failed to build render pipeline'; patched j716f-gpu-addon.yml to implement pipelineLibrary: SPI, stream first backboardd render-pipeline refusal to GPU[MPLUG], and retain Registry in NativeMetalBridge.rs selftest().",
   "Hardware-verified full Phase 4b Adreno 650 Metal 3D acceleration into live iPadOS 17.7.11 SpringBoard/Lock Screen on TB-J716F (CI run 45857557413, commit f325804): skipped UCHE_GMEM_RANGE_MIN/MAX writes on a650_family in J716fA650Cp.c (0-based GMEM addressing), added native_gpu_trace_snapshot GpuTraceProblem readout in J716fGpuProbe.cpp (GPU[TPROB*]) and --menu-timeout auto-boot (default 1 s to entry #1) in pack-j716f-gpu-addon.py, fixed iOS 17 backboardd EXC_GUARD (ns=25 code=0xdd) on dup2(fd, STDERR_FILENO) when diag=1/gpu-trace=1 is set, captured the exact untruncated backboardd pipeline refusal (com.apple.coreanimation.Pb3a8Xm_TlubA2Xhf_Isrc luma_boost_lph framebuffer-fetch on MTLPixelFormatRGB10A8_2P_XR10=550), and mapped XR10 render-pipeline color attachments (550..555) to RGBA16Float in j716f-gpu-addon.yml. Live COM9 + GSC1 verification confirmed colorful iPadOS 17.7.11 Lock Screen/SpringBoard wallpaper rendered by Adreno 650 Metal with backboardd/SpringBoard/WidgetRenderer/PhotosPosterProvider/CollectionsPoster alive, 247 Metal pipelines compiled, 140 render passes, 443 barriers, 76 GPU submits, 82 GPU IRQs, 31 per-process TTBR0 switches, 19/19 clean display swaps, 0 CP errors, and 0 SMMU faults (fsr=0x00000400).",
+  "Hardware-verified Phase 4c smoothness and performance optimizations on live TB-J716F (fb-gpu=1, j716f-gpu-bw=1, gpu-import-rw-coherent=1, vsync=90 vsync-fixed=1, lite=1, dev-kernel debug checks off, mediaserverd excluded from NativeSandboxGrantProcess to eliminate 15x/min RGBA8Unorm jetsam crash-loop): across 62 touch swipes / 2,606 GPU scanout frames / 5,404 GPU submits, GPU[SUB] dropped 164x from 5,098 us (pub=5,074 us) down to 21 us (pub=1 us) by enabling A650 RW-import hardware IO-coherence (586,669 submit + 94,161 completion CPU cache flushes skipped), GPU scanout latency reached 6 ms latest / 10 ms avg (v4/0 pixel-exact, 0 fallbacks), GPU[WAIT] averaged 828 us with 5,409/5,409 IRQ wakeups and 0 timeouts, 0 CP errors, and 0 SMMU faults.",
 ]
 completion = [
-  "Adreno 650 GMU cold-start, ArmSmmu4K GPU/GMU contexts, CP/zap shader bring-up, full A650 KMD (Phase 3b + 4a), and AdrenoMetal/Turnip 3D acceleration (Phase 4b).",
+  "Adreno 650 GMU cold-start, ArmSmmu4K GPU/GMU contexts, CP/zap shader bring-up, full A650 KMD (Phase 3b + 4a), AdrenoMetal/Turnip 3D acceleration (Phase 4b), and smooth fb-gpu=1 + RW-coherent GPU scanout on persistent Data (Phase 4c).",
 ]
 limits = [
-  "Phase 4b Adreno 650 Metal 3D acceleration boots iPadOS 17.7.11 SpringBoard/Lock Screen with zero CP/SMMU faults; remaining Phase 4c polish items are mediaserverd Refused(AttachmentUsage { pixel_format: RGBA8Unorm }) / 75 MB memory watermark restarts, NativeAdrenoPool BO fallback investigation (fb[6]), fb-gpu=1 GPU scanout handoff validation, and persistent shader cache / DCVS tuning.",
+  "Adreno 650 Metal 3D acceleration + fb-gpu=1 GPU scanout + RW-import IO-coherence are hardware-verified on persistent UFS Data with zero CP/SMMU faults; remaining optional polish includes dynamic GPU DCVS, low-bank DRAM adoption (+1.1 GiB), and Turnip GMEM / DPU direct scanout exploration.",
 ]
 next_action = [
-  "Converge Phase 4c GPU polish: investigate mediaserverd AttachmentUsage (RGBA8Unorm), NativeAdrenoPool fallback cause, and fb-gpu=1 GPU scanout handoff on persistent Data store.",
+  "Advance board peripherals (DSI backlight, Wi-Fi/BT, audio) and optional GPU DCVS / DPU direct scanout.",
 ]
 [[area.evidence]]
 kind = "source"

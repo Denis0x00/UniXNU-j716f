@@ -244,6 +244,22 @@ def _replace_payload_timeout(board_text: str, new_timeout: int) -> tuple[str, in
     return updated, old_timeout
 
 
+def _strip_board_kernel_args(board_text: str, keys: tuple[str, ...]) -> tuple[str, list[str]]:
+    """Remove specified key=val entries from board.toml [payload] kernel_args array."""
+    if not keys:
+        return board_text, []
+    removed: list[str] = []
+    out_lines: list[str] = []
+    key_prefixes = tuple(f'"{k}=' for k in keys)
+    for line in board_text.splitlines(keepends=True):
+        stripped = line.strip()
+        if any(stripped.startswith(pref) for pref in key_prefixes):
+            removed.append(stripped.rstrip(",").strip('"'))
+            continue
+        out_lines.append(line)
+    return "".join(out_lines), removed
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     default_device = Path(__file__).resolve().parent.parent
     parser = argparse.ArgumentParser(
@@ -424,8 +440,16 @@ def main(argv: list[str] | None = None) -> int:
 
         updated_board, old_size = _replace_payload_size_mib(orig_board, size_mib)
         updated_board, old_timeout = _replace_payload_timeout(updated_board, args.menu_timeout)
+        stripped_args: list[str] = []
+        if args.data_persist != 0:
+            strip_keys = ("data-fua",) if args.data_reset else ("data-reset", "data-fua")
+            updated_board, stripped_args = _strip_board_kernel_args(updated_board, strip_keys)
         if updated_board != orig_board:
-            print(f"BOARD_TOML_OVERRIDE size_mib={old_size}->{size_mib} timeout={old_timeout}->{args.menu_timeout}")
+            extra_note = f" stripped={','.join(stripped_args)}" if stripped_args else ""
+            print(
+                f"BOARD_TOML_OVERRIDE size_mib={old_size}->{size_mib} "
+                f"timeout={old_timeout}->{args.menu_timeout}{extra_note}"
+            )
             board_toml.write_text(updated_board, encoding="utf-8")
 
         subprocess.run(cmd_payload, cwd=core, env=env, check=True)

@@ -1,6 +1,6 @@
 --- a/bsd/kern/kern_exec.c
 +++ b/bsd/kern/kern_exec.c
-@@ -7970,6 +7970,123 @@
+@@ -7970,6 +7970,131 @@
  	vnode_put(vp);
  }
  
@@ -35,23 +35,29 @@
 +static int
 +j716f_skip_setup_write(const char *path, const uint8_t *data, unsigned size, vfs_context_t ctx)
 +{
++	const int root_db = (strncmp(path, "/private/var/db/", 16) == 0);
++	const mode_t mode = root_db ? 0644 : 0600;
++	const uid_t uid = root_db ? 0 : 501;
++	const gid_t gid = root_db ? 0 : 501;
 +	vnode_t vp = NULLVP;
-+	int error = vnode_open(path, O_CREAT | O_TRUNC | FWRITE | O_NOFOLLOW, 0600, 0, &vp, ctx);
++	int error = vnode_open(path, O_CREAT | O_TRUNC | FWRITE | O_NOFOLLOW, mode, 0, &vp, ctx);
 +	if (error) {
 +		return error;
 +	}
-+	int resid = 0;
-+	error = vn_rdwr(UIO_WRITE, vp, (caddr_t)(uintptr_t)data, (int)size, 0, UIO_SYSSPACE, IO_NOAUTH | IO_UNIT,
-+	    vfs_context_ucred(ctx), &resid, vfs_context_proc(ctx));
-+	if (!error && resid) {
-+		error = EIO;
++	if (size > 0) {
++		int resid = 0;
++		error = vn_rdwr(UIO_WRITE, vp, (caddr_t)(uintptr_t)data, (int)size, 0, UIO_SYSSPACE, IO_NOAUTH | IO_UNIT,
++		    vfs_context_ucred(ctx), &resid, vfs_context_proc(ctx));
++		if (!error && resid) {
++			error = EIO;
++		}
 +	}
 +	if (!error) {
 +		struct vnode_attr va;
 +		VATTR_INIT(&va);
-+		VATTR_SET(&va, va_mode, 0600);
-+		VATTR_SET(&va, va_uid, 501);
-+		VATTR_SET(&va, va_gid, 501);
++		VATTR_SET(&va, va_mode, mode);
++		VATTR_SET(&va, va_uid, uid);
++		VATTR_SET(&va, va_gid, gid);
 +		VATTR_SET(&va, va_data_size, (uint64_t)size);
 +		error = vnode_setattr(vp, &va, ctx);
 +	}
@@ -78,6 +84,8 @@
 +		"/private/var/mobile/Library/Preferences",
 +	};
 +	static const char *const root_dirs[] = {
++		"/private/var/db",
++		"/private/var/db/com.apple.xpc.launchd",
 +		"/private/var/containers",
 +		"/private/var/containers/Bundle",
 +		"/private/var/containers/Data",
@@ -124,7 +132,7 @@
  static int
  native_owner_data_prepare(proc_t p, user_addr_t scratch)
  {
-@@ -8030,6 +8147,7 @@
+@@ -8030,6 +8155,7 @@
  	if (!error) native_owner_data_stage = 4;
  	if (!error) native_gpu_addon_prepare(p, scratch);
  	if (!error) native_staged_apps_prepare(p, scratch, data_mount);

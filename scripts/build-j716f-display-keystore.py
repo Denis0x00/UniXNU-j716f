@@ -888,12 +888,32 @@ def main() -> None:
         'NativeHidInput __text changed during late-init staging',
     )
 
-    # 4. Compile & late-init stage NativeGOPPresenter.cpp
+    # 4. Compile & late-init stage NativeGOPPresenter.cpp (with handoffAbandon export so
+    # AGXDeviceUserClient::clientClose releases any in-flight GPU swap + kept IOSurfaces if backboardd exits).
+    # Keep exact filename NativeGOPPresenter.cpp so clang emits __GLOBAL__sub_I_NativeGOPPresenter.cpp.
+    staged_dir = OUT / 'staged'
+    staged_dir.mkdir(parents=True, exist_ok=True)
+    presenter_patched = staged_dir / 'NativeGOPPresenter.cpp'
+    presenter_text = presenter_src.read_text(encoding='utf-8')
+    p_anchor_decl = '    static IOMemoryDescriptor *handoffMemory();'
+    p_anchor_def = 'extern "C" IOMemoryDescriptor *native_gop_handoff_memory(void) {return NativeGOPPresenter::handoffMemory();}'
+    require(p_anchor_decl in presenter_text and p_anchor_def in presenter_text,
+            'NativeGOPPresenter handoff anchors missing')
+    presenter_text = presenter_text.replace(
+        p_anchor_decl,
+        p_anchor_decl + '\n    static void handoffAbandon() {if(NativeGOPPresenter *p=gHandoff)p->abandonSwap();}',
+        1,
+    ).replace(
+        p_anchor_def,
+        p_anchor_def + '\nextern "C" void native_gop_handoff_abandon(void) {NativeGOPPresenter::handoffAbandon();}',
+        1,
+    )
+    presenter_patched.write_text(presenter_text, encoding='utf-8')
     presenter_late = OUT / 'NativeGOPPresenter.late.o'
     compile_late_from_record(
         record,
         clang,
-        presenter_src,
+        presenter_patched,
         presenter_late,
         ['-I', str(presenter_src.parent)],
         allow_warnings=True,
@@ -1113,11 +1133,47 @@ def main() -> None:
 
     for kmd_src, kmd_obj in zip(adreno740_kmd_srcs, adreno740_kmd_objs):
         extra = gpu_kmd_inc + ['-Wno-overloaded-virtual']
+        compile_src = kmd_src
         if kmd_src.name == 'NativeAdrenoUserClient.cpp':
             extra = extra + ['-include', str(xnu17_gpu_compat)]
+            uc_text = kmd_src.read_text(encoding='utf-8')
+            uc_anchor_decl = 'extern "C" {volatile uint32_t native_adreno_wc_enabled=1,native_adreno_owned_coherent=0;extern volatile uint32_t native_adreno_io_coherent;}'
+            uc_anchor_coh = 'const bool coherent=(entry->memory.imported() && native_adreno_io_coherent && !(permissions&2u)) || (!entry->memory.imported() && ownedCoherent());'
+            require(uc_anchor_decl in uc_text, 'NativeAdrenoUserClient decl anchor missing')
+            require(uc_anchor_coh in uc_text, 'NativeAdrenoUserClient coherent anchor missing')
+            uc_text = uc_text.replace(
+                uc_anchor_decl,
+                uc_anchor_decl + '\nextern "C" {volatile uint32_t native_adreno_import_rw_coherent=0;}',
+                1,
+            ).replace(
+                uc_anchor_coh,
+                'const bool coherent=(entry->memory.imported() && native_adreno_io_coherent && (!(permissions&2u) || native_adreno_import_rw_coherent)) || (!entry->memory.imported() && ownedCoherent());',
+                1,
+            )
+            compile_src = staged_dir / 'NativeAdrenoUserClient.cpp'
+            compile_src.write_text(uc_text, encoding='utf-8')
+        elif kmd_src.name == 'NativeAdrenoPublish.cpp':
+            pub_text = kmd_src.read_text(encoding='utf-8')
+            pub_anchor_decl = 'extern "C" IOMemoryDescriptor *native_gop_handoff_memory(void);'
+            pub_anchor_close = 'IOReturn AGXDeviceUserClient::clientClose()\n{\n    dropViews(0);'
+            pub_anchor_close_crlf = 'IOReturn AGXDeviceUserClient::clientClose()\r\n{\r\n    dropViews(0);'
+            require(pub_anchor_decl in pub_text, 'NativeAdrenoPublish handoff decl anchor missing')
+            close_anchor = pub_anchor_close if pub_anchor_close in pub_text else pub_anchor_close_crlf
+            require(close_anchor in pub_text, 'NativeAdrenoPublish clientClose anchor missing')
+            pub_text = pub_text.replace(
+                pub_anchor_decl,
+                pub_anchor_decl + '\nextern "C" void native_gop_handoff_abandon(void) __attribute__((weak_import));',
+                1,
+            ).replace(
+                close_anchor,
+                close_anchor + '\n    if(handoffOnly_) {handoffOnly_=false; if(&native_gop_handoff_abandon) native_gop_handoff_abandon();}',
+                1,
+            )
+            compile_src = staged_dir / 'NativeAdrenoPublish.cpp'
+            compile_src.write_text(pub_text, encoding='utf-8')
         compile_cxx_from_record(
             record,
-            kmd_src,
+            compile_src,
             kmd_obj,
             extra,
             allow_warnings=True,

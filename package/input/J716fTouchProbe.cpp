@@ -765,7 +765,7 @@ void touchThread(void *, wait_result_t) {
     const uint8_t zero2[2] = {0, 0};
     unsigned prevPublished = 0;
     for (;;) {
-        IOSleep(6);
+        IOSleep(prevPublished > 0u ? 4u : 7u);
         if (++s->polls % 100u == 0u) updateDiag(*s);
 
         if (rd32(s->tlmmPins.va, 3u * TB_GPIO_STRIDE + 0xcu) & 1u) {
