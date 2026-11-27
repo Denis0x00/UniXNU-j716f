@@ -142,9 +142,12 @@ chip_id = "8011"
 unique_chip_id = "required"
 psci_method = "smc"
 packed_data_ramdisk = true
-# 3.5 GiB (3584 MiB) contiguous inside uefi-j716f High RAM (0xFFC20000..0x1F8000000, ~3972 MiB),
-# leaving ~284 MiB headroom for DarwinBoot 2 MiB alignment and temporary loader allocations.
-owned_memory_size = 0xE0000000
+# 4.25 GiB (4352 MiB) contiguous inside merged uefi-j716f High RAM (0xD0000000..0x1F8000000, 4736 MiB),
+# leaving 384 MiB headroom for DarwinBoot 2 MiB alignment and temporary loader allocations;
+# remaining free conventional DRAM outside the owned window (High RAM tail + Low RAM 0/1) is exported
+# via darwinboot-memory-outside for the dedicated Write-Combined GPU VRAM pool.
+owned_memory_size = 0x110000000
+owned_memory_outside_ranges = 8
 
 [adt.product.string]
 artwork-display-gamut = "sRGB"
@@ -156,7 +159,7 @@ thin-bezel = 1
 sleep-disabled = 1
 # No Apple PMGR or SEP: report a virtual platform so AMFI does not wait for ApplePMGRNub.
 vmm-present = 1
-"kern.maxvnodes" = 66560
+"kern.maxvnodes" = 70656
 
 [adt.chosen.u32]
 # SM8250 has no Apple CTRR hardware.

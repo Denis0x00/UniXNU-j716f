@@ -17,6 +17,8 @@
 #include <IOKit/IOWorkLoop.h>
 #include <kern/clock.h>
 #include <libkern/OSKextLib.h>
+#include <libkern/c++/OSBoolean.h>
+#include <libkern/c++/OSCollectionIterator.h>
 #include <libkern/c++/OSData.h>
 #include <libkern/c++/OSDictionary.h>
 #include <libkern/c++/OSNumber.h>
@@ -62,6 +64,8 @@ volatile uint32_t *gDsiVa = nullptr;
 volatile uint32_t gUseLpm = 0u;
 volatile uint64_t gRequest = 0ULL;
 IOTimerEventSource *volatile gRequestTimer = nullptr;
+char gBlTrace[16][128] = {};
+volatile uint32_t gBlTraceCount = 0u;
 
 uint32_t dsiRead(void *ctx, uint32_t reg) {
     return reinterpret_cast<volatile uint32_t *>(ctx)[reg / 4u];
@@ -253,11 +257,48 @@ public:
         OSDictionary *dict = OSDynamicCast(OSDictionary, properties);
         if (!dict) return kIOReturnBadArgument;
 
+        const uint32_t seq = __atomic_fetch_add(&gBlTraceCount, 1u, __ATOMIC_RELAXED);
+        if (seq < 16u) {
+            uint64_t ns = 0;
+            absolutetime_to_nanoseconds(mach_absolute_time(), &ns);
+            char *line = gBlTrace[seq];
+            size_t pos = 0;
+            int n = snprintf(line, sizeof(gBlTrace[seq]), "t=%llums",
+                             static_cast<unsigned long long>(ns / 1000000ULL));
+            if (n > 0) pos = static_cast<size_t>(n);
+            OSCollectionIterator *it = OSCollectionIterator::withCollection(dict);
+            if (it) {
+                while (const OSSymbol *k = OSDynamicCast(OSSymbol, it->getNextObject())) {
+                    const OSObject *v = dict->getObject(k);
+                    if (const OSNumber *num = OSDynamicCast(OSNumber, v)) {
+                        n = snprintf(line + pos, sizeof(gBlTrace[seq]) - pos, " %s=%llu(0x%llx)",
+                                     k->getCStringNoCopy(),
+                                     static_cast<unsigned long long>(num->unsigned64BitValue()),
+                                     static_cast<unsigned long long>(num->unsigned64BitValue()));
+                    } else if (const OSBoolean *b = OSDynamicCast(OSBoolean, v)) {
+                        n = snprintf(line + pos, sizeof(gBlTrace[seq]) - pos, " %s=%s",
+                                     k->getCStringNoCopy(), b->isTrue() ? "true" : "false");
+                    } else {
+                        n = snprintf(line + pos, sizeof(gBlTrace[seq]) - pos, " %s=<%s>",
+                                     k->getCStringNoCopy(),
+                                     v && v->getMetaClass() ? v->getMetaClass()->getClassName() : "?");
+                    }
+                    if (n > 0) pos = (pos + static_cast<size_t>(n) < sizeof(gBlTrace[seq]))
+                                         ? (pos + static_cast<size_t>(n))
+                                         : (sizeof(gBlTrace[seq]) - 1u);
+                }
+                it->release();
+            }
+            IOLog("[J716F bl] prop#%u %s\n", seq, line);
+        }
+
+        // iPadOS 17.7.11 (21H461) CoreBrightness drives level-mode brightness exclusively via
+        // {brightness, FadePeriod}. During initial startup it also emits a dummy uncalibrated
+        // brightness-nits=0 sidecar write (~3 ms after brightness=1024) because BrightnessMilliNits
+        // is not published; ignore brightness-nits here so it never blanks the panel at boot.
         uint32_t goal = 0u;
         uint64_t milliseconds = 0ULL;
-        if (OSNumber *nits = OSDynamicCast(OSNumber, dict->getObject("brightness-nits"))) {
-            goal = j716f_bl_level_for_nits(static_cast<int32_t>(nits->unsigned32BitValue()));
-        } else if (OSNumber *brightness = OSDynamicCast(OSNumber, dict->getObject("brightness"))) {
+        if (OSNumber *brightness = OSDynamicCast(OSNumber, dict->getObject("brightness"))) {
             OSNumber *fadePeriodProp = OSDynamicCast(OSNumber, dict->getObject("FadePeriod"));
             goal = j716f_bl_clamp_level(static_cast<int32_t>(brightness->unsigned32BitValue()));
             milliseconds = fadePeriodProp
@@ -305,7 +346,7 @@ extern "C" int j716f_backlight_set_override(uint32_t level, int lpm_override) {
 
 extern "C" void j716f_backlight_snapshot(char *out, size_t cap) {
     if (!out || cap == 0) return;
-    snprintf(out, cap,
+    int n = snprintf(out, cap,
              "[usb] BACKLIGHT: stg=%d imp=%d lpm=%d lvl=%d goal=%d fade=%dms req=%d ok=%d err=%d last=%d ovr=%d | dsi ver=0x%08x ctrl=0x%08x sts=0x%08x trig=0x%08x clk=0x%08x\r\n",
              j716f_backlight_stats[0],
              j716f_backlight_stats[15],
@@ -323,6 +364,13 @@ extern "C" void j716f_backlight_snapshot(char *out, size_t cap) {
              static_cast<unsigned>(j716f_backlight_stats[8]),
              static_cast<unsigned>(j716f_backlight_stats[9]),
              static_cast<unsigned>(j716f_backlight_stats[10]));
+    size_t pos = (n > 0 && static_cast<size_t>(n) < cap) ? static_cast<size_t>(n) : 0;
+    const uint32_t total = __atomic_load_n(&gBlTraceCount, __ATOMIC_ACQUIRE);
+    const uint32_t shown = total < 16u ? total : 16u;
+    for (uint32_t i = 0; i < shown && pos + 4u < cap; ++i) {
+        n = snprintf(out + pos, cap - pos, "[usb] BL_PROP[%u]: %s\r\n", i, gBlTrace[i]);
+        if (n > 0) pos = (pos + static_cast<size_t>(n) < cap) ? (pos + static_cast<size_t>(n)) : (cap - 1u);
+    }
 }
 
 extern "C" void j716f_backlight_probe(void) {

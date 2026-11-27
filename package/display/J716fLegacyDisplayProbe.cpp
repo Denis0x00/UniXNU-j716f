@@ -41,6 +41,8 @@ extern "C" void j716f_cpufreq_probe(void);
 extern "C" void j716f_battery_probe(void);
 extern "C" void j716f_gpu_probe(void);
 extern "C" void j716f_backlight_probe(void);
+extern "C" void j716f_dpu_probe(void);
+extern "C" void j716f_wcn_probe(void);
 
 namespace {
 IOService *g_pending_display = nullptr;
@@ -329,6 +331,8 @@ void native_legacy_display_late_probe(void) {
   j716f_battery_probe();
   j716f_gpu_probe();
   j716f_backlight_probe();
+  j716f_dpu_probe();
+  j716f_wcn_probe();
 
   IOService *display = g_pending_display;
   if (!display) return;

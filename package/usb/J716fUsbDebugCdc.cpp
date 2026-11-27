@@ -28,6 +28,11 @@ extern void j716f_battery_snapshot(char *out, size_t cap) __attribute__((weak_im
 extern void j716f_gpu_snapshot(char *out, size_t cap) __attribute__((weak_import));
 extern void j716f_backlight_snapshot(char *out, size_t cap) __attribute__((weak_import));
 extern int j716f_backlight_set_override(uint32_t level, int lpm_override) __attribute__((weak_import));
+extern void j716f_dpu_snapshot(char *out, size_t cap) __attribute__((weak_import));
+extern void native_legacy_direct_snapshot(void) __attribute__((weak_import));
+extern void j716f_wcn_snapshot(char *out, size_t cap) __attribute__((weak_import));
+extern int j716f_wcn_bt_probe_now(void) __attribute__((weak_import));
+extern int j716f_wcn_wifi_probe_now(void) __attribute__((weak_import));
 extern uint64_t sheng_cpu_idle_mach(int cpu) __attribute__((weak_import));
 
 extern volatile uint32_t armcpu_smp_running __attribute__((weak_import));
@@ -611,9 +616,9 @@ static void handleCommand(TerminalSession &s, const char *raw) {
     if (strEq(raw, "ping")) {
         s.reply.writeStr("[usb] PONG TB-J716F\r\n");
     } else if (strEq(raw, "features")) {
-        s.reply.writeStr("FEATURES: ping help status info uptime cpufreq battery gpu smp display touch input usb bootargs log replay log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot reboot.probe poweroff\r\n");
+        s.reply.writeStr("FEATURES: ping help status info uptime cpufreq battery backlight bl dpu gpu smp display touch input usb bootargs log replay log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot reboot.probe poweroff\r\n");
     } else if (strEq(raw, "help")) {
-        s.reply.writeStr("Commands: ping status cpufreq battery gpu smp display touch usb bootargs log log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot [normal|bootloader|recovery|off] reboot.probe poweroff\r\n");
+        s.reply.writeStr("Commands: ping status cpufreq battery backlight|bl [0..2047] [hs|lp] dpu gpu smp display touch usb bootargs log log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot [normal|bootloader|recovery|off] reboot.probe poweroff\r\n");
     } else if (strEq(raw, "info") || strEq(raw, "uptime") || strEq(raw, "status")) {
         const uint32_t cpus = &armcpu_smp_running ? armcpu_smp_running : 0u;
         const uint32_t edge = &armcpu_cpu_init_completed ? armcpu_cpu_init_completed : 0u;
@@ -700,8 +705,9 @@ static void handleCommand(TerminalSession &s, const char *raw) {
         }
     } else if (strEq(raw, "backlight") || strEq(raw, "bl") || strEq(raw, "bl.status")) {
         if (&j716f_backlight_snapshot) {
-            j716f_backlight_snapshot(buf, sizeof(buf));
-            s.reply.writeStr(buf);
+            static char bbuf[2048];
+            j716f_backlight_snapshot(bbuf, sizeof(bbuf));
+            s.reply.writeStr(bbuf);
         } else {
             s.reply.writeStr("[usb] BACKLIGHT: unavailable\r\n");
         }
@@ -724,6 +730,44 @@ static void handleCommand(TerminalSession &s, const char *raw) {
             }
         } else {
             s.reply.writeStr("[usb] BACKLIGHT: unavailable\r\n");
+        }
+    } else if (strEq(raw, "wcn") || strEq(raw, "wcn.status")) {
+        if (&j716f_wcn_snapshot) {
+            static char wbuf[4096];
+            j716f_wcn_snapshot(wbuf, sizeof(wbuf));
+            s.reply.writeStr(wbuf);
+        } else {
+            s.reply.writeStr("[usb] WCN: unavailable\r\n");
+        }
+    } else if (strEq(raw, "wcn.bt")) {
+        if (&j716f_wcn_bt_probe_now && &j716f_wcn_snapshot) {
+            const int rc = j716f_wcn_bt_probe_now();
+            snprintf(buf, sizeof(buf), "[usb] WCN.BT: rc=%d\r\n", rc);
+            s.reply.writeStr(buf);
+            static char wbuf[4096];
+            j716f_wcn_snapshot(wbuf, sizeof(wbuf));
+            s.reply.writeStr(wbuf);
+        } else {
+            s.reply.writeStr("[usb] WCN.BT: unavailable\r\n");
+        }
+    } else if (strEq(raw, "wcn.wifi")) {
+        if (&j716f_wcn_wifi_probe_now && &j716f_wcn_snapshot) {
+            const int rc = j716f_wcn_wifi_probe_now();
+            snprintf(buf, sizeof(buf), "[usb] WCN.WIFI: rc=%d\r\n", rc);
+            s.reply.writeStr(buf);
+            static char wbuf[4096];
+            j716f_wcn_snapshot(wbuf, sizeof(wbuf));
+            s.reply.writeStr(wbuf);
+        } else {
+            s.reply.writeStr("[usb] WCN.WIFI: unavailable\r\n");
+        }
+    } else if (strEq(raw, "dpu") || strEq(raw, "dpu.status")) {
+        if (&j716f_dpu_snapshot) {
+            static char dbuf[8192];
+            j716f_dpu_snapshot(dbuf, sizeof(dbuf));
+            s.reply.writeStr(dbuf);
+        } else {
+            s.reply.writeStr("[usb] DPU: unavailable\r\n");
         }
     } else if (strEq(raw, "gpu") || strEq(raw, "gpu.status")) {
         if (&j716f_gpu_snapshot) {
@@ -850,6 +894,7 @@ static void handleCommand(TerminalSession &s, const char *raw) {
         s.logStreamEnabled = false;
         s.reply.writeStr("[usb] live kernel log streaming disabled\r\n");
     } else if (strEq(raw, "screen.snapshot")) {
+        if (&native_legacy_direct_snapshot) native_legacy_direct_snapshot();
         (void)usbCaptureAndQueueGsc1(s.screen, s.reply, true);
     } else if (strEq(raw, "screen.start")) {
         s.screen.streaming = true;

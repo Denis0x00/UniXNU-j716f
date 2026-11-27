@@ -16,6 +16,7 @@
 
 #include <IOKit/IOBufferMemoryDescriptor.h>
 #include <IOKit/IODeviceMemory.h>
+#include <IOKit/IODeviceTreeSupport.h>
 #include <IOKit/IOLib.h>
 #include <IOKit/IOMemoryDescriptor.h>
 #include <IOKit/IOPlatformExpert.h>
@@ -26,9 +27,11 @@
 #include <kern/task.h>
 #include <kern/thread.h>
 #include <libkern/OSKextLib.h>
+#include <libkern/c++/OSData.h>
 #include <libkern/c++/OSMetaClass.h>
 #include <mach/kmod.h>
 #include <pexpert/pexpert.h>
+#include <pexpert/arm64/boot.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -1646,26 +1649,62 @@ void runMode10And11Kmd() {
         }
     }
 
-    /* Register unused TB-J716F UEFI DRAM outside XNU's 3.5 GiB window (0xFFE00000..0x1DFE00000)
-     * as dedicated Write-Combined GPU VRAM pool (896 MiB total: 512 MiB @ 0xD0000000 + 384 MiB @ 0x1E0000000).
-     * Pool BOs map via NativeAdrenoPoolView with explicit kIOMapWriteCombineCache, bypassing the
-     * xnu-10063 pageable-descriptor WC cache-mode trap and eliminating per-submit CPU dc cvac/civac. */
+    /* Register unused TB-J716F UEFI DRAM strictly outside XNU's owned window as dedicated
+     * Write-Combined GPU VRAM pool via /chosen/darwinboot-memory-outside (populated by
+     * DarwinBoot after ExitBootServices). Never hardcode 0xD0000000 when XNU's owned window
+     * starts at 0xD0000000 (Stage B 4.25 GiB merged High RAM). */
     bool poolActive = false;
     if (native_adreno_pool_add) {
         unsigned poolMode = 2u;
         PE_parse_boot_argn("gpu-pool", &poolMode, sizeof(poolMode));
         if (poolMode != 0u) {
-            static const struct { uint64_t base; uint64_t bytes; } kPoolRuns[2] = {
-                {0xD0000000ULL, 0x20000000ULL},   /* 512 MiB verified UEFI XNU Window (Stage 1-6 DRAM) */
-                {0x1E0000000ULL, 0x18000000ULL},  /* 384 MiB verified UEFI High RAM tail (..0x1F8000000) */
-            };
-            for (const auto &r : kPoolRuns) {
-                const IOReturn prc = native_adreno_pool_add(r.base, r.bytes);
-                IOLog("[J716F gpu] pool add 0x%llx + 0x%llx -> 0x%x\n",
-                      static_cast<unsigned long long>(r.base),
-                      static_cast<unsigned long long>(r.bytes),
-                      static_cast<unsigned>(prc));
-                if (prc == kIOReturnSuccess) poolActive = true;
+            bool foundOutsideTable = false;
+            IORegistryEntry *chosen = IORegistryEntry::fromPath("/chosen", gIODTPlane);
+            if (chosen) {
+                OSData *table = OSDynamicCast(OSData, chosen->getProperty("darwinboot-memory-outside"));
+                if (table && table->getLength() >= 16u) {
+                    foundOutsideTable = true;
+                    const uint8_t *bytes = static_cast<const uint8_t *>(table->getBytesNoCopy());
+                    static const struct { uint64_t lo, hi; } kAllowedDram[3] = {
+                        {0x90500000ULL, 0x9BC00000ULL},   /* Low RAM 0 (183 MiB) */
+                        {0xB0080000ULL, 0xBCC00000ULL},   /* Low RAM 1 (203.5 MiB) */
+                        {0xC0000000ULL, 0x1F8000000ULL},  /* High bank up to 0x1F8000000 */
+                    };
+                    for (unsigned off = 0; off + 16u <= table->getLength(); off += 16u) {
+                        uint64_t base = 0, size = 0;
+                        memcpy(&base, bytes + off, 8);
+                        memcpy(&size, bytes + off + 8, 8);
+                        if (!size || size > UINT64_MAX - base) continue;
+                        const uint64_t end = base + size;
+                        for (const auto &a : kAllowedDram) {
+                            const uint64_t lo = base > a.lo ? base : a.lo;
+                            const uint64_t hi = end < a.hi ? end : a.hi;
+                            if (hi <= lo || (hi - lo) < (1ULL << 20)) continue;
+                            const IOReturn prc = native_adreno_pool_add(lo, hi - lo);
+                            IOLog("[J716F gpu] pool add(out) 0x%llx + 0x%llx -> 0x%x\n",
+                                  static_cast<unsigned long long>(lo),
+                                  static_cast<unsigned long long>(hi - lo),
+                                  static_cast<unsigned>(prc));
+                            if (prc == kIOReturnSuccess) poolActive = true;
+                        }
+                    }
+                }
+                chosen->release();
+            }
+            if (!foundOutsideTable && PE_state.bootArgs &&
+                reinterpret_cast<const boot_args *>(PE_state.bootArgs)->physBase >= 0xF8000000ULL) {
+                static const struct { uint64_t base; uint64_t bytes; } kLegacyPoolRuns[2] = {
+                    {0xD0000000ULL, 0x20000000ULL},
+                    {0x1E0000000ULL, 0x18000000ULL},
+                };
+                for (const auto &r : kLegacyPoolRuns) {
+                    const IOReturn prc = native_adreno_pool_add(r.base, r.bytes);
+                    IOLog("[J716F gpu] pool add(legacy) 0x%llx + 0x%llx -> 0x%x\n",
+                          static_cast<unsigned long long>(r.base),
+                          static_cast<unsigned long long>(r.bytes),
+                          static_cast<unsigned>(prc));
+                    if (prc == kIOReturnSuccess) poolActive = true;
+                }
             }
         }
     }

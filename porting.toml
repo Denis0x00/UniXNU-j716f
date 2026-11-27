@@ -4,7 +4,7 @@ schema_version = 1
 name = "j716f"
 soc = "SM8250"
 os_profile = "ipados-17.7.11-21H461"
-summary = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F, SM8250-AC) consolidated onto the official UniXNU Format 2 device repository layout alongside the r38 companion UEFI repository (Denis0x00/uefi-j716f). Hardware-verified through UEFI oc-like menu, retained early XNU logs (JXLG), bare-metal DWC3 USB CDC-ACM debug terminal, real iPadOS 17.7.11 APFS root mount, opt-in persistent UFS Data (j716f-data-persist=2), 8-core Kryo 585 SMP + Edge scheduler + SM8250-AC EPSS CPUfreq/L3 scaling, GopFramebuffer + AppleKeyStoreState + RM692E6 DSI0 DCS CoreBrightness backlight, Goodix GT7386 I2C touch, PM8150 SPMI hardware buttons, PM8150B battery/charger telemetry, Adreno 650 full KMD + AdrenoMetal/Turnip 3D acceleration, and fb-gpu=1 GPU scanout handoff with A650 RW-import IO-coherence. Next milestones: Wi-Fi/Bluetooth (QCA6390), native USB (QcomDwc3), ADSP audio, DPU direct scanout, and upstream ShengUfs SM8250 convergence."
+summary = "Lenovo Xiaoxin Pad Pro 2021 (TB-J716F, SM8250-AC) consolidated onto the official UniXNU Format 2 device repository layout alongside the companion UEFI repository (Denis0x00/uefi-j716f). Hardware-verified through UEFI oc-like menu, 4.25 GiB XNU RAM + 977 MiB dynamic GPU VRAM pool, retained early XNU logs (JXLG), bare-metal DWC3 USB CDC-ACM debug terminal, real iPadOS 17.7.11 APFS root mount, opt-in persistent UFS Data (j716f-data-persist=2), 8-core Kryo 585 SMP + Edge scheduler + SM8250-AC EPSS CPUfreq/L3 scaling, zero-copy SM8250 DPU 6.0 direct scanout (dpu-scanout=2), RM692E6 DSI0 DCS CoreBrightness backlight, Goodix GT7386 I2C touch, PM8150 SPMI hardware buttons, PM8150B battery/charger telemetry, Adreno 650 full KMD + AdrenoMetal/Turnip 3D acceleration, and QCA6390 9-rail power + GENI UART6 BT HCI handshake + PCIe0 Gen2x1 link training (17cb:1101, MHI/BHI PBL). Next milestones: QCA6390 Bluetooth firmware/scan & Wi-Fi MHI/BHIe bring-up, native USB (QcomDwc3), ADSP audio, and upstream ShengUfs SM8250 convergence."
 
 [[area]]
 id = "configuration"
@@ -73,6 +73,7 @@ findings = [
   "Extended patches/xnu/j716f-skip-setup.patch to create /private/var/db/com.apple.xpc.launchd and write root-owned 0644 files (including 0-byte disabled.migrated) for opt-in launchd lite=1 / disable-watchdogd=1 bring-up policies.",
   "Expanded j716f-ci.yml to verify package/display/J716fBacklight.cpp + J716fBacklightDsi.h staging and run Test 15 (J716fBacklightDsiTest under C11 ASan/UBSan covering SM8250 DSI v2.4 TPG FIFO DCS 0x51 11-bit big-endian framing and error/timeout paths); promoted j716f-backlight=1 into default board.toml [payload] kernel_args.",
   "Dropped unnecessary local core patches 0003-components-decouple-board-dependencies.patch (already handled cleanly at board level via scripts/build-j716f-display-keystore.py without modifying upstream components.toml) and 0004-prepare-xnu-source-blob-cache.patch (optional cache), reducing pending patches/unixnu-core/ to 0001 (AAPL,phandle) and 0002 (Android bootimg v2) only.",
+  "Raised board.toml owned_memory_size to 4.25 GiB (0x110000000) with owned_memory_outside_ranges = 8 and kern.maxvnodes = 70656 alongside companion uefi-j716f low/high RAM expansion; expanded j716f-ci.yml with Test 16 (J716fDpuSmmuTest) and Test 17 (J716fWcnBoardTest) under C11 ASan/UBSan.",
 ]
 completion = [
   "Official ./unixnu defconfig, status, tree, package, firmware, kernel, payload, and bootimg succeed cleanly from this single Format 2 repository.",
@@ -211,6 +212,7 @@ findings = [
   "Firmware memory map reserves ABL FDT, 80 MiB initrd, Display Reserved, Boot Log, DXE Heap, UEFI FD, and XNU Window without overlap.",
   "AppsSmmuOwner enforces single-owner acquisition, publication, DMA tracking, quarantine, and release semantics.",
   "Audited uefi-j716f MemoryMapLib.c High RAM (0xFFC20000..0x1F8000000 = 3971.875 MiB) and DarwinBoot 2 MiB block alignment, unlocking 3.5 GiB (0xE0000000, +75% RAM) contiguous XNU memory without modifying UEFI firmware memory-map descriptors.",
+  "Hardware-verified Stage B memory expansion on TB-J716F with companion uefi-j716f (Low RAM 0 0x90500000+183 MiB, Low RAM 1 0xB0080000+203.5 MiB, merged High RAM 0xD0000000+4.625 GiB) + board.toml owned_memory_size = 0x110000000 (4.25 GiB) + owned_memory_outside_ranges = 8 + dynamic /chosen/darwinboot-memory-outside GPU VRAM pool in J716fGpuProbe.cpp: XNU accounts 4343 MiB (~4.25 GiB) and Adreno 650 WC pool spans 4 non-overlapping runs totaling 1000832 KiB (~977.4 MiB) for ~5.20 GiB combined usable DRAM.",
 ]
 completion = [
   "All memory reservations remain non-overlapping and APPS SMMU DMA handoff operates stably under XNU storage I/O.",
@@ -346,6 +348,8 @@ findings = [
   "Wired opt-in fb-gpu=1 NativeGOPPresenter handoff in J716fLegacyDisplayProbe.cpp (attaching to IOService::getResourceService() with native_gop_presenter_set_source(handoff, nub) and forwarding native_legacy_gpu_offer -> native_gop_gpu_offer, default OFF keeping CPU GOP scanout unchanged) and extracted TB-J716F stock DTS panel inventory: EDO RM692E6 AMOLED WQXGA command-mode dual-DSI panel (0x500 x 2 = 2560x1600 @ 90 Hz, dcs-cmd-by-left backlight).",
   "Hardware-verified fb-gpu=1 Adreno 650 GPU scanout handoff + vsync=90 vsync-fixed=1 + native_gop_handoff_abandon() clientClose deadlock fix on live TB-J716F (2606/2606 consecutive GPU scanout frames, 0 fallbacks, 0 abandoned, v4/0 pixel-exact readback match): cut 2560x1600 BGRA scanout latency ~11x from 101.6-109.9 ms CPU copy down to 6 ms latest / 10 ms average.",
   "Implemented and hardware-verified RM692E6 AMOLED backlight driver (package/display/J716fBacklightDsi.h + late-staged J716fBacklight.cpp, enabled by default via j716f-backlight=1 in board.toml; mode 2 selects LP, backlight-control=0 disables CoreBrightness binding): uses pure-MMIO SM8250 DSI0 (0x0AE94000, ver=0x20040000, qcom,dcs-cmd-by-left) TPG DMA FIFO to transmit 11-bit big-endian DCS 0x51 (0..2047) with zero RAM DMA/SMMU dependency, impersonates AppleARMBacklight (slot 7 getMetaClass) with NativeSandboxGrantProcess=backboardd + backlight-control=true and iPadOS 17 IODisplayParameters.brightness; verified smooth physical brightness control from iPadOS Control Center slider on live TB-J716F (683/683 CoreBrightness requests succeeded, ok=683 err=0 alongside 2074/2073 fb-gpu=1 90 Hz frames).",
+  "Implemented and hardware-verified zero-copy SM8250 DPU 6.0 direct scanout (package/display/J716fDpuSmmu.h + J716fDpuScanout.cpp + ASan/UBSan J716fDpuSmmuTest.c, opt-in dpu-scanout=2): enables Stage-1 4 KiB translation on Display APPS SMMU CB 4 (SID 0x0820 mask 0x402, 36-bit OAS, 4x32 MiB slots at 0x10000000..0x17FFFFFF + 1 GiB identity blocks, 50 ms fault watch with clean revert) and stages SM8250 DPU 6.0 constants (kCtlFlush=0x1018, kBootIova=0x9c000000, kBootStride=0x2800) into unmodified upstream NativeLegacyDisplay.cpp; verified 437/437 zero-copy VIG0+VIG1 flips with 0 map errors, 0 slow latches, 0 fallbacks, and 0 SMMU faults (state=0x80000004, fsr=0x400).",
+  "Fixed boot-time screen blanking in J716fBacklight.cpp on iPadOS 17.7.11: CoreBrightness sends brightness=1024 followed 1-3 ms later by a dummy uncalibrated brightness-nits=0 metadata write in level mode; ignoring brightness-nits on iPadOS 17 keeps the display naturally lit at lvl=1024 on boot without requiring a power-button cycle.",
 ]
 completion = [
   "Native XNU framebuffer/display driver (GopFramebuffer / IOMobileFramebufferLegacy) with Adreno 650 fb-gpu=1 scanout, RM692E6 DSI0 CoreBrightness backlight control, and AppleKeyStoreState (aks=1) render iPadOS WindowServer/SpringBoard cleanly on hardware.",
@@ -506,35 +510,47 @@ result = "Hardware-verified iPadOS 17.7.11 Lock Screen/SpringBoard rendered live
 
 [[area]]
 id = "network"
-status = "planned"
+status = "device-verified"
 components = []
-paths = ["socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h", "socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c"]
+paths = ["socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h", "socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c", "package/wireless/**"]
 inputs = [
-  "TB-J716F Wi-Fi/BT (WCN685x / QCA6390) and USB-C gadget networking.",
+  "TB-J716F Qualcomm QCA6390 (Hastings v2.0) Wi-Fi 6 / Bluetooth 5.1 combo chip (PCIe0 @ 0x01C00000, QMP PHY @ 0x01C06000, QUPv3 Wrap0 SE6 UART6 @ 0x00998000, TLMM_NORTH GPIOs 16..21/79..81/124) and USB-C gadget networking.",
 ]
 configuration = [
-  "No Wi-Fi, Bluetooth, or USB networking driver is enabled in the current bring-up config.",
+  "package/wireless/J716fWcnBoard.h and J716fWcnProbe.cpp (linked with socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.c into libNativeLegacyDisplay.late.a) provide opt-in QCA6390 power/UART6/PCIe0 bring-up via j716f-wcn=1|2 or live COM9 commands wcn, wcn.bt, and wcn.wifi (default off).",
 ]
 procedure = [
-  "Plan USB gadget or Wi-Fi bring-up after Stage 7 userland shell access is established.",
+  "Run C11 ASan/UBSan host unit test J716fWcnBoardTest.c covering QCA6390 HCI version parsing, PARF BDF-to-SID CRC-8 hashing, and QMP PHY table invariants.",
+  "Run live COM9 commands wcn.bt and wcn.wifi on TB-J716F to verify 9-rail RPMh power, UART6 HCI chip ID, PCIe0 Gen2x1 L0 training, QCA6390 17cb:1101 BAR0, and MHI/BHI PBL registers.",
 ]
 findings = [
   "Early BSD software loopback and network control initialization passed in r28-r30 checkpoints.",
   "Extracted TB-J716F stock DTS wireless topology: Qualcomm QCA6390 Wi-Fi (cnss-qca6390 on PCIe RC 0 qcom,pcie@1c00000, wlan-rc-num = 0, wlan-en-gpio = tlmm 20) and QCA6390 Bluetooth (/vendor/bt_qca6390, bt_en_sleep).",
+  "Hardware-verified Stage C1/C2 QCA6390 bring-up on live TB-J716F over COM9 (wcn.bt + wcn.wifi): all 9 RPMh VRM rails (smpa6/smpf2/smpa4/smpa5/smpc8/ldoc5/ldoa16 + PCIe0 PHY ldoa5 880mV / ldoa9 1200mV) voted rc=0; GENI UART6 (7.3728 MHz -> 115200 bps, FIFO mode) received live 21-byte QCA6390 v2.0 Hastings HCI_EV_CMD_COMPLETE (prod=0x10 patch=0x0d2b rom=0x0200 soc_id=0x400a0200); SM8250 PCIe0 GDSC/10-branch GCC/99-step QMP PHY reached ready in 6 polls (0.6 ms) and trained LTSSM L0 Gen2x1 in 13 ms, discovering RP 17cb:010b and EP 17cb:1101 (subsys 17cb:0108), assigning 16 MiB BAR0 at 0x61000004, and reading live MHI/BHI registers (BHIOFF=0x100, BHIEOFF=0x224, BHI_VER=0x00020001, BHI_EE=0x0 PBL).",
 ]
 completion = [
-  "Working network connectivity (USB Ethernet or Wi-Fi) under iPadOS.",
+  "Working QCA6390 Bluetooth and Wi-Fi connectivity under iPadOS.",
 ]
 limits = [
-  "No physical network interface driver is active.",
+  "Hardware power, GENI UART6 BT HCI link, and PCIe0 Gen2x1 MHI/BHI PBL link are device-verified; QCA6390 Bluetooth firmware download (htbtfw20.tlv/htnv20.bin), Wi-Fi MHI/BHIe firmware boot (amss20.bin/m3.bin), and iPadOS Bluetooth/ath11k network stacks are next.",
 ]
 next_action = [
-  "Bring up USB peripheral or Wi-Fi networking after Stage 7.",
+  "Advance Stage C3a (QCA6390 BT TLV/NVM load + scan) and Stage C4a (PCIe0 SMMU SID 0x1C01 + MHI/BHIe Mission Mode boot).",
 ]
 [[area.evidence]]
 kind = "source"
 reference = "socs/sm8250/kits/Sm8250Platform/Sm8250GeniUart.h"
-result = "SM8250 GENI serial header retained for SoC platform support"
+result = "SM8250 GENI serial header powering QUP0 SE6 Bluetooth UART6 clocks"
+[[area.evidence]]
+kind = "source"
+reference = "package/wireless/J716fWcnProbe.cpp"
+result = "QCA6390 9-rail RPMh power, GENI UART6 BT probe, and SM8250 PCIe0 link-training + MHI/BHI probe"
+[[area.evidence]]
+kind = "device"
+reference = "package/wireless/J716fWcnProbe.cpp"
+revision = "e6b4c46f141d25d198d04774412245743e6c267d"
+command = "python3 scripts/j716f-usb-debug.py --port COM9 exec --no-replay wcn.bt && wcn.wifi"
+result = "Hardware-verified QCA6390 v2.0 BT HCI (soc_id=0x400a0200) and PCIe0 Gen2x1 L0 (13 ms, 17cb:1101, BAR0 0x61000004, BHI EE=0 PBL)"
 
 [[area]]
 id = "audio"
@@ -708,6 +724,7 @@ findings = [
   "Extended J716fUsbDebugCdc.cpp 'status' and 'display' commands to report fb-gpu handoff readiness/fallback counters (NativeGOPPresenter) and persistent Data store state/GPT status.",
   "Extended J716fUsbDebugCdc.cpp with live VM page breakdown (free/wire/act/inact/spec/purg), FB_CPUCOPY timing, FB_FMT/FB_SWAP counters, abandoned GPU swap count, and extended persistent DATA write/sync/flush/err telemetry; updated j716f-skip-setup.patch for root-owned /private/var/db/com.apple.xpc.launchd/disabled.plist seeding under lite=1.",
   "Added interactive 'bl'/'backlight' telemetry and 'bl <0..2047> [hs|lp]' live DSI0 brightness override commands to J716fUsbDebugCdc.cpp; hardware-verified 683/683 CoreBrightness DSI0 transactions (ok=683 err=0) over COM9.",
+  "Added interactive 'dpu', 'wcn', 'wcn.bt', and 'wcn.wifi' diagnostics and CoreBrightness BL_PROP trace capture to J716fUsbDebugCdc.cpp, plus native_legacy_direct_snapshot() hook in screen.snapshot for zero-copy DPU screenshots.",
 ]
 completion = [
   "Reliable kernel log capture through root mount and early userland bring-up.",

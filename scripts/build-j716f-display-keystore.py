@@ -657,6 +657,11 @@ def main() -> None:
     board_display_src = ROOT / 'kits/j716f/display/J716fLegacyDisplayProbe.cpp'
     board_keystore_src = ROOT / 'kits/j716f/display/J716fKeyStoreProbe.cpp'
     board_backlight_src = ROOT / 'kits/j716f/display/J716fBacklight.cpp'
+    board_dpu_src = ROOT / 'kits/j716f/display/J716fDpuScanout.cpp'
+    wireless_dir = ROOT / 'kits/j716f/wireless'
+    wcn_probe_src = wireless_dir / 'J716fWcnProbe.cpp'
+    sm8250_platform_dir = (ROOT / 'kits/j716f').resolve().parent / 'socs/sm8250/kits/Sm8250Platform'
+    sm8250_uart_src = sm8250_platform_dir / 'Sm8250GeniUart.c'
     input_dir = ROOT / 'kits/j716f/input'
     hid_src = input_dir / 'NativeHidInput.cpp'
     board_hid_src = input_dir / 'J716fHidInputProbe.cpp'
@@ -717,6 +722,11 @@ def main() -> None:
         board_keystore_src,
         board_backlight_src,
         board_display_src.parent / 'J716fBacklightDsi.h',
+        board_dpu_src,
+        board_display_src.parent / 'J716fDpuSmmu.h',
+        wcn_probe_src,
+        wireless_dir / 'J716fWcnBoard.h',
+        sm8250_uart_src,
         hid_src,
         board_hid_src,
         touch_state_src,
@@ -742,11 +752,32 @@ def main() -> None:
     ):
         require(src.is_file(), f'missing source: {src}')
 
-    # 1. Compile unmodified upstream NativeLegacyDisplay.cpp and verify exact 358-slot vtable
+    # 1. Stage SM8250 DPU 6.0 direct-scanout constants (CTL0_FLUSH 0x1018, boot GOP 0x9C000000 / 0x2800,
+    #    MDP window 0x84000) into a staged copy of upstream NativeLegacyDisplay.cpp (keeping upstream unmodified),
+    #    compile it, and verify the exact 358-slot vtable.
+    staged_dir = OUT / 'staged'
+    staged_dir.mkdir(parents=True, exist_ok=True)
+    legacy_staged = staged_dir / 'NativeLegacyDisplay.cpp'
+    legacy_text = legacy_src.read_text(encoding='utf-8')
+    dpu_const_anchor = 'static constexpr uint32_t kVig[2]={0x4000,0x6000},kCtlFlush=0x15018,kBootIova=0xb8000000U,kBootStride=0x2fa0;'
+    dpu_range_anchor = 'IODeviceMemory *memory=IODeviceMemory::withRange(0xae01000,0x8f000);'
+    require(dpu_const_anchor in legacy_text and dpu_range_anchor in legacy_text,
+            'NativeLegacyDisplay SM8250 DPU staging anchors missing')
+    legacy_text = legacy_text.replace(
+        dpu_const_anchor,
+        'static constexpr uint32_t kVig[2]={0x4000,0x6000},kCtlFlush=0x1018,kBootIova=0x9c000000U,kBootStride=0x2800;',
+        1,
+    ).replace(
+        dpu_range_anchor,
+        'IODeviceMemory *memory=IODeviceMemory::withRange(0xae01000,0x84000);',
+        1,
+    )
+    legacy_staged.write_text(legacy_text, encoding='utf-8')
+
     legacy_obj = OUT / 'NativeLegacyDisplay.o'
     compile_cxx_from_record(
         record,
-        legacy_src,
+        legacy_staged,
         legacy_obj,
         ['-I', str(OUT), '-I', str(legacy_src.parent)],
         allow_warnings=True,
@@ -866,7 +897,7 @@ def main() -> None:
     compile_late_from_record(
         record,
         clang,
-        legacy_src,
+        legacy_staged,
         legacy_late,
         ['-I', str(OUT), '-I', str(legacy_src.parent)],
         allow_warnings=True,
@@ -894,8 +925,6 @@ def main() -> None:
     # 4. Compile & late-init stage NativeGOPPresenter.cpp (with handoffAbandon export so
     # AGXDeviceUserClient::clientClose releases any in-flight GPU swap + kept IOSurfaces if backboardd exits).
     # Keep exact filename NativeGOPPresenter.cpp so clang emits __GLOBAL__sub_I_NativeGOPPresenter.cpp.
-    staged_dir = OUT / 'staged'
-    staged_dir.mkdir(parents=True, exist_ok=True)
     presenter_patched = staged_dir / 'NativeGOPPresenter.cpp'
     presenter_text = presenter_src.read_text(encoding='utf-8')
     p_anchor_decl = '    static IOMemoryDescriptor *handoffMemory();'
@@ -937,6 +966,9 @@ def main() -> None:
     board_display_obj = OUT / 'J716fLegacyDisplayProbe.o'
     board_keystore_obj = OUT / 'J716fKeyStoreProbe.o'
     backlight_late = OUT / 'J716fBacklight.late.o'
+    board_dpu_obj = OUT / 'J716fDpuScanout.o'
+    wcn_probe_obj = OUT / 'J716fWcnProbe.o'
+    sm8250_uart_obj = OUT / 'Sm8250GeniUart.o'
     board_hid_obj = OUT / 'J716fHidInputProbe.o'
     touch_state_obj = OUT / 'J716fTouchState.o'
     touch_probe_obj = OUT / 'J716fTouchProbe.o'
@@ -1093,6 +1125,28 @@ def main() -> None:
         board_backlight_src,
         backlight_late,
         ['-I', str(board_display_src.parent)],
+        allow_warnings=False,
+    )
+    compile_cxx_from_record(
+        record,
+        board_dpu_src,
+        board_dpu_obj,
+        ['-I', str(board_display_src.parent)],
+        allow_warnings=False,
+    )
+    compile_c_from_record(
+        c_record,
+        record,
+        sm8250_uart_src,
+        sm8250_uart_obj,
+        ['-I', str(sm8250_platform_dir)],
+        allow_warnings=False,
+    )
+    compile_cxx_from_record(
+        record,
+        wcn_probe_src,
+        wcn_probe_obj,
+        ['-I', str(wireless_dir), '-I', str(input_dir), '-I', str(sm8250_platform_dir)],
         allow_warnings=False,
     )
     compile_cxx_from_record(record, board_hid_src, board_hid_obj, ['-I', str(input_dir)], allow_warnings=False)
@@ -1260,6 +1314,9 @@ def main() -> None:
         bindings_obj,
         board_display_obj,
         board_keystore_obj,
+        board_dpu_obj,
+        wcn_probe_obj,
+        sm8250_uart_obj,
         board_hid_obj,
         touch_state_obj,
         touch_probe_obj,
@@ -1295,6 +1352,11 @@ def main() -> None:
         board_keystore_src,
         board_backlight_src,
         board_display_src.parent / 'J716fBacklightDsi.h',
+        board_dpu_src,
+        board_display_src.parent / 'J716fDpuSmmu.h',
+        wcn_probe_src,
+        wireless_dir / 'J716fWcnBoard.h',
+        sm8250_uart_src,
         hid_src,
         board_hid_src,
         touch_state_src,

@@ -114,6 +114,10 @@ jobs:
           test -f "$TREE/kits/j716f/display/J716fKeyStoreProbe.cpp"
           test -f "$TREE/kits/j716f/display/J716fBacklight.cpp"
           test -f "$TREE/kits/j716f/display/J716fBacklightDsi.h"
+          test -f "$TREE/kits/j716f/display/J716fDpuScanout.cpp"
+          test -f "$TREE/kits/j716f/display/J716fDpuSmmu.h"
+          test -f "$TREE/kits/j716f/wireless/J716fWcnBoard.h"
+          test -f "$TREE/kits/j716f/wireless/J716fWcnProbe.cpp"
           test -f "$TREE/kits/j716f/input/NativeHidInput.cpp"
           test -f "$TREE/kits/j716f/input/J716fTouchProbe.cpp"
           test -f "$TREE/kits/j716f/input/J716fButtons.c"
@@ -180,7 +184,7 @@ jobs:
           from unixnu import devicetree
 
           board = tomllib.loads(Path('device/board.toml').read_text(encoding='utf-8'))
-          assert board['payload']['adt']['owned_memory_size'] == 0xE0000000, (
+          assert board['payload']['adt']['owned_memory_size'] == 0x110000000, (
               f"Unexpected owned_memory_size: {board['payload']['adt']['owned_memory_size']:#x}"
           )
           adt = devicetree.generate(
@@ -350,6 +354,18 @@ jobs:
             -o "$OUT/test_backlight_dsi"
           "$OUT/test_backlight_dsi"
 
+          echo "=== Test 16: J716fDpuSmmu (SM8250 DPU 6.0 MDP observation & Stage-1 SMMU 4K tables) ==="
+          clang -std=c11 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer \
+            "device/package/display/tests/J716fDpuSmmuTest.c" \
+            -o "$OUT/test_dpu_smmu"
+          "$OUT/test_dpu_smmu"
+
+          echo "=== Test 17: J716fWcnBoard (QCA6390 BT version parser, PCIe0 SID CRC-8, QMP PHY table) ==="
+          clang -std=c11 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer \
+            "device/package/wireless/tests/J716fWcnBoardTest.c" \
+            -o "$OUT/test_wcn_board"
+          "$OUT/test_wcn_board"
+
       - name: Run upstream GopFramebuffer fence-wait sanitizer regression check
         run: |
           (cd unixnu/drivers/GopFramebuffer && python3 Test/check-fence-wait.py)
@@ -364,6 +380,6 @@ jobs:
             echo '## J716F Device CI'
             echo '- Official `./unixnu` Format 2 `defconfig`, `status`, `tree`, and `build package` passed'
             echo '- `dts/j716f.dts` compiled with `dtc` and converted to valid Apple Device Tree (ADT)'
-            echo '- All 14 C/C++ ASan/UBSan storage/SMMU/SHNGROOT/persistent-store/USB/battery/GPU/GMU/CP/ZAP unit tests compiled and passed'
+            echo '- All 17 C/C++ ASan/UBSan storage/SMMU/SHNGROOT/persistent-store/USB/battery/GPU/GMU/CP/ZAP/backlight/DPU/WCN unit tests compiled and passed'
             echo '- Python Data seed, Phase 4b GPU packer, & USB GSC1 wire tests and `porting.toml` schema validation passed'
           } >> "$GITHUB_STEP_SUMMARY"
