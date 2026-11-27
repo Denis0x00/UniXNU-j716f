@@ -3,6 +3,7 @@
 // SM8250 PCIe0 BDF-to-SID CRC-8 hash, and QMP PHY table invariants).
 #include "../J716fWcnBoard.h"
 #include "../J716fMhiBoot.h"
+#include "../J716fMhiQrtr.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -178,6 +179,99 @@ static void test_mhi_boot_state_machine(void) {
     assert(m.error == J716fMhiErrNone);
 }
 
+static void test_mhi_qrtr_and_qmi_wire(void) {
+    /* 1. MHI ring element encoders/decoders */
+    J716fMhiRingElement cmd;
+    j716f_mhi_make_cmd_tre(&cmd, J716F_MHI_CH_IPCR_UL, J716F_MHI_CMD_START_CHAN);
+    assert(cmd.ptr == 0ULL && cmd.dword0 == 0u);
+    assert(j716f_mhi_ev_chid(&cmd) == 20u && j716f_mhi_ev_type(&cmd) == 18u);
+
+    J716fMhiRingElement tre;
+    j716f_mhi_make_xfer_tre(&tre, 0x97E00000ULL, 512u, true);
+    assert(tre.ptr == 0x97E00000ULL);
+    assert(j716f_mhi_ev_len(&tre) == 512u);
+    assert(j716f_mhi_ev_type(&tre) == J716F_MHI_TRE_TYPE_TRANSFER);
+    assert((tre.dword1 & (1u << 9)) != 0u);
+
+    /* 2. QRTR HELLO round-trip & NEW_SERVER parsing */
+    uint8_t pkt[256];
+    const size_t hn = j716f_qrtr_encode_hello(pkt, sizeof(pkt), 1u, J716F_QRTR_NODE_BCAST);
+    assert(hn == 52u);
+    J716fQrtrHeader qh;
+    const uint8_t *pl = NULL;
+    size_t pl_len = 0u;
+    assert(j716f_qrtr_decode(pkt, hn, &qh, &pl, &pl_len));
+    assert(qh.version == 1u && qh.type == J716F_QRTR_TYPE_HELLO && qh.src_node == 1u && pl_len == 20u);
+
+    uint8_t ns_payload[20] = {
+        0x04, 0x00, 0x00, 0x00, /* NEW_SERVER */
+        0x45, 0x00, 0x00, 0x00, /* service 0x45 (WLFW) */
+        0x01, 0x00, 0x00, 0x00, /* instance 1 */
+        0x07, 0x00, 0x00, 0x00, /* node 7 */
+        0x02, 0x00, 0x00, 0x00, /* port 2 */
+    };
+    J716fQrtrServer srv;
+    assert(j716f_qrtr_parse_new_server(ns_payload, sizeof(ns_payload), &srv));
+    assert(srv.service == 0x45u && srv.instance == 1u && srv.node == 7u && srv.port == 2u);
+
+    /* 3. QMI IND_REGISTER, HOST_CAP, REQUEST_MEM, RESPOND_MEM, CAP_RESP, BDF, M3 */
+    uint8_t qbuf[512];
+    const size_t irn = j716f_qmi_build_ind_register_req(qbuf, sizeof(qbuf), 1u);
+    assert(irn > 7u);
+    J716fQmiHeader mh;
+    const uint8_t *tlvs = NULL;
+    size_t tlvs_len = 0u;
+    assert(j716f_qmi_decode_header(qbuf, irn, &mh, &tlvs, &tlvs_len));
+    assert(mh.type == J716F_QMI_TYPE_REQ && mh.txn_id == 1u && mh.msg_id == J716F_QMI_WLFW_IND_REGISTER_REQ);
+
+    const size_t hcn = j716f_qmi_build_host_cap_req(qbuf, sizeof(qbuf), 2u, true);
+    assert(hcn > 7u);
+    assert(j716f_qmi_decode_header(qbuf, hcn, &mh, &tlvs, &tlvs_len));
+    assert(mh.msg_id == J716F_QMI_WLFW_HOST_CAP_REQ);
+
+    /* Synthetic REQUEST_MEM_IND with 2 segments (type 1 16MiB + type 4 4MiB with 1 mem_cfg). */
+    const uint8_t req_mem_tlvs[] = {
+        0x01, 32, 0,
+        2, /* count = 2 */
+        0x00, 0x00, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0, /* seg0: 16MiB, type 1, 0 cfg */
+        0x00, 0x00, 0x40, 0x00, 0x04, 0x00, 0x00, 0x00, 1, /* seg1: 4MiB, type 4, 1 cfg (13B) */
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x40, 0, 0,
+    };
+    J716fQmiMemReqSeg msegs[4];
+    uint32_t mcnt = 0u;
+    assert(j716f_qmi_parse_request_mem_ind(req_mem_tlvs, sizeof(req_mem_tlvs), msegs, 4u, &mcnt));
+    assert(mcnt == 2u && msegs[0].size == 0x1000000u && msegs[0].type == 1u);
+    assert(msegs[1].size == 0x400000u && msegs[1].type == 4u && msegs[1].cfg_count == 1u);
+
+    const J716fQmiMemRespSeg rsegs[2] = {
+        {0x98000000ULL, 0x1000000u, 1u, 0u},
+        {0x99000000ULL, 0x400000u,  4u, 0u},
+    };
+    const size_t rmn = j716f_qmi_build_respond_mem_req(qbuf, sizeof(qbuf), 3u, rsegs, 2u);
+    assert(rmn == 7u + 3u + 1u + 2u * 17u);
+
+    /* Synthetic CAP_RESP with chip, board_id=0x0206, soc, fw_ver, build_id, num_macs. */
+    const uint8_t cap_tlvs[] = {
+        0x02, 4, 0,  0, 0, 0, 0,                          /* resp = SUCCESS */
+        0x10, 8, 0,  0x90, 0x63, 0, 0,  0x02, 0, 0, 0,    /* chip_id, chip_family */
+        0x11, 4, 0,  0x06, 0x02, 0, 0,                    /* board_id = 0x206 */
+        0x12, 4, 0,  0x00, 0x02, 0x0A, 0x40,              /* soc_id */
+        0x14, 7, 0,  'Q', 'C', 'A', '6', '3', '9', '0',   /* fw_build_id */
+        0x15, 1, 0,  2,                                   /* num_macs */
+    };
+    J716fQmiCapInfo cap;
+    assert(j716f_qmi_parse_cap_resp(cap_tlvs, sizeof(cap_tlvs), &cap));
+    assert(cap.valid && cap.has_board && cap.board_id == 0x206u && cap.num_macs == 2u);
+    assert(strcmp(cap.fw_build_id, "QCA6390") == 0);
+
+    const uint8_t bdf_chunk[4] = {0x7Fu, 'E', 'L', 'F'};
+    const size_t bn = j716f_qmi_build_bdf_download_req(
+        qbuf, sizeof(qbuf), 4u, 0u, 4u, bdf_chunk, 4u, true, J716F_QMI_BDF_TYPE_ELF);
+    assert(bn > 30u);
+    const size_t m3n = j716f_qmi_build_m3_info_req(qbuf, sizeof(qbuf), 5u, 0x97F00000ULL, 266684u);
+    assert(m3n == 7u + (3u + 8u) + (3u + 4u));
+}
+
 int main(void) {
     test_qca6390_cmd_complete_parser();
     test_qca_vendor_event_parser();
@@ -186,6 +280,7 @@ int main(void) {
     test_qca_nvm_patcher();
     test_ble_adv_parser();
     test_mhi_boot_state_machine();
-    puts("J716fWcnBoardTest: PASS (7 suites)");
+    test_mhi_qrtr_and_qmi_wire();
+    puts("J716fWcnBoardTest: PASS (8 suites)");
     return 0;
 }

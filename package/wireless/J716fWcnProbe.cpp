@@ -11,7 +11,9 @@
 //     99-step sequence, PARF/DBI/iATU setup, PERST# release, LTSSM L0 training,
 //     Endpoint 17cb:1101 discovery, BAR0 assignment, and MHI/BHI register read.
 #include "J716fWcnBoard.h"
+#include "J716fBtTransport.h"
 #include "J716fMhiBoot.h"
+#include "J716fMhiQrtr.h"
 #include "J716fQcomRpmh.h"
 #include "J716fSmmuBypass.h"
 #include "J716fTouchBoard.h"
@@ -19,14 +21,21 @@
 
 #include <IOKit/IOBufferMemoryDescriptor.h>
 #include <IOKit/IODeviceMemory.h>
+#include <IOKit/IODeviceTreeSupport.h>
 #include <IOKit/IOLib.h>
 #include <IOKit/IOMemoryDescriptor.h>
+#include <IOKit/IOPlatformExpert.h>
+#include <IOKit/IOService.h>
 #include <kern/clock.h>
+#include <kern/thread.h>
+#include <libkern/c++/OSData.h>
 #include <libkern/libkern.h>
 #include <pexpert/pexpert.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <string.h>
+
+struct proc;
 
 extern "C" {
 extern const uint8_t j716f_wcn_bt_tlv_fw[];
@@ -35,7 +44,14 @@ extern const uint8_t j716f_wcn_bt_nvm_fw[];
 extern const uint32_t j716f_wcn_bt_nvm_fw_size;
 extern const uint8_t j716f_wcn_wifi_amss_fw[];
 extern const uint32_t j716f_wcn_wifi_amss_fw_size;
+extern const uint8_t j716f_wcn_wifi_m3_fw[];
+extern const uint32_t j716f_wcn_wifi_m3_fw_size;
+extern const uint8_t j716f_wcn_wifi_bdf_fw[];
+extern const uint32_t j716f_wcn_wifi_bdf_fw_size;
 extern bool j716f_wcn_dma_arena(uint64_t *outPa, uint64_t *outBytes) __attribute__((weak_import));
+extern void proc_iterate(unsigned, int (*)(struct proc *, void *), void *,
+                         int (*)(struct proc *, void *), void *) __attribute__((weak_import));
+extern int proc_pid(struct proc *) __attribute__((weak_import));
 }
 
 namespace {
@@ -179,6 +195,47 @@ struct WcnState {
     uint32_t wifiBootMs;
     uint32_t wifiMsiCapAfter;
     uint32_t wifiSinkWord0;
+
+    /* Stage C3b-1 System Bluetooth (com.apple.uart.sk.bluetooth + H4/IBS worker) */
+    bool btSvcStarted;
+    volatile uint32_t btSvcState; /* 0=off, 1=booting, 2=running, 3=error */
+    int btSvcErr;
+    bool btSvcAddrPublished;
+    uint8_t btSvcAddr[6];
+    volatile uint32_t btSvcTxBytes;
+    volatile uint32_t btSvcRxBytes;
+    volatile uint32_t btSvcTxFrames;
+    volatile uint32_t btSvcRxFrames;
+    volatile uint32_t btSvcIbsWakeRx;
+    volatile uint32_t btSvcIbsSleepRx;
+    volatile uint32_t btSvcTxCmds;
+    uint16_t btSvcLastOps[12];
+    uint32_t btSvcLastOpsCount;
+    volatile uint32_t btSvcPidBtd;
+    volatile uint32_t btSvcPidBtl;
+
+    /* Stage C4b-1 QCA6390 Wi-Fi MHI IPCR Ch20/21 + QRTR + QMI WLFW state */
+    bool wifiQmiAttempted;
+    int wifiQmiStage;
+    int wifiQmiErr;
+    uint32_t wifiQmiCmd20;
+    uint32_t wifiQmiCmd21;
+    uint32_t wifiQmiQrtrRx;
+    uint32_t wifiQmiQrtrTx;
+    uint32_t wifiQmiWlfwNode;
+    uint32_t wifiQmiWlfwPort;
+    uint32_t wifiQmiWlfwInst;
+    uint32_t wifiQmiMemCount;
+    uint32_t wifiQmiMemTotal;
+    J716fQmiMemReqSeg wifiQmiMemSegs[J716F_QMI_MAX_MEM_SEGS];
+    J716fQmiCapInfo wifiQmiCap;
+    uint32_t wifiQmiBdfChunks;
+    uint32_t wifiQmiBdfErr;
+    uint32_t wifiQmiM3Err;
+    bool wifiQmiMemReady;
+    bool wifiQmiFwReady;
+    bool wifiQmiFwInitDone;
+    uint32_t wifiQmiMs;
 } gState = {};
 
 bool mapRegion(uint64_t phys, uint64_t len, Region &r) {
@@ -1954,11 +2011,890 @@ extern "C" int j716f_wcn_wifi_fw_now(void) {
     return gState.wifiFwErr;
 }
 
+/* ---- Stage C3b-1: System Bluetooth (com.apple.uart.sk.bluetooth + H4/IBS worker) ---- */
+
+namespace {
+
+IOService *gBtRadioSvc = nullptr;
+volatile uint32_t gBtSvcWake = 0u;
+volatile uint32_t gBtSvcPowerReq = 0u;
+
+bool publishBtAddress() {
+    if (gState.btSvcAddrPublished) return true;
+    uint64_t hash = 0xcbf29ce484222325ULL;
+    static const char kDomain[] = "unixnu-j716f-bluetooth";
+    for (unsigned i = 0; i < sizeof(kDomain) - 1u; ++i) {
+        hash = (hash ^ static_cast<uint8_t>(kDomain[i])) * 0x100000001b3ULL;
+    }
+    IORegistryEntry *chosen = IORegistryEntry::fromPath("/chosen", gIODTPlane);
+    if (chosen) {
+        OSData *id = OSDynamicCast(OSData, chosen->getProperty("unique-chip-id"));
+        if (id && id->getLength() >= 4u) {
+            const uint8_t *seed = static_cast<const uint8_t *>(id->getBytesNoCopy());
+            for (unsigned i = 0; i < id->getLength(); ++i) {
+                hash = (hash ^ seed[i]) * 0x100000001b3ULL;
+            }
+        }
+    }
+    for (unsigned i = 0; i < 6u; ++i) {
+        gState.btSvcAddr[i] = static_cast<uint8_t>(hash >> (i * 8u));
+    }
+    gState.btSvcAddr[0] = (gState.btSvcAddr[0] & 0xFEu) | 0x02u; /* locally administered unicast */
+
+    if (chosen) {
+        (void)chosen->setProperty("mac-address-bluetooth0", gState.btSvcAddr, 6u);
+    }
+    IORegistryEntry *node = IORegistryEntry::fromPath("/arm-io/bluetooth", gIODTPlane);
+    if (node) {
+        (void)node->setProperty("local-mac-address", gState.btSvcAddr, 6u);
+    }
+    if (!gBtRadioSvc) {
+        IOService *radio = new IOService;
+        if (radio && radio->init()) {
+            radio->setName("bluetooth");
+            uint32_t enc = 1u;
+            uint32_t spd = 3200000u;
+            (void)radio->setProperty("device_type", "bluetooth");
+            (void)radio->setProperty("transport-encoding", &enc, sizeof(enc));
+            (void)radio->setProperty("transport-speed", &spd, sizeof(spd));
+            (void)radio->setProperty("local-mac-address", gState.btSvcAddr, 6u);
+            IOService *plat = IOService::getPlatform();
+            if (plat && radio->attach(plat)) {
+                gBtRadioSvc = radio;
+                radio->registerService();
+            } else {
+                radio->release();
+            }
+        } else if (radio) {
+            radio->release();
+        }
+    }
+    if (node) node->release();
+    if (chosen) chosen->release();
+    gState.btSvcAddrPublished = true;
+    return true;
+}
+
+int btSvcBootPatchedHardware() {
+    if (j716f_wcn_bt_tlv_fw_size < 40u || j716f_wcn_bt_nvm_fw_size < 32u) return -2;
+    const int prc = j716f_wcn_bt_probe_now();
+    if (prc != 0 || gState.usedDma) return prc ? prc : -95;
+    uart6RxReset();
+    uart6DrainRx();
+    uart6RxReset();
+    if (!uart6SwitchBaud(3200000u, J716F_QCA_BAUD_3200000)) return -5;
+
+    uint8_t ev[260];
+    uint32_t evLen = 0u;
+    const uint8_t getVerParam[1] = {0x19u};
+    if (!uart6HciCmdSync(0xFC00u, getVerParam, 1u, ev, sizeof(ev), &evLen, 500u)) return -110;
+
+    const uint8_t tlvDnldMode = j716f_wcn_bt_tlv_fw[14];
+    if (!qcaDownloadTlv(j716f_wcn_bt_tlv_fw, j716f_wcn_bt_tlv_fw_size, tlvDnldMode, &gState.btTlvChunks)) {
+        return -71;
+    }
+    IOSleep(10);
+
+    uint8_t *nvmCopy = static_cast<uint8_t *>(IOMallocData(j716f_wcn_bt_nvm_fw_size));
+    if (!nvmCopy) return -12;
+    memcpy(nvmCopy, j716f_wcn_bt_nvm_fw, j716f_wcn_bt_nvm_fw_size);
+    gState.btNvmPatched = j716f_qca_patch_nvm(nvmCopy, j716f_wcn_bt_nvm_fw_size,
+                                              J716F_QCA_BAUD_3200000, false, false);
+    const bool nvmOk = qcaDownloadTlv(nvmCopy, j716f_wcn_bt_nvm_fw_size, 0u, &gState.btNvmChunks);
+    IOFreeData(nvmCopy, j716f_wcn_bt_nvm_fw_size);
+    if (!nvmOk) return -72;
+
+    static const uint8_t kDisableLog[2] = {0x14u, 0x00u};
+    (void)uart6HciCmdSync(0xFC17u, kDisableLog, sizeof(kDisableLog), ev, sizeof(ev), &evLen, 1000u);
+    if (!uart6HciCmdSync(0x0C03u, nullptr, 0u, ev, sizeof(ev), &evLen, 2000u) ||
+        evLen < 7u || ev[6] != 0u) {
+        return -73;
+    }
+    IOSleep(25);
+    /* Write deterministic BD_ADDR in little-endian HCI order. */
+    uint8_t bdLe[6];
+    for (unsigned i = 0; i < 6u; ++i) bdLe[i] = gState.btSvcAddr[5u - i];
+    (void)uart6HciCmdSync(0xFC14u, bdLe, 6u, ev, sizeof(ev), &evLen, 1000u);
+    if (uart6HciCmdSync(0x1009u, nullptr, 0u, ev, sizeof(ev), &evLen, 1000u) &&
+        evLen >= 13u && ev[6] == 0u) {
+        memcpy(gState.btBdAddr, ev + 7u, 6u);
+    }
+    return 0;
+}
+
+void btSvcWakeCb(void *) {
+    __atomic_store_n(&gBtSvcWake, 1u, __ATOMIC_RELEASE);
+    thread_wakeup(reinterpret_cast<event_t>(const_cast<uint32_t *>(&gBtSvcWake)));
+}
+
+int btSvcPowerCb(void *, bool enabled) {
+    uint32_t expected = 0u;
+    if (!__atomic_compare_exchange_n(&gBtSvcPowerReq, &expected, enabled ? 1u : 2u,
+                                     false, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)) {
+        return 16; /* EBUSY */
+    }
+    btSvcWakeCb(nullptr);
+    return 0;
+}
+
+int btSvcProcIterCb(struct proc *p, void *ctx) {
+    if (!&proc_pid) return 0;
+    const char *name = proc_best_name(p);
+    if (!name) return 0;
+    int *found = static_cast<int *>(ctx);
+    if (strcmp(name, "bluetoothd") == 0) found[0] = proc_pid(p);
+    else if (strcmp(name, "BlueTool") == 0) found[1] = proc_pid(p);
+    return 0;
+}
+
+void btSvcPollProcs() {
+    if (!&proc_iterate) return;
+    int found[2] = {0, 0};
+    proc_iterate(1u | 4u, btSvcProcIterCb, found, nullptr, nullptr);
+    gState.btSvcPidBtd = static_cast<uint32_t>(found[0]);
+    gState.btSvcPidBtl = static_cast<uint32_t>(found[1]);
+}
+
+/* Forward complete H4 packets (0x04 Event, 0x02 ACL except 0x2EDC debug, 0x03 SCO, 0x05 ISO)
+ * from UART6 RX ring into Skywalk com.apple.uart.sk.bluetooth, handling QCA IBS bytes inline. */
+bool btSvcPumpRxToHost() {
+    uart6DrainRx();
+    bool work = false;
+    uint8_t pkt[1040];
+    while (gUart6Rx.count > 0u) {
+        const uint8_t ty = uart6RxPeek(0u);
+        if (ty == 0xFDu) {
+            uart6RxDrop(1u);
+            static const uint8_t kWakeAck[1] = {0xFCu};
+            (void)uart6SendFifo(kWakeAck, 1u);
+            gState.btSvcIbsWakeRx = gState.btSvcIbsWakeRx + 1u;
+            work = true;
+            continue;
+        }
+        if (ty == 0xFEu) {
+            uart6RxDrop(1u);
+            gState.btSvcIbsSleepRx = gState.btSvcIbsSleepRx + 1u;
+            continue;
+        }
+        if (ty == 0xFCu) {
+            uart6RxDrop(1u);
+            continue;
+        }
+        uint32_t total = 0u;
+        bool dropQcaLog = false;
+        if (ty == 0x04u) {
+            if (gUart6Rx.count < 3u) break;
+            total = 3u + static_cast<uint32_t>(uart6RxPeek(2u));
+        } else if (ty == 0x02u) {
+            if (gUart6Rx.count < 5u) break;
+            const uint16_t handle = static_cast<uint16_t>(uart6RxPeek(1u)) |
+                                    (static_cast<uint16_t>(uart6RxPeek(2u)) << 8);
+            const uint32_t alen = static_cast<uint32_t>(uart6RxPeek(3u)) |
+                                  (static_cast<uint32_t>(uart6RxPeek(4u)) << 8);
+            total = 5u + alen;
+            dropQcaLog = (handle == 0x2EDCu);
+        } else if (ty == 0x03u) {
+            if (gUart6Rx.count < 4u) break;
+            total = 4u + static_cast<uint32_t>(uart6RxPeek(3u));
+        } else if (ty == 0x05u) {
+            if (gUart6Rx.count < 5u) break;
+            const uint32_t ilen = (static_cast<uint32_t>(uart6RxPeek(3u)) |
+                                   (static_cast<uint32_t>(uart6RxPeek(4u)) << 8)) & 0x3FFFu;
+            total = 5u + ilen;
+        } else {
+            uart6RxDrop(1u);
+            continue;
+        }
+        if (total > sizeof(pkt) || total > sizeof(gUart6Rx.buf)) {
+            uart6RxDrop(1u);
+            continue;
+        }
+        if (gUart6Rx.count < total) break;
+        if (dropQcaLog) {
+            uart6RxDrop(total);
+            continue;
+        }
+        for (uint32_t i = 0; i < total; ++i) pkt[i] = uart6RxPeek(i);
+        if (qbt_transport_active()) {
+            const uint32_t taken = qbt_transport_receive(pkt, total);
+            if (taken < total) break; /* backpressure */
+            gState.btSvcRxBytes = gState.btSvcRxBytes + total;
+            gState.btSvcRxFrames = gState.btSvcRxFrames + 1u;
+        }
+        uart6RxDrop(total);
+        work = true;
+    }
+    return work;
+}
+
+void btSvcRecordTxOp(uint16_t op) {
+    gState.btSvcTxCmds = gState.btSvcTxCmds + 1u;
+    const uint32_t idx = gState.btSvcLastOpsCount % 12u;
+    gState.btSvcLastOps[idx] = op;
+    ++gState.btSvcLastOpsCount;
+}
+
+void btSvcWorker(void *, wait_result_t) {
+    thread_set_thread_name(current_thread(), "j716f-bt-svc");
+    ensureMapped();
+    publishBtAddress();
+
+    const struct qbt_transport_ops ops = {nullptr, btSvcWakeCb, btSvcPowerCb};
+    (void)qbt_transport_init(&ops);
+
+    gState.btSvcState = 1u;
+    int err = btSvcBootPatchedHardware();
+    gState.btSvcErr = err;
+    gState.btSvcState = (err == 0) ? 2u : 3u;
+    qbt_transport_power_result(err == 0, err < 0 ? -err : err, "qca6390-htbtfw20", 3200000u);
+    IOLog("[J716F bt.svc] boot rc=%d bd=%02x:%02x:%02x:%02x:%02x:%02x\n",
+          err, gState.btSvcAddr[0], gState.btSvcAddr[1], gState.btSvcAddr[2],
+          gState.btSvcAddr[3], gState.btSvcAddr[4], gState.btSvcAddr[5]);
+
+    uint8_t txBuf[1040];
+    uint32_t txLen = 0u;
+    uint64_t nextProcPoll = 0ULL;
+
+    for (;;) {
+        const uint32_t req = __atomic_exchange_n(&gBtSvcPowerReq, 0u, __ATOMIC_ACQ_REL);
+        if (req == 1u) {
+            if (gState.btSvcState != 2u) {
+                gState.btSvcState = 1u;
+                err = btSvcBootPatchedHardware();
+                gState.btSvcErr = err;
+                gState.btSvcState = (err == 0) ? 2u : 3u;
+                qbt_transport_power_result(err == 0, err < 0 ? -err : err, "qca6390-htbtfw20", 3200000u);
+            } else {
+                qbt_transport_power_result(true, 0, "qca6390-htbtfw20", 3200000u);
+            }
+        } else if (req == 2u) {
+            qbt_transport_power_result(false, 0, "qca6390-htbtfw20", 3200000u);
+        }
+
+        bool busy = false;
+        if (gState.btSvcState == 2u) {
+            if (btSvcPumpRxToHost()) busy = true;
+            if (qbt_transport_active() && txLen < sizeof(txBuf)) {
+                const uint32_t got = qbt_transport_tx_take(txBuf + txLen,
+                                                           static_cast<uint32_t>(sizeof(txBuf) - txLen));
+                if (got > 0u) {
+                    txLen += got;
+                    busy = true;
+                }
+            }
+            /* Send complete H4 frames from txBuf so IBS bytes never interleave mid-packet. */
+            while (txLen > 0u) {
+                const uint8_t ty = txBuf[0];
+                uint32_t flen = 0u;
+                if (ty == 0x01u) {
+                    if (txLen < 4u) break;
+                    flen = 4u + static_cast<uint32_t>(txBuf[3]);
+                } else if (ty == 0x02u) {
+                    if (txLen < 5u) break;
+                    flen = 5u + (static_cast<uint32_t>(txBuf[3]) | (static_cast<uint32_t>(txBuf[4]) << 8));
+                } else if (ty == 0x03u) {
+                    if (txLen < 4u) break;
+                    flen = 4u + static_cast<uint32_t>(txBuf[3]);
+                } else if (ty == 0x05u) {
+                    if (txLen < 5u) break;
+                    flen = 5u + ((static_cast<uint32_t>(txBuf[3]) | (static_cast<uint32_t>(txBuf[4]) << 8)) & 0x3FFFu);
+                } else {
+                    memmove(txBuf, txBuf + 1u, --txLen);
+                    continue;
+                }
+                if (flen > sizeof(txBuf)) {
+                    txLen = 0u;
+                    break;
+                }
+                if (txLen < flen) break;
+                if (ty == 0x01u) {
+                    const uint16_t op = static_cast<uint16_t>(txBuf[1]) | (static_cast<uint16_t>(txBuf[2]) << 8);
+                    btSvcRecordTxOp(op);
+                }
+                (void)uart6SendFifo(txBuf, flen);
+                gState.btSvcTxBytes = gState.btSvcTxBytes + flen;
+                gState.btSvcTxFrames = gState.btSvcTxFrames + 1u;
+                txLen -= flen;
+                if (txLen > 0u) memmove(txBuf, txBuf + flen, txLen);
+                busy = true;
+            }
+        }
+
+        uint64_t nowNs = 0ULL;
+        absolutetime_to_nanoseconds(mach_absolute_time(), &nowNs);
+        if (nowNs >= nextProcPoll) {
+            btSvcPollProcs();
+            nextProcPoll = nowNs + 2000000000ULL;
+        }
+
+        if (!busy) {
+            if (!__atomic_exchange_n(&gBtSvcWake, 0u, __ATOMIC_ACQ_REL)) {
+                IOSleep(qbt_transport_active() ? 2u : 10u);
+            }
+        }
+    }
+}
+
+}  // namespace
+
+extern "C" int j716f_wcn_bt_service_start(void) {
+    ensureMapped();
+    if (gState.btSvcStarted) {
+        btSvcPollProcs();
+        return gState.btSvcState == 2u ? 0 : gState.btSvcErr;
+    }
+    gState.btSvcStarted = true;
+    publishBtAddress();
+    thread_t th = nullptr;
+    if (kernel_thread_start(btSvcWorker, nullptr, &th) != KERN_SUCCESS || !th) {
+        gState.btSvcState = 3u;
+        gState.btSvcErr = -12;
+        return -12;
+    }
+    thread_deallocate(th);
+    /* Wait up to 4 seconds for initial firmware load so interactive COM9 command sees live state. */
+    for (unsigned i = 0; i < 400u && gState.btSvcState < 2u; ++i) {
+        IOSleep(10);
+    }
+    btSvcPollProcs();
+    return gState.btSvcState == 2u ? 0 : gState.btSvcErr;
+}
+
+/* ---- Stage C4b-1: QCA6390 MHI IPCR Ch20/21 + QRTR + QMI WLFW Handshake ---- */
+
+namespace {
+
+constexpr uint32_t kIpcrEls = 64u;
+constexpr uint32_t kIpcrRingBytes = kIpcrEls * 16u; /* 1024 B */
+constexpr uint32_t kIpcrDlBufs = 32u;
+constexpr uint32_t kIpcrUlBufs = 16u;
+constexpr uint32_t kIpcrBufBytes = 8192u;
+constexpr uint32_t kQmiClientPort = 0x4001u;
+
+struct WifiQmiRings {
+    uint64_t erBase[2];
+    uint64_t erLen[2];
+    uint64_t erRp[2];
+    uint8_t *erVa[2];
+    uint8_t *erCtx[2];
+
+    uint64_t cmdBase;
+    uint64_t cmdLen;
+    uint64_t cmdWp;
+    uint8_t *cmdVa;
+    uint8_t *cmdCtx;
+
+    uint64_t ulRingPa;
+    uint8_t *ulRingVa;
+    uint64_t ulWp;
+    uint32_t ulBufIdx;
+    uint64_t ulBufBasePa;
+    uint8_t *ulBufBaseVa;
+
+    uint64_t dlRingPa;
+    uint8_t *dlRingVa;
+    uint64_t dlWp;
+    uint64_t dlBufBasePa;
+    uint8_t *dlBufBaseVa;
+
+    uint32_t chdb;
+    uint32_t erdb;
+
+    uint64_t q6HeapCursor;
+    uint64_t q6HeapEnd;
+};
+
+void mhiInitRingsFromCtx(const Region &bar, WifiQmiRings &r) {
+    constexpr uint32_t kCtx = 44u, kChannels = 128u;
+    memset(&r, 0, sizeof(r));
+    r.chdb = rd32(bar, J716F_MHI_CHDBOFF);
+    r.erdb = rd32(bar, J716F_MHI_ERDBOFF);
+
+    for (unsigned i = 0; i < 2u; ++i) {
+        uint8_t *ctx = gWifiDma.ctx.va + kChannels * kCtx + i * kCtx;
+        r.erCtx[i] = ctx;
+        cleanInv(ctx, kCtx);
+        memcpy(&r.erBase[i], ctx + 12u, 8u);
+        memcpy(&r.erLen[i],  ctx + 20u, 8u);
+        memcpy(&r.erRp[i],   ctx + 28u, 8u);
+        r.erVa[i] = gWifiDma.ctx.va + (r.erBase[i] - gWifiDma.ctx.pa);
+        /* Ensure event ring WP trails RP by one element so QCA6390 has full ring space. */
+        const uint64_t wp = (r.erRp[i] == r.erBase[i]) ? (r.erBase[i] + r.erLen[i] - 16ULL) : (r.erRp[i] - 16ULL);
+        memcpy(ctx + 36u, &wp, 8u);
+        cleanInv(ctx + 36u, 8u);
+        putBar64(bar, r.erdb + 8u * i, wp);
+    }
+
+    r.cmdCtx = gWifiDma.ctx.va + (kChannels + 2u) * kCtx;
+    cleanInv(r.cmdCtx, kCtx);
+    memcpy(&r.cmdBase, r.cmdCtx + 12u, 8u);
+    memcpy(&r.cmdLen,  r.cmdCtx + 20u, 8u);
+    memcpy(&r.cmdWp,   r.cmdCtx + 36u, 8u);
+    r.cmdVa = gWifiDma.ctx.va + (r.cmdBase - gWifiDma.ctx.pa);
+
+    /* Layout IPCR rings & buffers starting at +6 MiB inside our 64 MiB DMA arena. */
+    const uint32_t ipcrOff = 0x600000u;
+    memset(gWifiDma.arenaVa + ipcrOff, 0, 0x100000u);
+    r.ulRingPa = gWifiDma.arenaPa + ipcrOff + 0x0000u;
+    r.ulRingVa = gWifiDma.arenaVa + ipcrOff + 0x0000u;
+    r.ulWp = r.ulRingPa;
+
+    r.dlRingPa = gWifiDma.arenaPa + ipcrOff + 0x1000u;
+    r.dlRingVa = gWifiDma.arenaVa + ipcrOff + 0x1000u;
+    r.dlWp = r.dlRingPa;
+
+    r.dlBufBasePa = gWifiDma.arenaPa + ipcrOff + 0x10000u;
+    r.dlBufBaseVa = gWifiDma.arenaVa + ipcrOff + 0x10000u;
+    r.ulBufBasePa = gWifiDma.arenaPa + ipcrOff + 0x50000u;
+    r.ulBufBaseVa = gWifiDma.arenaVa + ipcrOff + 0x50000u;
+
+    r.q6HeapCursor = gWifiDma.arenaPa + 0x800000ULL;
+    r.q6HeapEnd = gWifiDma.arenaPa + gWifiDma.arenaBytes;
+
+    /* Program Channel 20 (IPCR UL) and Channel 21 (IPCR DL) contexts in CCABAP. */
+    auto setupChan = [&](uint32_t ch, uint32_t chtype, uint64_t rbase) {
+        uint8_t *cc = gWifiDma.ctx.va + ch * kCtx;
+        const uint32_t chcfg = J716F_MHI_CH_STATE_ENABLED | (J716F_MHI_DB_BRST_DISABLE << 8);
+        const uint32_t eridx = 1u;
+        const uint64_t rlen = kIpcrRingBytes;
+        memcpy(cc + 0u,  &chcfg, 4u);
+        memcpy(cc + 4u,  &chtype, 4u);
+        memcpy(cc + 8u,  &eridx, 4u);
+        memcpy(cc + 12u, &rbase, 8u);
+        memcpy(cc + 20u, &rlen, 8u);
+        memcpy(cc + 28u, &rbase, 8u);
+        memcpy(cc + 36u, &rbase, 8u);
+        cleanInv(cc, kCtx);
+    };
+    setupChan(J716F_MHI_CH_IPCR_UL, J716F_MHI_CH_TYPE_OUTBOUND, r.ulRingPa);
+    setupChan(J716F_MHI_CH_IPCR_DL, J716F_MHI_CH_TYPE_INBOUND,  r.dlRingPa);
+}
+
+bool mhiPopEvent(const Region &bar, WifiQmiRings &r, unsigned erIdx, J716fMhiRingElement *out) {
+    cleanInv(r.erCtx[erIdx], 44u);
+    uint64_t devRp = 0ULL;
+    memcpy(&devRp, r.erCtx[erIdx] + 28u, 8u);
+    if (devRp < r.erBase[erIdx] || devRp >= r.erBase[erIdx] + r.erLen[erIdx]) return false;
+    if (r.erRp[erIdx] == devRp) return false;
+
+    const uint64_t off = r.erRp[erIdx] - r.erBase[erIdx];
+    cleanInv(r.erVa[erIdx] + off, 16u);
+    memcpy(out, r.erVa[erIdx] + off, sizeof(*out));
+
+    r.erRp[erIdx] += 16ULL;
+    if (r.erRp[erIdx] >= r.erBase[erIdx] + r.erLen[erIdx]) r.erRp[erIdx] = r.erBase[erIdx];
+
+    const uint64_t newWp = (r.erRp[erIdx] == r.erBase[erIdx])
+                               ? (r.erBase[erIdx] + r.erLen[erIdx] - 16ULL)
+                               : (r.erRp[erIdx] - 16ULL);
+    memcpy(r.erCtx[erIdx] + 36u, &newWp, 8u);
+    cleanInv(r.erCtx[erIdx] + 36u, 8u);
+    putBar64(bar, r.erdb + 8u * erIdx, newWp);
+    return true;
+}
+
+uint32_t mhiStartChanSync(const Region &bar, WifiQmiRings &r, uint32_t chid) {
+    const uint64_t trePa = r.cmdWp;
+    const uint64_t off = trePa - r.cmdBase;
+    J716fMhiRingElement cmd = {};
+    j716f_mhi_make_cmd_tre(&cmd, chid, J716F_MHI_CMD_START_CHAN);
+    memcpy(r.cmdVa + off, &cmd, sizeof(cmd));
+    cleanInv(r.cmdVa + off, sizeof(cmd));
+
+    r.cmdWp += 16ULL;
+    if (r.cmdWp >= r.cmdBase + r.cmdLen) r.cmdWp = r.cmdBase;
+    memcpy(r.cmdCtx + 36u, &r.cmdWp, 8u);
+    cleanInv(r.cmdCtx + 36u, 8u);
+    putBar64(bar, J716F_MHI_CRDB_LO, r.cmdWp);
+
+    for (unsigned i = 0; i < 400u; ++i) {
+        J716fMhiRingElement ev = {};
+        while (mhiPopEvent(bar, r, 0u, &ev)) {
+            if (j716f_mhi_ev_type(&ev) == J716F_MHI_PKT_CMD_COMPLETION_EVENT &&
+                ev.ptr == trePa) {
+                return j716f_mhi_ev_code(&ev);
+            }
+        }
+        IOSleep(5);
+    }
+    return 0xFFu;
+}
+
+void mhiQueueDlBuf(const Region &bar, WifiQmiRings &r, uint32_t bufIdx) {
+    const uint64_t bufPa = r.dlBufBasePa + static_cast<uint64_t>(bufIdx) * kIpcrBufBytes;
+    const uint64_t off = r.dlWp - r.dlRingPa;
+    J716fMhiRingElement tre = {};
+    j716f_mhi_make_xfer_tre(&tre, bufPa, kIpcrBufBytes, true);
+    memcpy(r.dlRingVa + off, &tre, sizeof(tre));
+    cleanInv(r.dlRingVa + off, sizeof(tre));
+
+    r.dlWp += 16ULL;
+    if (r.dlWp >= r.dlRingPa + kIpcrRingBytes) r.dlWp = r.dlRingPa;
+    uint8_t *cc = gWifiDma.ctx.va + J716F_MHI_CH_IPCR_DL * 44u;
+    memcpy(cc + 36u, &r.dlWp, 8u);
+    cleanInv(cc + 36u, 8u);
+    putBar64(bar, r.chdb + 8u * J716F_MHI_CH_IPCR_DL, r.dlWp);
+}
+
+bool mhiSendUlPacket(const Region &bar, WifiQmiRings &r, const uint8_t *pkt, size_t len) {
+    if (!pkt || len == 0u || len > kIpcrBufBytes) return false;
+    const uint32_t idx = r.ulBufIdx % kIpcrUlBufs;
+    ++r.ulBufIdx;
+    uint8_t *va = r.ulBufBaseVa + static_cast<uint64_t>(idx) * kIpcrBufBytes;
+    const uint64_t pa = r.ulBufBasePa + static_cast<uint64_t>(idx) * kIpcrBufBytes;
+    memcpy(va, pkt, len);
+    cleanInv(va, len);
+
+    const uint64_t off = r.ulWp - r.ulRingPa;
+    J716fMhiRingElement tre = {};
+    j716f_mhi_make_xfer_tre(&tre, pa, static_cast<uint32_t>(len), true);
+    memcpy(r.ulRingVa + off, &tre, sizeof(tre));
+    cleanInv(r.ulRingVa + off, sizeof(tre));
+
+    r.ulWp += 16ULL;
+    if (r.ulWp >= r.ulRingPa + kIpcrRingBytes) r.ulWp = r.ulRingPa;
+    uint8_t *cc = gWifiDma.ctx.va + J716F_MHI_CH_IPCR_UL * 44u;
+    memcpy(cc + 36u, &r.ulWp, 8u);
+    cleanInv(cc + 36u, 8u);
+    putBar64(bar, r.chdb + 8u * J716F_MHI_CH_IPCR_UL, r.ulWp);
+    ++gState.wifiQmiQrtrTx;
+    return true;
+}
+
+bool mhiSendQrtrQmi(const Region &bar, WifiQmiRings &r, uint32_t dstNode, uint32_t dstPort,
+                    const uint8_t *qmi, size_t qmiLen) {
+    static uint8_t frame[8192];
+    const size_t n = j716f_qrtr_encode_v1(frame, sizeof(frame), J716F_QRTR_TYPE_DATA,
+                                          J716F_QRTR_LOCAL_NODE, kQmiClientPort,
+                                          dstNode, dstPort, 0u, qmi, qmiLen);
+    return n > 0u && mhiSendUlPacket(bar, r, frame, n);
+}
+
+uint64_t mhiAllocQ6Segment(WifiQmiRings &r, uint32_t size) {
+    const uint64_t align = (size >= 0x100000u) ? 0x100000ULL : 0x10000ULL;
+    const uint64_t pa = (r.q6HeapCursor + align - 1ULL) & ~(align - 1ULL);
+    if (pa + size > r.q6HeapEnd) return 0ULL;
+    uint8_t *va = gWifiDma.arenaVa + (pa - gWifiDma.arenaPa);
+    memset(va, 0, size);
+    cleanInv(va, size);
+    r.q6HeapCursor = pa + size;
+    return pa;
+}
+
+}  // namespace
+
+extern "C" int j716f_wcn_wifi_qmi_now(void) {
+    ensureMapped();
+    gState.wifiQmiAttempted = true;
+    gState.wifiQmiStage = 1;
+    gState.wifiQmiErr = 0;
+    gState.wifiQmiCmd20 = 0xFFu;
+    gState.wifiQmiCmd21 = 0xFFu;
+    gState.wifiQmiQrtrRx = 0u;
+    gState.wifiQmiQrtrTx = 0u;
+    gState.wifiQmiWlfwNode = 0u;
+    gState.wifiQmiWlfwPort = 0u;
+    gState.wifiQmiWlfwInst = 0u;
+    gState.wifiQmiMemCount = 0u;
+    gState.wifiQmiMemTotal = 0u;
+    memset(gState.wifiQmiMemSegs, 0, sizeof(gState.wifiQmiMemSegs));
+    memset(&gState.wifiQmiCap, 0, sizeof(gState.wifiQmiCap));
+    gState.wifiQmiBdfChunks = 0u;
+    gState.wifiQmiBdfErr = 0u;
+    gState.wifiQmiM3Err = 0u;
+    gState.wifiQmiMemReady = false;
+    gState.wifiQmiFwReady = false;
+    gState.wifiQmiFwInitDone = false;
+    gState.wifiQmiMs = 0u;
+
+    /* Stage 1: Ensure amss20.bin reached Mission Mode (EE=2) with our 64 MiB DMA arena. */
+    if (gState.wifiFwStage < 9 || !gWifiDma.allocated) {
+        const int fwrc = j716f_wcn_wifi_fw_now();
+        if (fwrc != 0 || gState.wifiFwStage < 9) {
+            gState.wifiQmiErr = fwrc ? fwrc : -5;
+            return gState.wifiQmiErr;
+        }
+    }
+    if (gWifiDma.arenaBytes < 0x2000000ULL) {
+        gState.wifiQmiErr = -12;
+        return -12;
+    }
+
+    Region bar;
+    const uint32_t barAddr = gState.epBar0Assigned & ~0xFu;
+    if (!barAddr || !mapRegion(barAddr, 0x200000u, bar)) {
+        gState.wifiQmiErr = -13;
+        return -13;
+    }
+
+    const uint64_t t0 = mach_absolute_time();
+
+    /* Stage 2: Start MHI IPCR Ch20 (UL) & Ch21 (DL) via Command Ring + pre-queue 32 DL buffers. */
+    gState.wifiQmiStage = 2;
+    WifiQmiRings r = {};
+    mhiInitRingsFromCtx(bar, r);
+    gState.wifiQmiCmd20 = mhiStartChanSync(bar, r, J716F_MHI_CH_IPCR_UL);
+    gState.wifiQmiCmd21 = mhiStartChanSync(bar, r, J716F_MHI_CH_IPCR_DL);
+    if (gState.wifiQmiCmd20 != J716F_MHI_EV_CC_SUCCESS ||
+        gState.wifiQmiCmd21 != J716F_MHI_EV_CC_SUCCESS) {
+        gState.wifiQmiErr = -70;
+        unmapRegion(bar);
+        return -70;
+    }
+    for (uint32_t i = 0; i < kIpcrDlBufs; ++i) {
+        mhiQueueDlBuf(bar, r, i);
+    }
+
+    /* Stage 3: Send QRTR HELLO and wait for WLFW (service 0x45) NEW_SERVER announcement. */
+    gState.wifiQmiStage = 3;
+    uint8_t txPkt[64];
+    const size_t helloLen = j716f_qrtr_encode_hello(txPkt, sizeof(txPkt),
+                                                    J716F_QRTR_LOCAL_NODE, J716F_QRTR_NODE_BCAST);
+    (void)mhiSendUlPacket(bar, r, txPkt, helloLen);
+
+    static uint8_t qmiBuf[7000];
+    uint16_t txnId = 1u;
+    bool sentIndReg = false, gotIndRegResp = false;
+    bool sentHostCap = false, gotHostCapResp = false;
+    bool gotReqMem = false, sentRespMem = false, gotRespMemResp = false;
+    bool sentCap = false, gotCapResp = false;
+    bool bdfDone = false, bdfInFlight = false;
+    uint32_t bdfOff = 0u, bdfSegId = 0u;
+    bool sentM3 = false, gotM3Resp = false;
+    bool helloReplied = false;
+    uint16_t activeTxn = 0u;
+
+    auto sendNextBdf = [&]() -> bool {
+        if (j716f_wcn_wifi_bdf_fw_size == 0u) {
+            bdfDone = true;
+            return true;
+        }
+        const uint32_t total = j716f_wcn_wifi_bdf_fw_size;
+        const uint32_t rem = total - bdfOff;
+        const uint16_t take = static_cast<uint16_t>(rem > J716F_QMI_BDF_MAX_CHUNK ? J716F_QMI_BDF_MAX_CHUNK : rem);
+        const bool isEnd = (bdfOff + take >= total);
+        const uint8_t bdfType = (total >= 4u && j716f_wcn_wifi_bdf_fw[0] == 0x7Fu &&
+                                 j716f_wcn_wifi_bdf_fw[1] == 'E')
+                                    ? J716F_QMI_BDF_TYPE_ELF
+                                    : J716F_QMI_BDF_TYPE_BIN;
+        activeTxn = txnId++;
+        const size_t n = j716f_qmi_build_bdf_download_req(
+            qmiBuf, sizeof(qmiBuf), activeTxn, bdfSegId, total,
+            j716f_wcn_wifi_bdf_fw + bdfOff, take, isEnd, bdfType);
+        if (n == 0u) return false;
+        bdfOff += take;
+        ++bdfSegId;
+        gState.wifiQmiBdfChunks = bdfSegId;
+        bdfInFlight = true;
+        return mhiSendQrtrQmi(bar, r, gState.wifiQmiWlfwNode, gState.wifiQmiWlfwPort, qmiBuf, n);
+    };
+
+    /* Drive QRTR + QMI WLFW state machine up to 10 seconds. */
+    for (unsigned tick = 0; tick < 2000u; ++tick) {
+        J716fMhiRingElement ev = {};
+        /* Drain any state/EE events on ER0 so ER0 never fills. */
+        while (mhiPopEvent(bar, r, 0u, &ev)) {}
+
+        while (mhiPopEvent(bar, r, 1u, &ev)) {
+            if (j716f_mhi_ev_type(&ev) != J716F_MHI_PKT_TX_EVENT) continue;
+            if (j716f_mhi_ev_chid(&ev) != J716F_MHI_CH_IPCR_DL) continue;
+
+            const uint64_t treOff = ev.ptr - r.dlRingPa;
+            const uint32_t xferLen = j716f_mhi_ev_len(&ev);
+            if (ev.ptr >= r.dlRingPa && treOff < kIpcrRingBytes && (treOff & 15ULL) == 0ULL) {
+                J716fMhiRingElement dlTre = {};
+                memcpy(&dlTre, r.dlRingVa + treOff, sizeof(dlTre));
+                if (dlTre.ptr >= r.dlBufBasePa &&
+                    dlTre.ptr < r.dlBufBasePa + static_cast<uint64_t>(kIpcrDlBufs) * kIpcrBufBytes) {
+                    const uint32_t bufIdx = static_cast<uint32_t>((dlTre.ptr - r.dlBufBasePa) / kIpcrBufBytes);
+                    const uint8_t *rxVa = r.dlBufBaseVa + static_cast<uint64_t>(bufIdx) * kIpcrBufBytes;
+                    cleanInv(rxVa, xferLen);
+                    ++gState.wifiQmiQrtrRx;
+
+                    J716fQrtrHeader qh = {};
+                    const uint8_t *pl = nullptr;
+                    size_t plLen = 0u;
+                    if (j716f_qrtr_decode(rxVa, xferLen, &qh, &pl, &plLen)) {
+                        if (qh.confirm_rx && qh.type == J716F_QRTR_TYPE_DATA) {
+                            uint8_t rtx[64];
+                            const size_t rn = j716f_qrtr_encode_resume_tx(
+                                rtx, sizeof(rtx), qh.dst_node, qh.dst_port, qh.src_node, qh.src_port);
+                            if (rn > 0u) (void)mhiSendUlPacket(bar, r, rtx, rn);
+                        }
+                        if (qh.type == J716F_QRTR_TYPE_HELLO && !helloReplied && qh.src_node != J716F_QRTR_LOCAL_NODE) {
+                            helloReplied = true;
+                            const size_t hn = j716f_qrtr_encode_hello(
+                                txPkt, sizeof(txPkt), J716F_QRTR_LOCAL_NODE, qh.src_node);
+                            (void)mhiSendUlPacket(bar, r, txPkt, hn);
+                        } else if (qh.type == J716F_QRTR_TYPE_NEW_SERVER) {
+                            J716fQrtrServer srv = {};
+                            if (j716f_qrtr_parse_new_server(pl, plLen, &srv) &&
+                                srv.service == J716F_QRTR_WLFW_SERVICE_ID && gState.wifiQmiWlfwPort == 0u) {
+                                gState.wifiQmiWlfwNode = srv.node;
+                                gState.wifiQmiWlfwPort = srv.port;
+                                gState.wifiQmiWlfwInst = srv.instance;
+                                gState.wifiQmiStage = 4;
+                            }
+                        } else if (qh.type == J716F_QRTR_TYPE_DATA && qh.dst_port == kQmiClientPort) {
+                            J716fQmiHeader mh = {};
+                            const uint8_t *tlvs = nullptr;
+                            size_t tlvsLen = 0u;
+                            if (j716f_qmi_decode_header(pl, plLen, &mh, &tlvs, &tlvsLen)) {
+                                uint16_t qres = 0u, qerr = 0u;
+                                (void)j716f_qmi_parse_resp_result(tlvs, tlvsLen, &qres, &qerr);
+                                if (mh.type == J716F_QMI_TYPE_RESP) {
+                                    if (mh.msg_id == J716F_QMI_WLFW_IND_REGISTER_REQ) {
+                                        gotIndRegResp = (qres == 0u);
+                                        if (!gotIndRegResp) gState.wifiQmiErr = -71;
+                                    } else if (mh.msg_id == J716F_QMI_WLFW_HOST_CAP_REQ) {
+                                        gotHostCapResp = (qres == 0u);
+                                        if (!gotHostCapResp) gState.wifiQmiErr = -72;
+                                    } else if (mh.msg_id == J716F_QMI_WLFW_RESPOND_MEM_REQ) {
+                                        gotRespMemResp = (qres == 0u);
+                                        if (!gotRespMemResp) gState.wifiQmiErr = -73;
+                                    } else if (mh.msg_id == J716F_QMI_WLFW_CAP_REQ) {
+                                        gotCapResp = j716f_qmi_parse_cap_resp(tlvs, tlvsLen, &gState.wifiQmiCap);
+                                        if (!gotCapResp) gState.wifiQmiErr = -74;
+                                    } else if (mh.msg_id == J716F_QMI_WLFW_BDF_DOWNLOAD_REQ) {
+                                        bdfInFlight = false;
+                                        if (qres != 0u) {
+                                            gState.wifiQmiBdfErr = (static_cast<uint32_t>(qres) << 16) | qerr;
+                                            bdfDone = true;
+                                        } else if (bdfOff >= j716f_wcn_wifi_bdf_fw_size) {
+                                            bdfDone = true;
+                                        }
+                                    } else if (mh.msg_id == J716F_QMI_WLFW_M3_INFO_REQ) {
+                                        gotM3Resp = true;
+                                        if (qres != 0u) {
+                                            gState.wifiQmiM3Err = (static_cast<uint32_t>(qres) << 16) | qerr;
+                                        }
+                                    }
+                                } else if (mh.type == J716F_QMI_TYPE_IND) {
+                                    if (mh.msg_id == J716F_QMI_WLFW_REQUEST_MEM_IND) {
+                                        if (j716f_qmi_parse_request_mem_ind(
+                                                tlvs, tlvsLen, gState.wifiQmiMemSegs,
+                                                J716F_QMI_MAX_MEM_SEGS, &gState.wifiQmiMemCount)) {
+                                            gotReqMem = true;
+                                            gState.wifiQmiStage = 5;
+                                        }
+                                    } else if (mh.msg_id == J716F_QMI_WLFW_FW_MEM_READY_IND) {
+                                        gState.wifiQmiMemReady = true;
+                                        gState.wifiQmiStage = 6;
+                                    } else if (mh.msg_id == J716F_QMI_WLFW_FW_READY_IND) {
+                                        gState.wifiQmiFwReady = true;
+                                        gState.wifiQmiStage = 9;
+                                    } else if (mh.msg_id == J716F_QMI_WLFW_FW_INIT_DONE_IND) {
+                                        gState.wifiQmiFwInitDone = true;
+                                        gState.wifiQmiStage = 9;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    mhiQueueDlBuf(bar, r, bufIdx);
+                }
+            }
+        }
+
+        if (gState.wifiQmiErr != 0) break;
+
+        /* Advance QMI WLFW handshake steps once WLFW server is known. */
+        if (gState.wifiQmiWlfwPort != 0u) {
+            if (!sentIndReg) {
+                sentIndReg = true;
+                const size_t n = j716f_qmi_build_ind_register_req(qmiBuf, sizeof(qmiBuf), txnId++);
+                (void)mhiSendQrtrQmi(bar, r, gState.wifiQmiWlfwNode, gState.wifiQmiWlfwPort, qmiBuf, n);
+            } else if (gotIndRegResp && !sentHostCap) {
+                sentHostCap = true;
+                const size_t n = j716f_qmi_build_host_cap_req(
+                    qmiBuf, sizeof(qmiBuf), txnId++, j716f_wcn_wifi_m3_fw_size > 0u);
+                (void)mhiSendQrtrQmi(bar, r, gState.wifiQmiWlfwNode, gState.wifiQmiWlfwPort, qmiBuf, n);
+            } else if (gotHostCapResp && gotReqMem && !sentRespMem) {
+                sentRespMem = true;
+                J716fQmiMemRespSeg respSegs[J716F_QMI_MAX_MEM_SEGS] = {};
+                uint32_t totalBytes = 0u;
+                bool allocOk = true;
+                for (uint32_t i = 0u; i < gState.wifiQmiMemCount; ++i) {
+                    const uint32_t sz = gState.wifiQmiMemSegs[i].size;
+                    const uint64_t pa = mhiAllocQ6Segment(r, sz);
+                    if (!pa) {
+                        allocOk = false;
+                        break;
+                    }
+                    respSegs[i].addr = pa;
+                    respSegs[i].size = sz;
+                    respSegs[i].type = gState.wifiQmiMemSegs[i].type;
+                    respSegs[i].restore = 0u;
+                    totalBytes += sz;
+                }
+                gState.wifiQmiMemTotal = totalBytes;
+                if (!allocOk) {
+                    gState.wifiQmiErr = -12;
+                    break;
+                }
+                const size_t n = j716f_qmi_build_respond_mem_req(
+                    qmiBuf, sizeof(qmiBuf), txnId++, respSegs, gState.wifiQmiMemCount);
+                (void)mhiSendQrtrQmi(bar, r, gState.wifiQmiWlfwNode, gState.wifiQmiWlfwPort, qmiBuf, n);
+            } else if (gotRespMemResp && gState.wifiQmiMemReady && !sentCap) {
+                sentCap = true;
+                const size_t n = j716f_qmi_build_cap_req(qmiBuf, sizeof(qmiBuf), txnId++);
+                (void)mhiSendQrtrQmi(bar, r, gState.wifiQmiWlfwNode, gState.wifiQmiWlfwPort, qmiBuf, n);
+            } else if (gotCapResp && !bdfDone && !bdfInFlight) {
+                gState.wifiQmiStage = 7;
+                if (!sendNextBdf()) {
+                    gState.wifiQmiErr = -75;
+                    break;
+                }
+            } else if (gotCapResp && bdfDone && !sentM3) {
+                sentM3 = true;
+                gState.wifiQmiStage = 8;
+                if (j716f_wcn_wifi_m3_fw_size > 0u && j716f_wcn_wifi_m3_fw_size <= 0x100000u) {
+                    const uint64_t m3Pa = gWifiDma.arenaPa + 0x700000ULL;
+                    uint8_t *m3Va = gWifiDma.arenaVa + 0x700000ULL;
+                    memcpy(m3Va, j716f_wcn_wifi_m3_fw, j716f_wcn_wifi_m3_fw_size);
+                    cleanInv(m3Va, j716f_wcn_wifi_m3_fw_size);
+                    const size_t n = j716f_qmi_build_m3_info_req(
+                        qmiBuf, sizeof(qmiBuf), txnId++, m3Pa, j716f_wcn_wifi_m3_fw_size);
+                    (void)mhiSendQrtrQmi(bar, r, gState.wifiQmiWlfwNode, gState.wifiQmiWlfwPort, qmiBuf, n);
+                } else {
+                    gotM3Resp = true;
+                    break;
+                }
+            }
+        }
+
+        if ((gState.wifiQmiFwReady || gState.wifiQmiFwInitDone) && gotM3Resp) break;
+        IOSleep(5);
+    }
+
+    uint64_t elapsedNs = 0ULL;
+    absolutetime_to_nanoseconds(mach_absolute_time() - t0, &elapsedNs);
+    gState.wifiQmiMs = static_cast<uint32_t>(elapsedNs / 1000000ULL);
+    unmapRegion(bar);
+
+    if (gState.wifiQmiErr == 0 && !gState.wifiQmiFwReady && !gState.wifiQmiFwInitDone && gState.wifiQmiStage < 7) {
+        gState.wifiQmiErr = -110;
+    }
+    IOLog("[J716F wcn] wifi.qmi stg=%d err=%d wlfw=%u:%u mem=%u(%uB) board=0x%x chip=0x%x/%x soc=0x%x fw=0x%x build=\"%s\" bdf=%u(0x%x) m3=0x%x ready=%u/%u ms=%u\n",
+          gState.wifiQmiStage, gState.wifiQmiErr, gState.wifiQmiWlfwNode, gState.wifiQmiWlfwPort,
+          gState.wifiQmiMemCount, gState.wifiQmiMemTotal,
+          gState.wifiQmiCap.board_id, gState.wifiQmiCap.chip_id, gState.wifiQmiCap.chip_family,
+          gState.wifiQmiCap.soc_id, gState.wifiQmiCap.fw_version, gState.wifiQmiCap.fw_build_id,
+          gState.wifiQmiBdfChunks, gState.wifiQmiBdfErr, gState.wifiQmiM3Err,
+          gState.wifiQmiFwReady ? 1u : 0u, gState.wifiQmiFwInitDone ? 1u : 0u, gState.wifiQmiMs);
+    return gState.wifiQmiErr;
+}
+
 extern "C" void j716f_wcn_probe(void) {
     ensureMapped();
+    unsigned btSvc = 0u;
+    PE_parse_boot_argn("j716f-bt", &btSvc, sizeof(btSvc));
+    if (btSvc >= 1u) {
+        (void)j716f_wcn_bt_service_start();
+    }
     unsigned mode = 0u;
     PE_parse_boot_argn("j716f-wcn", &mode, sizeof(mode));
-    if (mode >= 1u) {
+    if (mode >= 1u && btSvc == 0u) {
         (void)j716f_wcn_bt_probe_now();
     }
     if (mode >= 2u) {
@@ -2100,6 +3036,60 @@ extern "C" void j716f_wcn_snapshot(char *out, size_t cap) {
                     gState.wifiMhiEe, gState.wifiMhiState,
                     gState.wifiBhiStatus, gState.wifiBhiErr, gState.wifiBhieTxStatus,
                     gState.wifiMhiStatus, gState.wifiEventsAcked, gState.wifiBootMs);
+        }
+        if (gState.wifiQmiAttempted) {
+            appendf(out, cap, pos,
+                    "[usb] WCN_WIFI_QMI: stg=%d err=%d cmd=%u/%u qrtr=tx%u/rx%u wlfw=%u:%u(i%u) mem=%u(%uB,rdy=%u) bdf=%u(err=0x%x) m3=%uB(err=0x%x) fw_rdy=%u/%u ms=%u\r\n",
+                    gState.wifiQmiStage, gState.wifiQmiErr, gState.wifiQmiCmd20, gState.wifiQmiCmd21,
+                    gState.wifiQmiQrtrTx, gState.wifiQmiQrtrRx,
+                    gState.wifiQmiWlfwNode, gState.wifiQmiWlfwPort, gState.wifiQmiWlfwInst,
+                    gState.wifiQmiMemCount, gState.wifiQmiMemTotal, gState.wifiQmiMemReady ? 1u : 0u,
+                    gState.wifiQmiBdfChunks, gState.wifiQmiBdfErr,
+                    j716f_wcn_wifi_m3_fw_size, gState.wifiQmiM3Err,
+                    gState.wifiQmiFwReady ? 1u : 0u, gState.wifiQmiFwInitDone ? 1u : 0u,
+                    gState.wifiQmiMs);
+            if (gState.wifiQmiMemCount > 0u) {
+                appendf(out, cap, pos, "[usb] WCN_WIFI_QMI_MEM:");
+                for (uint32_t i = 0; i < gState.wifiQmiMemCount; ++i) {
+                    appendf(out, cap, pos, " [t=%u sz=%uK]",
+                            gState.wifiQmiMemSegs[i].type, gState.wifiQmiMemSegs[i].size / 1024u);
+                }
+                appendf(out, cap, pos, "\r\n");
+            }
+            if (gState.wifiQmiCap.valid) {
+                appendf(out, cap, pos,
+                        "[usb] WCN_WIFI_QMI_CAP: chip=0x%x/0x%x board_id=0x%x soc=0x%x fw=0x%x macs=%u ts=\"%s\" build=\"%s\"\r\n",
+                        gState.wifiQmiCap.chip_id, gState.wifiQmiCap.chip_family,
+                        gState.wifiQmiCap.board_id, gState.wifiQmiCap.soc_id,
+                        gState.wifiQmiCap.fw_version, gState.wifiQmiCap.num_macs,
+                        gState.wifiQmiCap.fw_timestamp, gState.wifiQmiCap.fw_build_id);
+            }
+        }
+    }
+
+    if (gState.btSvcStarted) {
+        btSvcPollProcs();
+        appendf(out, cap, pos,
+                "[usb] WCN_BT_SVC: st=%u err=%d bd=%02x:%02x:%02x:%02x:%02x:%02x pids(btd=%u,btl=%u) act=[%u,%u,%u,%u] kicks=%llu/%llu tx=%uB(%ufr,%ucmd) rx=%uB(%ufr) ibs=w%u/s%u\r\n",
+                gState.btSvcState, gState.btSvcErr,
+                gState.btSvcAddr[0], gState.btSvcAddr[1], gState.btSvcAddr[2],
+                gState.btSvcAddr[3], gState.btSvcAddr[4], gState.btSvcAddr[5],
+                gState.btSvcPidBtd, gState.btSvcPidBtl,
+                qbt_transport_activity[0], qbt_transport_activity[1],
+                qbt_transport_activity[2], qbt_transport_activity[3],
+                static_cast<unsigned long long>(qbt_transport_kicks[0]),
+                static_cast<unsigned long long>(qbt_transport_kicks[1]),
+                gState.btSvcTxBytes, gState.btSvcTxFrames, gState.btSvcTxCmds,
+                gState.btSvcRxBytes, gState.btSvcRxFrames,
+                gState.btSvcIbsWakeRx, gState.btSvcIbsSleepRx);
+        if (gState.btSvcLastOpsCount > 0u) {
+            appendf(out, cap, pos, "[usb] WCN_BT_SVC_OPS:");
+            const uint32_t n = gState.btSvcLastOpsCount < 12u ? gState.btSvcLastOpsCount : 12u;
+            const uint32_t start = gState.btSvcLastOpsCount > 12u ? (gState.btSvcLastOpsCount - 12u) : 0u;
+            for (uint32_t i = 0; i < n; ++i) {
+                appendf(out, cap, pos, " 0x%04x", gState.btSvcLastOps[(start + i) % 12u]);
+            }
+            appendf(out, cap, pos, "\r\n");
         }
     }
 }

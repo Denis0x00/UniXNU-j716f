@@ -1690,13 +1690,13 @@ void runMode10And11Kmd() {
                             const uint64_t lo = base > a.lo ? base : a.lo;
                             uint64_t hi = end < a.hi ? end : a.hi;
                             if (hi <= lo || (hi - lo) < (1ULL << 20)) continue;
-                            /* Carve one 16 MiB, 8 MiB-aligned <4 GiB DMA arena for QCA6390 PCIe0 MHI/BHIe
-                             * (requires 32-bit power-of-two aligned buffers without XNU fragmentation). */
-                            if (!gJ716fWcnDmaBytes && hi <= 0x100000000ULL && (hi - lo) >= 0x2000000ULL) {
+                            /* Carve one 64 MiB, 8 MiB-aligned <4 GiB DMA arena for QCA6390 PCIe0 MHI/BHIe + QMI
+                             * (needs 32-bit aligned buffers for amss20.bin, IPCR rings, m3.bin, and Q6 DDR/MSA). */
+                            if (!gJ716fWcnDmaBytes && hi <= 0x100000000ULL && (hi - lo) >= 0x5000000ULL) {
                                 const uint64_t arenaEnd = hi & ~0x7FFFFFULL;
-                                if (arenaEnd >= lo + 0x1800000ULL) {
-                                    gJ716fWcnDmaPa = arenaEnd - 0x1000000ULL;
-                                    gJ716fWcnDmaBytes = 0x1000000ULL;
+                                if (arenaEnd >= lo + 0x4800000ULL) {
+                                    gJ716fWcnDmaPa = arenaEnd - 0x4000000ULL;
+                                    gJ716fWcnDmaBytes = 0x4000000ULL;
                                     hi = gJ716fWcnDmaPa;
                                     IOLog("[J716F gpu] reserved WCN 32-bit DMA arena 0x%llx + 0x%llx\n",
                                           static_cast<unsigned long long>(gJ716fWcnDmaPa),

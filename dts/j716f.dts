@@ -5,6 +5,22 @@
     model = "Lenovo Xiaoxin Pad Pro 2021 TB-J716F";
     compatible = "lenovo,j716f", "qcom,sm8250";
 
+    // Export QCA6390 wireless ADT nodes before launchd evaluates wifid / bluetoothd conditions.
+    wlan {
+        compatible = "qcom,qca6390";
+        unixnu,adt-name = "wlan";
+        status = "okay";
+    };
+
+    bluetooth {
+        device_type = "bluetooth";
+        compatible = "qcom,qca6390-bt";
+        unixnu,adt-name = "bluetooth";
+        transport-encoding = <1>;
+        transport-speed = <3200000>;
+        status = "okay";
+    };
+
     // Android runtime FDT: DTB index 0 + DTBO index 1, batch 20261111-231708.
     // The common ADT converter accepts exactly ONE enabled contiguous memory
     // range. Keep the low bank here as inventory, disabled for that converter.

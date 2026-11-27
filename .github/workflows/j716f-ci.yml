@@ -119,6 +119,10 @@ jobs:
           test -f "$TREE/kits/j716f/wireless/J716fWcnBoard.h"
           test -f "$TREE/kits/j716f/wireless/J716fMhiBoot.h"
           test -f "$TREE/kits/j716f/wireless/J716fMhiBoot.c"
+          test -f "$TREE/kits/j716f/wireless/J716fMhiQrtr.h"
+          test -f "$TREE/kits/j716f/wireless/J716fMhiQrtr.c"
+          test -f "$TREE/kits/j716f/wireless/J716fBtTransport.h"
+          test -f "$TREE/kits/j716f/wireless/J716fBtTransport.c"
           test -f "$TREE/kits/j716f/wireless/J716fWcnProbe.cpp"
           test -f "$TREE/kits/j716f/input/NativeHidInput.cpp"
           test -f "$TREE/kits/j716f/input/J716fTouchProbe.cpp"
@@ -362,10 +366,11 @@ jobs:
             -o "$OUT/test_dpu_smmu"
           "$OUT/test_dpu_smmu"
 
-          echo "=== Test 17: J716fWcnBoard + J716fMhiBoot (QCA6390 BT/NVM/BLE parser, PCIe0 SID CRC-8, QMP PHY, MHI/BHIe) ==="
+          echo "=== Test 17: J716fWcnBoard + J716fMhiBoot + J716fMhiQrtr (QCA6390 BT/NVM/BLE, PCIe0 SID, QMP PHY, MHI/BHIe, QRTR/QMI) ==="
           clang -std=c11 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer \
             -I"device/package/wireless" \
             "device/package/wireless/J716fMhiBoot.c" \
+            "device/package/wireless/J716fMhiQrtr.c" \
             "device/package/wireless/tests/J716fWcnBoardTest.c" \
             -o "$OUT/test_wcn_board"
           "$OUT/test_wcn_board"
