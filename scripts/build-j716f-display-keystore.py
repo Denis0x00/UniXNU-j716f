@@ -660,6 +660,7 @@ def main() -> None:
     board_dpu_src = ROOT / 'kits/j716f/display/J716fDpuScanout.cpp'
     wireless_dir = ROOT / 'kits/j716f/wireless'
     wcn_probe_src = wireless_dir / 'J716fWcnProbe.cpp'
+    wcn_mhi_src = wireless_dir / 'J716fMhiBoot.c'
     sm8250_platform_dir = (ROOT / 'kits/j716f').resolve().parent / 'socs/sm8250/kits/Sm8250Platform'
     sm8250_uart_src = sm8250_platform_dir / 'Sm8250GeniUart.c'
     input_dir = ROOT / 'kits/j716f/input'
@@ -725,6 +726,8 @@ def main() -> None:
         board_dpu_src,
         board_display_src.parent / 'J716fDpuSmmu.h',
         wcn_probe_src,
+        wcn_mhi_src,
+        wireless_dir / 'J716fMhiBoot.h',
         wireless_dir / 'J716fWcnBoard.h',
         sm8250_uart_src,
         hid_src,
@@ -1108,6 +1111,93 @@ def main() -> None:
             encoding='utf-8',
         )
 
+    wcn_fw_src = OUT / 'J716fWcnFirmware.c'
+    wcn_fw_obj = OUT / 'J716fWcnFirmware.o'
+    wcn_mhi_obj = OUT / 'J716fMhiBoot.o'
+    wcn_wifi_fw_asm = OUT / 'J716fWifiAmssFw.S'
+    wcn_wifi_fw_obj = OUT / 'J716fWifiAmssFw.o'
+    bt_tlv_bytes = 0
+    bt_nvm_bytes = 0
+    wifi_amss_bytes = 0
+    wcn_dir_env = os.environ.get('J716F_WCN_FIRMWARE_DIR')
+    if wcn_dir_env:
+        wcn_dir = Path(wcn_dir_env)
+        tlv_path = wcn_dir / 'htbtfw20.tlv'
+        nvm_path = wcn_dir / 'htnv20.bin'
+        if tlv_path.is_file() and nvm_path.is_file():
+            tlv_blob = tlv_path.read_bytes()
+            nvm_blob = nvm_path.read_bytes()
+            require(
+                64 <= len(tlv_blob) <= 0x80000 and tlv_blob[0] == 0x01,
+                f'invalid QCA6390 BT TLV image {tlv_path} ({len(tlv_blob)} bytes)',
+            )
+            require(
+                32 <= len(nvm_blob) <= 0x10000 and nvm_blob[0] == 0x02,
+                f'invalid QCA6390 BT NVM image {nvm_path} ({len(nvm_blob)} bytes)',
+            )
+            bt_tlv_bytes = len(tlv_blob)
+            bt_nvm_bytes = len(nvm_blob)
+            tlv_sha = hashlib.sha256(tlv_blob).hexdigest()
+            nvm_sha = hashlib.sha256(nvm_blob).hexdigest()
+            wcn_fw_src.write_text(
+                f'/* Local optional QCA6390 BT firmware (tlv sha256 {tlv_sha}, nvm sha256 {nvm_sha}) */\n'
+                '#include <stdint.h>\n'
+                'const uint8_t j716f_wcn_bt_tlv_fw[] __attribute__((aligned(16))) = {'
+                + ','.join(str(b) for b in tlv_blob)
+                + '};\n'
+                f'const uint32_t j716f_wcn_bt_tlv_fw_size = {bt_tlv_bytes}u;\n'
+                'const uint8_t j716f_wcn_bt_nvm_fw[] __attribute__((aligned(16))) = {'
+                + ','.join(str(b) for b in nvm_blob)
+                + '};\n'
+                f'const uint32_t j716f_wcn_bt_nvm_fw_size = {bt_nvm_bytes}u;\n',
+                encoding='utf-8',
+            )
+        amss_path = wcn_dir / 'qca6390/amss20.bin'
+        if amss_path.is_file():
+            amss_size = amss_path.stat().st_size
+            require(
+                524288 <= amss_size <= 0x800000 and amss_path.read_bytes()[:4] == b'\x7fELF',
+                f'invalid QCA6390 Wi-Fi AMSS image {amss_path} ({amss_size} bytes)',
+            )
+            wifi_amss_bytes = amss_size
+            wcn_wifi_fw_asm.write_text(
+                '/* Local optional QCA6390 Wi-Fi amss20.bin */\n'
+                '.section __DATA_CONST,__const\n'
+                '.globl _j716f_wcn_wifi_amss_fw\n'
+                '.p2align 4\n'
+                '_j716f_wcn_wifi_amss_fw:\n'
+                f'.incbin "{amss_path.resolve()}"\n'
+                '.globl _j716f_wcn_wifi_amss_fw_size\n'
+                '.p2align 2\n'
+                '_j716f_wcn_wifi_amss_fw_size:\n'
+                f'.long {wifi_amss_bytes}\n',
+                encoding='utf-8',
+            )
+    if bt_tlv_bytes == 0:
+        wcn_fw_src.write_text(
+            '/* Public/CI build stub: no proprietary QCA6390 BT firmware linked. */\n'
+            '#include <stdint.h>\n'
+            'const uint8_t j716f_wcn_bt_tlv_fw[16] __attribute__((aligned(16))) = {0};\n'
+            'const uint32_t j716f_wcn_bt_tlv_fw_size = 0u;\n'
+            'const uint8_t j716f_wcn_bt_nvm_fw[16] __attribute__((aligned(16))) = {0};\n'
+            'const uint32_t j716f_wcn_bt_nvm_fw_size = 0u;\n',
+            encoding='utf-8',
+        )
+    if wifi_amss_bytes == 0:
+        wcn_wifi_fw_asm.write_text(
+            '/* Public/CI build stub: no proprietary QCA6390 Wi-Fi amss20.bin linked. */\n'
+            '.section __DATA_CONST,__const\n'
+            '.globl _j716f_wcn_wifi_amss_fw\n'
+            '.p2align 4\n'
+            '_j716f_wcn_wifi_amss_fw:\n'
+            '.space 16\n'
+            '.globl _j716f_wcn_wifi_amss_fw_size\n'
+            '.p2align 2\n'
+            '_j716f_wcn_wifi_amss_fw_size:\n'
+            '.long 0\n',
+            encoding='utf-8',
+        )
+
     gpu_kmd_inc = [
         '-I', str(gpu_dir),
         '-I', str(adreno740_dir),
@@ -1140,6 +1230,14 @@ def main() -> None:
         sm8250_uart_src,
         sm8250_uart_obj,
         ['-I', str(sm8250_platform_dir)],
+        allow_warnings=False,
+    )
+    compile_c_from_record(
+        c_record,
+        record,
+        wcn_mhi_src,
+        wcn_mhi_obj,
+        ['-I', str(wireless_dir)],
         allow_warnings=False,
     )
     compile_cxx_from_record(
@@ -1292,6 +1390,8 @@ def main() -> None:
     compile_c_from_record(c_record, record, gmu_fw_src, gmu_fw_obj, [], allow_warnings=False)
     compile_c_from_record(c_record, record, sqe_fw_src, sqe_fw_obj, [], allow_warnings=False)
     compile_c_from_record(c_record, record, zap_fw_src, zap_fw_obj, [], allow_warnings=False)
+    compile_c_from_record(c_record, record, wcn_fw_src, wcn_fw_obj, [], allow_warnings=False)
+    run([clang, '-target', TRIPLE, '-c', wcn_wifi_fw_asm, '-o', wcn_wifi_fw_obj])
     compile_cxx_from_record(
         record,
         usb_cdc_src,
@@ -1315,6 +1415,7 @@ def main() -> None:
         board_display_obj,
         board_keystore_obj,
         board_dpu_obj,
+        wcn_mhi_obj,
         wcn_probe_obj,
         sm8250_uart_obj,
         board_hid_obj,
@@ -1335,6 +1436,8 @@ def main() -> None:
         gmu_fw_obj,
         sqe_fw_obj,
         zap_fw_obj,
+        wcn_fw_obj,
+        wcn_wifi_fw_obj,
         adreno_pm4_obj,
         *adreno_fw_objs,
         *smmu_objs,
@@ -1355,6 +1458,8 @@ def main() -> None:
         board_dpu_src,
         board_display_src.parent / 'J716fDpuSmmu.h',
         wcn_probe_src,
+        wcn_mhi_src,
+        wireless_dir / 'J716fMhiBoot.h',
         wireless_dir / 'J716fWcnBoard.h',
         sm8250_uart_src,
         hid_src,

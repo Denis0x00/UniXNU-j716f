@@ -98,6 +98,16 @@ extern volatile uint32_t native_adreno_import_rw_coherent __attribute__((weak));
 extern volatile uint32_t native_adreno_walk_coherent[3] __attribute__((weak));
 extern volatile uint32_t native_adreno_coherent_skips[4] __attribute__((weak));
 extern IOReturn native_adreno_pool_add(uint64_t physical, uint64_t bytes) __attribute__((weak));
+
+static uint64_t gJ716fWcnDmaPa = 0ULL;
+static uint64_t gJ716fWcnDmaBytes = 0ULL;
+
+extern "C" bool j716f_wcn_dma_arena(uint64_t *outPa, uint64_t *outBytes) {
+    if (!gJ716fWcnDmaPa || !gJ716fWcnDmaBytes) return false;
+    if (outPa) *outPa = gJ716fWcnDmaPa;
+    if (outBytes) *outBytes = gJ716fWcnDmaBytes;
+    return true;
+}
 extern volatile uint32_t native_adreno_pool_state[12] __attribute__((weak));
 extern volatile uint32_t native_adreno_pool_fallbacks[8] __attribute__((weak));
 extern volatile uint32_t native_adreno_fence_wait[8] __attribute__((weak));
@@ -1678,7 +1688,21 @@ void runMode10And11Kmd() {
                         const uint64_t end = base + size;
                         for (const auto &a : kAllowedDram) {
                             const uint64_t lo = base > a.lo ? base : a.lo;
-                            const uint64_t hi = end < a.hi ? end : a.hi;
+                            uint64_t hi = end < a.hi ? end : a.hi;
+                            if (hi <= lo || (hi - lo) < (1ULL << 20)) continue;
+                            /* Carve one 16 MiB, 8 MiB-aligned <4 GiB DMA arena for QCA6390 PCIe0 MHI/BHIe
+                             * (requires 32-bit power-of-two aligned buffers without XNU fragmentation). */
+                            if (!gJ716fWcnDmaBytes && hi <= 0x100000000ULL && (hi - lo) >= 0x2000000ULL) {
+                                const uint64_t arenaEnd = hi & ~0x7FFFFFULL;
+                                if (arenaEnd >= lo + 0x1800000ULL) {
+                                    gJ716fWcnDmaPa = arenaEnd - 0x1000000ULL;
+                                    gJ716fWcnDmaBytes = 0x1000000ULL;
+                                    hi = gJ716fWcnDmaPa;
+                                    IOLog("[J716F gpu] reserved WCN 32-bit DMA arena 0x%llx + 0x%llx\n",
+                                          static_cast<unsigned long long>(gJ716fWcnDmaPa),
+                                          static_cast<unsigned long long>(gJ716fWcnDmaBytes));
+                                }
+                            }
                             if (hi <= lo || (hi - lo) < (1ULL << 20)) continue;
                             const IOReturn prc = native_adreno_pool_add(lo, hi - lo);
                             IOLog("[J716F gpu] pool add(out) 0x%llx + 0x%llx -> 0x%x\n",

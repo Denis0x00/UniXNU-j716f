@@ -32,7 +32,9 @@ extern void j716f_dpu_snapshot(char *out, size_t cap) __attribute__((weak_import
 extern void native_legacy_direct_snapshot(void) __attribute__((weak_import));
 extern void j716f_wcn_snapshot(char *out, size_t cap) __attribute__((weak_import));
 extern int j716f_wcn_bt_probe_now(void) __attribute__((weak_import));
+extern int j716f_wcn_bt_fw_scan_now(void) __attribute__((weak_import));
 extern int j716f_wcn_wifi_probe_now(void) __attribute__((weak_import));
+extern int j716f_wcn_wifi_fw_now(void) __attribute__((weak_import));
 extern uint64_t sheng_cpu_idle_mach(int cpu) __attribute__((weak_import));
 
 extern volatile uint32_t armcpu_smp_running __attribute__((weak_import));
@@ -750,6 +752,17 @@ static void handleCommand(TerminalSession &s, const char *raw) {
         } else {
             s.reply.writeStr("[usb] WCN.BT: unavailable\r\n");
         }
+    } else if (strEq(raw, "wcn.bt.fw")) {
+        if (&j716f_wcn_bt_fw_scan_now && &j716f_wcn_snapshot) {
+            const int rc = j716f_wcn_bt_fw_scan_now();
+            snprintf(buf, sizeof(buf), "[usb] WCN.BT.FW: rc=%d\r\n", rc);
+            s.reply.writeStr(buf);
+            static char wbuf[6144];
+            j716f_wcn_snapshot(wbuf, sizeof(wbuf));
+            s.reply.writeStr(wbuf);
+        } else {
+            s.reply.writeStr("[usb] WCN.BT.FW: unavailable\r\n");
+        }
     } else if (strEq(raw, "wcn.wifi")) {
         if (&j716f_wcn_wifi_probe_now && &j716f_wcn_snapshot) {
             const int rc = j716f_wcn_wifi_probe_now();
@@ -760,6 +773,17 @@ static void handleCommand(TerminalSession &s, const char *raw) {
             s.reply.writeStr(wbuf);
         } else {
             s.reply.writeStr("[usb] WCN.WIFI: unavailable\r\n");
+        }
+    } else if (strEq(raw, "wcn.wifi.fw")) {
+        if (&j716f_wcn_wifi_fw_now && &j716f_wcn_snapshot) {
+            const int rc = j716f_wcn_wifi_fw_now();
+            snprintf(buf, sizeof(buf), "[usb] WCN.WIFI.FW: rc=%d\r\n", rc);
+            s.reply.writeStr(buf);
+            static char wbuf[6144];
+            j716f_wcn_snapshot(wbuf, sizeof(wbuf));
+            s.reply.writeStr(wbuf);
+        } else {
+            s.reply.writeStr("[usb] WCN.WIFI.FW: unavailable\r\n");
         }
     } else if (strEq(raw, "dpu") || strEq(raw, "dpu.status")) {
         if (&j716f_dpu_snapshot) {

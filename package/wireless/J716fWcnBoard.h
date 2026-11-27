@@ -179,9 +179,29 @@ extern "C" {
 #define J716F_GENI_HW_PARAM1              0x0E28u
 #define J716F_GENI_DMA_CFG                0x0E30u
 #define J716F_GENI_DMA_IF_EN              0x2004u
+#define J716F_GENI_RFR_OFF                0x80000002u
+
+/* QCA6390 Bluetooth UART baudrate & TLV download protocol constants (Linux btqca.h). */
+#define J716F_QCA_BAUD_115200             0x00u
+#define J716F_QCA_BAUD_3000000            0x0Eu
+#define J716F_QCA_BAUD_4000000            0x0Fu
+#define J716F_QCA_BAUD_3200000            0x11u
+#define J716F_QCA_TLV_MAX_SEG             243u
+#define J716F_QCA_TAG_BD_ADDR             2u
+#define J716F_QCA_TAG_HCI                 17u
+#define J716F_QCA_TAG_DEEP_SLEEP          27u
 
 #define J716F_WCN_RAIL_COUNT              7u
 #define J716F_PCIE_RAIL_COUNT             2u
+
+typedef struct J716fBleAdv {
+    bool valid;
+    uint8_t evt_type;
+    uint8_t addr_type;
+    uint8_t addr[6];
+    int8_t rssi;
+    char name[25];
+} J716fBleAdv;
 
 typedef struct J716fWcnRailSpec {
     const char *name;
@@ -289,6 +309,80 @@ static inline bool j716f_qca_parse_ver_evt(const uint8_t *buf, size_t len, J716f
         }
     }
     return false;
+}
+
+/* Patch QCA6390 NVM TLV buffer in-place (Linux btqca.c qca_tlv_check_data layout):
+ *   header[0..3]: type(0x02) + 24-bit LE payload length
+ *   tags[]:       tag_id(u16), tag_len(u16), rsv1(u32), rsv2(u32), data[tag_len]
+ * Patches Tag 17 (HCI IBS bit 0x80 + baud code) and Tag 27 (Deep Sleep bit 0x01).
+ * Returns number of tags patched (2 on stock TB-J716F htnv20.bin). */
+static inline unsigned j716f_qca_patch_nvm(uint8_t *nvm, size_t len, uint8_t baudCode,
+                                           bool enableIbs, bool enableDeepSleep) {
+    if (!nvm || len < 16u || nvm[0] != 0x02u) return 0u;
+    const size_t tlvLen = (size_t)nvm[1] | ((size_t)nvm[2] << 8) | ((size_t)nvm[3] << 16);
+    const size_t limit = (tlvLen + 4u <= len) ? (tlvLen + 4u) : len;
+    unsigned patched = 0u;
+    size_t off = 4u;
+    while (off + 12u <= limit) {
+        const uint16_t tid = (uint16_t)nvm[off] | ((uint16_t)nvm[off + 1u] << 8);
+        const uint16_t tlen = (uint16_t)nvm[off + 2u] | ((uint16_t)nvm[off + 3u] << 8);
+        const size_t dataOff = off + 12u;
+        if (dataOff + tlen > limit) break;
+        if (tid == J716F_QCA_TAG_HCI && tlen >= 2u) {
+            if (enableIbs) nvm[dataOff] |= 0x80u;
+            else nvm[dataOff] &= (uint8_t)~0x80u;
+            nvm[dataOff + 1u] = baudCode;
+            ++patched;
+        } else if (tid == J716F_QCA_TAG_DEEP_SLEEP && tlen >= 1u) {
+            if (enableDeepSleep) nvm[dataOff] |= 0x01u;
+            else nvm[dataOff] &= (uint8_t)~0x01u;
+            ++patched;
+        }
+        off = dataOff + tlen;
+    }
+    return patched;
+}
+
+/* Parse an H4 HCI LE Advertising Report (04 3E <plen> 02 <num_reports> ...) extracting
+ * the first advertising report's MAC address, signed RSSI, and ASCII Complete/Short Name. */
+static inline bool j716f_hci_parse_le_adv(const uint8_t *pkt, size_t len, J716fBleAdv *out) {
+    if (!pkt || !out || len < 15u) return false;
+    out->valid = false;
+    out->name[0] = '\0';
+    if (pkt[0] != 0x04u || pkt[1] != 0x3Eu) return false;
+    const size_t plen = pkt[2];
+    if (plen + 3u > len || plen < 12u) return false;
+    if (pkt[3] != 0x02u || pkt[4] < 1u) return false; /* subevent 0x02 = LE Advertising Report */
+
+    const uint8_t dataLen = pkt[13];
+    if (14u + (size_t)dataLen + 1u > plen + 3u) return false;
+
+    out->evt_type  = pkt[5];
+    out->addr_type = pkt[6];
+    for (unsigned i = 0; i < 6u; ++i) out->addr[i] = pkt[7u + i];
+    out->rssi = (int8_t)pkt[14u + dataLen];
+
+    /* Walk AD structures [len, type, payload...] looking for Complete (0x09) or Short (0x08) Name. */
+    size_t pos = 14u;
+    const size_t end = 14u + dataLen;
+    while (pos + 2u <= end) {
+        const uint8_t flen = pkt[pos];
+        if (flen == 0u || pos + 1u + flen > end) break;
+        const uint8_t ftype = pkt[pos + 1u];
+        if ((ftype == 0x09u || ftype == 0x08u) && flen > 1u) {
+            size_t n = flen - 1u;
+            if (n > sizeof(out->name) - 1u) n = sizeof(out->name) - 1u;
+            for (size_t k = 0; k < n; ++k) {
+                const uint8_t c = pkt[pos + 2u + k];
+                out->name[k] = (c >= 0x20u && c < 0x7Fu) ? (char)c : '?';
+            }
+            out->name[n] = '\0';
+            if (ftype == 0x09u) break;
+        }
+        pos += 1u + flen;
+    }
+    out->valid = true;
+    return true;
 }
 
 #ifdef __cplusplus
