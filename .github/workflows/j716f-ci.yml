@@ -123,9 +123,13 @@ jobs:
           test -f "$TREE/kits/j716f/wireless/J716fMhiQrtr.c"
           test -f "$TREE/kits/j716f/wireless/J716fBtTransport.h"
           test -f "$TREE/kits/j716f/wireless/J716fBtTransport.c"
+          test -f "$TREE/kits/j716f/wireless/bt/BlueTool.c"
+          test -f "$TREE/kits/j716f/wireless/bt/Type0.c"
           test -f "$TREE/kits/j716f/wireless/J716fWifiNet.cpp"
           test -f "$TREE/kits/j716f/wireless/J716fWifiStack.cpp"
           test -f "$TREE/kits/j716f/wireless/nw_abi.h"
+          test -f "$TREE/kits/j716f/wireless/nw_control.h"
+          test -f "$TREE/kits/j716f/wireless/nw_control_endpoint.h"
           test -f "$TREE/kits/j716f/wireless/WifiScan.h"
           test -f "$TREE/kits/j716f/wireless/ath11k/nw_wifi_ath11k.c"
           test -f "$TREE/kits/j716f/wireless/J716fWcnProbe.cpp"
@@ -381,6 +385,14 @@ jobs:
             -o "$OUT/test_wcn_board"
           "$OUT/test_wcn_board"
 
+          echo "=== Test 18: J716fBtType0 (21H461 Type0 native BT capability publisher, ADV_CAPACITY=5, ADV_MODE=0x88) ==="
+          python3 device/scripts/native_ios17.py --layout-header "$OUT/qbt_ios17_layout.h"
+          clang -std=c11 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer \
+            -I"$OUT" \
+            "device/package/wireless/tests/J716fBtType0Test.c" \
+            -o "$OUT/test_bt_type0"
+          "$OUT/test_bt_type0" --synthetic
+
       - name: Run upstream GopFramebuffer fence-wait sanitizer regression check
         run: |
           (cd unixnu/drivers/GopFramebuffer && python3 Test/check-fence-wait.py)
@@ -395,6 +407,6 @@ jobs:
             echo '## J716F Device CI'
             echo '- Official `./unixnu` Format 2 `defconfig`, `status`, `tree`, and `build package` passed'
             echo '- `dts/j716f.dts` compiled with `dtc` and converted to valid Apple Device Tree (ADT)'
-            echo '- All 17 C/C++ ASan/UBSan storage/SMMU/SHNGROOT/persistent-store/USB/battery/GPU/GMU/CP/ZAP/backlight/DPU/WCN unit tests compiled and passed'
+            echo '- All 18 C/C++ ASan/UBSan storage/SMMU/SHNGROOT/persistent-store/USB/battery/GPU/GMU/CP/ZAP/backlight/DPU/WCN/BT-Type0 unit tests compiled and passed'
             echo '- Python Data seed, Phase 4b GPU packer, & USB GSC1 wire tests and `porting.toml` schema validation passed'
           } >> "$GITHUB_STEP_SUMMARY"

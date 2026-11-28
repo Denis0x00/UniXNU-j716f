@@ -1,0 +1,147 @@
+name: J716F Bluetooth Userland (iOS 17 BlueTool + QcaBTType0.dylib)
+
+# Builds the arm64-apple-ios17.0 (non-PAC) BlueTool XPC bootstrap adapter and
+# version-locked 21H461 QcaBTType0.dylib native capability adapter using Apple
+# Xcode iphoneos SDK and 4 KiB-page ad-hoc codesign.
+# Contains zero Apple IPSW content, zero OEM firmware, and zero secrets.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/j716f-bt-userland.yml"
+      - "package/wireless/bt/**"
+      - "scripts/native_ios17.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: j716f-bt-userland-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-bt-userland:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - name: Checkout UniXNU-j716f
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build and 4K-sign arm64-apple-ios17.0 BlueTool and QcaBTType0.dylib
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, plistlib, re, subprocess
+          from pathlib import Path
+
+          root = Path.cwd()
+          out = root / "out/j716f-bt-userland"
+          out.mkdir(parents=True, exist_ok=True)
+
+          # Generate version-locked 21H461 ABI header from single source of truth.
+          header = out / "qbt_ios17_layout.h"
+          subprocess.run(
+              ["python3", str(root / "scripts/native_ios17.py"), "--layout-header", str(header)],
+              check=True,
+          )
+
+          sdk = subprocess.check_output(["xcrun", "--sdk", "iphoneos", "--show-sdk-path"], text=True).strip()
+          target = "arm64-apple-ios17.0"
+
+          def verify_macho_and_sign(binary: Path, ident: str, entitlements: Path | None = None) -> str:
+              cmd = [
+                  "codesign", "--force", "--sign", "-", "--pagesize", "4096",
+                  "--identifier", ident,
+              ]
+              if entitlements is not None:
+                  cmd += ["--entitlements", str(entitlements)]
+              cmd.append(str(binary))
+              subprocess.run(cmd, check=True)
+              subprocess.run(["codesign", "--verify", "--strict", str(binary)], check=True)
+              detail = subprocess.run(
+                  ["codesign", "--display", "--verbose=4", str(binary)],
+                  check=True, capture_output=True, text=True,
+              ).stderr
+              m = re.search(r"^CDHash=([0-9a-f]{40})$", detail, re.M)
+              assert m, f"No CDHash in codesign output for {binary}:\n{detail}"
+              assert re.search(r"^Page size=4096$", detail, re.M), f"Expected 4096-byte page size for {binary}"
+              hdr = binary.read_bytes()[:16]
+              magic = int.from_bytes(hdr[0:4], "little")
+              cputype = int.from_bytes(hdr[4:8], "little")
+              subtype = int.from_bytes(hdr[8:12], "little") & 0xFFFFFF
+              assert (magic, cputype, subtype) == (0xFEEDFACF, 0x100000C, 0), (
+                  f"Bad Mach-O header for {binary}: {(hex(magic), hex(cputype), hex(subtype))}"
+              )
+              return m[1]
+
+          # 1. Build BlueTool XPC bootstrap service.
+          bluetool = out / "BlueTool"
+          subprocess.run([
+              "xcrun", "--sdk", "iphoneos", "clang",
+              "-target", target, "-isysroot", sdk,
+              "-O2", "-Wall", "-Wextra", "-Werror", "-fblocks", "-fstack-protector-strong",
+              str(root / "package/wireless/bt/BlueTool.c"),
+              "-o", str(bluetool),
+          ], check=True)
+          ent = out / "BlueTool.entitlements.plist"
+          ent.write_bytes(plistlib.dumps({"com.apple.private.security.no-container": True}))
+          bluetool_cdhash = verify_macho_and_sign(bluetool, "org.unixnu.bluetooth.BlueTool", ent)
+
+          # 2. Build QcaBTType0.dylib capability adapter.
+          type0 = out / "QcaBTType0.dylib"
+          subprocess.run([
+              "xcrun", "--sdk", "iphoneos", "clang",
+              "-target", target, "-isysroot", sdk,
+              "-dynamiclib", "-install_name", "/usr/lib/QcaBTType0.dylib",
+              "-O2", "-Wall", "-Wextra", "-Werror",
+              "-fvisibility=hidden", "-fstack-protector-strong",
+              "-I", str(out),
+              str(root / "package/wireless/bt/Type0.c"),
+              "-o", str(type0),
+          ], check=True)
+          type0_cdhash = verify_macho_and_sign(type0, "org.unixnu.bluetooth.Type0")
+
+          # 3. Emit launchd job definition override for com.apple.BlueTool (runs as root to access kern.qbt_*).
+          job = {
+              "Label": "com.apple.BlueTool",
+              "ProgramArguments": ["/usr/sbin/BlueTool", "-R"],
+              "MachServices": {"com.apple.BlueTool": True},
+              "UserName": "root",
+              "POSIXSpawnType": "Interactive",
+              "EnableTransactions": True,
+              "EnablePressuredExit": False,
+              "ThrottleInterval": 3,
+          }
+          (out / "com.apple.BlueTool.plist").write_bytes(plistlib.dumps(job))
+
+          trust = {
+              "target": target,
+              "bluetoothd_profile": "ipados-17.7.11-21H461",
+              "bluetool_cdhash": bluetool_cdhash,
+              "bluetool_sha256": hashlib.sha256(bluetool.read_bytes()).hexdigest(),
+              "bluetool_bytes": bluetool.stat().st_size,
+              "type0_cdhash": type0_cdhash,
+              "type0_sha256": hashlib.sha256(type0.read_bytes()).hexdigest(),
+              "type0_bytes": type0.stat().st_size,
+          }
+          (out / "trust-bt.json").write_text(json.dumps(trust, indent=2) + "\n")
+          print("PASS:", json.dumps(trust, indent=2))
+          PY
+          ls -lh out/j716f-bt-userland/
+
+      - name: Upload J716F iOS 17 Bluetooth userland artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: j716f-bt-userland-ios17
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            out/j716f-bt-userland/BlueTool
+            out/j716f-bt-userland/QcaBTType0.dylib
+            out/j716f-bt-userland/qbt_ios17_layout.h
+            out/j716f-bt-userland/com.apple.BlueTool.plist
+            out/j716f-bt-userland/trust-bt.json
+            out/j716f-bt-userland/BlueTool.entitlements.plist
