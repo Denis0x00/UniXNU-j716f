@@ -23,7 +23,21 @@ extern "C" {
 }
 #include <net/if_types.h>
 #include <netinet/in.h>
+#include <sys/fcntl.h>
+#include <sys/vnode.h>
 #include <sys/kpi_mbuf.h>
+extern "C" {
+extern u_int32_t necp_drop_all_order __attribute__((weak_import));
+extern u_int32_t necp_drop_all_level __attribute__((weak_import));
+extern u_int32_t necp_drop_unentitled_order __attribute__((weak_import));
+extern u_int32_t necp_session_count __attribute__((weak_import));
+extern void rtalloc_scoped(void *, unsigned int) __attribute__((weak_import));
+extern void rtfree(void *) __attribute__((weak_import));
+struct proc;
+extern void proc_iterate(unsigned, int (*)(struct proc *, void *), void *,
+                         int (*)(struct proc *, void *), void *) __attribute__((weak_import));
+extern int proc_pid(struct proc *) __attribute__((weak_import));
+}
 #include <kern/locks.h>
 #include <kern/thread.h>
 #include <kern/thread_call.h>
@@ -63,11 +77,14 @@ enum {
     kOpMode = 15, kRssi = 16, kNoise = 17, kPower = 19, kAssociate = 20, kAssociateResult = 21,
     kDisassociate = 22, kSupportedChannels = 27, kLocale = 28, kDeauth = 29, kDriverVersion = 43,
     kHardwareVersion = 44, kCountryCode = 51, kRadioInfo = 54, kScanReqMultiple = 86,
-    kScanCacheClear = 90, kCurrentNetwork = 103, kChannelsInfo = 207, kHwSupportedChannels = 254,
-    kAbortScan = 382,
+    kScanCacheClear = 90, kCurrentNetwork = 103, kRssiBounds = 106, kChannelsInfo = 207,
+    kHwSupportedChannels = 254, kNss = 353, kAbortScan = 382,
 };
 enum { kScanTypeCached = 3 };
-enum { kEvPowerChanged = 1, kEvSsidChanged = 2, kEvBssidChanged = 3, kEvLinkChanged = 4, kEvAssocDone = 9, kEvScanDone = 10 };
+enum {
+    kEvPowerChanged = 1, kEvSsidChanged = 2, kEvBssidChanged = 3, kEvLinkChanged = 4,
+    kEvAssocDone = 9, kEvScanDone = 10, kEvRssiChanged = 39,
+};
 enum { kAssocPending = 0, kAssocOk = 1, kAssocFailed = 2, kAssocTimeout = 9, kAssocBadKey = 21 };
 
 struct assoc_event27 {
@@ -85,10 +102,16 @@ struct assoc_request {
     uint32_t version; uint16_t mode, auth_lower, auth_upper, unused;
     assoc_parameters network; uint8_t rest[0x250 - 0x88];
 };
+struct assoc_request17 {
+    uint32_t version; uint16_t mode, auth_lower, auth_upper, unused;
+    assoc_parameters network; uint8_t rest[0x358 - 0x88];
+};
 struct assoc_request27 {
     uint32_t version; uint16_t mode, unused; uint32_t auth_lower, auth_upper;
     assoc_parameters network; uint8_t rest[0x290 - 0x8c];
 };
+static_assert(sizeof(assoc_request) == 592 && sizeof(assoc_request17) == 856 && sizeof(assoc_request27) == 656,
+              "apple80211_assoc_data layouts");
 struct link_event {
     uint8_t down, unused0[3]; int32_t rssi; uint16_t snr, noise; uint8_t unused1[4];
     uint8_t involuntary, unused2[3]; uint32_t reason, subreason; uint8_t unused3[4];
@@ -103,6 +126,11 @@ bool gLinkSuppressed;
 bool gKeyed;
 uint32_t gRxFrames, gRxErrors, gTxRefused;
 uint32_t gIoctlCount, gScanReqCount, gScanResultCount;
+uint32_t gLogged[512 / 32];
+struct FrameKinds {
+    uint32_t arp, ip4, dhcp, dns, tcp, tcp_syn, tcp_synack, icmp, ip6, other;
+};
+FrameKinds gKindsIn, gKindsOut;
 mbuf_t gRxHead, gRxTail, gRxSpare, gRxSpareParked;
 uint32_t gRxPendingPackets, gRxPendingBytes;
 int gAssocResult = kAssocPending;
@@ -111,6 +139,8 @@ bool gJoinPending;
 unsigned gScanCursor, gScanning;
 sheng_wifi_air gAir;
 uint64_t gLinkUpMs;
+volatile uint32_t gLinkSettleSeq;
+thread_call_t gLinkSettleCall;
 
 uint64_t continuous_ms() {
     uint64_t ns = 0;
@@ -141,7 +171,7 @@ void post_event(uint32_t code, const void *payload, size_t length) {
     msg.dv[1].data_length = static_cast<uint32_t>(length);
     msg.dv[1].data_ptr = const_cast<void *>(payload);
     const int error = j716f_kev_post(&msg);
-    if (code != kEvScanDone || error) {
+    if (error || code == kEvAssocDone || code == kEvPowerChanged) {
         logf(6, "wifi-net: ev %u len %u -> %d", code, static_cast<unsigned>(length), error);
     }
 }
@@ -193,11 +223,18 @@ void post_association_result() {
 
 void disconnect_user() {
     const bool pending = __atomic_exchange_n(&gJoinPending, false, __ATOMIC_ACQ_REL);
+    __atomic_fetch_add(&gLinkSettleSeq, 1u, __ATOMIC_ACQ_REL);
+    nw_wifi_status current;
+    nw_wifi_status_get(&current);
+    const bool wasRunning = gIf && (ifnet_flags(gIf) & IFF_RUNNING) != 0;
+    const bool wasActive = current.state >= NW_STA_AUTH || pending || wasRunning;
     gLinkSuppressed = true;
     gAssocResult = kAssocFailed;
-    nw_wifi_disconnect();
-    j716f_wifi_wake();
-    post_link_down(false, 0);
+    if (wasActive || !gPower) {
+        nw_wifi_disconnect();
+        j716f_wifi_wake();
+        post_link_down(false, 0);
+    }
     if (pending) post_association_result();
 }
 
@@ -234,7 +271,90 @@ void on_scan_done() {
 thread_call_t gCachedScan;
 void cached_scan_done(thread_call_param_t, thread_call_param_t) { on_scan_done(); }
 
+int effective_rssi(const nw_wifi_status &st) {
+    if (st.signal_dbm < 0 && st.signal_dbm >= -127) return st.signal_dbm;
+    nw_bss_info b;
+    const int count = nw_wifi_bss_count();
+    for (int i = 0; i < count; ++i) {
+        if (!nw_wifi_bss_get(i, &b) && !memcmp(b.bssid, st.bssid, 6) &&
+            b.signal_dbm < 0 && b.signal_dbm >= -127) {
+            return b.signal_dbm;
+        }
+    }
+    return -50;
+}
+
+bool en0_has_ipv4() {
+    if (!gIf) return false;
+    ifaddr_t *list = nullptr;
+    bool ok = false;
+    if (!ifnet_get_address_list_family(gIf, &list, AF_INET) && list) {
+        ok = (list[0] != nullptr);
+        ifnet_free_address_list(list);
+    }
+    return ok;
+}
+
+bool has_fresh_bss(const uint8_t *ssid, uint32_t ssidLen) {
+    nw_bss_info b;
+    const int count = nw_wifi_bss_count();
+    for (int i = 0; i < count; ++i) {
+        if (nw_wifi_bss_get(i, &b) || sheng_wifi_held_stale(b.age_ms)) continue;
+        if (!ssid || !ssidLen) return true;
+        if (b.ssid_len == ssidLen && !memcmp(b.ssid, ssid, ssidLen)) return true;
+    }
+    return false;
+}
+
+void post_link_rssi(const nw_wifi_status &st) {
+    const int rssi = effective_rssi(st);
+    link_event ev{};
+    ev.rssi = rssi;
+    ev.noise = static_cast<uint16_t>(-95);
+    ev.snr = rssi > -95 ? static_cast<uint16_t>(rssi + 95) : 0;
+    post_event(kEvLinkChanged, &ev, sizeof(ev));
+}
+
+void link_settle_fire(thread_call_param_t, thread_call_param_t pArg) {
+    const uintptr_t arg = reinterpret_cast<uintptr_t>(pArg);
+    const uint32_t seq = static_cast<uint32_t>(arg >> 4);
+    const uintptr_t step = arg & 0xFu;
+    if (__atomic_load_n(&gLinkSettleSeq, __ATOMIC_ACQUIRE) != seq) return;
+    if (!gPower || gLinkSuppressed) return;
+    nw_wifi_status st;
+    nw_wifi_status_get(&st);
+    if (st.state != NW_STA_UP) return;
+    if (step == 8u) {
+        post_event(kEvSsidChanged, nullptr, 0);
+        post_event(kEvBssidChanged, nullptr, 0);
+        post_link_rssi(st);
+        return;
+    }
+    if (en0_has_ipv4()) {
+        if (gLinkSettleCall) {
+            uint64_t at;
+            clock_interval_to_deadline(800, kMillisecondScale, &at);
+            const uintptr_t nextArg = (static_cast<uintptr_t>(seq) << 4) | 8u;
+            thread_call_enter1_delayed(gLinkSettleCall,
+                                       reinterpret_cast<thread_call_param_t>(nextArg),
+                                       at);
+        }
+        return;
+    }
+    if (step < 7u && gLinkSettleCall) {
+        uint64_t at;
+        clock_interval_to_deadline(1000, kMillisecondScale, &at);
+        const uintptr_t nextArg = (static_cast<uintptr_t>(seq) << 4) | (step + 1u);
+        thread_call_enter1_delayed(gLinkSettleCall,
+                                   reinterpret_cast<thread_call_param_t>(nextArg),
+                                   at);
+    }
+}
+
 void on_connect_done(int result) {
+    logf(6, "wifi-net: on_connect_done res=%d pwr=%u supp=%u pend=%u",
+         result, gPower ? 1u : 0u, gLinkSuppressed ? 1u : 0u,
+         __atomic_load_n(&gJoinPending, __ATOMIC_ACQUIRE) ? 1u : 0u);
     if (!gPower || gLinkSuppressed) return;
     nw_wifi_status snapshot;
     nw_wifi_status_get(&snapshot);
@@ -245,32 +365,37 @@ void on_connect_done(int result) {
                    : kAssocFailed;
     const bool pending = __atomic_exchange_n(&gJoinPending, false, __ATOMIC_ACQ_REL);
     post_link(result == NW_RES_OK);
-    if (pending) post_association_result();
     if (result == NW_RES_OK) {
         post_event(kEvSsidChanged, nullptr, 0);
         post_event(kEvBssidChanged, nullptr, 0);
         nw_wifi_status st;
         nw_wifi_status_get(&st);
-        link_event ev{};
-        ev.rssi = st.signal_dbm;
-        ev.noise = static_cast<uint16_t>(-95);
-        ev.snr = st.signal_dbm > -95 ? st.signal_dbm + 95 : 0;
-        post_event(kEvLinkChanged, &ev, sizeof(ev));
+        post_link_rssi(st);
+        if (pending) post_association_result();
+        const uint32_t seq = __atomic_add_fetch(&gLinkSettleSeq, 1u, __ATOMIC_ACQ_REL);
+        if (!gLinkSettleCall) gLinkSettleCall = thread_call_allocate(link_settle_fire, nullptr);
+        if (gLinkSettleCall) {
+            uint64_t at;
+            clock_interval_to_deadline(1000, kMillisecondScale, &at);
+            const uintptr_t firstArg = (static_cast<uintptr_t>(seq) << 4) | 0u;
+            thread_call_enter1_delayed(gLinkSettleCall,
+                                       reinterpret_cast<thread_call_param_t>(firstArg),
+                                       at);
+        }
+    } else if (pending) {
+        post_association_result();
     }
 }
 
 void on_link_lost(int reason) {
+    __atomic_fetch_add(&gLinkSettleSeq, 1u, __ATOMIC_ACQ_REL);
     gAssocResult = kAssocFailed;
     post_link_down(true, reason);
 }
 
 void on_link_update(const nw_wifi_status *status) {
     if (!gPower || gLinkSuppressed || status->state != NW_STA_UP || status->signal_dbm >= 0) return;
-    link_event event{};
-    event.rssi = status->signal_dbm;
-    event.noise = static_cast<uint16_t>(-95);
-    event.snr = status->signal_dbm > -95 ? status->signal_dbm + 95 : 0;
-    post_event(kEvLinkChanged, &event, sizeof(event));
+    post_link_rssi(*status);
 }
 
 void free_rx_list(mbuf_t list) {
@@ -320,6 +445,102 @@ mbuf_t allocate_rx(size_t length) {
     return p;
 }
 
+void note_frame(const uint8_t *e, size_t n, bool out) {
+    FrameKinds &k = out ? gKindsOut : gKindsIn;
+    const unsigned type = n >= 14 ? (static_cast<unsigned>(e[12]) << 8 | e[13]) : 0;
+    const char *dir = out ? "out" : "in";
+    if (type == 0x0806) {
+        ++k.arp;
+        static unsigned shown[2];
+        if (n >= 42 && shown[out]++ < 10) {
+            logf(6, "wifi-net: arp %s op=%u %u.%u.%u.%u->%u.%u.%u.%u",
+                 dir, e[21], e[28], e[29], e[30], e[31], e[38], e[39], e[40], e[41]);
+        }
+        return;
+    }
+    if (type == 0x86dd) { ++k.ip6; return; }
+    if (type != 0x0800 || n < 34) { ++k.other; return; }
+    ++k.ip4;
+    const uint8_t *ip = e + 14;
+    const unsigned ihl = (ip[0] & 15u) * 4u;
+    if (ihl < 20 || n < 14 + ihl) return;
+    const uint8_t proto = ip[9];
+    if (proto == 1) {
+        ++k.icmp;
+        return;
+    }
+    if (proto == 6 && n >= 14 + ihl + 14) {
+        ++k.tcp;
+        const uint8_t fl = ip[ihl + 13];
+        if ((fl & 0x12u) == 0x02u) ++k.tcp_syn;
+        if ((fl & 0x12u) == 0x12u) ++k.tcp_synack;
+        return;
+    }
+    if (proto != 17 || n < 14 + ihl + 8) return;
+    const uint8_t *udp = ip + ihl;
+    const unsigned sp = (static_cast<unsigned>(udp[0]) << 8) | udp[1];
+    const unsigned dp = (static_cast<unsigned>(udp[2]) << 8) | udp[3];
+    if (sp == 53 || dp == 53) {
+        ++k.dns;
+        return;
+    }
+    if (!((sp == 67 || sp == 68) && (dp == 67 || dp == 68))) return;
+    ++k.dhcp;
+    const uint8_t *b = udp + 8;
+    const size_t bl = n - static_cast<size_t>(b - e);
+    unsigned msg = 0;
+    for (size_t o = 240; bl >= 240 && o + 2 <= bl && b[o] != 255; o += b[o] ? 2u + b[o + 1] : 1u) {
+        if (b[o] == 53 && o + 2 < bl) { msg = b[o + 2]; break; }
+    }
+    static unsigned dhcpShown[2];
+    if (dhcpShown[out]++ < 16 && bl >= 240) {
+        logf(6, "wifi-net: dhcp %s t=%u xid=%02x%02x%02x%02x yi=%u.%u.%u.%u",
+             dir, msg, b[4], b[5], b[6], b[7], b[16], b[17], b[18], b[19]);
+    }
+    if (out || (msg != 2 && msg != 5)) return;
+    char opts[120];
+    int at = 0;
+    for (size_t o = 240; o + 2 <= bl && b[o] != 255 && at >= 0 && at < static_cast<int>(sizeof(opts)) - 22;
+         o += b[o] ? 2u + b[o + 1] : 1u) {
+        if (!b[o]) continue;
+        const unsigned code = b[o], len = b[o + 1];
+        const uint8_t *v = b + o + 2;
+        if (o + 2 + len > bl) break;
+        if ((code == 1 || code == 3 || code == 6 || code == 54) && len >= 4) {
+            for (unsigned i = 0; i + 4 <= len && at < static_cast<int>(sizeof(opts)) - 22; i += 4) {
+                at += snprintf(opts + at, sizeof(opts) - static_cast<size_t>(at), " %u=%u.%u.%u.%u",
+                               code, v[i], v[i + 1], v[i + 2], v[i + 3]);
+            }
+        } else if (code == 51 && len == 4) {
+            at += snprintf(opts + at, sizeof(opts) - static_cast<size_t>(at), " 51=%u",
+                           (static_cast<unsigned>(v[0]) << 24) | (static_cast<unsigned>(v[1]) << 16) |
+                           (static_cast<unsigned>(v[2]) << 8) | v[3]);
+        }
+    }
+    logf(6, "wifi-net: dhcp in t=%u opts:%s", msg, opts);
+}
+
+void note_packet(void *context, size_t length, nw_packet_reader reader, bool out) {
+    uint8_t header[128];
+    const size_t peek = length < sizeof(header) ? length : sizeof(header);
+    if (reader(context, 0, header, peek)) return;
+    bool dhcp = false;
+    if (peek >= 42 && header[12] == 8 && header[13] == 0 && header[23] == 17) {
+        const unsigned off = 14 + (header[14] & 15u) * 4u;
+        if (off + 4 <= peek) {
+            const unsigned sp = (static_cast<unsigned>(header[off]) << 8) | header[off + 1];
+            const unsigned dp = (static_cast<unsigned>(header[off + 2]) << 8) | header[off + 3];
+            dhcp = (sp == 67 || sp == 68) && (dp == 67 || dp == 68);
+        }
+    }
+    if (dhcp && length <= 2000) {
+        uint8_t frame[2000];
+        if (!reader(context, 0, frame, length)) note_frame(frame, length, out);
+    } else {
+        note_frame(header, peek, out);
+    }
+}
+
 void on_rx_packet(void *context, size_t length, nw_packet_reader reader) {
     if (!gIf || length < 14) return;
     enum : size_t { Align = 2 };
@@ -345,10 +566,13 @@ void on_rx_packet(void *context, size_t length, nw_packet_reader reader) {
         first = false;
     }
     if (done != length) { mbuf_freem(m); return; }
+    note_frame(static_cast<const uint8_t *>(mbuf_data(m)), mbuf_len(m), false);
     mbuf_pkthdr_setlen(m, length);
     mbuf_pkthdr_setrcvif(m, gIf);
-    mbuf_pkthdr_setheader(m, mbuf_data(m));
+    void *ethHdr = mbuf_data(m);
+    mbuf_pkthdr_setheader(m, ethHdr);
     mbuf_adj(m, 14);
+    bpf_tap_in(gIf, DLT_EN10MB, m, ethHdr, 14);
     mbuf_setnextpkt(m, nullptr);
     if (gRxTail) mbuf_setnextpkt(gRxTail, m);
     else gRxHead = m;
@@ -376,6 +600,9 @@ void mbuf_release(void *context) { mbuf_freem(static_cast<mbuf_t>(context)); }
 errno_t if_output(ifnet_t, mbuf_t m) {
     const size_t length = mbuf_pkthdr_len(m);
     if (length >= 14 && length <= 2000) {
+        if (gIf) bpf_tap_out(gIf, DLT_EN10MB, m, nullptr, 0);
+        if (mbuf_len(m) >= length) note_frame(static_cast<const uint8_t *>(mbuf_data(m)), length, true);
+        else note_packet(m, length, mbuf_read, true);
         if (nw_wifi_tx_packet(m, length, mbuf_read, mbuf_release)) {
             ++gTxRefused;
         } else {
@@ -449,16 +676,35 @@ int copy_in(const apple80211req &rq, void *dst, size_t size) {
 }
 
 int copy_association(const apple80211req &rq, assoc_parameters &out) {
-    if (rq.req_len != sizeof(assoc_request) && rq.req_len != sizeof(assoc_request27)) return EINVAL;
-    union { assoc_request legacy; assoc_request27 current; } wire;
+    if (rq.req_len != sizeof(assoc_request) &&
+        rq.req_len != sizeof(assoc_request17) &&
+        rq.req_len != sizeof(assoc_request27)) {
+        uint32_t hdr[8] = {};
+        (void)copy_in(rq, hdr, sizeof(hdr));
+        logf(4, "wifi-net: assoc bad len=%u hdr=%08x %08x %08x %08x %08x %08x",
+             rq.req_len, hdr[0], hdr[1], hdr[2], hdr[3], hdr[4], hdr[5]);
+        return EINVAL;
+    }
+    union { assoc_request legacy; assoc_request17 ios17; assoc_request27 current; } wire;
     int error = copy_in(rq, &wire, sizeof(wire));
     if (!error) {
         if (rq.req_len == sizeof(assoc_request27)) {
-            if (wire.current.version != 1) error = EINVAL;
-            else out = wire.current.network;
+            if (wire.current.version != 1) {
+                logf(4, "wifi-net: assoc27 bad ver=%u", wire.current.version);
+                error = EINVAL;
+            } else {
+                out = wire.current.network;
+                logf(6, "wifi-net: assoc27 auth=%x/%x mode=%u", wire.current.auth_lower, wire.current.auth_upper, wire.current.mode);
+            }
         } else {
-            if (wire.legacy.version != 1) error = EINVAL;
-            else out = wire.legacy.network;
+            if (wire.legacy.version != 1) {
+                logf(4, "wifi-net: assoc bad ver=%u", wire.legacy.version);
+                error = EINVAL;
+            } else {
+                out = wire.legacy.network;
+                logf(6, "wifi-net: assoc%u auth=%x/%x mode=%u", rq.req_len,
+                     wire.legacy.auth_lower, wire.legacy.auth_upper, wire.legacy.mode);
+            }
         }
     }
     memset(&wire, 0, sizeof(wire));
@@ -549,7 +795,10 @@ int apple80211(bool set, apple80211req &rq) {
                 scanType = names->scan_type;
                 sheng_wifi_scan_multiple_target(names, &ssid, &ssidLength);
             }
-            if (scanType == kScanTypeCached && nw_wifi_bss_count() > 0) {
+            const uint8_t *wantSsid = (ssid && ssidLength && ssidLength <= 32) ? ssid : nullptr;
+            const uint32_t wantSsidLen = wantSsid ? ssidLength : 0;
+            const bool fresh = has_fresh_bss(wantSsid, wantSsidLen);
+            if (scanType == kScanTypeCached) {
                 gScanCursor = 0;
                 return 0;
             }
@@ -559,7 +808,7 @@ int apple80211(bool set, apple80211req &rq) {
             const sheng_wifi_link link = st.state == NW_STA_UP ? ShengWifiLinkUp
                                          : st.state >= NW_STA_AUTH ? ShengWifiLinkJoining
                                          : ShengWifiLinkNone;
-            if (!sheng_wifi_scan_on_air(&gAir, link, now - gLinkUpMs, nw_wifi_bss_count() > 0, mhz, frequencies, now)) {
+            if (!sheng_wifi_scan_on_air(&gAir, link, now - gLinkUpMs, fresh, mhz, frequencies, now)) {
                 if (!gCachedScan) gCachedScan = thread_call_allocate(cached_scan_done, nullptr);
                 gScanning = 1;
                 gScanCursor = 0;
@@ -572,8 +821,7 @@ int apple80211(bool set, apple80211req &rq) {
             gScanning = 1;
             gScanCursor = 0;
             const int result = nw_wifi_scan_frequencies(
-                ssid && ssidLength && ssidLength <= 32 ? ssid : nullptr,
-                ssid && ssidLength <= 32 ? ssidLength : 0,
+                wantSsid, wantSsidLen,
                 frequencies ? mhz : nullptr, frequencies);
             if (result) {
                 __atomic_store_n(&gScanning, 0u, __ATOMIC_RELEASE);
@@ -588,11 +836,20 @@ int apple80211(bool set, apple80211req &rq) {
             struct Clear { assoc_parameters &p; ~Clear() { memset(&p, 0, sizeof(p)); } } clear{a};
             int error = copy_association(rq, a);
             if (error) return error;
-            if (!a.ssid_length || a.ssid_length > 32 || a.key_length > 64) return EINVAL;
+            if (!a.ssid_length || a.ssid_length > 32 || a.key_length > 64) {
+                logf(4, "wifi-net: assoc invalid ssid_len=%u key_len=%u", a.ssid_length, a.key_length);
+                return EINVAL;
+            }
             if (a.key_length && !((a.key_cipher == 6 && a.key_length == 32) ||
-                                  (a.key_cipher == 10 && a.key_length >= 8 && a.key_length <= 63))) return EINVAL;
+                                  (a.key_cipher == 10 && a.key_length >= 8 && a.key_length <= 63))) {
+                logf(4, "wifi-net: assoc unsupported key_cipher=%u key_len=%u key_ver=%u",
+                     a.key_cipher, a.key_length, a.key_version);
+                return EINVAL;
+            }
             const bool hasBssid = (a.bssid[0] | a.bssid[1] | a.bssid[2] | a.bssid[3] | a.bssid[4] | a.bssid[5]) != 0;
             const bool hasKey = a.key_length != 0 && a.key_length <= 64;
+            logf(6, "wifi-net: join len=%u ssid_len=%u bssid=%u key_len=%u cipher=%u",
+                 rq.req_len, a.ssid_length, hasBssid ? 1u : 0u, a.key_length, a.key_cipher);
             if (!gPower) return ENETDOWN;
             nw_wifi_status current;
             nw_wifi_status_get(&current);
@@ -620,6 +877,7 @@ int apple80211(bool set, apple80211req &rq) {
             gKeyed = hasKey;
             const int r = nw_wifi_connect(a.ssid, a.ssid_length, hasBssid ? a.bssid : nullptr,
                                           hasKey ? pass : nullptr, hasKey ? keyLength : 0);
+            logf(6, "wifi-net: nw_wifi_connect -> %d", r);
             if (!r) j716f_wifi_wake();
             else { gAssocResult = kAssocFailed; __atomic_store_n(&gJoinPending, false, __ATOMIC_RELEASE); }
             memset(pass, 0, sizeof(pass));
@@ -675,13 +933,21 @@ int apple80211(bool set, apple80211req &rq) {
     case kRssi:
     case kNoise: {
         if (type == kRssi && st.state != NW_STA_UP) return ENOENT;
-        const uint32_t v = static_cast<uint32_t>(type == kRssi ? static_cast<int32_t>(st.signal_dbm) : -95);
+        const int32_t sv = type == kRssi ? static_cast<int32_t>(effective_rssi(st)) : -95;
+        const uint32_t v = static_cast<uint32_t>(sv);
         w[0] = 1; w[1] = 1; w[2] = 0;
-        for (int i = 3; i < 13; ++i) w[i] = v;
+        w[3] = v; w[7] = v; w[8] = v; w[12] = v;
         return copy_out(rq, w, 13 * 4);
     }
-    case kRate:
-        return answer_value(rq, st.state == NW_STA_UP ? st.tx_rate_100kbps / 10 : 0);
+    case kNss:
+        return answer_value(rq, st.state == NW_STA_UP ? 2u : 0u);
+    case kRate: {
+        if (st.state != NW_STA_UP) return answer_value(rq, 0);
+        const uint32_t mbps = st.tx_rate_100kbps >= 10u
+                                  ? (st.tx_rate_100kbps / 10u)
+                                  : (st.freq_mhz >= 4900u ? 433u : 144u);
+        return answer_value(rq, mbps);
+    }
     case kTxPower:
         return answer_value(rq, 15);
     case kDriverVersion:
@@ -727,6 +993,10 @@ int apple80211(bool set, apple80211req &rq) {
         fill_result(out.res, b, rq.req_len);
         return copy_out(rq, &out.res, sizeof(out.res));
     }
+    case kRssiBounds: {
+        const int32_t bounds[4] = {1, -95, -30, -75};
+        return copy_out(rq, bounds, sizeof(bounds));
+    }
     case kCurrentNetwork: {
         if (st.state < NW_STA_ASSOC) return ENOENT;
         nw_bss_info b;
@@ -734,8 +1004,9 @@ int apple80211(bool set, apple80211req &rq) {
         for (int i = 0; i < count; ++i) {
             if (!nw_wifi_bss_get(i, &b) && !memcmp(b.bssid, st.bssid, 6)) {
                 fill_result(out.res, b, rq.req_len);
-                out.res.rssi = st.signal_dbm;
-                out.res.snr = st.signal_dbm > -95 && st.signal_dbm < 0 ? st.signal_dbm + 95 : 0;
+                const int rssi = effective_rssi(st);
+                out.res.rssi = static_cast<int16_t>(rssi);
+                out.res.snr = rssi > -95 && rssi < 0 ? static_cast<int16_t>(rssi + 95) : 0;
                 return copy_out(rq, &out.res, sizeof(out.res));
             }
         }
@@ -755,10 +1026,15 @@ errno_t if_ioctl(ifnet_t, unsigned long cmd, void *data) {
         rq->req_kernel = 0;
         const int e = apple80211(cmd == SIOCSA80211, *rq);
         static unsigned shown;
-        if (shown < 40) {
-            ++shown;
-            logf(6, "wifi-net: ioctl %s t=%d len=%u -> %d",
-                 cmd == SIOCSA80211 ? "S" : "G", rq->req_type, rq->req_len, e);
+        const int t = rq->req_type;
+        const bool first = t >= 0 && t < 512 && !(gLogged[t / 32] & (1u << (t % 32)));
+        if (t >= 0 && t < 512) gLogged[t / 32] |= 1u << (t % 32);
+        const bool important = (t == kAssociate || t == kAssociateResult ||
+                                t == kDisassociate || t == kDeauth || t == kPower);
+        if (shown < 40 || first || important) {
+            if (shown < 40) ++shown;
+            logf(6, "wifi-net: ioctl %s t=%d len=%u val=%d -> %d",
+                 cmd == SIOCSA80211 ? "S" : "G", t, rq->req_len, rq->req_val, e);
         }
         return e;
     }
@@ -771,6 +1047,11 @@ errno_t if_ioctl(ifnet_t, unsigned long cmd, void *data) {
         m->ifm_status = IFM_AVALID | (st.state == NW_STA_UP ? IFM_ACTIVE : 0);
         m->ifm_active = IFM_IEEE80211 | IFM_AUTO;
         m->ifm_count = 1;
+        static uint32_t lastMediaSt = 0xFFFFFFFFu;
+        if (m->ifm_status != lastMediaSt) {
+            lastMediaSt = m->ifm_status;
+            logf(6, "wifi-net: SIOCGIFMEDIA st=0x%x (sta=%u)", m->ifm_status, st.state);
+        }
         return 0;
     }
     case SIOCSIFFLAGS:
@@ -780,8 +1061,17 @@ errno_t if_ioctl(ifnet_t, unsigned long cmd, void *data) {
     case SIOCSIFADDR:
     case SIOCSIFMEDIA:
         return 0;
-    default:
+    default: {
+        static unsigned long seen[16];
+        static unsigned nseen = 0;
+        bool known = false;
+        for (unsigned i = 0; i < nseen; ++i) if (seen[i] == cmd) { known = true; break; }
+        if (!known && nseen < 16u) {
+            seen[nseen++] = cmd;
+            logf(6, "wifi-net: unhandled sioc 0x%lx -> EOPNOTSUPP", cmd);
+        }
         return EOPNOTSUPP;
+    }
     }
 }
 
@@ -912,9 +1202,343 @@ extern "C" void j716f_wifi_net_start(const uint8_t mac[6]) {
          mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
 
+extern "C" void j716f_wifi_net_kinds(char *out, size_t cap) {
+    if (!out || !cap) return;
+    const uint16_t fl = gIf ? ifnet_flags(gIf) : 0;
+    snprintf(out, cap,
+             "fl=0x%x in(arp=%u ip4=%u dhcp=%u dns=%u tcp=%u/%u/%u icmp=%u ip6=%u oth=%u) "
+             "out(arp=%u ip4=%u dhcp=%u dns=%u tcp=%u/%u/%u icmp=%u ip6=%u oth=%u)",
+             fl,
+             gKindsIn.arp, gKindsIn.ip4, gKindsIn.dhcp, gKindsIn.dns,
+             gKindsIn.tcp, gKindsIn.tcp_syn, gKindsIn.tcp_synack, gKindsIn.icmp, gKindsIn.ip6, gKindsIn.other,
+             gKindsOut.arp, gKindsOut.ip4, gKindsOut.dhcp, gKindsOut.dns,
+             gKindsOut.tcp, gKindsOut.tcp_syn, gKindsOut.tcp_synack, gKindsOut.icmp, gKindsOut.ip6, gKindsOut.other);
+}
+
 extern "C" void j716f_wifi_net_stats(uint32_t *up, uint32_t *ioctls, uint32_t *scanReqs, uint32_t *scanRes) {
     if (up) *up = gIf ? 1u : 0u;
     if (ioctls) *ioctls = gIoctlCount;
     if (scanReqs) *scanReqs = gScanReqCount;
     if (scanRes) *scanRes = gScanResultCount;
+}
+
+extern "C" void j716f_wifi_net_stats_ext(char *ip_out, size_t ip_cap,
+                                         uint64_t *pkts_in, uint64_t *pkts_out,
+                                         uint32_t *rx_ok, uint32_t *rx_err, uint32_t *tx_drop) {
+    if (ip_out && ip_cap) strlcpy(ip_out, "none", ip_cap);
+    if (pkts_in) *pkts_in = 0;
+    if (pkts_out) *pkts_out = 0;
+    if (rx_ok) *rx_ok = gRxFrames;
+    if (rx_err) *rx_err = gRxErrors;
+    if (tx_drop) *tx_drop = gTxRefused;
+    if (!gIf) return;
+    if (ip_out && ip_cap) {
+        ifaddr_t *list = nullptr;
+        if (!ifnet_get_address_list_family(gIf, &list, AF_INET) && list) {
+            if (list[0]) {
+                struct sockaddr_in a;
+                memset(&a, 0, sizeof(a));
+                if (!ifaddr_address(list[0], reinterpret_cast<struct sockaddr *>(&a), sizeof(a))) {
+                    const uint8_t *b = reinterpret_cast<const uint8_t *>(&a.sin_addr);
+                    snprintf(ip_out, ip_cap, "%u.%u.%u.%u", b[0], b[1], b[2], b[3]);
+                }
+            }
+            ifnet_free_address_list(list);
+        }
+    }
+    struct ifnet_stats_param stats;
+    memset(&stats, 0, sizeof(stats));
+    if (!ifnet_stat(gIf, &stats)) {
+        if (pkts_in) *pkts_in = stats.packets_in;
+        if (pkts_out) *pkts_out = stats.packets_out;
+    }
+}
+
+namespace {
+
+int wifiDiagProcCb(struct proc *p, void *arg) {
+    auto *pids = static_cast<int *>(arg);
+    if (!&proc_pid) return 0;
+    const char *name = proc_best_name(p);
+    if (!name) return 0;
+    const int pid = proc_pid(p);
+    if (!strcmp(name, "configd")) pids[0] = pid;
+    else if (!strcmp(name, "wifid")) pids[1] = pid;
+    else if (!strcmp(name, "mDNSResponder")) pids[2] = pid;
+    else if (!strcmp(name, "nehelper")) pids[3] = pid;
+    else if (!strcmp(name, "nesessionmanager")) pids[4] = pid;
+    else if (!strcmp(name, "captiveagent")) pids[5] = pid;
+    else if (!strcmp(name, "systemstatusd")) pids[6] = pid;
+    else if (!strcmp(name, "CommCenter")) pids[7] = pid;
+    else if (!strcmp(name, "MobileSafari")) pids[8] = pid;
+    else if (!strncmp(name, "com.apple.WebKit", 16)) pids[9] = pid;
+    return 0;
+}
+
+bool memContains(const uint8_t *hay, size_t hlen, const char *needle) {
+    const size_t nlen = strlen(needle);
+    if (!nlen || hlen < nlen) return false;
+    for (size_t i = 0; i + nlen <= hlen; ++i) {
+        if (hay[i] == static_cast<uint8_t>(needle[0]) && !memcmp(hay + i, needle, nlen)) return true;
+    }
+    return false;
+}
+
+void probePlistFile(const char *path, char *out, size_t cap) {
+    vnode_t vp = nullptr;
+    vfs_context_t ctx = vfs_context_current();
+    const int err = vnode_open(path, O_RDONLY, 0, 0, &vp, ctx);
+    if (err || !vp) {
+        snprintf(out, cap, "err=%d", err);
+        return;
+    }
+    struct vnode_attr va;
+    VATTR_INIT(&va);
+    VATTR_WANTED(&va, va_data_size);
+    const uint64_t sz = (!vnode_getattr(vp, &va, ctx) && VATTR_IS_SUPPORTED(&va, va_data_size))
+                            ? va.va_data_size
+                            : 0ULL;
+    const size_t want = sz > 16384u ? 16384u : static_cast<size_t>(sz);
+    uint8_t *buf = want ? static_cast<uint8_t *>(IOMallocData(want)) : nullptr;
+    int resid = static_cast<int>(want);
+    bool hasEn0 = false, hasAir = false, hasCC = false;
+    if (buf && !vn_rdwr(UIO_READ, vp, reinterpret_cast<caddr_t>(buf), static_cast<int>(want), 0,
+                        UIO_SYSSPACE, IO_NODELOCKED, vfs_context_ucred(ctx), &resid, current_proc())) {
+        const size_t got = want - static_cast<size_t>(resid > 0 ? resid : 0);
+        hasEn0 = memContains(buf, got, "en0");
+        hasAir = memContains(buf, got, "AirPort") || memContains(buf, got, "Wi-Fi");
+        hasCC = memContains(buf, got, "CommCenter");
+    }
+    if (buf) IOFreeData(buf, want);
+    vnode_close(vp, O_RDONLY, ctx);
+    snprintf(out, cap, "%lluB(en0=%u,air=%u,cc=%u)", static_cast<unsigned long long>(sz),
+             hasEn0 ? 1u : 0u, hasAir ? 1u : 0u, hasCC ? 1u : 0u);
+}
+
+struct j716f_route {
+    void *ro_rt;
+    void *ro_srcia;
+    uint32_t ro_flags;
+    struct sockaddr_in ro_dst;
+    uint8_t ro_pad[16];
+};
+
+void probeRouteIp(uint32_t ipHost, unsigned int scope, char *out, size_t cap) {
+    if (!&rtalloc_scoped || !&rtfree) {
+        strlcpy(out, "nosym", cap);
+        return;
+    }
+    j716f_route ro;
+    memset(&ro, 0, sizeof(ro));
+    ro.ro_dst.sin_len = sizeof(ro.ro_dst);
+    ro.ro_dst.sin_family = AF_INET;
+    ro.ro_dst.sin_addr.s_addr = htonl(ipHost);
+    rtalloc_scoped(&ro, scope);
+    if (!ro.ro_rt) {
+        strlcpy(out, "NONE", cap);
+        return;
+    }
+    strlcpy(out, "FOUND", cap);
+    rtfree(ro.ro_rt);
+}
+
+void probeRoute(unsigned int scope, char *out, size_t cap) {
+    probeRouteIp(0x01010101u, scope, out, cap);
+}
+
+void appendfDiag(char *out, size_t cap, size_t &pos, const char *fmt, ...) __attribute__((format(printf, 4, 5)));
+void appendfDiag(char *out, size_t cap, size_t &pos, const char *fmt, ...) {
+    if (pos + 1u >= cap) return;
+    va_list ap;
+    va_start(ap, fmt);
+    const int n = vsnprintf(out + pos, cap - pos, fmt, ap);
+    va_end(ap);
+    if (n > 0) pos += (static_cast<size_t>(n) < cap - pos) ? static_cast<size_t>(n) : (cap - pos - 1u);
+}
+
+void dumpPlistText(const char *tag, const char *path, char *out, size_t cap, size_t &pos) {
+    vnode_t vp = nullptr;
+    vfs_context_t ctx = vfs_context_current();
+    const int err = vnode_open(path, O_RDONLY, 0, 0, &vp, ctx);
+    if (err || !vp) {
+        appendfDiag(out, cap, pos, "[usb] %s: err=%d\r\n", tag, err);
+        return;
+    }
+    struct vnode_attr va;
+    VATTR_INIT(&va);
+    VATTR_WANTED(&va, va_data_size);
+    const uint64_t sz = (!vnode_getattr(vp, &va, ctx) && VATTR_IS_SUPPORTED(&va, va_data_size))
+                            ? va.va_data_size : 0ULL;
+    const size_t want = sz > 4096u ? 4096u : static_cast<size_t>(sz);
+    uint8_t *buf = want ? static_cast<uint8_t *>(IOMallocData(want)) : nullptr;
+    int resid = static_cast<int>(want);
+    size_t got = 0;
+    if (buf && !vn_rdwr(UIO_READ, vp, reinterpret_cast<caddr_t>(buf), static_cast<int>(want), 0,
+                        UIO_SYSSPACE, IO_NODELOCKED, vfs_context_ucred(ctx), &resid, current_proc())) {
+        got = want - static_cast<size_t>(resid > 0 ? resid : 0);
+    }
+    vnode_close(vp, O_RDONLY, ctx);
+    const bool isBin = (got >= 8u && !memcmp(buf, "bplist00", 8));
+    appendfDiag(out, cap, pos, "[usb] %s (%lluB,%s): ", tag,
+                static_cast<unsigned long long>(sz), isBin ? "bplist" : "xml");
+    if (buf && got) {
+        if (isBin) {
+            size_t i = 8u;
+            bool first = true;
+            while (i < got && pos + 64u < cap) {
+                if (buf[i] >= 0x20u && buf[i] < 0x7Fu) {
+                    size_t j = i;
+                    while (j < got && buf[j] >= 0x20u && buf[j] < 0x7Fu) ++j;
+                    if (j - i >= 2u) {
+                        if (!first) appendfDiag(out, cap, pos, "|");
+                        first = false;
+                        for (size_t k = i; k < j && pos + 32u < cap; ++k) {
+                            out[pos++] = static_cast<char>(buf[k]);
+                        }
+                        out[pos] = '\0';
+                    }
+                    i = j;
+                } else {
+                    ++i;
+                }
+            }
+        } else {
+            bool sp = false;
+            for (size_t i = 0; i < got && pos + 32u < cap; ++i) {
+                const uint8_t c = buf[i];
+                if (c == '\r' || c == '\n' || c == '\t') {
+                    if (!sp) { out[pos++] = ' '; sp = true; }
+                } else if (c >= 0x20u && c < 0x7Fu) {
+                    out[pos++] = static_cast<char>(c);
+                    sp = (c == ' ');
+                }
+            }
+            out[pos] = '\0';
+        }
+    }
+    appendfDiag(out, cap, pos, "\r\n");
+    if (buf) IOFreeData(buf, want);
+}
+
+struct AllProcsCtx {
+    char *out;
+    size_t cap;
+    size_t pos;
+    unsigned count;
+};
+
+int allProcsCb(struct proc *p, void *arg) {
+    auto *ctx = static_cast<AllProcsCtx *>(arg);
+    if (!&proc_pid || ctx->pos + 40u >= ctx->cap) return 0;
+    const char *name = proc_best_name(p);
+    if (!name) return 0;
+    const int pid = proc_pid(p);
+    appendfDiag(ctx->out, ctx->cap, ctx->pos, "%s%d:%s", ctx->count ? "," : "", pid, name);
+    ++ctx->count;
+    return 0;
+}
+
+}  // namespace
+
+extern "C" void j716f_wifi_net_diag_full(char *out, size_t cap) {
+    if (!out || !cap) return;
+    out[0] = '\0';
+    size_t pos = 0;
+
+    // 1. All network interfaces
+    ifnet_t *iflist = nullptr;
+    uint32_t ifcnt = 0;
+    if (!ifnet_list_get(IFNET_FAMILY_ANY, &iflist, &ifcnt) && iflist) {
+        for (uint32_t i = 0; i < ifcnt; ++i) {
+            ifnet_t ifp = iflist[i];
+            if (!ifp) continue;
+            char ip[32] = "-";
+            ifaddr_t *al = nullptr;
+            if (!ifnet_get_address_list_family(ifp, &al, AF_INET) && al) {
+                if (al[0]) {
+                    struct sockaddr_in a;
+                    memset(&a, 0, sizeof(a));
+                    if (!ifaddr_address(al[0], reinterpret_cast<struct sockaddr *>(&a), sizeof(a))) {
+                        const uint8_t *b = reinterpret_cast<const uint8_t *>(&a.sin_addr);
+                        snprintf(ip, sizeof(ip), "%u.%u.%u.%u", b[0], b[1], b[2], b[3]);
+                    }
+                }
+                ifnet_free_address_list(al);
+            }
+            appendfDiag(out, cap, pos,
+                        "[usb] WCN_DIAG_IF: idx=%u %s%u fl=0x%x efl=0x%x ip=%s\r\n",
+                        ifnet_index(ifp), ifnet_name(ifp) ? ifnet_name(ifp) : "?",
+                        ifnet_unit(ifp), ifnet_flags(ifp), ifnet_eflags(ifp), ip);
+        }
+        ifnet_list_free(iflist);
+    }
+
+    // 2. Routes matrix (unscoped vs en0-scoped)
+    const unsigned idx = gIf ? ifnet_index(gIf) : 0u;
+    char g1[16], s1[16], ggw[16], sgw[16], gip[16], sip[16];
+    probeRouteIp(0x01010101u, 0u, g1, sizeof(g1));
+    probeRouteIp(0x01010101u, idx, s1, sizeof(s1));
+    probeRouteIp(0x0A010201u, 0u, ggw, sizeof(ggw));
+    probeRouteIp(0x0A010201u, idx, sgw, sizeof(sgw));
+    probeRouteIp(0x0A0102C7u, 0u, gip, sizeof(gip));
+    probeRouteIp(0x0A0102C7u, idx, sip, sizeof(sip));
+    appendfDiag(out, cap, pos,
+                "[usb] WCN_DIAG_RT: 1.1.1.1(g=%s,s=%s) 10.1.2.1(g=%s,s=%s) 10.1.2.199(g=%s,s=%s)\r\n",
+                g1, s1, ggw, sgw, gip, sip);
+
+    // 3. Full contents of preferences.plist & NetworkInterfaces.plist
+    dumpPlistText("WCN_DIAG_PREF", "/private/var/preferences/SystemConfiguration/preferences.plist", out, cap, pos);
+    dumpPlistText("WCN_DIAG_NETIF", "/private/var/preferences/SystemConfiguration/NetworkInterfaces.plist", out, cap, pos);
+
+    // 4. Other SC/network plists presence & sizes
+    static const char *const kScFiles[] = {
+        "/private/var/preferences/SystemConfiguration/com.apple.wifi.plist",
+        "/private/var/preferences/SystemConfiguration/com.apple.wifi-private-mac-networks.plist",
+        "/private/var/preferences/SystemConfiguration/com.apple.airport.preferences.plist",
+        "/private/var/preferences/SystemConfiguration/com.apple.captive.plist",
+        "/private/var/preferences/SystemConfiguration/com.apple.network.identification.plist",
+        "/private/var/preferences/com.apple.networkextension.plist",
+    };
+    appendfDiag(out, cap, pos, "[usb] WCN_DIAG_SC:");
+    for (const char *path : kScFiles) {
+        const char *base = path;
+        for (const char *c = path; *c; ++c) if (*c == '/') base = c + 1;
+        char info[48] = {};
+        probePlistFile(path, info, sizeof(info));
+        appendfDiag(out, cap, pos, " %s=%s", base, info);
+    }
+    appendfDiag(out, cap, pos, "\r\n");
+
+    // 5. All running processes
+    appendfDiag(out, cap, pos, "[usb] WCN_DIAG_PROCS: ");
+    AllProcsCtx pctx{out, cap, pos, 0};
+    if (&proc_iterate) proc_iterate(1u | 4u, allProcsCb, &pctx, nullptr, nullptr);
+    pos = pctx.pos;
+    appendfDiag(out, cap, pos, " (n=%u)\r\n", pctx.count);
+}
+
+extern "C" void j716f_wifi_net_diag(char *out, size_t cap) {
+    if (!out || !cap) return;
+    char rtGlob[64] = "n/a", rtScoped[64] = "n/a";
+    const unsigned idx = gIf ? ifnet_index(gIf) : 0u;
+    const uint32_t efl = gIf ? ifnet_eflags(gIf) : 0u;
+    probeRoute(0u, rtGlob, sizeof(rtGlob));
+    if (idx) probeRoute(idx, rtScoped, sizeof(rtScoped));
+    int pids[10] = {};
+    if (&proc_iterate) proc_iterate(1u | 4u, wifiDiagProcCb, pids, nullptr, nullptr);
+    char pref[64] = {}, netif[64] = {}, dis[64] = {};
+    probePlistFile("/private/var/preferences/SystemConfiguration/preferences.plist", pref, sizeof(pref));
+    probePlistFile("/private/var/preferences/SystemConfiguration/NetworkInterfaces.plist", netif, sizeof(netif));
+    probePlistFile("/private/var/db/com.apple.xpc.launchd/disabled.plist", dis, sizeof(dis));
+    snprintf(out, cap,
+             "idx=%u efl=0x%x rt_glob=%s rt_en0=%s | necp(lvl=%u,ord=%u,unent=%u,sess=%u)\r\n"
+             "[usb] WCN_WIFI_PROCS: cfgd=%d wifid=%d mdns=%d nehlp=%d nesess=%d cap=%d sstat=%d cc=%d saf=%d wk=%d\r\n"
+             "[usb] WCN_WIFI_PLISTS: pref=%s netif=%s dis=%s",
+             idx, efl, rtGlob, rtScoped,
+             &necp_drop_all_level ? necp_drop_all_level : 999u,
+             &necp_drop_all_order ? necp_drop_all_order : 999u,
+             &necp_drop_unentitled_order ? necp_drop_unentitled_order : 999u,
+             &necp_session_count ? necp_session_count : 999u,
+             pids[0], pids[1], pids[2], pids[3], pids[4], pids[5], pids[6], pids[7], pids[8], pids[9],
+             pref, netif, dis);
 }

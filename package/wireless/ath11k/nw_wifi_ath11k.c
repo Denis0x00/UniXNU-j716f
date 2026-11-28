@@ -61,8 +61,34 @@ void nw_wifi_link_state(char *text, int size) {
   nw_wifi_status_get(&state);
   if (size > 0) text[0] = 0;
   if (!g_hw || state.state != NW_STA_UP) return;
-  snprintf(text, size, "freq %u rssi %d tx %u.%u Mbps",
-           state.freq_mhz, state.signal_dbm, state.tx_rate_100kbps / 10, state.tx_rate_100kbps % 10);
+  rcu_read_lock();
+  struct ieee80211_sta *sta = ieee80211_find_sta_by_ifaddr(g_hw, state.bssid, NULL);
+  if (sta) {
+    struct ath11k_sta *arsta = ath11k_sta_to_arsta(sta);
+    if (arsta && arsta->arvif && arsta->arvif->ar) {
+      struct ath11k *ar = arsta->arvif->ar;
+      if (arsta->txrate.legacy || arsta->txrate.nss) {
+        u32 rate = cfg80211_calculate_bitrate(&arsta->txrate);
+        if (rate) nw_mainline_rate_update(state.bssid, rate);
+      }
+      s8 raw = arsta->rssi_comb ? arsta->rssi_comb : arsta->rssi_beacon;
+      if (raw) {
+        int signal = test_bit(WMI_TLV_SERVICE_HW_DB2DBM_CONVERSION_SUPPORT,
+                              ar->ab->wmi_ab.svc_map)
+                         ? (int)raw
+                         : (int)raw + ATH11K_DEFAULT_NOISE_FLOOR;
+        if (signal < 0 && signal >= -127)
+          nw_mainline_signal_update(state.bssid, signal);
+      }
+    }
+  }
+  rcu_read_unlock();
+  nw_wifi_status_get(&state);
+  if (size > 0) {
+    snprintf(text, size, "freq %u rssi %d tx %u.%u Mbps",
+             state.freq_mhz, state.signal_dbm,
+             state.tx_rate_100kbps / 10, state.tx_rate_100kbps % 10);
+  }
 }
 
 static int hexval(char c) {

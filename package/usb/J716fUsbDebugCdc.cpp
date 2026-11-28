@@ -40,6 +40,7 @@ extern int j716f_wcn_wifi_qmi_now(void) __attribute__((weak_import));
 extern int j716f_wifi_stack_start(void) __attribute__((weak_import));
 extern int j716f_wifi_stack_scan_now(void) __attribute__((weak_import));
 extern void j716f_wifi_stack_snapshot(char *out, size_t cap) __attribute__((weak_import));
+extern void j716f_wifi_net_diag_full(char *out, size_t cap) __attribute__((weak_import));
 extern uint64_t sheng_cpu_idle_mach(int cpu) __attribute__((weak_import));
 
 extern volatile uint32_t armcpu_smp_running __attribute__((weak_import));
@@ -822,6 +823,14 @@ static void handleCommand(TerminalSession &s, const char *raw) {
             s.reply.writeStr(wbuf);
         } else {
             s.reply.writeStr("[usb] WCN.WIFI.STACK: unavailable\r\n");
+        }
+    } else if (strEq(raw, "wcn.wifi.diag")) {
+        if (&j716f_wifi_net_diag_full) {
+            static char wdbuf[16384];
+            j716f_wifi_net_diag_full(wdbuf, sizeof(wdbuf));
+            s.reply.writeStr(wdbuf);
+        } else {
+            s.reply.writeStr("[usb] WCN.WIFI.DIAG: unavailable\r\n");
         }
     } else if (strEq(raw, "wcn.wifi.scan")) {
         if (&j716f_wifi_stack_scan_now && &j716f_wifi_stack_snapshot) {

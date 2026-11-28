@@ -191,11 +191,22 @@ def prepare_ath11k_tree(work: Path) -> None:
         encoding='utf-8',
     )
 
-    (ath_out / 'dp.h').unlink()
-    dp_txt = (linux_ath11k / 'dp.h').read_text(encoding='utf-8')
-    dp_txt = dp_txt.replace('#define DP_RXDMA_BUF_RING_SIZE\t\t4096', '#define DP_RXDMA_BUF_RING_SIZE\t\t512', 1)
-    dp_txt = dp_txt.replace('#define DP_RXDMA_REFILL_RING_SIZE\t2048', '#define DP_RXDMA_REFILL_RING_SIZE\t512', 1)
-    (ath_out / 'dp.h').write_text(dp_txt, encoding='utf-8')
+    # Keep stock DP_RXDMA_BUF_RING_SIZE (4096) and DP_RXDMA_REFILL_RING_SIZE (2048):
+    # QCA6390 has num_rxdma_per_pdev=2 with rx_mac_buf_ring[0..1] of 1024 entries each
+    # (5 GHz MAC0 + 2.4 GHz MAC1). Shrinking rx_refill_buf_ring below 2048 starves MAC1
+    # (2.4 GHz) of DP RX buffers so 2.4 GHz associations never receive EAPOL M1.
+
+    (ath_out / 'dp_rx.c').unlink()
+    dprx_txt = (linux_ath11k / 'dp_rx.c').read_text(encoding='utf-8')
+    vht_mcs_mark = '\t\tif (rate_mcs > ATH11K_VHT_MCS_MAX) {\n'
+    if dprx_txt.count(vht_mcs_mark) == 1:
+        dprx_txt = dprx_txt.replace(
+            vht_mcs_mark,
+            '\t\t/* mac80211 accepts vendor VHT MCS 10/11; retain their NSS/BW. */\n'
+            '\t\tif (rate_mcs > 11) {\n',
+            1,
+        )
+    (ath_out / 'dp_rx.c').write_text(dprx_txt, encoding='utf-8')
 
     (ath_out / 'wmi.c').unlink()
     wmi_txt = (linux_ath11k / 'wmi.c').read_text(encoding='utf-8')
@@ -224,6 +235,40 @@ def prepare_ath11k_tree(work: Path) -> None:
         mac_mark,
         '\tif (!is_valid_ether_addr(ar->mac_addr) || (!ar->mac_addr[0] && ar->mac_addr[1] == 0x03 && ar->mac_addr[2] == 0x7f)) {\n'
         '\t\tnw_board_mac(ar->mac_addr);\n\t}\n' + mac_mark,
+        1,
+    )
+    # In the single-executor Linux shim (lx_rt.c), ordinary workqueues are deferred while
+    # rtnl_lock/wiphy_lock are held (e.g. during dev_close / network switch) unless explicitly
+    # flushed. Flushing wmi_mgmt_tx_work here (ar->conf_mutex is not held) lets the queued
+    # Deauth transmit immediately instead of hitting three 5-second flush timeouts.
+    flush_mark = (
+        'static void ath11k_mac_op_flush(struct ieee80211_hw *hw, struct ieee80211_vif *vif,\n'
+        '\t\t\t\tu32 queues, bool drop)\n'
+        '{\n'
+        '\tstruct ath11k *ar = hw->priv;\n'
+        '\n'
+        '\tif (drop)\n'
+        '\t\treturn;\n'
+        '\n'
+        '\tath11k_mac_flush_tx_complete(ar);\n'
+        '}\n'
+    )
+    if mac_txt.count(flush_mark) != 1:
+        raise SystemExit('ath11k mac.c ath11k_mac_op_flush anchor missing')
+    mac_txt = mac_txt.replace(
+        flush_mark,
+        'static void ath11k_mac_op_flush(struct ieee80211_hw *hw, struct ieee80211_vif *vif,\n'
+        '\t\t\t\tu32 queues, bool drop)\n'
+        '{\n'
+        '\tstruct ath11k *ar = hw->priv;\n'
+        '\n'
+        '\tif (drop)\n'
+        '\t\treturn;\n'
+        '\n'
+        '\tif (!mutex_is_locked(&ar->conf_mutex))\n'
+        '\t\tflush_work(&ar->wmi_mgmt_tx_work);\n'
+        '\tath11k_mac_flush_tx_complete(ar);\n'
+        '}\n',
         1,
     )
     (ath_out / 'mac.c').write_text(mac_txt, encoding='utf-8')

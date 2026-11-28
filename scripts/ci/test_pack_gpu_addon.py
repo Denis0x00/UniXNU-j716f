@@ -114,6 +114,19 @@ class PackGpuAddonTests(unittest.TestCase):
         self.assertIn("j716f-data-persist=2", reset_args)
         self.assertIn("data-reset=1", reset_args)
 
+        smooth_args = PACK.default_phase4b_kernel_args(fb_gpu=True, smooth=True, data_persist=2)
+        self.assertEqual(smooth_args.count("fb-gpu=1"), 1)
+        for expected in (
+            "dpu-scanout=2",
+            "vsync=90",
+            "vsync-fixed=1",
+            "j716f-gpu-bw=1",
+            "gpu-import-rw-coherent=1",
+            "lite=1",
+            "disable-watchdogd=1",
+        ):
+            self.assertIn(expected, smooth_args)
+
     def test_resolve_stage7_out_dir_prefers_default_j716f_with_fallback(self) -> None:
         import tempfile
 

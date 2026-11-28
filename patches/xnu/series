@@ -6,3 +6,4 @@ j716f-storage-dependency.patch
 j716f-power-probe-call.patch
 j716f-apfs-root-probe.patch
 j716f-skip-setup.patch
+j716f-wifi-launchd-cache.patch

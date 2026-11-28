@@ -351,17 +351,20 @@ int voteRpmhRail(const QcomRscLayout &layout, const char *name, uint32_t mv, uin
 
 bool powerOnWcnRails(bool includePciePhy) {
     if (!gCmdDb.va || !gRscDrv.va) return false;
-    gPowerAttempted = true;
+    if (gPowerAttempted && (!includePciePhy || gPciePowerAttempted)) return true;
     const uint32_t drvId = rd32(gRscDrv, 0u);
     const QcomRscLayout layout = qcom_rsc_layout(drvId);
     wr32(gRscDrv, TB_RSC_TCS_OFFSET, rd32(gRscDrv, TB_RSC_TCS_OFFSET) | 3u);
 
     bool allOk = true;
-    for (unsigned i = 0; i < J716F_WCN_RAIL_COUNT; ++i) {
-        gState.railRc[i] = voteRpmhRail(layout, kRails[i].name, kRails[i].mv, &gState.railAddr[i]);
-        if (gState.railRc[i] != 0) allOk = false;
+    if (!gPowerAttempted) {
+        gPowerAttempted = true;
+        for (unsigned i = 0; i < J716F_WCN_RAIL_COUNT; ++i) {
+            gState.railRc[i] = voteRpmhRail(layout, kRails[i].name, kRails[i].mv, &gState.railAddr[i]);
+            if (gState.railRc[i] != 0) allOk = false;
+        }
     }
-    if (includePciePhy) {
+    if (includePciePhy && !gPciePowerAttempted) {
         gPciePowerAttempted = true;
         for (unsigned i = 0; i < J716F_PCIE_RAIL_COUNT; ++i) {
             gState.pcieRailRc[i] = voteRpmhRail(layout, kPcieRails[i].name, kPcieRails[i].mv,
@@ -2885,6 +2888,8 @@ extern "C" int j716f_wcn_wifi_qmi_now(void) {
     return gState.wifiQmiErr;
 }
 
+extern "C" void j716f_wifi_publish_early_dt(void) __attribute__((weak_import));
+extern "C" void j716f_wifi_stack_start_async(void) __attribute__((weak_import));
 extern "C" int j716f_wifi_stack_start(void) __attribute__((weak_import));
 
 extern "C" int j716f_wcn_wifi_prepare_for_ath11k(uint32_t *bar_addr_out, uint32_t *bar_size_out) {
@@ -2914,12 +2919,18 @@ extern "C" void j716f_wcn_probe(void) {
     ensureMapped();
     unsigned btSvc = 0u;
     PE_parse_boot_argn("j716f-bt", &btSvc, sizeof(btSvc));
-    if (btSvc >= 1u) {
-        (void)j716f_wcn_bt_service_start();
-    }
     unsigned wifiStack = 0u;
     PE_parse_boot_argn("j716f-wifi", &wifiStack, sizeof(wifiStack));
-    if (wifiStack >= 1u && &j716f_wifi_stack_start) {
+    if (btSvc >= 1u || wifiStack >= 1u) {
+        (void)powerOnWcnRails(wifiStack >= 1u);
+    }
+    if (btSvc >= 1u) {
+        (void)publishBtAddress();
+        (void)j716f_wcn_bt_service_start();
+    }
+    if (wifiStack >= 1u && &j716f_wifi_stack_start_async) {
+        j716f_wifi_stack_start_async();
+    } else if (wifiStack >= 1u && &j716f_wifi_stack_start) {
         (void)j716f_wifi_stack_start();
     }
     unsigned mode = 0u;

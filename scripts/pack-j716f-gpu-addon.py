@@ -98,9 +98,16 @@ def build_owner_trust_bundle(
         if not isinstance(raw_hex, str) or len(raw_hex) != 40:
             raise ValueError(f"trust.json missing valid 20-byte hex {key!r}")
         parsed_hashes.add(bytes.fromhex(raw_hex))
+    extra = trust_meta.get("extra_cdhashes", [])
+    if not isinstance(extra, list):
+        raise ValueError("trust.json extra_cdhashes must be a list of 40-char hex strings")
+    for raw_hex in extra:
+        if not isinstance(raw_hex, str) or len(raw_hex) != 40:
+            raise ValueError(f"trust.json contains invalid extra_cdhash: {raw_hex!r}")
+        parsed_hashes.add(bytes.fromhex(raw_hex))
     hashes = sorted(parsed_hashes)
-    if len(hashes) != 3:
-        raise ValueError(f"Expected 3 unique CDHashes, got {len(hashes)}")
+    if len(hashes) < 3:
+        raise ValueError(f"Expected at least 3 unique CDHashes, got {len(hashes)}")
 
     identifier = uuid.uuid5(
         uuid.NAMESPACE_URL,
@@ -161,6 +168,7 @@ def default_phase4b_kernel_args(
     extra_args: list[str] | None = None,
     *,
     fb_gpu: bool = False,
+    smooth: bool = False,
     data_persist: int = 0,
     data_reset: bool = False,
 ) -> list[str]:
@@ -213,8 +221,20 @@ def default_phase4b_kernel_args(
             "j716f-buttons=1",
         ]
     )
-    if fb_gpu:
+    if fb_gpu or smooth:
         args.append("fb-gpu=1")
+    if smooth:
+        args.extend(
+            [
+                "dpu-scanout=2",
+                "vsync=90",
+                "vsync-fixed=1",
+                "j716f-gpu-bw=1",
+                "gpu-import-rw-coherent=1",
+                "lite=1",
+                "disable-watchdogd=1",
+            ]
+        )
     if extra_args:
         args.extend(extra_args)
     return args
@@ -297,6 +317,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Skip pinned stock 21H461 trust cache SHA-256 check",
     )
     parser.add_argument("--fb-gpu", action="store_true", help="Append opt-in fb-gpu=1 GPU presenter handoff")
+    parser.add_argument(
+        "--smooth",
+        action="store_true",
+        help="Enable hardware-verified 90 Hz DPU zero-copy + RW-coherent GPU smoothness preset "
+        "(fb-gpu=1 dpu-scanout=2 vsync=90 vsync-fixed=1 j716f-gpu-bw=1 gpu-import-rw-coherent=1 lite=1 disable-watchdogd=1)",
+    )
     parser.add_argument(
         "--data-persist",
         type=int,
@@ -384,6 +410,7 @@ def main(argv: list[str] | None = None) -> int:
     kernel_args = default_phase4b_kernel_args(
         args.extra_arg,
         fb_gpu=args.fb_gpu,
+        smooth=args.smooth,
         data_persist=args.data_persist,
         data_reset=args.data_reset,
     )

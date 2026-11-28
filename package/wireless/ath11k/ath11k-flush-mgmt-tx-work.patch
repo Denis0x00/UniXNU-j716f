@@ -1,0 +1,26 @@
+Subject: ath11k: flush wmi_mgmt_tx_work before waiting for mgmt tx completion
+
+Under the single-executor native Linux shim (lx_rt.c), ordinary workqueues
+without LX_WQ_IO_COMPLETION are deferred while any mutex (such as mac80211's
+wiphy->mtx) is held unless explicitly flushed via flush_work().
+
+During disconnect / network switch, mac80211 transmits a DEAUTH frame
+(queuing ar->wmi_mgmt_tx_work on ab->workqueue_aux and incrementing
+ar->num_pending_mgmt_tx) and immediately invokes drv_flush() while still
+holding wiphy->mtx. Without flushing ar->wmi_mgmt_tx_work first,
+ath11k_mac_flush_tx_complete() spins for the full 5 s ATH11K_FLUSH_TIMEOUT
+per flush call (10-15 s total), causing wpa_supplicant control timeouts and
+join retries.
+
+--- a/mac.c
++++ b/mac.c
+@@ -8659,6 +8659,9 @@ static void ath11k_mac_op_flush(struct ieee80211_hw *hw, struct ieee80211_vif *v
+ 	if (drop)
+ 		return;
+ 
++	if (!mutex_is_locked(&ar->conf_mutex))
++		flush_work(&ar->wmi_mgmt_tx_work);
++
+ 	ath11k_mac_flush_tx_complete(ar);
+ }
+ 

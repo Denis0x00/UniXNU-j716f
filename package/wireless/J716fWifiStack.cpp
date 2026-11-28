@@ -48,6 +48,15 @@ extern const uint32_t j716f_wcn_wifi_bdf_fw_size;
 extern void __GLOBAL__sub_I_J716fWifiNet(void) __asm__("__GLOBAL__sub_I_J716fWifiNet.cpp");
 extern void j716f_wifi_net_start(const uint8_t mac[6]);
 extern void j716f_wifi_net_stats(uint32_t *up, uint32_t *ioctls, uint32_t *scanReqs, uint32_t *scanRes);
+extern void j716f_wifi_net_stats_ext(char *ip_out, size_t ip_cap,
+                                     uint64_t *pkts_in, uint64_t *pkts_out,
+                                     uint32_t *rx_ok, uint32_t *rx_err, uint32_t *tx_drop);
+extern void j716f_wifi_net_kinds(char *out, size_t cap);
+extern void j716f_wifi_net_diag(char *out, size_t cap);
+extern volatile int native_cryptex_os_stage __attribute__((weak_import));
+extern volatile int native_cryptex_os_status __attribute__((weak_import));
+extern volatile int native_ls_store_status __attribute__((weak_import));
+extern volatile int native_gestalt_cache_status __attribute__((weak_import));
 }
 
 namespace {
@@ -69,7 +78,7 @@ bool mapMmio(MmioWin &w, uint64_t pa, size_t len) {
     return true;
 }
 
-constexpr unsigned kArenaBlocks = 16384u;
+constexpr unsigned kArenaBlocks = 32768u;
 struct Arena {
     IOMemoryMap *map = nullptr;
     uint8_t *va = nullptr;
@@ -90,6 +99,8 @@ struct StackState {
     uint32_t barSize = 0;
     int msiAttachRc = -999;
     bool netRegistered = false;
+    uint8_t dtChosenMac = 0;
+    uint8_t dtWlanMac = 0;
     uint64_t firstLogMs = 0;
     volatile uint32_t logCount = 0;
     char logs[kLogRingSize][128];
@@ -158,8 +169,14 @@ void pLog(int level, const char *line) {
 bool arenaInit() {
     if (gArena.va) return true;
     uint64_t pa = 0ULL, bytes = 0ULL;
-    if (!&j716f_wcn_dma_arena || !j716f_wcn_dma_arena(&pa, &bytes) ||
-        !pa || bytes < 0x1000000ULL || pa + bytes > 0x100000000ULL) {
+    for (unsigned waited = 0u; waited < 8000u; waited += 50u) {
+        if (&j716f_wcn_dma_arena && j716f_wcn_dma_arena(&pa, &bytes) &&
+            pa && bytes >= 0x1000000ULL && pa + bytes <= 0x100000000ULL) {
+            break;
+        }
+        IOSleep(50);
+    }
+    if (!pa || bytes < 0x1000000ULL || pa + bytes > 0x100000000ULL) {
         return false;
     }
     IODeviceMemory *mem = IODeviceMemory::withRange(pa, bytes);
@@ -287,11 +304,19 @@ void publishWifiMac() {
     uint8_t m[6];
     if (!boardMac(m)) return;
     if (IORegistryEntry *chosen = IORegistryEntry::fromPath("/chosen", gIODTPlane)) {
-        if (!chosen->getProperty("mac-address-wifi0")) chosen->setProperty("mac-address-wifi0", m, 6u);
+        if (!chosen->getProperty("mac-address-wifi0")) {
+            if (chosen->setProperty("mac-address-wifi0", m, 6u)) gStk.dtChosenMac = 1u;
+        } else {
+            gStk.dtChosenMac = 1u;
+        }
         chosen->release();
     }
     if (IORegistryEntry *wlan = IORegistryEntry::fromPath("/arm-io/wlan", gIODTPlane)) {
-        if (!wlan->getProperty("local-mac-address")) wlan->setProperty("local-mac-address", m, 6u);
+        if (!wlan->getProperty("local-mac-address")) {
+            if (wlan->setProperty("local-mac-address", m, 6u)) gStk.dtWlanMac = 1u;
+        } else {
+            gStk.dtWlanMac = 1u;
+        }
         wlan->release();
     }
 }
@@ -465,8 +490,18 @@ int controlReadMbuf(void *source, void *destination, size_t length) {
 }
 errno_t controlReceive(kern_ctl_ref, uint32_t, void *information, mbuf_t packet, int) {
     auto *owner = static_cast<ControlClient *>(information);
+    nw_control_header hdr{};
+    if (mbuf_pkthdr_len(packet) >= sizeof(hdr)) {
+        (void)mbuf_copydata(packet, 0, sizeof(hdr), &hdr);
+    }
     const int status = nw_wifi_control_receive(owner->session, mbuf_pkthdr_len(packet), controlReadMbuf, packet);
     mbuf_freem(packet);
+    if (hdr.operation != NW_CONTROL_GET_BSS && hdr.operation != NW_CONTROL_SCAN && hdr.operation != 0) {
+        char msg[96];
+        snprintf(msg, sizeof(msg), "wifi-ctl: rx op=%u gen=%llu st=%d -> %d",
+                 hdr.operation, static_cast<unsigned long long>(hdr.generation), hdr.status, status);
+        pLog(6, msg);
+    }
     return controlError(status);
 }
 void controlReceived(kern_ctl_ref, uint32_t, void *information, int) {
@@ -487,6 +522,19 @@ int controlSend(void *, uint64_t session, const void *bytes, size_t length) {
     const uint32_t unit = active ? gControlClient->unit : 0u;
     IOLockUnlock(gControlLock);
     if (!active) return NW_CONTROL_SEND_CLOSED;
+    if (length >= sizeof(nw_control_header)) {
+        nw_control_header hdr{};
+        memcpy(&hdr, bytes, sizeof(hdr));
+        if (hdr.operation != NW_CONTROL_GET_BSS && hdr.operation != NW_CONTROL_SCAN &&
+            hdr.operation != NW_CONTROL_SCAN_STARTED && hdr.operation != NW_CONTROL_SCAN_DONE &&
+            hdr.operation != NW_CONTROL_SCAN_REQUEST) {
+            char msg[96];
+            snprintf(msg, sizeof(msg), "wifi-ctl: tx k=%u op=%u gen=%llu st=%d len=%u",
+                     hdr.kind, hdr.operation, static_cast<unsigned long long>(hdr.generation),
+                     hdr.status, static_cast<unsigned>(length));
+            pLog(6, msg);
+        }
+    }
     const errno_t r = ctl_enqueuedata(gControlRef, unit, const_cast<void *>(bytes), length, CTL_DATA_EOR);
     if (!r) return NW_CONTROL_SEND_OK;
     if (r == ENOBUFS || r == EWOULDBLOCK) return NW_CONTROL_SEND_AGAIN;
@@ -584,7 +632,9 @@ void wifiWorker(void *, wait_result_t) {
     board.cfg_write = pCfgWrite;
     board.msi_target = pMsiTarget;
     board.map_phys = nullptr;
-    board.diagnostics = 1u;
+    uint32_t wifiDiag = 0u;
+    PE_parse_boot_argn("log-wifi", &wifiDiag, sizeof(wifiDiag));
+    board.diagnostics = wifiDiag ? 1u : 0u;
 
     (void)controlStart();
     pLog(6, "wifi: starting Linux ath11k + mac80211/cfg80211 stack");
@@ -610,14 +660,23 @@ void wifiWorker(void *, wait_result_t) {
     gStk.state = 2u;
 
     uint64_t sliceStarted = pNowNs();
+    uint64_t nextLinkPollMs = pNow() + 2000ULL;
     for (;;) {
         const int busy = nw_wifi_step();
         if (!gStk.netRegistered && nw_wifi_stats.stage >= 4u) {
             netStartOnce();
         }
+        if (gStk.netRegistered) {
+            const uint64_t nowMs = pNow();
+            if (nowMs >= nextLinkPollMs) {
+                nextLinkPollMs = nowMs + 2000ULL;
+                char link[96];
+                nw_wifi_link_state(link, sizeof(link));
+            }
+        }
         if (!busy) {
             if (gMsiAttached) {
-                const unsigned wait = nw_wifi_wait_ms(200u);
+                const unsigned wait = nw_wifi_wait_ms(1000u);
                 if (wait) msiWait(wait);
             } else {
                 IOSleep(1);
@@ -659,8 +718,13 @@ extern "C" void j716f_wifi_wake(void) {
     thread_wakeup(reinterpret_cast<event_t>(const_cast<uint32_t *>(&gMsiWake)));
 }
 
-extern "C" int j716f_wifi_stack_start(void) {
-    if (!gStk.started) {
+extern "C" void j716f_wifi_publish_early_dt(void) {
+    publishWifiMac();
+}
+
+extern "C" void j716f_wifi_stack_start_async(void) {
+    publishWifiMac();
+    if (!gStk.started || gStk.state == 4u) {
         gStk.started = true;
         gStk.state = 1u;
         gStk.lastErr = 0;
@@ -668,12 +732,16 @@ extern "C" int j716f_wifi_stack_start(void) {
         if (kernel_thread_start(wifiWorker, nullptr, &th) != KERN_SUCCESS || !th) {
             gStk.state = 4u;
             gStk.lastErr = -12;
-            return -12;
+            return;
         }
         thread_deallocate(th);
     }
-    /* Wait up to 8 s for ath11k + mac80211 to reach stage 4 (en0 registered). */
-    for (unsigned i = 0; i < 800u && gStk.state < 3u && gStk.state != 4u; ++i) {
+}
+
+extern "C" int j716f_wifi_stack_start(void) {
+    j716f_wifi_stack_start_async();
+    /* Wait up to 10 s for GPU arena + ath11k + mac80211 to reach stage 4 (en0 registered). */
+    for (unsigned i = 0; i < 1000u && gStk.state < 3u && gStk.state != 4u; ++i) {
         IOSleep(10);
     }
     return gStk.state == 3u ? 0 : (gStk.lastErr ? gStk.lastErr : -110);
@@ -702,15 +770,46 @@ extern "C" void j716f_wifi_stack_snapshot(char *out, size_t cap) {
     if (gStk.started) nw_wifi_status_get(&st);
     uint32_t en0Up = 0, ioctls = 0, sreqs = 0, sres = 0;
     j716f_wifi_net_stats(&en0Up, &ioctls, &sreqs, &sres);
+    char ipStr[32] = "none";
+    uint64_t pktsIn = 0, pktsOut = 0;
+    uint32_t rxOk = 0, rxErr = 0, txDrop = 0;
+    j716f_wifi_net_stats_ext(ipStr, sizeof(ipStr), &pktsIn, &pktsOut, &rxOk, &rxErr, &txDrop);
+    nw_control_stats ctl{};
+    if (gStk.started) nw_wifi_control_stats_get(&ctl);
 
     appendf(out, cap, pos,
-            "[usb] WCN_WIFI_STACK: st=%u err=%d nw_stg=%u(lerr=%d) msi=%u(att=%u,rc=%d,bits=0x%08x) dma=%uK/%uK(fail=%u) scans=%u bss=%u ch=%u mac=%02x:%02x:%02x:%02x:%02x:%02x en0=%u(io=%u,sr=%u,res=%u)\r\n",
-            gStk.state, gStk.lastErr, nw_wifi_stats.stage, nw_wifi_stats.last_err,
+            "[usb] WCN_WIFI_STACK: st=%u err=%d nw_stg=%u(lerr=%d) sta=%u dt=%u/%u msi=%u(att=%u,rc=%d,bits=0x%08x) dma=%uK/%uK(fail=%u) scans=%u bss=%u ch=%u mac=%02x:%02x:%02x:%02x:%02x:%02x\r\n",
+            gStk.state, gStk.lastErr, nw_wifi_stats.stage, nw_wifi_stats.last_err, st.state,
+            gStk.dtChosenMac, gStk.dtWlanMac,
             gMsiCount, gMsiAttached ? 1u : 0u, gStk.msiAttachRc, gMsiBits,
             static_cast<unsigned>(gArena.used / 1024u), static_cast<unsigned>(gArena.peak / 1024u),
             gArena.failures, nw_wifi_stats.scans, nw_wifi_stats.bss_seen, st.channels,
-            st.mac[0], st.mac[1], st.mac[2], st.mac[3], st.mac[4], st.mac[5],
-            en0Up, ioctls, sreqs, sres);
+            st.mac[0], st.mac[1], st.mac[2], st.mac[3], st.mac[4], st.mac[5]);
+    char kinds[240] = {};
+    j716f_wifi_net_kinds(kinds, sizeof(kinds));
+    appendf(out, cap, pos,
+            "[usb] WCN_WIFI_NET: en0=%u ip=%s freq=%u rssi=%d rate=%u.%u in=%llu out=%llu(rx=%u/%u,txdrop=%u) io=%u sr=%u res=%u | ctl=sess:%llu/conn:%llu/disc:%llu rx=%u tx=%u acc=%llu disp=%llu last=%u(%u)\r\n",
+            en0Up, ipStr, st.freq_mhz, static_cast<int>(st.signal_dbm),
+            st.tx_rate_100kbps / 10u, st.tx_rate_100kbps % 10u,
+            static_cast<unsigned long long>(pktsIn), static_cast<unsigned long long>(pktsOut),
+            rxOk, rxErr, txDrop, ioctls, sreqs, sres,
+            static_cast<unsigned long long>(ctl.active_session),
+            static_cast<unsigned long long>(ctl.connections),
+            static_cast<unsigned long long>(ctl.disconnections),
+            ctl.rx_items, ctl.tx_items,
+            static_cast<unsigned long long>(ctl.accepted),
+            static_cast<unsigned long long>(ctl.dispatched),
+            ctl.last_operation, ctl.last_status);
+    appendf(out, cap, pos,
+            "[usb] WCN_WIFI_PKTS: %s | cryptex=%d/%d ls=%d gestalt=%d\r\n",
+            kinds,
+            &native_cryptex_os_stage ? native_cryptex_os_stage : -99,
+            &native_cryptex_os_status ? native_cryptex_os_status : -99,
+            &native_ls_store_status ? native_ls_store_status : -99,
+            &native_gestalt_cache_status ? native_gestalt_cache_status : -99);
+    char diag[512] = {};
+    j716f_wifi_net_diag(diag, sizeof(diag));
+    appendf(out, cap, pos, "[usb] WCN_WIFI_DIAG: %s\r\n", diag);
 
     const int nBss = gStk.started ? nw_wifi_bss_count() : 0;
     for (int i = 0; i < nBss && i < 32; ++i) {
@@ -723,11 +822,42 @@ extern "C" void j716f_wifi_stack_snapshot(char *out, size_t cap) {
             ssid[k] = (c >= 0x20u && c < 0x7Fu) ? static_cast<char>(c) : '?';
         }
         ssid[sl] = '\0';
+        const char *sec = (b.caps & 0x0010u) ? "WEP" : "OPEN";
+        bool hasWpa = false, hasRsn = false, hasPsk = false, hasSae = false;
+        for (unsigned o = 0; o + 2u <= b.ie_len && o + 2u + b.ie[o + 1u] <= b.ie_len; o += 2u + b.ie[o + 1u]) {
+            const uint8_t id = b.ie[o], len = b.ie[o + 1u];
+            const uint8_t *v = b.ie + o + 2u;
+            if (id == 48u && len >= 8u) {
+                hasRsn = true;
+                unsigned p = 6u;
+                if (p + 2u <= len) {
+                    const unsigned pc = static_cast<unsigned>(v[p]) | (static_cast<unsigned>(v[p + 1u]) << 8);
+                    p += 2u + pc * 4u;
+                    if (p + 2u <= len) {
+                        const unsigned ac = static_cast<unsigned>(v[p]) | (static_cast<unsigned>(v[p + 1u]) << 8);
+                        p += 2u;
+                        for (unsigned a = 0; a < ac && p + 4u <= len; ++a, p += 4u) {
+                            if (v[p] == 0x00u && v[p + 1u] == 0x0Fu && v[p + 2u] == 0xACu) {
+                                if (v[p + 3u] == 2u || v[p + 3u] == 6u) hasPsk = true;
+                                if (v[p + 3u] == 8u) hasSae = true;
+                            }
+                        }
+                    }
+                }
+            } else if (id == 221u && len >= 4u && v[0] == 0x00u && v[1] == 0x50u && v[2] == 0xF2u && v[3] == 0x01u) {
+                hasWpa = true;
+            }
+        }
+        if (hasRsn && hasPsk && hasSae) sec = "WPA2/3";
+        else if (hasRsn && hasSae) sec = "WPA3";
+        else if (hasRsn && hasWpa) sec = "WPA/2";
+        else if (hasRsn) sec = "WPA2";
+        else if (hasWpa) sec = "WPA";
         appendf(out, cap, pos,
-                "[usb] WCN_WIFI_BSS[%d]: %uMHz %ddBm %02x:%02x:%02x:%02x:%02x:%02x caps=0x%04x \"%s\"\r\n",
+                "[usb] WCN_WIFI_BSS[%d]: %uMHz %ddBm %02x:%02x:%02x:%02x:%02x:%02x caps=0x%04x %s \"%s\"\r\n",
                 i, b.freq_mhz, static_cast<int>(b.signal_dbm),
                 b.bssid[0], b.bssid[1], b.bssid[2], b.bssid[3], b.bssid[4], b.bssid[5],
-                b.caps, ssid);
+                b.caps, sec, ssid);
     }
 
     const uint32_t totalLogs = gStk.logCount;
