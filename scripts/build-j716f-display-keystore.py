@@ -681,6 +681,8 @@ def main() -> None:
     power_dir = ROOT / 'kits/j716f/power'
     cpufreq_src = power_dir / 'J716fCpuFreq.cpp'
     battery_src = power_dir / 'J716fBattery.cpp'
+    rtc_src = power_dir / 'J716fRtc.cpp'
+    rtc_board_hdr = power_dir / 'J716fRtcBoard.h'
     gpu_dir = ROOT / 'kits/j716f/gpu'
     gpu_probe_src = gpu_dir / 'J716fGpuProbe.cpp'
     gpu_gmu_src = gpu_dir / 'J716fA650Gmu.c'
@@ -750,6 +752,8 @@ def main() -> None:
         rpmh_src,
         cpufreq_src,
         battery_src,
+        rtc_src,
+        rtc_board_hdr,
         gpu_probe_src,
         gpu_gmu_src,
         gpu_gmu_ctx_src,
@@ -991,6 +995,7 @@ def main() -> None:
     rpmh_obj = OUT / 'J716fQcomRpmh.o'
     cpufreq_obj = OUT / 'J716fCpuFreq.o'
     battery_late = OUT / 'J716fBattery.late.o'
+    rtc_obj = OUT / 'J716fRtc.o'
     gpu_probe_obj = OUT / 'J716fGpuProbe.o'
     gpu_gmu_obj = OUT / 'J716fA650Gmu.o'
     gpu_gmu_ctx_obj = OUT / 'J716fA650GmuContext.o'
@@ -1346,6 +1351,13 @@ def main() -> None:
     )
     compile_cxx_from_record(
         record,
+        rtc_src,
+        rtc_obj,
+        ['-I', str(power_dir)],
+        allow_warnings=False,
+    )
+    compile_cxx_from_record(
+        record,
         gpu_probe_src,
         gpu_probe_obj,
         gpu_kmd_inc,
@@ -1510,6 +1522,7 @@ def main() -> None:
         buttons_obj,
         rpmh_obj,
         cpufreq_obj,
+        rtc_obj,
         gpu_probe_obj,
         gpu_gmu_obj,
         gpu_gmu_ctx_obj,
@@ -1560,6 +1573,8 @@ def main() -> None:
         rpmh_src,
         cpufreq_src,
         battery_src,
+        rtc_src,
+        rtc_board_hdr,
         gpu_probe_src,
         gpu_gmu_src,
         gpu_gmu_ctx_src,

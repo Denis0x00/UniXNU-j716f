@@ -826,6 +826,9 @@ bool g_ufs_open = false;
 bool g_ufs_rw = false;
 uint64_t g_ufs_first_lba = 0;
 uint64_t g_ufs_blocks = 0;
+IOLock *g_ufs_rtc_lock = nullptr;
+constexpr uint32_t kUfsRtcRecordOffset = 512U;
+constexpr uint32_t kUfsRtcRecordBytes = 64U;
 
 bool isAllZero(const uint8_t *p) {
   for (size_t i = 0; i < kBlockBytes; ++i) {
@@ -872,6 +875,7 @@ uint64_t le64At(const uint8_t *p) {
 
 extern "C" {
 __attribute__((weak)) bool ml_static_mfree_prepare(vm_offset_t, vm_size_t) { return false; }
+extern void j716f_rtc_on_store_ready(void) __attribute__((weak_import));
 
 __attribute__((weak)) unsigned native_ufs_store_mode(void) {
   const unsigned pm = j716f_ram_store::persistMode();
@@ -907,6 +911,7 @@ __attribute__((weak)) int native_ufs_store_open(uint64_t blocks, uint64_t *first
     g_ufs_blocks = blocks;
     g_ufs_rw = (pm == 2);
     g_ufs_open = true;
+    if (!g_ufs_rtc_lock) g_ufs_rtc_lock = IOLockAlloc();
     if (first) *first = first_lba;
     printf("[J716F r41] persistent UFS Data store opened: mode=%u first_lba=%llu blocks=%llu (%llu MiB) bounds=[%llu..%llu)\n",
            pm, static_cast<unsigned long long>(first_lba),
@@ -914,6 +919,7 @@ __attribute__((weak)) int native_ufs_store_open(uint64_t blocks, uint64_t *first
            static_cast<unsigned long long>((blocks * kBlockBytes) >> 20),
            static_cast<unsigned long long>(min_lba),
            static_cast<unsigned long long>(max_excl));
+    if (&j716f_rtc_on_store_ready) j716f_rtc_on_store_ready();
     return 1;
   }
 
@@ -1119,6 +1125,54 @@ __attribute__((weak)) unsigned native_ufs_store_gpt_check(void) {
   }
   IOFree(blk, kBlockBytes);
   return status;
+}
+
+int j716f_ufs_rtc_load(uint8_t out64[64]) {
+  using namespace j716f_ram_store;
+  if (!out64) return -22;
+  if (!g_ufs_open || !g_ufs_blocks) return -19;
+  uint8_t *blk = static_cast<uint8_t *>(IOMallocZero(kBlockBytes));
+  if (!blk) return -12;
+  if (g_ufs_rtc_lock) IOLockLock(g_ufs_rtc_lock);
+  int rc = 0;
+  if (!j716f_r41_kernel::transport.readBlocksWithSink(
+          j716f_r41::kUserLun, g_ufs_first_lba, 1, copyOutSink, blk)) {
+    rc = -5;
+  } else if (memcmp(blk, "SHNGDATA", 8) != 0 || le32At(blk + 8) != 1U ||
+             le32At(blk + 12) != 64U || le32At(blk + 60) != j716f_r41::ieeeCrc32(blk, 60)) {
+    rc = -2;
+  } else {
+    memcpy(out64, blk + kUfsRtcRecordOffset, kUfsRtcRecordBytes);
+  }
+  if (g_ufs_rtc_lock) IOLockUnlock(g_ufs_rtc_lock);
+  IOFree(blk, kBlockBytes);
+  return rc;
+}
+
+int j716f_ufs_rtc_save(const uint8_t in64[64]) {
+  using namespace j716f_ram_store;
+  if (!in64) return -22;
+  if (!g_ufs_open || !g_ufs_rw || !g_ufs_blocks) return -30;
+  uint8_t *blk = static_cast<uint8_t *>(IOMallocZero(kBlockBytes));
+  if (!blk) return -12;
+  if (g_ufs_rtc_lock) IOLockLock(g_ufs_rtc_lock);
+  int rc = 0;
+  if (!j716f_r41_kernel::transport.readBlocksWithSink(
+          j716f_r41::kUserLun, g_ufs_first_lba, 1, copyOutSink, blk)) {
+    rc = -5;
+  } else if (memcmp(blk, "SHNGDATA", 8) != 0 || le32At(blk + 8) != 1U ||
+             le32At(blk + 12) != 64U || le32At(blk + 60) != j716f_r41::ieeeCrc32(blk, 60)) {
+    rc = -2;
+  } else if (memcmp(blk + kUfsRtcRecordOffset, in64, kUfsRtcRecordBytes) != 0) {
+    memcpy(blk + kUfsRtcRecordOffset, in64, kUfsRtcRecordBytes);
+    if (!j716f_r41_kernel::transport.writeBlocks(
+            j716f_r41::kUserLun, g_ufs_first_lba, 1, blk, true)) {
+      rc = -5;
+    }
+  }
+  if (g_ufs_rtc_lock) IOLockUnlock(g_ufs_rtc_lock);
+  IOFree(blk, kBlockBytes);
+  return rc;
 }
 
 int j716f_skip_setup_plist(unsigned index, const char **path, const uint8_t **data,

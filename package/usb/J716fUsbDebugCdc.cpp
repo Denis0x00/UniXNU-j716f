@@ -25,6 +25,9 @@ extern uint32_t PE_j716f_klog_read(uint64_t from_seq, char *dst, uint32_t max_le
                                    uint64_t *out_next_seq) __attribute__((weak_import));
 extern void j716f_cpufreq_snapshot(char *out, size_t cap) __attribute__((weak_import));
 extern void j716f_battery_snapshot(char *out, size_t cap) __attribute__((weak_import));
+extern void j716f_rtc_snapshot(char *out, size_t cap) __attribute__((weak_import));
+extern void j716f_rtc_scan(char *out, size_t cap) __attribute__((weak_import));
+extern int j716f_rtc_set_wall(uint64_t unix_secs) __attribute__((weak_import));
 extern void j716f_gpu_snapshot(char *out, size_t cap) __attribute__((weak_import));
 extern void j716f_backlight_snapshot(char *out, size_t cap) __attribute__((weak_import));
 extern int j716f_backlight_set_override(uint32_t level, int lpm_override) __attribute__((weak_import));
@@ -624,9 +627,9 @@ static void handleCommand(TerminalSession &s, const char *raw) {
     if (strEq(raw, "ping")) {
         s.reply.writeStr("[usb] PONG TB-J716F\r\n");
     } else if (strEq(raw, "features")) {
-        s.reply.writeStr("FEATURES: ping help status info uptime cpufreq battery backlight bl dpu gpu smp display touch input usb bootargs log replay log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot reboot.probe poweroff\r\n");
+        s.reply.writeStr("FEATURES: ping help status info uptime cpufreq battery rtc rtc.scan backlight bl dpu gpu smp display touch input usb bootargs log replay log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot reboot.probe poweroff\r\n");
     } else if (strEq(raw, "help")) {
-        s.reply.writeStr("Commands: ping status cpufreq battery backlight|bl [0..2047] [hs|lp] dpu gpu smp display touch usb bootargs log log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot [normal|bootloader|recovery|off] reboot.probe poweroff\r\n");
+        s.reply.writeStr("Commands: ping status cpufreq battery rtc rtc.scan backlight|bl [0..2047] [hs|lp] dpu gpu smp display touch usb bootargs log log.on log.off screen.snapshot screen.start screen.stop screen.configure reboot [normal|bootloader|recovery|off] reboot.probe poweroff\r\n");
     } else if (strEq(raw, "info") || strEq(raw, "uptime") || strEq(raw, "status")) {
         const uint32_t cpus = &armcpu_smp_running ? armcpu_smp_running : 0u;
         const uint32_t edge = &armcpu_cpu_init_completed ? armcpu_cpu_init_completed : 0u;
@@ -643,6 +646,10 @@ static void handleCommand(TerminalSession &s, const char *raw) {
         }
         if (&j716f_battery_snapshot) {
             j716f_battery_snapshot(buf, sizeof(buf));
+            s.reply.writeStr(buf);
+        }
+        if (&j716f_rtc_snapshot) {
+            j716f_rtc_snapshot(buf, sizeof(buf));
             s.reply.writeStr(buf);
         }
         snprintf(buf, sizeof(buf),
@@ -710,6 +717,42 @@ static void handleCommand(TerminalSession &s, const char *raw) {
             s.reply.writeStr(buf);
         } else {
             s.reply.writeStr("[usb] BATTERY: unavailable\r\n");
+        }
+    } else if (strEq(raw, "rtc") || strEq(raw, "rtc.status")) {
+        if (&j716f_rtc_snapshot) {
+            j716f_rtc_snapshot(buf, sizeof(buf));
+            s.reply.writeStr(buf);
+        } else {
+            s.reply.writeStr("[usb] RTC: unavailable\r\n");
+        }
+    } else if (strEq(raw, "rtc.scan")) {
+        if (&j716f_rtc_scan) {
+            static char rbuf[4096];
+            j716f_rtc_scan(rbuf, sizeof(rbuf));
+            s.reply.writeStr(rbuf);
+        } else {
+            s.reply.writeStr("[usb] RTC.SCAN: unavailable\r\n");
+        }
+    } else if (strStarts(raw, "rtc.set ")) {
+        if (&j716f_rtc_set_wall) {
+            const char *p = raw + 8;
+            while (*p == ' ' || *p == '\t') ++p;
+            uint64_t secs = 0;
+            bool ok = (*p >= '0' && *p <= '9');
+            while (*p >= '0' && *p <= '9') {
+                secs = secs * 10ULL + static_cast<uint64_t>(*p - '0');
+                ++p;
+            }
+            if (!ok) {
+                s.reply.writeStr("[usb] RTC.SET: usage: rtc.set <unix_seconds>\r\n");
+            } else {
+                const int rc = j716f_rtc_set_wall(secs);
+                snprintf(buf, sizeof(buf), "[usb] RTC.SET: secs=%llu rc=%d\r\n",
+                         static_cast<unsigned long long>(secs), rc);
+                s.reply.writeStr(buf);
+            }
+        } else {
+            s.reply.writeStr("[usb] RTC.SET: unavailable\r\n");
         }
     } else if (strEq(raw, "backlight") || strEq(raw, "bl") || strEq(raw, "bl.status")) {
         if (&j716f_backlight_snapshot) {

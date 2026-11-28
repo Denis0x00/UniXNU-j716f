@@ -138,6 +138,8 @@ jobs:
           test -f "$TREE/kits/j716f/input/J716fButtons.c"
           test -f "$TREE/kits/j716f/power/J716fCpuFreq.cpp"
           test -f "$TREE/kits/j716f/power/J716fBattery.cpp"
+          test -f "$TREE/kits/j716f/power/J716fRtc.cpp"
+          test -f "$TREE/kits/j716f/power/J716fRtcBoard.h"
           test -f "$TREE/kits/j716f/gpu/J716fGpuProbe.cpp"
           test -f "$TREE/kits/j716f/gpu/J716fA650Gmu.c"
           test -f "$TREE/kits/j716f/gpu/J716fA650GmuContext.c"
@@ -392,6 +394,12 @@ jobs:
             "device/package/wireless/tests/J716fBtType0Test.c" \
             -o "$OUT/test_bt_type0"
           "$OUT/test_bt_type0" --synthetic
+
+          echo "=== Test 19: J716fRtcBoard (SM8250 SPMI v5 PM8150 RTC counter & tagged SDAM offset) ==="
+          clang -std=c11 -O1 -g -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer \
+            "device/package/power/tests/J716fRtcBoardTest.c" \
+            -o "$OUT/test_rtc_board"
+          "$OUT/test_rtc_board"
 
       - name: Run upstream GopFramebuffer fence-wait sanitizer regression check
         run: |
