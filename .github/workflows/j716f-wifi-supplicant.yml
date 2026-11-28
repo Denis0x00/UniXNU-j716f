@@ -1,0 +1,188 @@
+name: J716F Wi-Fi Supplicant (iOS 17 wpa_supplicant 2.12)
+
+# Builds the arm64-apple-ios17.0 native XNU wpa_supplicant 2.12 daemon
+# (unixnu-wpa_supplicant) with Apple Xcode iphoneos SDK and 4 KiB-page
+# ad-hoc codesign + com.apple.private.security.no-container entitlement.
+# Contains zero Apple IPSW content, zero OEM firmware, and zero secrets.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/j716f-wifi-supplicant.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: j716f-wifi-supplicant-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-supplicant:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - name: Checkout pinned Ath12kWifi userspace backend
+        uses: actions/checkout@v4
+        with:
+          repository: UniXNU/Ath12kWifi
+          ref: 84e02e0c0a3354c341c76affef582c7c41883f1f
+          path: Ath12kWifi
+
+      - name: Download and verify upstream wpa_supplicant 2.12
+        working-directory: Ath12kWifi
+        run: |
+          mkdir -p deps
+          curl -fSL --retry 3 -o deps/wpa_supplicant-2.12.tar.gz \
+            https://w1.fi/releases/wpa_supplicant-2.12.tar.gz
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected = "08e23937e16d0155e55cab2b51f51fbe10d80a1aa91c4e15442645059b737ef6"
+          actual = hashlib.sha256(Path("deps/wpa_supplicant-2.12.tar.gz").read_bytes()).hexdigest()
+          assert actual == expected, f"SHA256 mismatch: {actual} != {expected}"
+          print("PASS: verified wpa_supplicant-2.12.tar.gz", actual)
+          PY
+
+      - name: Stage, build, and 4K-sign arm64-apple-ios17.0 unixnu-wpa_supplicant
+        working-directory: Ath12kWifi
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, plistlib, re, shlex, shutil, subprocess, tarfile
+          from pathlib import Path
+
+          root = Path.cwd()
+          lock = json.loads((root / "tools/source-lock.json").read_text())["supplicant"]
+          out = root / "out/wpa-src"
+          out.mkdir(parents=True, exist_ok=True)
+          staged = {}
+          with tarfile.open(root / "deps" / lock["archive"]) as archive:
+              for member in archive.getmembers():
+                  rel = Path(member.name).relative_to(lock["directory"])
+                  target = out / rel
+                  if member.isdir():
+                      target.mkdir(parents=True, exist_ok=True)
+                  elif member.isfile():
+                      target.parent.mkdir(parents=True, exist_ok=True)
+                      staged[str(rel)] = archive.extractfile(member).read()
+                  else:
+                      raise SystemExit(f"unsupported archive entry: {rel}")
+
+          def replace(name, old, new):
+              before = staged[name].decode()
+              assert before.count(old) == 1, f"context changed in {name}"
+              staged[name] = before.replace(old, new).encode()
+
+          replace("src/drivers/drivers.mak", "##### COMMON DRIVERS\n", """##### COMMON DRIVERS
+
+          ifdef CONFIG_DRIVER_SHENG
+          DRV_CFLAGS += -DCONFIG_DRIVER_SHENG
+          DRV_OBJS += ../src/drivers/driver_sheng.o
+          DRV_OBJS += ../src/drivers/nw_control_client.o
+          DRV_OBJS += ../src/drivers/nw_control_wire.o
+          DRV_OBJS += ../src/drivers/nw_supplicant_frontend.o
+          DRV_OBJS += ../src/drivers/nw_wireless_event.o
+          NEED_SME=y
+          endif
+          """.replace("          ", ""))
+          replace("src/drivers/drivers.c", "const struct wpa_driver_ops *const wpa_drivers[] =",
+                  "extern const struct wpa_driver_ops wpa_driver_sheng_ops;\n\nconst struct wpa_driver_ops *const wpa_drivers[] =")
+          replace("src/drivers/drivers.c", "#ifdef CONFIG_DRIVER_NL80211\n",
+                  "#ifdef CONFIG_DRIVER_SHENG\n\t&wpa_driver_sheng_ops,\n#endif\n#ifdef CONFIG_DRIVER_NL80211\n")
+          replace("wpa_supplicant/wpa_supplicant.c", "\tssid->auth_failures++;",
+                  "#ifdef CONFIG_DRIVER_SHENG\n\tnw_supplicant_auth_failed(wpa_s, reason);\n#endif\n\n\tssid->auth_failures++;")
+          replace("wpa_supplicant/wpa_supplicant.c", '#include "ctrl_iface.h"',
+                  '#include "ctrl_iface.h"\n#ifdef CONFIG_DRIVER_SHENG\n#include "nw_supplicant_frontend.h"\n#endif')
+
+          for name, data in staged.items():
+              (out / name).write_bytes(data)
+
+          for rel, src in {
+              "src/drivers/driver_sheng.c": "userspace/driver_sheng.c",
+              "src/drivers/nw_control_client.c": "userspace/nw_control_client.c",
+              "src/drivers/nw_control_wire.c": "src/nw_control_wire.c",
+              "src/drivers/nw_supplicant_frontend.c": "userspace/nw_supplicant_frontend.c",
+              "src/drivers/nw_wireless_event.c": "userspace/nw_wireless_event.c",
+              "src/l2_packet/l2_packet_sheng.c": "userspace/l2_packet_sheng.c",
+              "wpa_supplicant/.config": "userspace/supplicant.config",
+          }.items():
+              dst = out / rel
+              if dst.exists() or dst.is_symlink():
+                  dst.unlink()
+              dst.symlink_to(root / src)
+
+          sdk = subprocess.check_output(["xcrun", "--sdk", "iphoneos", "--show-sdk-path"], text=True).strip()
+          compiler = subprocess.check_output(["xcrun", "--sdk", "iphoneos", "--find", "clang"], text=True).strip()
+          build_dir = root / "out/wpa-ios17"
+          build_dir.mkdir(parents=True, exist_ok=True)
+          link = ["-target", "arm64-apple-ios17.0", "-isysroot", sdk]
+          flags = [
+              "-O2", "-g", "-Wall", "-MMD", "-Werror=implicit-function-declaration",
+              "-I" + str(root / "include"),
+              "-I" + str(root / "userspace"),
+              "-I" + str(out / "wpa_supplicant"),
+              *link,
+          ]
+          cmd = [
+              "make", "-j4", "wpa_supplicant", "V=1",
+              f"CC={compiler}",
+              f"BUILDDIR={build_dir}",
+              f"EXTRA_CFLAGS={shlex.join(flags)}",
+              f"LDFLAGS={shlex.join(link)}",
+          ]
+          subprocess.run(cmd, cwd=out / "wpa_supplicant", check=True)
+
+          stage = root / "out/j716f-wifi-supplicant"
+          stage.mkdir(parents=True, exist_ok=True)
+          binary = stage / "unixnu-wpa_supplicant"
+          shutil.copy2(out / "wpa_supplicant/wpa_supplicant", binary)
+          binary.chmod(0o755)
+          subprocess.run(["strip", "-x", str(binary)], check=True)
+
+          ent = stage / "entitlements.plist"
+          ent.write_bytes(plistlib.dumps({"com.apple.private.security.no-container": True}))
+          subprocess.run([
+              "codesign", "--force", "--sign", "-", "--pagesize", "4096",
+              "--identifier", "org.unixnu.wifi.supplicant",
+              "--entitlements", str(ent), str(binary),
+          ], check=True)
+          subprocess.run(["codesign", "--verify", "--strict", str(binary)], check=True)
+          detail = subprocess.run(
+              ["codesign", "--display", "--verbose=4", str(binary)],
+              check=True, capture_output=True, text=True,
+          ).stderr
+          m = re.search(r"^CDHash=([0-9a-f]{40})$", detail, re.M)
+          assert m, f"No CDHash in codesign output:\n{detail}"
+          assert re.search(r"^Page size=4096$", detail, re.M), "Expected 4096-byte page size"
+          hdr = binary.read_bytes()[:16]
+          magic = int.from_bytes(hdr[0:4], "little")
+          cputype = int.from_bytes(hdr[4:8], "little")
+          subtype = int.from_bytes(hdr[8:12], "little") & 0xFFFFFF
+          assert (magic, cputype, subtype) == (0xFEEDFACF, 0x100000C, 0), f"Bad Mach-O header: {(magic, cputype, subtype)}"
+
+          trust = {
+              "target": "arm64-apple-ios17.0",
+              "identifier": "org.unixnu.wifi.supplicant",
+              "cdhash": m[1],
+              "binary_sha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
+              "binary_bytes": binary.stat().st_size,
+              "ath12kwifi_commit": "84e02e0c0a3354c341c76affef582c7c41883f1f",
+              "wpa_supplicant_version": "2.12",
+          }
+          (stage / "trust-wifi.json").write_text(json.dumps(trust, indent=2) + "\n")
+          print("PASS:", json.dumps(trust, indent=2))
+          PY
+          ls -lh out/j716f-wifi-supplicant/
+
+      - name: Upload J716F iOS 17 wpa_supplicant artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: j716f-wifi-supplicant-ios17
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            Ath12kWifi/out/j716f-wifi-supplicant/unixnu-wpa_supplicant
+            Ath12kWifi/out/j716f-wifi-supplicant/trust-wifi.json
+            Ath12kWifi/out/j716f-wifi-supplicant/entitlements.plist
